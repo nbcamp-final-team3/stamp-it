@@ -1,0 +1,696 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		783A874D2DF02CE40095BF4E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 783A874C2DF02CE40095BF4E /* Kingfisher */; };
+		783A87502DF02CEE0095BF4E /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 783A874F2DF02CEE0095BF4E /* Then */; };
+		783A87532DF02CFA0095BF4E /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 783A87522DF02CFA0095BF4E /* SnapKit */; };
+		783A87562DF02D100095BF4E /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 783A87552DF02D100095BF4E /* RxCocoa */; };
+		783A87582DF02D100095BF4E /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 783A87572DF02D100095BF4E /* RxRelay */; };
+		783A875A2DF02D100095BF4E /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 783A87592DF02D100095BF4E /* RxSwift */; };
+		783A875D2DF02D1F0095BF4E /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 783A875C2DF02D1F0095BF4E /* Lottie */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		783A872E2DF02CA90095BF4E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 783A870C2DF02CA80095BF4E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 783A87132DF02CA80095BF4E;
+			remoteInfo = "StampIt-Project";
+		};
+		783A87382DF02CA90095BF4E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 783A870C2DF02CA80095BF4E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 783A87132DF02CA80095BF4E;
+			remoteInfo = "StampIt-Project";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		783A87142DF02CA80095BF4E /* StampIt-Project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "StampIt-Project.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		783A872D2DF02CA90095BF4E /* StampIt-ProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StampIt-ProjectTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		783A87372DF02CA90095BF4E /* StampIt-ProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StampIt-ProjectUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		783A873F2DF02CA90095BF4E /* Exceptions for "StampIt-Project" folder in "StampIt-Project" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resource/Info.plist,
+			);
+			target = 783A87132DF02CA80095BF4E /* StampIt-Project */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		783A87162DF02CA80095BF4E /* StampIt-Project */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				783A873F2DF02CA90095BF4E /* Exceptions for "StampIt-Project" folder in "StampIt-Project" target */,
+			);
+			path = "StampIt-Project";
+			sourceTree = "<group>";
+		};
+		783A87302DF02CA90095BF4E /* StampIt-ProjectTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "StampIt-ProjectTests";
+			sourceTree = "<group>";
+		};
+		783A873A2DF02CA90095BF4E /* StampIt-ProjectUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "StampIt-ProjectUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		783A87112DF02CA80095BF4E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				783A875A2DF02D100095BF4E /* RxSwift in Frameworks */,
+				783A875D2DF02D1F0095BF4E /* Lottie in Frameworks */,
+				783A87582DF02D100095BF4E /* RxRelay in Frameworks */,
+				783A87532DF02CFA0095BF4E /* SnapKit in Frameworks */,
+				783A874D2DF02CE40095BF4E /* Kingfisher in Frameworks */,
+				783A87562DF02D100095BF4E /* RxCocoa in Frameworks */,
+				783A87502DF02CEE0095BF4E /* Then in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		783A872A2DF02CA90095BF4E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		783A87342DF02CA90095BF4E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		783A870B2DF02CA80095BF4E = {
+			isa = PBXGroup;
+			children = (
+				783A87162DF02CA80095BF4E /* StampIt-Project */,
+				783A87302DF02CA90095BF4E /* StampIt-ProjectTests */,
+				783A873A2DF02CA90095BF4E /* StampIt-ProjectUITests */,
+				783A87152DF02CA80095BF4E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		783A87152DF02CA80095BF4E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				783A87142DF02CA80095BF4E /* StampIt-Project.app */,
+				783A872D2DF02CA90095BF4E /* StampIt-ProjectTests.xctest */,
+				783A87372DF02CA90095BF4E /* StampIt-ProjectUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		783A87132DF02CA80095BF4E /* StampIt-Project */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 783A87402DF02CA90095BF4E /* Build configuration list for PBXNativeTarget "StampIt-Project" */;
+			buildPhases = (
+				783A87102DF02CA80095BF4E /* Sources */,
+				783A87112DF02CA80095BF4E /* Frameworks */,
+				783A87122DF02CA80095BF4E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				783A87162DF02CA80095BF4E /* StampIt-Project */,
+			);
+			name = "StampIt-Project";
+			packageProductDependencies = (
+				783A874C2DF02CE40095BF4E /* Kingfisher */,
+				783A874F2DF02CEE0095BF4E /* Then */,
+				783A87522DF02CFA0095BF4E /* SnapKit */,
+				783A87552DF02D100095BF4E /* RxCocoa */,
+				783A87572DF02D100095BF4E /* RxRelay */,
+				783A87592DF02D100095BF4E /* RxSwift */,
+				783A875C2DF02D1F0095BF4E /* Lottie */,
+			);
+			productName = "StampIt-Project";
+			productReference = 783A87142DF02CA80095BF4E /* StampIt-Project.app */;
+			productType = "com.apple.product-type.application";
+		};
+		783A872C2DF02CA90095BF4E /* StampIt-ProjectTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 783A87452DF02CA90095BF4E /* Build configuration list for PBXNativeTarget "StampIt-ProjectTests" */;
+			buildPhases = (
+				783A87292DF02CA90095BF4E /* Sources */,
+				783A872A2DF02CA90095BF4E /* Frameworks */,
+				783A872B2DF02CA90095BF4E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				783A872F2DF02CA90095BF4E /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				783A87302DF02CA90095BF4E /* StampIt-ProjectTests */,
+			);
+			name = "StampIt-ProjectTests";
+			packageProductDependencies = (
+			);
+			productName = "StampIt-ProjectTests";
+			productReference = 783A872D2DF02CA90095BF4E /* StampIt-ProjectTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		783A87362DF02CA90095BF4E /* StampIt-ProjectUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 783A87482DF02CA90095BF4E /* Build configuration list for PBXNativeTarget "StampIt-ProjectUITests" */;
+			buildPhases = (
+				783A87332DF02CA90095BF4E /* Sources */,
+				783A87342DF02CA90095BF4E /* Frameworks */,
+				783A87352DF02CA90095BF4E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				783A87392DF02CA90095BF4E /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				783A873A2DF02CA90095BF4E /* StampIt-ProjectUITests */,
+			);
+			name = "StampIt-ProjectUITests";
+			packageProductDependencies = (
+			);
+			productName = "StampIt-ProjectUITests";
+			productReference = 783A87372DF02CA90095BF4E /* StampIt-ProjectUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		783A870C2DF02CA80095BF4E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					783A87132DF02CA80095BF4E = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					783A872C2DF02CA90095BF4E = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 783A87132DF02CA80095BF4E;
+					};
+					783A87362DF02CA90095BF4E = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 783A87132DF02CA80095BF4E;
+					};
+				};
+			};
+			buildConfigurationList = 783A870F2DF02CA80095BF4E /* Build configuration list for PBXProject "StampIt-Project" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 783A870B2DF02CA80095BF4E;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				783A874B2DF02CE40095BF4E /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				783A874E2DF02CEE0095BF4E /* XCRemoteSwiftPackageReference "Then" */,
+				783A87512DF02CFA0095BF4E /* XCRemoteSwiftPackageReference "SnapKit" */,
+				783A87542DF02D100095BF4E /* XCRemoteSwiftPackageReference "RxSwift" */,
+				783A875B2DF02D1F0095BF4E /* XCRemoteSwiftPackageReference "lottie-ios" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 783A87152DF02CA80095BF4E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				783A87132DF02CA80095BF4E /* StampIt-Project */,
+				783A872C2DF02CA90095BF4E /* StampIt-ProjectTests */,
+				783A87362DF02CA90095BF4E /* StampIt-ProjectUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		783A87122DF02CA80095BF4E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		783A872B2DF02CA90095BF4E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		783A87352DF02CA90095BF4E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		783A87102DF02CA80095BF4E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		783A87292DF02CA90095BF4E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		783A87332DF02CA90095BF4E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		783A872F2DF02CA90095BF4E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 783A87132DF02CA80095BF4E /* StampIt-Project */;
+			targetProxy = 783A872E2DF02CA90095BF4E /* PBXContainerItemProxy */;
+		};
+		783A87392DF02CA90095BF4E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 783A87132DF02CA80095BF4E /* StampIt-Project */;
+			targetProxy = 783A87382DF02CA90095BF4E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		783A87412DF02CA90095BF4E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 373K7546A3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				IPHONEOS_DEPLOYMENT_TARGET = 16;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.by.StampIt-Project";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		783A87422DF02CA90095BF4E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 373K7546A3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				IPHONEOS_DEPLOYMENT_TARGET = 16;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.by.StampIt-Project";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		783A87432DF02CA90095BF4E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		783A87442DF02CA90095BF4E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		783A87462DF02CA90095BF4E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 373K7546A3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.by.StampIt-ProjectTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StampIt-Project.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StampIt-Project";
+			};
+			name = Debug;
+		};
+		783A87472DF02CA90095BF4E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 373K7546A3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.by.StampIt-ProjectTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StampIt-Project.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StampIt-Project";
+			};
+			name = Release;
+		};
+		783A87492DF02CA90095BF4E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 373K7546A3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.by.StampIt-ProjectUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "StampIt-Project";
+			};
+			name = Debug;
+		};
+		783A874A2DF02CA90095BF4E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 373K7546A3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.by.StampIt-ProjectUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "StampIt-Project";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		783A870F2DF02CA80095BF4E /* Build configuration list for PBXProject "StampIt-Project" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				783A87432DF02CA90095BF4E /* Debug */,
+				783A87442DF02CA90095BF4E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		783A87402DF02CA90095BF4E /* Build configuration list for PBXNativeTarget "StampIt-Project" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				783A87412DF02CA90095BF4E /* Debug */,
+				783A87422DF02CA90095BF4E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		783A87452DF02CA90095BF4E /* Build configuration list for PBXNativeTarget "StampIt-ProjectTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				783A87462DF02CA90095BF4E /* Debug */,
+				783A87472DF02CA90095BF4E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		783A87482DF02CA90095BF4E /* Build configuration list for PBXNativeTarget "StampIt-ProjectUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				783A87492DF02CA90095BF4E /* Debug */,
+				783A874A2DF02CA90095BF4E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		783A874B2DF02CE40095BF4E /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.3.2;
+			};
+		};
+		783A874E2DF02CEE0095BF4E /* XCRemoteSwiftPackageReference "Then" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/devxoul/Then.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+		783A87512DF02CFA0095BF4E /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
+		783A87542DF02D100095BF4E /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.9.0;
+			};
+		};
+		783A875B2DF02D1F0095BF4E /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		783A874C2DF02CE40095BF4E /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A874B2DF02CE40095BF4E /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		783A874F2DF02CEE0095BF4E /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A874E2DF02CEE0095BF4E /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
+		783A87522DF02CFA0095BF4E /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A87512DF02CFA0095BF4E /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		783A87552DF02D100095BF4E /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A87542DF02D100095BF4E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		783A87572DF02D100095BF4E /* RxRelay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A87542DF02D100095BF4E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxRelay;
+		};
+		783A87592DF02D100095BF4E /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A87542DF02D100095BF4E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
+		};
+		783A875C2DF02D1F0095BF4E /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A875B2DF02D1F0095BF4E /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 783A870C2DF02CA80095BF4E /* Project object */;
+}
