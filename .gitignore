@@ -63,3 +63,7 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 .DS_Store
+
+echo -e "\n# Swift Package Manager\nPackage.resolved" >> .gitignore
+git add .gitignore
+git commit -m "Ignore Package.resolved file"
