@@ -13,6 +13,30 @@ enum HomeItem {
     case received(HomeReceivedMission)
     case sended(HomeSendedMission)
 
+    var member: HomeMember? {
+        if case .member(let member) = self {
+            return member
+        } else {
+            return nil
+        }
+    }
+
+    var received: HomeReceivedMission? {
+        if case .received(let mission) = self {
+            return mission
+        } else {
+            return nil
+        }
+    }
+
+    var sended: HomeSendedMission? {
+        if case .sended(let mission) = self {
+            return mission
+        } else {
+            return nil
+        }
+    }
+
     struct HomeMember {
         let nickname: String
         let stickerCount: Int
@@ -29,7 +53,7 @@ enum HomeItem {
     struct HomeSendedMission {
         let title: String
         let dueDate: String
-        let assigneeImageURL: String
+        let assigneeImageURL: String?
         let status: String
     }
 }

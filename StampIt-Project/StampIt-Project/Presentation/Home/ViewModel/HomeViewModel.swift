@@ -24,12 +24,14 @@ final class HomeViewModel: ViewModelProtocol {
         let isShowGroupOrganizationView = PublishRelay<Bool>()
         let rankedMembers = PublishRelay<[HomeItem]>()
         let receivedMissions = BehaviorRelay<[HomeItem]>(value: [])
+        let sendedMissions = PublishRelay<[HomeItem]>()
     }
 
     // MARK: - Properties
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
+    var memberCache = [String: User]() // 멤버 정보 저장
 
     // MARK: - Init
     init(useCase: HomeUseCase) {
@@ -42,6 +44,9 @@ final class HomeViewModel: ViewModelProtocol {
         bindUser()
         bindRankedMembers()
         bindReceivedMissions()
+        bindSendedMissions()
+    }
+
     private func bindUser() {
         action
             .filter { $0 == .viewDidLoad }
@@ -56,6 +61,9 @@ final class HomeViewModel: ViewModelProtocol {
             .flatMap { [weak self] _ -> Observable<[HomeItem]> in
                 guard let self, let user = self.state.user.value else { return .empty() }
                 return self.useCase.fetchRanking(ofGroup: "")
+                    .do(onNext: { [weak self] users in
+                        self?.memberCache = .init(uniqueKeysWithValues: users.map { ($0.userID, $0) })
+                    })
                     .map { self.mapUsersToHomeItems($0) }
             }
             .do(onNext: { [weak self] items in
@@ -75,6 +83,18 @@ final class HomeViewModel: ViewModelProtocol {
                     .map { self.mapReceivedMissionsToHomeItems($0) }
             }
             .bind(to: state.receivedMissions)
+            .disposed(by: disposeBag)
+    }
+
+    private func bindSendedMissions() {
+        action
+            .filter { $0 == .viewWillAppear }
+            .flatMap { [weak self] _ -> Observable<[HomeItem]> in
+                guard let self, let user = self.state.user.value else { return .empty() }
+                return self.useCase.fetchRecievedMissions(ofUser: user.userID)
+                    .map { self.mapSendedMissionsToHomeItems($0) }
+            }
+            .bind(to: state.sendedMissions)
             .disposed(by: disposeBag)
     }
 
@@ -107,6 +127,19 @@ final class HomeViewModel: ViewModelProtocol {
                 imageURL: mission.imageURL
             )
             return HomeItem.received(homeMission)
+        }
+    }
+
+    private func mapSendedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
+        missions.map { mission in
+            let assigneeImageURL = memberCache[mission.asignedTo]?.profileImageURL
+            let homeMission = HomeItem.HomeSendedMission(
+                title: mission.title,
+                dueDate: mission.dueDate.toMonthDayString(),
+                assigneeImageURL: assigneeImageURL,
+                status: mission.status.text
+            )
+            return HomeItem.sended(homeMission)
         }
     }
 }
