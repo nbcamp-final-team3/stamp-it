@@ -16,7 +16,7 @@ enum HomeItem {
     struct HomeMember {
         let nickname: String
         let stickerCount: Int
-        let profileImageURL: String
+        let profileImageURL: String?
     }
 
     struct HomeReceivedMission {
