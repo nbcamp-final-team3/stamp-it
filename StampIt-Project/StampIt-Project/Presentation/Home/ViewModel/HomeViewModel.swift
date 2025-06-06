@@ -21,6 +21,7 @@ final class HomeViewModel: ViewModelProtocol {
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
+        let isShowGroupOrganizationView = PublishRelay<Bool>()
         let rankedMembers = PublishRelay<[HomeItem]>()
     }
 
@@ -55,6 +56,10 @@ final class HomeViewModel: ViewModelProtocol {
                 return self.useCase.fetchRanking(ofGroup: "")
                     .map { self.mapUsersToHomeItems($0) }
             }
+            .do(onNext: { [weak self] items in
+                let isShow = items.count == 1
+                self?.state.isShowGroupOrganizationView.accept(isShow)
+            })
             .bind(to: state.rankedMembers)
             .disposed(by: disposeBag)
     }
