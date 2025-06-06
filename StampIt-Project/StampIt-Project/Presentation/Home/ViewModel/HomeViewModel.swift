@@ -23,6 +23,7 @@ final class HomeViewModel: ViewModelProtocol {
         let user = BehaviorRelay<User?>(value: nil)
         let isShowGroupOrganizationView = PublishRelay<Bool>()
         let rankedMembers = PublishRelay<[HomeItem]>()
+        let receivedMissions = BehaviorRelay<[HomeItem]>(value: [])
     }
 
     // MARK: - Properties
@@ -40,6 +41,7 @@ final class HomeViewModel: ViewModelProtocol {
     private func bind() {
         bindUser()
         bindRankedMembers()
+        bindReceivedMissions()
     private func bindUser() {
         action
             .filter { $0 == .viewDidLoad }
@@ -63,6 +65,19 @@ final class HomeViewModel: ViewModelProtocol {
             .bind(to: state.rankedMembers)
             .disposed(by: disposeBag)
     }
+
+    private func bindReceivedMissions() {
+        action
+            .filter { $0 == .viewWillAppear }
+            .flatMap { [weak self] _ -> Observable<[HomeItem]> in
+                guard let self, let user = self.state.user.value else { return .empty() }
+                return self.useCase.fetchRecievedMissions(ofUser: user.userID)
+                    .map { self.mapReceivedMissionsToHomeItems($0) }
+            }
+            .bind(to: state.receivedMissions)
+            .disposed(by: disposeBag)
+    }
+
     // MARK: - Methods
     private func mapUsersToHomeItems(_ users: [User]) -> [HomeItem] {
         users.map { user in
@@ -79,6 +94,19 @@ final class HomeViewModel: ViewModelProtocol {
     private func getStickerCount(ofUser user: User) -> Int {
         user.boards.reduce(0) { total, board in
             total + board.stickers.count
+        }
+    }
+
+    private func mapReceivedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
+        missions.map { mission in
+            let dueDateString = mission.dueDate.formatted()
+            let homeMission = HomeItem.HomeReceivedMission(
+                title: mission.title,
+                dueDate: mission.dueDate.toMonthDayString(),
+                assigner: mission.asignedBy,
+                imageURL: mission.imageURL
+            )
+            return HomeItem.received(homeMission)
         }
     }
 }

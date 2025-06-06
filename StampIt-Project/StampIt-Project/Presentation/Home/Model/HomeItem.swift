@@ -23,7 +23,7 @@ enum HomeItem {
         let title: String
         let dueDate: String
         let assigner: String
-        let profileImageURL: String
+        let imageURL: String
     }
 
     struct HomeSendedMission {
