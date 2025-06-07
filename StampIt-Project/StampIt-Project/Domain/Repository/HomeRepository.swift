@@ -14,5 +14,5 @@ protocol HomeRepository {
     func fetchUsers(for userIDs: [String]) -> Observable<[User]>
     func fetchRecievedMissions(ofUser userID: String) -> Observable<[Mission]>
     func fetchSendedMissions(ofUser userID: String) -> Observable<[Mission]>
-    func updateMissionStatus(to status: MissionStatus)
+    func updateMissionStatus(for missionID: String, to status: MissionStatus)
 }

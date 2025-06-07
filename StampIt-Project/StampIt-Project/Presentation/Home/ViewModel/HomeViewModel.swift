@@ -19,6 +19,7 @@ final class HomeViewModel: ViewModelProtocol {
         case viewWillAppear
         case didTapGroupOrganizationButton
         case didReceiveInvitationType(InvitationType)
+        case didTapMissonCompleteButton(String)
     }
 
     struct State {
@@ -30,6 +31,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
+        let isShowStickerRecieved = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -59,6 +61,8 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.handleSelectIvitation()
                 case .didReceiveInvitationType(let type):
                     owner.handleInvitation(type: type)
+                case .didTapMissonCompleteButton(let id):
+                    owner.handleMissionComplete(missionID: id)
                 }
             }
             .disposed(by: disposeBag)
@@ -114,11 +118,20 @@ final class HomeViewModel: ViewModelProtocol {
         }
     }
 
+    private func handleMissionComplete(missionID: String) {
+        useCase.updateMissionStatus(for: missionID, to: .completed)
+
+        var missions = state.receivedMissions.value
+        missions.removeAll(where: { $0.received!.missionID == missionID })
+        state.receivedMissions.accept(missions)
+    }
+
     // MARK: - Methods
     private func mapUsersToHomeItems(_ users: [User]) -> [HomeItem] {
         users.map { user in
             let stickerCount = getStickerCount(ofUser: user)
             let member = HomeItem.HomeMember(
+                memberID: user.userID,
                 nickname: user.nickname,
                 stickerCount: stickerCount,
                 profileImageURL: user.profileImageURL
@@ -135,8 +148,8 @@ final class HomeViewModel: ViewModelProtocol {
 
     private func mapReceivedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
         missions.map { mission in
-            let dueDateString = mission.dueDate.formatted()
             let homeMission = HomeItem.HomeReceivedMission(
+                missionID: mission.missionID,
                 title: mission.title,
                 dueDate: mission.dueDate.toMonthDayString(),
                 assigner: mission.asignedBy,
@@ -150,6 +163,7 @@ final class HomeViewModel: ViewModelProtocol {
         missions.map { mission in
             let assigneeImageURL = memberCache[mission.asignedTo]?.profileImageURL
             let homeMission = HomeItem.HomeSendedMission(
+                missionID: mission.missionID,
                 title: mission.title,
                 dueDate: mission.dueDate.toMonthDayString(),
                 assigneeImageURL: assigneeImageURL,

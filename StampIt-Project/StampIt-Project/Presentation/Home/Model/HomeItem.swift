@@ -8,7 +8,7 @@
 import Foundation
 
 
-enum HomeItem {
+enum HomeItem: Hashable {
     case member(HomeMember)
     case received(HomeReceivedMission)
     case sended(HomeSendedMission)
@@ -37,20 +37,23 @@ enum HomeItem {
         }
     }
 
-    struct HomeMember {
+    struct HomeMember: Hashable {
+        let memberID: String
         let nickname: String
         let stickerCount: Int
         let profileImageURL: String?
     }
 
-    struct HomeReceivedMission {
+    struct HomeReceivedMission: Hashable {
+        let missionID: String
         let title: String
         let dueDate: String
         let assigner: String
         let imageURL: String
     }
 
-    struct HomeSendedMission {
+    struct HomeSendedMission: Hashable {
+        let missionID: String
         let title: String
         let dueDate: String
         let assigneeImageURL: String?
