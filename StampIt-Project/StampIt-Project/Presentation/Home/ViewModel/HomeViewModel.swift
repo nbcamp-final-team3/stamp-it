@@ -17,6 +17,8 @@ final class HomeViewModel: ViewModelProtocol {
     enum Action {
         case viewDidLoad
         case viewWillAppear
+        case didTapGroupOrganizationButton
+        case didReceiveInvitationType(InvitationType)
     }
 
     struct State {
@@ -25,6 +27,9 @@ final class HomeViewModel: ViewModelProtocol {
         let rankedMembers = PublishRelay<[HomeItem]>()
         let receivedMissions = BehaviorRelay<[HomeItem]>(value: [])
         let sendedMissions = PublishRelay<[HomeItem]>()
+        let isShowSelectInvitationVC = PublishRelay<Void>()
+        let isPushSendInvitationVC = PublishRelay<Void>()
+        let isPushReceiveInvitationVC = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -50,6 +55,10 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.bindRankedMembers()
                     owner.bindReceivedMissions()
                     owner.bindSendedMissions()
+                case .didTapGroupOrganizationButton:
+                    owner.handleSelectIvitation()
+                case .didReceiveInvitationType(let type):
+                    owner.handleInvitation(type: type)
                 }
             }
             .disposed(by: disposeBag)
@@ -90,6 +99,19 @@ final class HomeViewModel: ViewModelProtocol {
             .map { self.mapSendedMissionsToHomeItems($0) }
             .bind(to: state.sendedMissions)
             .disposed(by: disposeBag)
+    }
+
+    private func handleSelectIvitation() {
+        state.isShowSelectInvitationVC.accept(())
+    }
+
+    private func handleInvitation(type: InvitationType) {
+        switch type {
+        case .send:
+            state.isPushSendInvitationVC.accept(())
+        case .receive:
+            state.isPushReceiveInvitationVC.accept(())
+        }
     }
 
     // MARK: - Methods
