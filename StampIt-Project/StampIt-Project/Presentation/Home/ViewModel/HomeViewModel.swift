@@ -68,12 +68,17 @@ final class HomeViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
 
+    /// user 정보 바인딩
     private func bindUser() {
         useCase.fetchUser()
             .bind(to: state.user)
             .disposed(by: disposeBag)
     }
 
+    /// 유저가 속한 그룹의 멤버 랭킹 바인딩
+    ///
+    /// HomeItem으로 매핑하기 전에 멤버 정보 캐싱하고,
+    /// 멤버가 1명(유저 혼자)이면 그룹 구성하기 뷰로 전환
     private func bindRankedMembers() {
         guard let user = state.user.value else { return }
         useCase.fetchRanking(ofGroup: user.groupID)
@@ -89,6 +94,7 @@ final class HomeViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
 
+    /// 유저가 그룹 구성원으로부터 받은 미션 바인딩
     private func bindReceivedMissions() {
         guard let user = state.user.value else { return }
         useCase.fetchRecievedMissions(ofUser: user.userID)
@@ -97,6 +103,7 @@ final class HomeViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
 
+    /// 유저가 다른 그룹 구성원에게 보낸 미션 바인딩
     private func bindSendedMissions() {
         guard let user = state.user.value else { return }
         useCase.fetchSendedMissions(ofUser: user.userID)
@@ -105,10 +112,12 @@ final class HomeViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
 
+    /// 그룹 구성하기 버튼 탭 시 초대하기/초대받기 선택할 수 있는 뷰 제공
     private func handleSelectIvitation() {
         state.isShowSelectInvitationVC.accept(())
     }
 
+    /// 초대하기/초대받기 선택에 따라 VC push
     private func handleInvitation(type: InvitationType) {
         switch type {
         case .send:
@@ -118,6 +127,10 @@ final class HomeViewModel: ViewModelProtocol {
         }
     }
 
+    /// 미션 완료 바인딩
+    ///
+    /// 미션 완료 API를 호출하고,
+    /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 제거
     private func handleMissionComplete(missionID: String) {
         useCase.updateMissionStatus(for: missionID, to: .completed)
 
@@ -127,6 +140,8 @@ final class HomeViewModel: ViewModelProtocol {
     }
 
     // MARK: - Methods
+
+    /// [User]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapUsersToHomeItems(_ users: [User]) -> [HomeItem] {
         users.map { user in
             let stickerCount = getStickerCount(ofUser: user)
@@ -140,12 +155,14 @@ final class HomeViewModel: ViewModelProtocol {
         }
     }
 
+    /// User가 가진 모든 스티커 수의 합 반환
     private func getStickerCount(ofUser user: User) -> Int {
         user.boards.reduce(0) { total, board in
             total + board.stickers.count
         }
     }
 
+    /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapReceivedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
         missions.map { mission in
             let homeMission = HomeItem.HomeReceivedMission(
@@ -159,6 +176,7 @@ final class HomeViewModel: ViewModelProtocol {
         }
     }
 
+    /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapSendedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
         missions.map { mission in
             let assigneeImageURL = memberCache[mission.asignedTo]?.profileImageURL
