@@ -41,31 +41,33 @@ final class HomeViewModel: ViewModelProtocol {
 
     // MARK: - Bind
     private func bind() {
-        bindUser()
-        bindRankedMembers()
-        bindReceivedMissions()
-        bindSendedMissions()
+        action
+            .subscribe(with: self) { owner, action in
+                switch action {
+                case .viewDidLoad:
+                    owner.bindUser()
+                case .viewWillAppear:
+                    owner.bindRankedMembers()
+                    owner.bindReceivedMissions()
+                    owner.bindSendedMissions()
+                }
+            }
+            .disposed(by: disposeBag)
     }
 
     private func bindUser() {
-        action
-            .filter { $0 == .viewDidLoad }
-            .flatMap { _ in self.useCase.fetchUser() }
+        useCase.fetchUser()
             .bind(to: state.user)
             .disposed(by: disposeBag)
     }
 
     private func bindRankedMembers() {
-        action
-            .filter { $0 == .viewWillAppear }
-            .flatMap { [weak self] _ -> Observable<[HomeItem]> in
-                guard let self, let user = self.state.user.value else { return .empty() }
-                return self.useCase.fetchRanking(ofGroup: "")
-                    .do(onNext: { [weak self] users in
-                        self?.memberCache = .init(uniqueKeysWithValues: users.map { ($0.userID, $0) })
-                    })
-                    .map { self.mapUsersToHomeItems($0) }
-            }
+        guard let user = state.user.value else { return }
+        useCase.fetchRanking(ofGroup: user.groupID)
+            .do(onNext: { [weak self] users in
+                self?.memberCache = .init(uniqueKeysWithValues: users.map { ($0.userID, $0) })
+            })
+            .map { self.mapUsersToHomeItems($0) }
             .do(onNext: { [weak self] items in
                 let isShow = items.count == 1
                 self?.state.isShowGroupOrganizationView.accept(isShow)
@@ -75,25 +77,17 @@ final class HomeViewModel: ViewModelProtocol {
     }
 
     private func bindReceivedMissions() {
-        action
-            .filter { $0 == .viewWillAppear }
-            .flatMap { [weak self] _ -> Observable<[HomeItem]> in
-                guard let self, let user = self.state.user.value else { return .empty() }
-                return self.useCase.fetchRecievedMissions(ofUser: user.userID)
-                    .map { self.mapReceivedMissionsToHomeItems($0) }
-            }
+        guard let user = state.user.value else { return }
+        useCase.fetchRecievedMissions(ofUser: user.userID)
+            .map { self.mapReceivedMissionsToHomeItems($0) }
             .bind(to: state.receivedMissions)
             .disposed(by: disposeBag)
     }
 
     private func bindSendedMissions() {
-        action
-            .filter { $0 == .viewWillAppear }
-            .flatMap { [weak self] _ -> Observable<[HomeItem]> in
-                guard let self, let user = self.state.user.value else { return .empty() }
-                return self.useCase.fetchRecievedMissions(ofUser: user.userID)
-                    .map { self.mapSendedMissionsToHomeItems($0) }
-            }
+        guard let user = state.user.value else { return }
+        useCase.fetchSendedMissions(ofUser: user.userID)
+            .map { self.mapSendedMissionsToHomeItems($0) }
             .bind(to: state.sendedMissions)
             .disposed(by: disposeBag)
     }
