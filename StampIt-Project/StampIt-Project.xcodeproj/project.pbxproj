@@ -14,6 +14,7 @@
 		783A87582DF02D100095BF4E /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 783A87572DF02D100095BF4E /* RxRelay */; };
 		783A875A2DF02D100095BF4E /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 783A87592DF02D100095BF4E /* RxSwift */; };
 		783A875D2DF02D1F0095BF4E /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 783A875C2DF02D1F0095BF4E /* Lottie */; };
+		F47C18982DF43DD800D1C7E7 /* Toast in Frameworks */ = {isa = PBXBuildFile; productRef = F47C18972DF43DD800D1C7E7 /* Toast */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F47C18982DF43DD800D1C7E7 /* Toast in Frameworks */,
 				783A875A2DF02D100095BF4E /* RxSwift in Frameworks */,
 				783A875D2DF02D1F0095BF4E /* Lottie in Frameworks */,
 				783A87582DF02D100095BF4E /* RxRelay in Frameworks */,
@@ -149,6 +151,7 @@
 				783A87572DF02D100095BF4E /* RxRelay */,
 				783A87592DF02D100095BF4E /* RxSwift */,
 				783A875C2DF02D1F0095BF4E /* Lottie */,
+				F47C18972DF43DD800D1C7E7 /* Toast */,
 			);
 			productName = "StampIt-Project";
 			productReference = 783A87142DF02CA80095BF4E /* StampIt-Project.app */;
@@ -238,6 +241,7 @@
 				783A87512DF02CFA0095BF4E /* XCRemoteSwiftPackageReference "SnapKit" */,
 				783A87542DF02D100095BF4E /* XCRemoteSwiftPackageReference "RxSwift" */,
 				783A875B2DF02D1F0095BF4E /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				F47C18962DF43DD800D1C7E7 /* XCRemoteSwiftPackageReference "Toast-Swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 783A87152DF02CA80095BF4E /* Products */;
@@ -320,7 +324,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 373K7546A3;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";
@@ -353,7 +357,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 373K7546A3;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";
@@ -652,6 +656,14 @@
 				minimumVersion = 4.5.2;
 			};
 		};
+		F47C18962DF43DD800D1C7E7 /* XCRemoteSwiftPackageReference "Toast-Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scalessec/Toast-Swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -689,6 +701,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 783A875B2DF02D1F0095BF4E /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
+		};
+		F47C18972DF43DD800D1C7E7 /* Toast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F47C18962DF43DD800D1C7E7 /* XCRemoteSwiftPackageReference "Toast-Swift" */;
+			productName = Toast;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
