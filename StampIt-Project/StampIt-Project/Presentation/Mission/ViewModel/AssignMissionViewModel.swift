@@ -14,6 +14,7 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
         case onAppear
         case didSelectMember(Member)
         case didSelectDueDate(Date)
+        case didTapAssignButton
     }
     
     struct Output {
@@ -56,6 +57,8 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
                 case .didSelectDueDate(let date):
                     output.dueDate.accept(date)
                     print("due date: \(date)")
+                case .didTapAssignButton:
+                    print("did tap assign button")
                 }
             }
             .disposed(by: disposeBag)

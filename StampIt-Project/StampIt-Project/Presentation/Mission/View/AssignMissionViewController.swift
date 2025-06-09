@@ -51,6 +51,10 @@ final class AssignMissionViewController: UIViewController {
         $0.distribution = .equalCentering
     }
     
+    private let assignButton = DefaultButton(type: .send).then {
+        $0.isEnabled = false
+    }
+    
     private let viewModel: AssignMissionViewModel
     private let disposeBag = DisposeBag()
     
@@ -84,7 +88,7 @@ final class AssignMissionViewController: UIViewController {
     private func prepareSubviews() {
         view.backgroundColor = .white
         
-        [memberStackView, dueDateStackView].forEach {
+        [memberStackView, dueDateStackView, assignButton].forEach {
             view.addSubview($0)
         }
         
@@ -105,6 +109,11 @@ final class AssignMissionViewController: UIViewController {
         
         dueDateStackView.snp.makeConstraints {
             $0.top.equalTo(memberStackView.snp.bottom).offset(16)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+        }
+        
+        assignButton.snp.makeConstraints {
+            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
     }
@@ -139,6 +148,7 @@ final class AssignMissionViewController: UIViewController {
             .drive { [weak self] member in
                 guard let self, let member else { return }
                 memberMenuButton.setTitle("\(member.nickname)", for: .normal) // 버튼에 선택한 멤버 이름 표시
+                assignButton.isEnabled = true
             }
             .disposed(by: disposeBag)
         
@@ -148,6 +158,16 @@ final class AssignMissionViewController: UIViewController {
             .distinctUntilChanged()
             .drive { date in
                 print("due date: \(date)")
+            }
+            .disposed(by: disposeBag)
+        
+        // 전달하기 버튼 누를 때
+        assignButton.rx.tap
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] _ in
+                guard let self else { return }
+                viewModel.input.accept(.didTapAssignButton)
+                dismiss()
             }
             .disposed(by: disposeBag)
     }
@@ -162,5 +182,9 @@ final class AssignMissionViewController: UIViewController {
         }
         
         return UIMenu(children: actions)
+    }
+    
+    private func dismiss() {
+        navigationController?.popViewController(animated: true)
     }
 }

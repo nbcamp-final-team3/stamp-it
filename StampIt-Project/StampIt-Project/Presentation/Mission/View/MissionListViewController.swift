@@ -48,6 +48,12 @@ final class MissionListViewController: UIViewController {
         viewModel.input.accept(.onAppear)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        setNavigationBar()
+    }
+    
     private func prepareSubviews() {
         view.backgroundColor = .white
         
@@ -72,6 +78,11 @@ final class MissionListViewController: UIViewController {
     private func setNavigationBar() {
         navigationItem.title = "미션"
         navigationController?.navigationBar.prefersLargeTitles = true
+        
+        // 뒤로 가기 버튼 이미지를 화살표로 바꾸고 타이틀 삭제
+        let backButtonImage = UIImage(systemName: "arrow.left")
+        navigationController?.navigationBar.backIndicatorImage = backButtonImage
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = backButtonImage
         navigationItem.backButtonTitle = ""
     }
     
