@@ -82,6 +82,7 @@ extension DefaultButton {
         case confirm
         case send
         case enter
+        case modify
 
         var title: String {
             switch self {
@@ -93,6 +94,8 @@ extension DefaultButton {
                 "전달하기"
             case .enter:
                 "입장하기"
+            case .modify:
+                "수정하기"
             }
         }
     }
