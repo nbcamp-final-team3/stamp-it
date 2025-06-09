@@ -8,8 +8,18 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class GroupOrganizationView: UIView {
+
+    // MARK: - Actions
+
+    let didTapGroupOrganizationButton = PublishRelay<Void>()
+
+    // MARK: - Properties
+
+    private let disposeBag = DisposeBag()
 
     // MARK: - UI Components
 
@@ -43,6 +53,7 @@ final class GroupOrganizationView: UIView {
         super.init(frame: frame)
         setHierarchy()
         setConstraints()
+        bind()
     }
 
     required init?(coder: NSCoder) {
@@ -87,5 +98,13 @@ final class GroupOrganizationView: UIView {
             make.height.equalTo(36)
             make.bottom.equalToSuperview().inset(28)
         }
+    }
+
+    // MARK: - Bind
+
+    private func bind() {
+        groupButton.rx.tap
+            .bind(to: didTapGroupOrganizationButton)
+            .disposed(by: disposeBag)
     }
 }
