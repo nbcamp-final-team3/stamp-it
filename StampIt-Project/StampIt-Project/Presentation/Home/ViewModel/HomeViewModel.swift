@@ -198,9 +198,11 @@ final class HomeViewModel: ViewModelProtocol {
             let homeMission = HomeItem.HomeReceivedMission(
                 missionID: mission.missionID,
                 title: mission.title,
+                category: mission.category,
                 dueDate: mission.dueDate.toMonthDayString(),
                 assigner: mission.assignedBy,
-                imageURL: mission.imageURL
+                // TODO: UseCase에서 isNew 판별
+                isNew: true
             )
             return HomeItem.received(homeMission)
         }
@@ -209,12 +211,13 @@ final class HomeViewModel: ViewModelProtocol {
     /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapSendedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
         missions.map { mission in
-            let assigneeImageURL = memberCache[mission.assignedTo]?.profileImageURL
+            let assignee = memberCache[mission.assignedTo]?.nickname ?? ""
             let homeMission = HomeItem.HomeSendedMission(
                 missionID: mission.missionID,
                 title: mission.title,
+                category: mission.category,
                 dueDate: mission.dueDate.toMonthDayString(),
-                assigneeImageURL: assigneeImageURL,
+                assignee: assignee,
                 status: mission.status.text
             )
             return HomeItem.sended(homeMission)

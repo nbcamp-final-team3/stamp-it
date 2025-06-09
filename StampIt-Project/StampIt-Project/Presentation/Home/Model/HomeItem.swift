@@ -47,16 +47,18 @@ enum HomeItem: Hashable {
     struct HomeReceivedMission: Hashable {
         let missionID: String
         let title: String
+        let category: MissionCategory
         let dueDate: String
         let assigner: String
-        let imageURL: String
+        let isNew: Bool
     }
 
     struct HomeSendedMission: Hashable {
         let missionID: String
         let title: String
+        let category: MissionCategory
         let dueDate: String
-        let assigneeImageURL: String?
+        let assignee: String
         let status: String
     }
 }

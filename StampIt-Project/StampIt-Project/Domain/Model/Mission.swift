@@ -16,5 +16,5 @@ struct Mission {
     let dueDate: Date
     let status: MissionStatus
     let imageURL: String
-    let category: MissionCategory?
+    let category: MissionCategory
 }
