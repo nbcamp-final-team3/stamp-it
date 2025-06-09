@@ -123,7 +123,7 @@ extension DefaultButton {
         var contentInsets: NSDirectionalEdgeInsets {
             switch self {
             case .groupOrganization:
-                    .init(top: 6, leading: 16, bottom: 66, trailing: 16)
+                    .init(top: 6, leading: 16, bottom: 6, trailing: 16)
             default:
                     .init(top: 16, leading: 20, bottom: 16, trailing: 20)
             }
