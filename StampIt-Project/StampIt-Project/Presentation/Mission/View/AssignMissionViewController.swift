@@ -16,6 +16,7 @@ final class AssignMissionViewController: UIViewController {
         $0.text = "미션을 수행할 구성원"
     }
     
+    // 멤버 선택 메뉴 버튼
     private lazy var memberMenuButton = UIButton().then {
         var configuration = UIButton.Configuration.filled()
         configuration.baseBackgroundColor = .systemGray6
@@ -29,6 +30,7 @@ final class AssignMissionViewController: UIViewController {
         $0.menu = createMenu()
     }
     
+    // memberLabel + memberMenuButton
     private let memberStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.alignment = .center
@@ -39,18 +41,21 @@ final class AssignMissionViewController: UIViewController {
         $0.text = "미션 기한"
     }
     
+    // 날짜 선택 피커
     private let dueDatePicker = UIDatePicker().then {
         $0.preferredDatePickerStyle = .compact
         $0.datePickerMode = .date
         $0.tintColor = .systemRed
     }
     
+    // dueDateLabel + dueDatePicker
     private let dueDateStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.alignment = .center
         $0.distribution = .equalCentering
     }
     
+    // 전달하기 버튼(화면 맨 아래)
     private let assignButton = DefaultButton(type: .send).then {
         $0.isEnabled = false
     }
@@ -138,7 +143,7 @@ final class AssignMissionViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] member in
                 guard let self else { return }
-                memberMenuButton.menu = createMenu() // 메뉴 버튼에 멤버 전체 데이터 반영
+                memberMenuButton.menu = createMenu()
             }
             .disposed(by: disposeBag)
         
@@ -148,7 +153,7 @@ final class AssignMissionViewController: UIViewController {
             .drive { [weak self] member in
                 guard let self, let member else { return }
                 memberMenuButton.setTitle("\(member.nickname)", for: .normal) // 버튼에 선택한 멤버 이름 표시
-                assignButton.isEnabled = true
+                assignButton.isEnabled = true // 전달하기 버튼 활성화
             }
             .disposed(by: disposeBag)
         
@@ -172,7 +177,7 @@ final class AssignMissionViewController: UIViewController {
             .disposed(by: disposeBag)
     }
     
-    // "미션을 수행할 구성원" 메뉴 버튼 구성
+    // "미션을 수행할 구성원" 메뉴 버튼 구성 헬퍼
     private func createMenu() -> UIMenu {
         let members = viewModel.output.members.value
         let actions = members.map { member in
@@ -184,6 +189,7 @@ final class AssignMissionViewController: UIViewController {
         return UIMenu(children: actions)
     }
     
+    // 전달하기 버튼 누르면 원래 화면으로 복귀
     private func dismiss() {
         navigationController?.popViewController(animated: true)
     }

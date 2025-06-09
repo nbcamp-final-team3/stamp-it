@@ -64,6 +64,7 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
             .disposed(by: disposeBag)
     }
     
+    // 더미 데이터 주입: 나중에 실제 데이터 로드로 구현 변경 필요!!!!!!!!!!!!!!!!!!!!!!!!
     private func loadMembers() -> [Member] {
         let dummyMembers: [Member] = [
             Member(userID: "12345", nickname: "유진", joinedAt: Date(), isLeader: true),

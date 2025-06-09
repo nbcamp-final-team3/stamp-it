@@ -35,6 +35,8 @@ final class MissionListCell: UITableViewCell {
         }
     }
     
+    /// 테이블 뷰 셀 업데이트
+    /// - Parameter text: 미션 타이틀(예: 방 청소하기)
     func configure(with text: String) {
         label.text = text
     }

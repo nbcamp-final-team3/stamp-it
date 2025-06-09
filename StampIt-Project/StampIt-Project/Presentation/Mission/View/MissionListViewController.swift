@@ -51,7 +51,7 @@ final class MissionListViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        setNavigationBar()
+        setNavigationBar() // 미션 할당 화면으로 이동 후 복귀 시 내비게이션 라지 타이틀 유지를 위해 필요
     }
     
     private func prepareSubviews() {
@@ -118,6 +118,7 @@ final class MissionListViewController: UIViewController {
             .disposed(by: disposeBag)
     }
     
+    // 미션 할당 화면으로 이동
     private func pushAssignMissionViewController(mission: SampleMission) {
         let viewModel = AssignMissionViewModel(mission: mission)
         let viewController = AssignMissionViewController(viewModel: viewModel)
