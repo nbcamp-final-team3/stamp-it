@@ -8,7 +8,7 @@
 import Foundation
 
 enum MissionStatus {
-    case asigned
+    case assigned
     case completed
     case failed
 }

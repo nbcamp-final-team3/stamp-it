@@ -10,12 +10,12 @@ import Foundation
 extension MissionStatus {
     var text: String {
         switch self {
-        case .asigned:
-            "미완"
+        case .assigned:
+            ""
         case .completed:
             "완료"
         case .failed:
-            "실패"
+            "만료"
         }
     }
 

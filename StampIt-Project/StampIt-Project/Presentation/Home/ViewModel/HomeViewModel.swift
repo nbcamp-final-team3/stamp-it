@@ -23,6 +23,7 @@ final class HomeViewModel: ViewModelProtocol {
         case didReceiveInvitationType(InvitationType)
         case didTapMissonCompleteButton(String)
         case didTapMoreReceivedMissions
+        case didSelectReceivedMember(memberID: String)
         case didTapMoreSenededMissions
     }
 
@@ -31,7 +32,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isShowGroupOrganizationView = PublishRelay<Bool>()
         let rankedMembers = PublishRelay<[HomeItem]>()
         let receivedMissions = BehaviorRelay<[HomeItem]>(value: [])
-        let sendedMissions = PublishRelay<[HomeItem]>()
+        let sendedMissionsForDisplay = PublishRelay<[HomeItem]>()
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
@@ -45,7 +46,8 @@ final class HomeViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
-    var memberCache = [String: User]() // 멤버 정보 저장
+    private var memberCache = [String: User]() // 멤버 정보 저장
+    private var sendedMissions = [Mission]()
 
     // MARK: - Init
 
@@ -74,6 +76,8 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.handleMissionComplete(missionID: id)
                 case .didTapMoreReceivedMissions:
                     owner.state.isPushReceivedMissionVC.accept(())
+                case .didSelectReceivedMember(memberID: let id):
+                    owner.updateSendedMissions(memberID: id)
                 case .didTapMoreSenededMissions:
                     owner.state.isPushSendedMissionVC.accept(())
                 }
@@ -120,9 +124,22 @@ final class HomeViewModel: ViewModelProtocol {
     private func bindSendedMissions() {
         guard let user = state.user.value else { return }
         useCase.fetchSendedMissions(ofUser: user.userID)
-            .map { self.mapSendedMissionsToHomeItems($0) }
-            .bind(to: state.sendedMissions)
+            .do(onNext: { [weak self] sendedMissions in
+                self?.sendedMissions = sendedMissions
+            })
+            .map { self.mapSendedMissionsToHomeItems(Array($0.prefix(4))) }
+            .bind(to: state.sendedMissionsForDisplay)
             .disposed(by: disposeBag)
+    }
+
+    /// 멤버 ID가 nil이면 전체, 값이 있으면 해당 멤버에게 전달한 미션만 필터링하여 최근 전달한 4개를 accept
+    private func updateSendedMissions(memberID: String?) {
+        let filteredMissions = memberID
+            .map { id in sendedMissions.filter { $0.assignedTo == memberID } }
+            ?? sendedMissions
+        let first4 = Array(filteredMissions.prefix(4))
+        let homeItems = mapSendedMissionsToHomeItems(first4)
+        state.sendedMissionsForDisplay.accept(homeItems)
     }
 
     /// 그룹 구성하기 버튼 탭 시 초대하기/초대받기 선택할 수 있는 뷰 제공
@@ -182,7 +199,7 @@ final class HomeViewModel: ViewModelProtocol {
                 missionID: mission.missionID,
                 title: mission.title,
                 dueDate: mission.dueDate.toMonthDayString(),
-                assigner: mission.asignedBy,
+                assigner: mission.assignedBy,
                 imageURL: mission.imageURL
             )
             return HomeItem.received(homeMission)
@@ -192,7 +209,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapSendedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
         missions.map { mission in
-            let assigneeImageURL = memberCache[mission.asignedTo]?.profileImageURL
+            let assigneeImageURL = memberCache[mission.assignedTo]?.profileImageURL
             let homeMission = HomeItem.HomeSendedMission(
                 missionID: mission.missionID,
                 title: mission.title,

@@ -10,8 +10,9 @@ import Foundation
 struct Mission {
     let missionID: String
     let title: String
-    let asignedTo: String
-    let asignedBy: String
+    let assignedTo: String
+    let assignedBy: String
+    let createDate: Date
     let dueDate: Date
     let status: MissionStatus
     let imageURL: String
