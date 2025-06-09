@@ -108,6 +108,7 @@ class TestViewController: UIViewController {
             groupId: testGroupId,
             name: "테스트 그룹",
             leaderId: testUserId,
+            inviteCode: "123080",
             nameChangedAt: Timestamp(),
             createdAt: Timestamp()
         )

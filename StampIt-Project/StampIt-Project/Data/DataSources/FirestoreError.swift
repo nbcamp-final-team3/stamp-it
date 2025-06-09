@@ -5,8 +5,10 @@
 //  Created by iOS study on 6/8/25.
 //
 
+import Foundation
+
 // MARK: - Error Handling
-enum FirestoreError: Error {
+enum FirestoreError: Error, LocalizedError {
     case fetchFailed(String)
     case createFailed(String)
     case updateFailed(String)
@@ -14,8 +16,9 @@ enum FirestoreError: Error {
     case documentNotFound
     case encodingFailed(String)
     case decodingFailed(String)
+    case networkError(String)
     
-    var localizedDescription: String {
+    var errorDescription: String? {
         switch self {
         case .fetchFailed(let message):
             return "데이터 조회 실패: \(message)"
@@ -28,9 +31,12 @@ enum FirestoreError: Error {
         case .documentNotFound:
             return "문서를 찾을 수 없습니다"
         case .encodingFailed(let message):
-            return "인코딩 실패: \(message)"
+            return "데이터 인코딩 실패: \(message)"
         case .decodingFailed(let message):
-            return "디코딩 실패: \(message)"
+            return "데이터 디코딩 실패: \(message)"
+        case .networkError(let message):
+            return "네트워크 오류: \(message)"
         }
     }
 }
+

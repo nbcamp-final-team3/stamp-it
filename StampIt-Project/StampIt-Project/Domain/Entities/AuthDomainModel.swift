@@ -6,6 +6,15 @@
 //
 
 // MARK: - Repository 전용 Models
+
+struct AuthUser {
+    let uid: String
+    let email: String
+    let displayName: String
+    let photoURL: String?
+    let isNewUser: Bool
+}
+
 /// 로그인 완료 결과
 struct LoginResult {
     let user: User              // 도메인 모델
