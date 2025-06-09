@@ -5,6 +5,8 @@
 //  Created by iOS study on 6/9/25.
 //
 
+//TODO: 현재 데이터베이스 연결 확인을 위해 디버깅용 print문과 데이터가 들어가는지 확인하는 TestVC가 남아있습니다. 로그인 및 주기적으로 데이터를 주고 받는 데이터를 해당 코드에서 작업하고 테스트할 예정이라 삭제하지 않고 남겨두었습니다. 해당 코드들은 Manager 최종 수정하거나 리팩토링 단계에서 삭제해두겠습니다!
+
 import UIKit
 import SnapKit
 import RxSwift

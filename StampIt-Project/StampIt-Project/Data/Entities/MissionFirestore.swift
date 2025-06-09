@@ -15,6 +15,7 @@ struct MissionFirestore: Codable {
     let assignedTo: String
     let createDate: Timestamp
     let dueDate: Timestamp
+    let category: String
     let status: String              // "assigned", "completed", "failed"
     let missionType: String         // "app", "custom"
     let createdAt: Timestamp
