@@ -40,13 +40,15 @@ final class DefaultButton: UIButton {
         // attributedTitle
         let attributed = AttributedString(type.title)
         var container = AttributeContainer()
-        container.font = .pretendard(size: 18, weight: .semibold)
+        container.font = type.font
         let styled = attributed.settingAttributes(container)
         config.attributedTitle = styled
 
         // color
         config.baseBackgroundColor = .red400
         config.baseForegroundColor = .white
+
+        config.contentInsets = type.contentInsets
 
         configuration = config
     }
@@ -65,7 +67,7 @@ final class DefaultButton: UIButton {
     ///
     /// Configuration 사용에 따라 masksToBounds로 layer 마스킹
     private func setCornerRadius() {
-        layer.cornerRadius = 12
+        layer.cornerRadius = type.radius
         layer.masksToBounds = true
     }
 
@@ -83,6 +85,7 @@ extension DefaultButton {
         case send
         case enter
         case modify
+        case groupOrganization
 
         var title: String {
             switch self {
@@ -96,6 +99,33 @@ extension DefaultButton {
                 "입장하기"
             case .modify:
                 "수정하기"
+            case .groupOrganization:
+                "그룹 구성하기"
+            }
+        }
+
+        var font: UIFont {
+            switch self {
+            case .groupOrganization:
+                    .pretendard(size: 16, weight: .bold)
+            default:
+                    .pretendard(size: 18, weight: .semibold)
+            }
+        }
+
+        var radius: CGFloat {
+            switch self {
+            case .groupOrganization: 8
+            default: 12
+            }
+        }
+
+        var contentInsets: NSDirectionalEdgeInsets {
+            switch self {
+            case .groupOrganization:
+                    .init(top: 6, leading: 16, bottom: 66, trailing: 16)
+            default:
+                    .init(top: 16, leading: 20, bottom: 16, trailing: 20)
             }
         }
     }
