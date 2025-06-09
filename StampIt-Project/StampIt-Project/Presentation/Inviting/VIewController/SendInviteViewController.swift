@@ -32,27 +32,41 @@ class SendInviteViewController: UIViewController {
     private let textFiledInTitle = UILabel().then {
         $0.text = "초대코드"
         $0.font = .systemFont(ofSize: 14)
-        $0.textColor = .darkGray
+        $0.textColor = .black
+        $0.setContentHuggingPriority(.required, for: .horizontal)
     }
 
     private let inviteCodeLabel = UILabel().then {
-        $0.font = .boldSystemFont(ofSize: 18)
+        $0.font = .boldSystemFont(ofSize: 16)
         $0.text = "abc123qwe"
         $0.textColor = .black
+        $0.setContentHuggingPriority(.defaultLow, for: .horizontal)
     }
 
     private let copyButton = UIButton(type: .system).then {
         $0.setImage(UIImage(systemName: "doc.on.doc"), for: .normal)
-        $0.tintColor = .systemGray
+        $0.tintColor = .black
+        $0.setContentHuggingPriority(.required, for: .horizontal)
     }
 
     private let inviteCodeStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 8
         $0.alignment = .center
-        $0.distribution = .equalSpacing
+        $0.distribution = .fill
         $0.backgroundColor = .inviteCodeBackground
+        $0.layer.cornerRadius = 12
+        $0.layoutMargins = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
+        $0.isLayoutMarginsRelativeArrangement = true
     }
+
+    private let horizontalStackForCodeAndButton = UIStackView().then {
+            $0.axis = .horizontal
+            $0.spacing = 8
+            $0.alignment = .center
+            $0.distribution = .fill
+        }
+
 
 
     override func viewDidLoad() {
@@ -72,7 +86,9 @@ class SendInviteViewController: UIViewController {
 
         imageView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(40)
+            $0.height.equalTo(100)
+            $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(30)
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(140)
         }
 
         helpLabel.snp.makeConstraints {
@@ -81,14 +97,15 @@ class SendInviteViewController: UIViewController {
         }
 
         inviteCodeStackView.snp.makeConstraints {
-            $0.top.equalTo(helpLabel.snp.bottom).offset(10)
+            $0.top.equalTo(helpLabel.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview().inset(40)
-            $0.height.equalTo(50)
+            $0.height.equalTo(70)
         }
 
-        copyButton.snp.makeConstraints {
-            $0.width.height.equalTo(24)
+        textFiledInTitle.snp.makeConstraints {
+            $0.width.equalTo(60)
         }
+
 
     }
 
@@ -101,7 +118,8 @@ class SendInviteViewController: UIViewController {
             .subscribe(onNext: { [weak self] message in
                 /// toast 색상설정을 위한 변수
                 var style = ToastStyle()
-                style.backgroundColor = .toastGray
+                style.backgroundColor = .lightGray //
+
 
                 self?.view.makeToast(message, duration: 1.5, position: .bottom, image: nil, style: style
                 , completion: nil)
