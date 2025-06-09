@@ -11,15 +11,19 @@ import RxRelay
 
 final class HomeViewModel: ViewModelProtocol {
     // MARK: - Dependency
+
     private let useCase: HomeUseCase
 
     // MARK: - Action & State
+
     enum Action {
         case viewDidLoad
         case viewWillAppear
         case didTapGroupOrganizationButton
         case didReceiveInvitationType(InvitationType)
         case didTapMissonCompleteButton(String)
+        case didTapMoreReceivedMissions
+        case didTapMoreSenededMissions
     }
 
     struct State {
@@ -32,21 +36,26 @@ final class HomeViewModel: ViewModelProtocol {
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
         let isShowStickerRecieved = PublishRelay<Void>()
+        let isPushReceivedMissionVC = PublishRelay<Void>()
+        let isPushSendedMissionVC = PublishRelay<Void>()
     }
 
     // MARK: - Properties
+
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
     var memberCache = [String: User]() // 멤버 정보 저장
 
     // MARK: - Init
+
     init(useCase: HomeUseCase) {
         self.useCase = useCase
         bind()
     }
 
     // MARK: - Bind
+
     private func bind() {
         action
             .subscribe(with: self) { owner, action in
@@ -63,6 +72,10 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.handleInvitation(type: type)
                 case .didTapMissonCompleteButton(let id):
                     owner.handleMissionComplete(missionID: id)
+                case .didTapMoreReceivedMissions:
+                    owner.state.isPushReceivedMissionVC.accept(())
+                case .didTapMoreSenededMissions:
+                    owner.state.isPushSendedMissionVC.accept(())
                 }
             }
             .disposed(by: disposeBag)
