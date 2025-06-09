@@ -20,6 +20,7 @@ struct InviteFirestore: Codable {
     }
 }
 
+
 // MARK: - Domain Model 변환
 extension InviteFirestore {
     func toDomainModel() -> Invitation {

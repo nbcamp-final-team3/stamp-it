@@ -117,49 +117,6 @@ final class FirestoreManager: FirestoreManagerProtocol {
             }
         }
     }
-    
-    // MARK: - Transaction-Batch
-    /// 그룹 이동 시 트랜잭션으로 안전하게 처리 (기존 그룹 탈퇴 + 새 그룹 가입)
-    func joinGroupWithTransaction(userId: String, oldGroupId: String, newGroupId: String, member: MemberFirestore) -> Observable<Void> {
-        return Observable.create { observer in
-            let db = Firestore.firestore()
-            // 1. 멤버 데이터를 Dictionary로 변환
-            var memberDict: [String: Any] = [:]
-            do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(member)
-                memberDict = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-            } catch {
-                observer.onError(error)
-                return Disposables.create()
-            }
-            
-            // 트랜잭션 실행
-            db.runTransaction({ (transaction, errorPointer) -> Any? in
-                // 2. 기존 그룹 멤버에서 삭제
-                let oldMemberRef = db.collection("groups").document(oldGroupId).collection("members").document(userId)
-                transaction.deleteDocument(oldMemberRef)
-                
-                // 3. 새 그룹 멤버에 추가
-                let newMemberRef = db.collection("groups").document(newGroupId).collection("members").document(userId)
-                transaction.setData(memberDict, forDocument: newMemberRef)
-                
-                // 4. 사용자의 groupId 업데이트
-                let userRef = db.collection("users").document(userId)
-                transaction.updateData(["groupId": newGroupId], forDocument: userRef)
-                
-                return nil
-            }) { (object, error) in
-                if let error = error {
-                    observer.onError(error)
-                } else {
-                    observer.onNext(())
-                    observer.onCompleted()
-                }
-            }
-            return Disposables.create()
-        }
-    }
 }
 
 // MARK: - User Operations
@@ -266,7 +223,7 @@ extension FirestoreManager {
             return Disposables.create()
         }
     }
-
+    
 }
 
 // MARK: - Group Operations
@@ -371,7 +328,7 @@ extension FirestoreManager {
             return Disposables.create()
         }
     }
-
+    
 }
 
 // MARK: - Member Operations
@@ -681,7 +638,7 @@ extension FirestoreManager {
         }
     }
     
-    /// 초대 코드 삭제 (사용 완료 후)
+    /// 초대 코드 삭제
     func deleteInvite(inviteCode: String) -> Observable<Void> {
         return Observable.create { observer in
             self.invitesCollection.document(inviteCode)
