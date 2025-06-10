@@ -17,6 +17,7 @@ enum FirestoreError: Error, LocalizedError {
     case encodingFailed(String)
     case decodingFailed(String)
     case networkError(String)
+    case unknownError
     
     var errorDescription: String? {
         switch self {
@@ -36,6 +37,8 @@ enum FirestoreError: Error, LocalizedError {
             return "데이터 디코딩 실패: \(message)"
         case .networkError(let message):
             return "네트워크 오류: \(message)"
+        case .unknownError:
+            return "알 수 없는 오류가 발생했습니다."
         }
     }
 }
