@@ -13,17 +13,13 @@ final class StampBoard: UIView {
     
     // MARK: - UI Components
     
-    private let lable = UILabel().then {
-        $0.font = .pretendard(size: 14, weight: .regular)
-        $0.textColor = .neutralGray500
-        
-        $0.text = "stamp"
-    }
+    private let stampSummary = StampSummary()
     
     // MARK: - Initializer, Deinit, requiered
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        setStyle()
         setHierarchy()
         setLayout()
     }
@@ -32,11 +28,18 @@ final class StampBoard: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Style Helper
+    
+    private func setStyle() {
+        
+        // TODO: stampSummary Shadow
+    }
+    
     // MARK: - Hierarchy Helper
     
     private func setHierarchy() {
         [
-            lable,
+            stampSummary,
         ]
             .forEach { addSubview($0) }
     }
@@ -44,8 +47,9 @@ final class StampBoard: UIView {
     // MARK: - Layout Helper
     
     private func setLayout() {
-        lable.snp.makeConstraints {
-            $0.center.equalToSuperview()
+        stampSummary.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(30)
+            $0.directionalHorizontalEdges.equalToSuperview().inset(16)
         }
     }
 }
