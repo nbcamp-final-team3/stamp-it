@@ -28,4 +28,12 @@ protocol AuthRepositoryProtocol {
     
     // MARK: - 온보딩
     func completeOnboarding() -> Observable<Void>
+    
+    // MARK: - 트랜잭션 보장 메서드 (원자성 보장)
+    // 중간에 실패 시 앞 단계 데이터가 DB에 반영될 위험을 막기 위해 트랜잭션 추가함
+    func createNewUserWithGroup(
+        user: UserFirestore,
+        group: GroupFirestore,
+        member: MemberFirestore
+    ) -> Observable<StampIt_Project.User>
 }
