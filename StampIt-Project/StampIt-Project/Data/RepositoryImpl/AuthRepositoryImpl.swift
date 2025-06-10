@@ -24,6 +24,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     }
     
     // MARK: - Google Sign-In
+    /// Google 로그인을 수행하고 도메인 모델로 변환된 LoginResult를 반환
     func signInWithGoogle() -> Observable<LoginResult> {
         return authManager.signInWithGoogle()
             .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
@@ -62,6 +63,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     }
     
     // MARK: - Apple Sign-In (준비)
+    /// Apple 로그인을 수행하고 도메인 모델로 변환된 LoginResult를 반환 (준비 단계)
     func signInWithApple() -> Observable<LoginResult> {
         return authManager.signInWithApple()
             .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
@@ -98,6 +100,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     }
     
     // MARK: - 사용자+그룹 정보 통합 조회
+    /// 사용자 ID로 사용자 정보와 그룹 정보를 통합하여 조회
     func fetchUserWithGroupInfo(userId: String) -> Observable<StampIt_Project.User> {
         return firestoreManager.fetchUser(userId: userId)
             .flatMap { [weak self] userFirestore -> Observable<StampIt_Project.User> in
@@ -120,6 +123,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     
     
     // MARK: - 상태 관리
+    /// 현재 로그인된 사용자의 정보를 그룹 정보와 함께 조회
     func getCurrentUser() -> Observable<StampIt_Project.User?> {
         return Observable.create { [weak self] observer in
             guard let self = self else {
@@ -145,6 +149,7 @@ final class AuthRepository: AuthRepositoryProtocol {
         }
     }
     
+    /// 인증 상태 변화를 실시간으로 관찰하고 사용자 정보를 반환
     func observeAuthState() -> Observable<StampIt_Project.User?> {
         return authManager.observeAuthState()
             .flatMap { [weak self] firebaseUser -> Observable<StampIt_Project.User?> in
@@ -157,6 +162,7 @@ final class AuthRepository: AuthRepositoryProtocol {
             }
     }
     
+    /// 앱 시작 시 사용자 인증 상태와 온보딩 필요 여부를 확인
     func checkLaunchState() -> Observable<LaunchResult> {
         return getCurrentUser()
             .map { user in
@@ -185,30 +191,36 @@ final class AuthRepository: AuthRepositoryProtocol {
     }
     
     // MARK: - 온보딩
+    /// 온보딩 완료 처리 (추후 구현 예정)
     func completeOnboarding() -> Observable<Void> {
         // TODO: 온보딩 완료 처리
         return Observable.just(())
     }
     
-    // MARK: - 내부 전용 Firestore CRUD (외부 노출 X)
+    // MARK: - Internal Firestore Operations
+    /// Firestore에 사용자 정보 생성 (내부 전용)
     func createUser(_ user: UserFirestore) -> Observable<Void> {
         return firestoreManager.createUser(user)
     }
+    
+    /// Firestore에 그룹 정보 생성 (내부 전용)
     func createGroup(_ group: GroupFirestore) -> Observable<Void> {
         return firestoreManager.createGroup(group)
     }
+    
+    /// Firestore에 그룹 멤버 추가 (내부 전용)
     func addMember(groupId: String, member: MemberFirestore) -> Observable<Void> {
         return firestoreManager.addMember(groupId: groupId, member: member)
     }
     
-    // 트랜잭션 보장 메서드 구현
+    /// 신규 사용자, 그룹, 멤버를 트랜잭션으로 원자적 생성
     func createNewUserWithGroup(
         user: UserFirestore,
         group: GroupFirestore,
         member: MemberFirestore
     ) -> Observable<StampIt_Project.User> {
         return Observable.create { [weak self] observer in
-            guard let self = self else {  // ✅ 이 guard문도 추가
+            guard let self = self else {
                 observer.onError(RepositoryError.unknownError)
                 return Disposables.create()
             }
@@ -260,10 +272,9 @@ final class AuthRepository: AuthRepositoryProtocol {
             return Disposables.create()
         }
     }
-
-
     
-    /// 에러 매핑
+    // MARK: - Private Methods
+    /// 다양한 에러 타입을 RepositoryError로 매핑
     private func mapToRepositoryError(_ error: Error) -> RepositoryError {
         if let authError = error as? AuthError {
             switch authError {

@@ -36,6 +36,7 @@ final class AuthManager: NSObject, AuthManagerProtocol {
     }
     
     // MARK: - Configuration
+    /// Google Sign-In 설정을 초기화하고 CLIENT_ID를 구성
     func configureGoogleSignIn() {
         guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
               let plist = NSDictionary(contentsOfFile: path),
@@ -49,9 +50,10 @@ final class AuthManager: NSObject, AuthManagerProtocol {
     }
     
     // MARK: - Google Sign-In
+    /// Google 로그인을 수행하고 Firebase 인증 결과를 반환
     func signInWithGoogle() -> Observable<AuthDataResult> {
         return Observable.create { observer in
-            // ✅ iOS 15.0+ 대응: UIWindowScene 사용
+            // iOS 15.0+ 대응: UIWindowScene 사용
             guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                   let presentingViewController = windowScene.windows.first?.rootViewController else {
                 observer.onError(AuthError.presentingViewControllerNotFound)
@@ -89,7 +91,8 @@ final class AuthManager: NSObject, AuthManagerProtocol {
         }
     }
     
-    // MARK: - Apple Sign-In (준비)
+    // MARK: - Apple Sign-In (준비, 구조 변경 될 수 있음)
+    /// Apple 로그인을 수행하고 Firebase 인증 결과를 반환 (준비 단계)
     func signInWithApple() -> Observable<AuthDataResult> {
         return Observable.create { observer in
             let appleIDProvider = ASAuthorizationAppleIDProvider()
@@ -108,6 +111,7 @@ final class AuthManager: NSObject, AuthManagerProtocol {
     }
     
     // MARK: - Sign Out
+    /// 현재 사용자를 로그아웃하고 Google Sign-In도 함께 로그아웃
     func signOut() -> Observable<Void> {
         return Observable.create { observer in
             do {
@@ -124,6 +128,7 @@ final class AuthManager: NSObject, AuthManagerProtocol {
     }
     
     // MARK: - Delete Account
+    /// 현재 사용자 계정을 완전히 삭제
     func deleteAccount() -> Observable<Void> {
         return Observable.create { observer in
             guard let user = Auth.auth().currentUser else {
@@ -144,12 +149,13 @@ final class AuthManager: NSObject, AuthManagerProtocol {
         }
     }
     
-    // MARK: - Current User
+    // MARK: - User State Methods
+    /// 현재 Firebase 인증된 사용자를 반환
     func getCurrentUser() -> FirebaseAuth.User? {
         return Auth.auth().currentUser
     }
     
-    // MARK: - Auth State Observer
+    /// Firebase 인증 상태 변화를 실시간으로 관찰
     func observeAuthState() -> Observable<FirebaseAuth.User?> {
         return Observable.create { observer in
             let handle = Auth.auth().addStateDidChangeListener { _, user in
@@ -163,11 +169,12 @@ final class AuthManager: NSObject, AuthManagerProtocol {
     }
 }
 
-// MARK: - Apple Sign-In Delegates (준비)
+// MARK: - Apple Sign-In Delegates (준비, 구조 변경 될 수 있음)
 extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     
+    /// Apple Sign-In 화면을 표시할 윈도우를 반환
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        // ✅ iOS 15.0+ 대응: UIWindowScene 사용
+        // iOS 15.0+ 대응: UIWindowScene 사용
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {
             return window
@@ -175,10 +182,12 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
         return ASPresentationAnchor()
     }
     
+    /// Apple Sign-In 인증 성공 시 호출되는 델리게이트 메서드
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         // TODO: Apple Sign-In 완료 처리
     }
     
+    /// Apple Sign-In 인증 실패 시 호출되는 델리게이트 메서드
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         print("❌ Apple Sign-In Error: \(error.localizedDescription)")
     }
