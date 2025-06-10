@@ -22,6 +22,7 @@ final class HomeView: UIView {
     // MARK: - UI Components
 
     private let groupOrganizationView = GroupOrganizationView()
+    private let groupDashboardView = GroupDashboardView()
 
     // MARK: - Init
 

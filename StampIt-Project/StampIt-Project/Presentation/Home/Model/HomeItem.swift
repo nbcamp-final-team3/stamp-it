@@ -36,29 +36,30 @@ enum HomeItem: Hashable {
             return nil
         }
     }
+}
 
-    struct HomeMember: Hashable {
-        let memberID: String
-        let nickname: String
-        let stickerCount: Int
-        let profileImageURL: String?
-    }
+struct HomeMember: Hashable {
+    let memberID: String
+    let nickname: String
+    let stickerCount: String
+    let rank: Int
+    let profileImageURL: String?
+}
 
-    struct HomeReceivedMission: Hashable {
-        let missionID: String
-        let title: String
-        let category: MissionCategory
-        let dueDate: String
-        let assigner: String
-        let isNew: Bool
-    }
+struct HomeReceivedMission: Hashable {
+    let missionID: String
+    let title: String
+    let category: MissionCategory
+    let dueDate: String
+    let assigner: String
+    let isNew: Bool
+}
 
-    struct HomeSendedMission: Hashable {
-        let missionID: String
-        let title: String
-        let category: MissionCategory
-        let dueDate: String
-        let assignee: String
-        let status: String
-    }
+struct HomeSendedMission: Hashable {
+    let missionID: String
+    let title: String
+    let category: MissionCategory
+    let dueDate: String
+    let assignee: String
+    let status: String
 }
