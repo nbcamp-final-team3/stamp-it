@@ -14,11 +14,12 @@ import Toast
 
 class SendInviteViewController: UIViewController {
 
+    // MARK: - Properties
     private let viewModel = SendInviteViewModel()
     private let disposeBag = DisposeBag()
 
     private let imageView = UIImageView().then {
-        $0.image = UIImage(named: "SendInvitingPageImage")
+        $0.image = UIImage(named: "mascotRed")
         $0.contentMode = .scaleAspectFit
         $0.clipsToBounds = true
     }
@@ -67,8 +68,6 @@ class SendInviteViewController: UIViewController {
             $0.distribution = .fill
         }
 
-
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -105,10 +104,9 @@ class SendInviteViewController: UIViewController {
         textFiledInTitle.snp.makeConstraints {
             $0.width.equalTo(60)
         }
-
-
     }
 
+    // MARK: - Bind
     private func bindViewModel() {
         viewModel.state.inviteCode
             .bind(to: inviteCodeLabel.rx.text)
@@ -118,7 +116,7 @@ class SendInviteViewController: UIViewController {
             .subscribe(onNext: { [weak self] message in
                 /// toast 색상설정을 위한 변수
                 var style = ToastStyle()
-                style.backgroundColor = .lightGray //
+                style.backgroundColor = .toastGray
 
 
                 self?.view.makeToast(message, duration: 1.5, position: .bottom, image: nil, style: style

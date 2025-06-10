@@ -13,24 +13,19 @@ import UIKit
 
 class SendInviteViewModel: ViewModelProtocol {
 
-    // MARK: - Action
+    // MARK: - Action&State
     enum Action {
         case copyButtonTapped
     }
 
-    // MARK: - State
     struct State {
         let inviteCode: BehaviorRelay<String>
         let showCopyMessage: PublishRelay<String>
     }
 
+    // MARK: - Properties
     var disposeBag = DisposeBag()
-
-    private let actionSubject = PublishSubject<Action>()
-    var action: AnyObserver<Action> {
-        return actionSubject.asObserver()
-    }
-
+    let action = PublishRelay<Action>()
     let state: State
 
     // MARK: - Init
@@ -45,7 +40,7 @@ class SendInviteViewModel: ViewModelProtocol {
         )
 
         // Action 처리
-        actionSubject
+        action
             .subscribe(onNext: { action in
                 switch action {
                 case .copyButtonTapped:
@@ -55,11 +50,11 @@ class SendInviteViewModel: ViewModelProtocol {
             }).disposed(by: disposeBag)
     }
 
-    // MARK: - Helper
-        private static func generateInviteCode(length: Int = 8) -> String {
-            let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-            return String((0..<length).compactMap { _ in chars.randomElement() })
-        }
+    // MARK: - Helper 초대 코드 생성 함수
+    private static func generateInviteCode(length: Int = 8) -> String {
+        let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return String((0..<length).compactMap { _ in chars.randomElement() })
+    }
 
 
 }
