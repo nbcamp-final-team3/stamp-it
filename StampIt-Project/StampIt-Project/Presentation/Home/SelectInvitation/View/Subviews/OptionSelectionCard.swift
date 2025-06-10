@@ -26,6 +26,7 @@ final class OptionSelectionCard: UIControl {
     private let labelStackView = UIStackView().then {
         $0.axis = .vertical
         $0.spacing = 2
+        $0.isUserInteractionEnabled = false
     }
 
     private let titleLabel = UILabel().then {

@@ -53,21 +53,22 @@ final class HomeViewController: UIViewController {
         viewModel.state.isShowSelectInvitationVC
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, _ in
-                owner.pushSelectInvitationVC()
+                owner.showSelectInvitationVC()
             }
             .disposed(by: disposeBag)
     }
 
     // MARK: - Methods
 
-    private func pushSelectInvitationVC() {
-        let selectInvitationVC = SelectInvitationViewController()
-        if let sheet = selectInvitationVC.sheetPresentationController {
+    private func showSelectInvitationVC() {
+        let vm = SelectInvitationViewModel()
+        let vc = SelectInvitationViewController(viewModel: vm)
+        if let sheet = vc.sheetPresentationController {
             sheet.detents = [.medium()]
             sheet.prefersGrabberVisible = true
             sheet.preferredCornerRadius = 32
         }
-        present(selectInvitationVC, animated: true)
+        present(vc, animated: true)
     }
 
 }

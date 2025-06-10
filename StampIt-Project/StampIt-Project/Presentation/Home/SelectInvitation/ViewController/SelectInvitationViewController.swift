@@ -15,6 +15,7 @@ final class SelectInvitationViewController: UIViewController {
 
     // MARK: - Properties
 
+    private let viewModel: SelectInvitationViewModel
     private let disposeBag = DisposeBag()
 
     // MARK: - UI Components
@@ -23,7 +24,8 @@ final class SelectInvitationViewController: UIViewController {
 
     // MARK: - Life Cycles
 
-    init() {
+    init(viewModel: SelectInvitationViewModel) {
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -43,8 +45,18 @@ final class SelectInvitationViewController: UIViewController {
     // MARK: - Bind
 
     private func bind() {
+        selectInvitationView.didTapOptionCard
+            .map { SelectInvitationViewModel.Action.didTapOptionCard($0) }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
+//        selectInvitationView.didTapConfirmButton
+
+        viewModel.state.selectedOption
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, type in
+                owner.selectInvitationView.handleSelectedOption(type)
+            }
+            .disposed(by: disposeBag)
     }
-
-    // MARK: - Methods
-
 }

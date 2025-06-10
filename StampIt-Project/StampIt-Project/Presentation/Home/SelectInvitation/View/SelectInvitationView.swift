@@ -15,6 +15,8 @@ final class SelectInvitationView: UIView {
 
     // MARK: - Actions
 
+    let didTapOptionCard = PublishRelay<InvitationType>()
+
 
     // MARK: - Properties
 
@@ -46,9 +48,9 @@ final class SelectInvitationView: UIView {
         $0.spacing = 12
     }
 
-    private let sendOptionCard = OptionSelectionCard(invitationType: .send)
+    private let sendOptionCard = OptionSelectionCard(type: .send)
 
-    private let receiveOptionCard = OptionSelectionCard(invitationType: .receive)
+    private let receiveOptionCard = OptionSelectionCard(type: .receive)
 
     private let confirmButton = DefaultButton(type: .confirm).then {
         $0.isEnabled = false
@@ -117,5 +119,28 @@ final class SelectInvitationView: UIView {
     // MARK: - Bind
 
     private func bind() {
+        sendOptionCard.rx.controlEvent(.touchUpInside)
+            .map { InvitationType.send }
+            .bind(to: didTapOptionCard)
+            .disposed(by: disposeBag)
+
+        receiveOptionCard.rx.controlEvent(.touchUpInside)
+            .map { InvitationType.receive }
+            .bind(to: didTapOptionCard)
+            .disposed(by: disposeBag)
+    }
+
+    func handleSelectedOption(_ type: InvitationType?) {
+        switch type {
+        case .send:
+            sendOptionCard.isSelected = true
+            receiveOptionCard.isSelected = false
+        case .receive:
+            sendOptionCard.isSelected = false
+            receiveOptionCard.isSelected = true
+        case nil:
+            sendOptionCard.isSelected = false
+            receiveOptionCard.isSelected = false
+        }
     }
 }
