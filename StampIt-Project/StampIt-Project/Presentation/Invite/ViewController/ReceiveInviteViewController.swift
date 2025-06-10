@@ -36,7 +36,7 @@ final class ReceiveInviteViewController: UIViewController {
         $0.text = "초대 코드"
         $0.font = .systemFont(ofSize: 16)
         $0.textColor = .gray
-        $0.setContentHuggingPriority(.required, for: .horizontal)
+
         $0.numberOfLines = 1
     }
 
@@ -47,7 +47,7 @@ final class ReceiveInviteViewController: UIViewController {
         $0.backgroundColor = .clear
         $0.autocorrectionType = .no
         $0.autocapitalizationType = .none
-        $0.setContentHuggingPriority(.defaultLow, for: .horizontal)
+
     }
 
     private let stackView = UIStackView().then {
@@ -67,7 +67,6 @@ final class ReceiveInviteViewController: UIViewController {
 
     private let enterButton = DefaultButton(type: .enter)
 
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -79,7 +78,8 @@ final class ReceiveInviteViewController: UIViewController {
     private func setupLayout() {
         view.addSubview(textFieldContainer)
         textFieldContainer.addSubview(stackView)
-        [floatingLabel, textField].forEach { stackView.addArrangedSubview($0) }
+        [floatingLabel, textField]
+        .forEach { stackView.addArrangedSubview($0) }
 
         [imageView, helpLabel, enterButton]
         .forEach { view.addSubview($0) }
@@ -130,8 +130,6 @@ final class ReceiveInviteViewController: UIViewController {
             .bind(to: enterButton.rx.isEnabled)
             .disposed(by: disposeBag)
     }
-
-
 }
 
 // UITextFieldDelegate
