@@ -13,4 +13,3 @@ struct Group {
     let leaderID: String
     let nameChangedAt: Date
 }
-

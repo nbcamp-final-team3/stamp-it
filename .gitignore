@@ -121,6 +121,7 @@ Temporary Items
 .apdisk
 
 # Firebase
+/StampIt-Project/GoogleService-Info.plist
 GoogleService-Info.plist
 GoogleService-Info-*.plist
 google-services.json
