@@ -15,5 +15,5 @@ struct User {
     let groupID: String
     let groupName: String
     let isLeader: Bool
-    let joinedGroupAt: Bool
+    let joinedGroupAt: Date
 }
