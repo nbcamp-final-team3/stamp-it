@@ -99,11 +99,27 @@ final class StampSummary: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Layout Subviews
+
+    override func layoutSubviews() {
+        setShadow()
+    }
+    
+    private func setShadow() {
+        let insetRect = bounds.insetBy(dx: 1, dy: 1) // 테두리 부분만 그림자 주기
+        let path = UIBezierPath(roundedRect: insetRect, cornerRadius: layer.cornerRadius)
+        layer.shadowPath = path.cgPath
+        layer.cornerRadius = 12
+        layer.shadowColor = UIColor._000000.cgColor
+        layer.shadowOpacity = 0.1
+        layer.shadowOffset = .zero
+    }
+
     // MARK: - Style Helper
     
     private func setStyle() {
-        backgroundColor = .yellow
-        layer.cornerRadius = 12
+        backgroundColor = .white
+        layer.masksToBounds = false
     }
     
     // MARK: - Hierarchy Helper
@@ -146,7 +162,7 @@ final class StampSummary: UIView {
     private func setLayout() {
         hStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(12)
-            $0.height.equalTo(64)
+            $0.height.equalTo(44)
         }
         
         divider.snp.makeConstraints {
