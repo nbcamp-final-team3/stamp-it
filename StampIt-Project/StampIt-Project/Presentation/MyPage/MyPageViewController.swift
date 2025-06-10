@@ -122,7 +122,7 @@ extension MyPageViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let section = MyPageProfileSection.allCases[section]
-        let title = section.title
+        let title = section.headerTitle
         
         let header = MyPageHeaderView()
         header.configureLabel(with: title)
@@ -144,7 +144,7 @@ extension MyPageViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let section = MyPageProfileSection.allCases[section]
-        return section.contents.count
+        return section.menus.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -154,7 +154,7 @@ extension MyPageViewController: UITableViewDataSource {
         ) as! ProfileMenuCell
         
         let section = MyPageProfileSection.allCases[indexPath.section]
-        let menu = section.contents[indexPath.item]
+        let menu = section.menus[indexPath.item]
         
         if section == .groupMember {
             if indexPath.item == .zero {
@@ -162,7 +162,7 @@ extension MyPageViewController: UITableViewDataSource {
             }
         }
         
-        cell.configureLabels(title: menu.0, description: menu.1)
+        cell.configureLabels(title: menu.title, description: menu.subtitle)
         return cell
     }
 }
