@@ -9,11 +9,17 @@ import UIKit
 import Then
 import SnapKit
 
-final class MyPageHeaderView: UITableViewHeaderFooterView {
+final class ProfileHeader: UITableViewHeaderFooterView {
     
     // MARK: - Properties
     
     static let identifier = "MyPageHeaderView"
+    
+    var isDividerHidden: Bool = false {
+        didSet {
+            divider.isHidden = isDividerHidden
+        }
+    }
     
     // MARK: - UI Components
     
@@ -74,9 +80,5 @@ final class MyPageHeaderView: UITableViewHeaderFooterView {
     
     func configureLabel(with text: String) {
         titleLabel.text = text
-    }
-    
-    func isDividerHidden(_ bool: Bool) {
-        divider.isHidden = bool
     }
 }

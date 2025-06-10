@@ -8,6 +8,7 @@
 import UIKit
 import Then
 import SnapKit
+import Kingfisher
 
 final class UserProfile: UIView {
     
@@ -61,11 +62,12 @@ final class UserProfile: UIView {
             forCellReuseIdentifier: ProfileMenuCell.identifier
         )
         $0.register(
-            MyPageHeaderView.self,
-            forHeaderFooterViewReuseIdentifier: MyPageHeaderView.identifier
+            ProfileHeader.self,
+            forHeaderFooterViewReuseIdentifier: ProfileHeader.identifier
         )
         $0.allowsSelection = false
         $0.separatorStyle = .none
+        $0.isScrollEnabled = false
     }
     
     // MARK: - Initializer, Deinit, requiered
@@ -136,20 +138,9 @@ final class UserProfile: UIView {
     // MARK: - Methods
     
     func setUser(_ user: User) {
-        if let urlString = user.profileImageURL,
-           let url = URL(string: urlString) {
-            DispatchQueue.global().async { [weak self] in
-                guard let self else { return }
-                if let data = try? Data(contentsOf: url),
-                   let image = UIImage(data: data) {
-                    DispatchQueue.main.async { [weak self] in
-                        guard let self else { return }
-                        profileImageView.image = image
-                    }
-                }
-            }
-        }
-        
+        guard let urlString = user.profileImageURL,
+              let url = URL(string: urlString) else { return }
+        profileImageView.kf.setImage(with: url)
         groupLable.text = user.groupName
         userLabel.text = user.nickname
     }

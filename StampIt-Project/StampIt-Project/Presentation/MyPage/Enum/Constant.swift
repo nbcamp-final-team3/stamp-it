@@ -7,10 +7,20 @@
 
 import Foundation
 
+enum TabType {
+    case stampBoard
+    case profile
+    
+    var title: String {
+        switch self {
+        case .stampBoard: return "스탬프판"
+        case .profile: return "프로필"
+        }
+    }
+}
+
 enum MyPage {
     enum Tab {
-        static let stamp: String = "스탬프판"
-        static let profile: String = "프로필"
         static let fontSize: CGFloat = 24
         static let textSpacing: CGFloat = 12
         static let leading: CGFloat = 16
