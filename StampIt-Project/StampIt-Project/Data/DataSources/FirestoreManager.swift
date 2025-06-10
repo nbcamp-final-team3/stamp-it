@@ -91,9 +91,9 @@ final class FirestoreManager: FirestoreManagerProtocol {
         return groupsCollection.document(groupId).collection("missions")
     }
     
-    // MARK: - Singleton
-    static let shared = FirestoreManager()
-    private init() {}
+    // MARK: - Init
+    // ✅ Singleton 제거, 일반 init으로 변경
+    init() {}
     
     // MARK: - 네트워크 모니터링 설정
     func checkNetworkConnection() -> Observable<Bool> {
