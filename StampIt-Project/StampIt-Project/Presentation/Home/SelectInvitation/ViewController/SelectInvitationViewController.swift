@@ -13,10 +13,14 @@ import RxCocoa
 
 final class SelectInvitationViewController: UIViewController {
 
+    // MARK: - Actions
+
+    let didTapConfirmButton = PublishRelay<InvitationType>()
+
     // MARK: - Properties
 
     private let viewModel: SelectInvitationViewModel
-    private let disposeBag = DisposeBag()
+    let disposeBag = DisposeBag()
 
     // MARK: - UI Components
 
@@ -50,7 +54,10 @@ final class SelectInvitationViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
-//        selectInvitationView.didTapConfirmButton
+        selectInvitationView.didTapConfirmButton
+            .map { SelectInvitationViewModel.Action.didTapConfirmButton}
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
 
         viewModel.state.selectedOption
             .asDriver(onErrorDriveWith: .empty())
@@ -63,6 +70,14 @@ final class SelectInvitationViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, isEnabled in
                 owner.selectInvitationView.setConfirmButton(isEnabled: isEnabled)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.dismiss
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, type in
+                owner.didTapConfirmButton.accept(type)
+                owner.dismiss(animated: true)
             }
             .disposed(by: disposeBag)
     }

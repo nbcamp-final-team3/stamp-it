@@ -16,7 +16,7 @@ final class SelectInvitationView: UIView {
     // MARK: - Actions
 
     let didTapOptionCard = PublishRelay<InvitationType>()
-
+    let didTapConfirmButton = PublishRelay<Void>()
 
     // MARK: - Properties
 
@@ -127,6 +127,10 @@ final class SelectInvitationView: UIView {
         receiveOptionCard.rx.controlEvent(.touchUpInside)
             .map { InvitationType.receive }
             .bind(to: didTapOptionCard)
+            .disposed(by: disposeBag)
+
+        confirmButton.rx.tap
+            .bind(to: didTapConfirmButton)
             .disposed(by: disposeBag)
     }
 

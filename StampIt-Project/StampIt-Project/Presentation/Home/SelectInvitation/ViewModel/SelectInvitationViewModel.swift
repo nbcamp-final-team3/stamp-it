@@ -15,11 +15,13 @@ final class SelectInvitationViewModel: ViewModelProtocol {
 
     enum Action {
         case didTapOptionCard(InvitationType)
+        case didTapConfirmButton
     }
 
     struct State {
         let selectedOption = BehaviorRelay<InvitationType?>(value: nil)
         let isEnabledConfirmButton = PublishRelay<Bool>()
+        let dismiss = PublishRelay<InvitationType>()
     }
 
     // MARK: - Properties
@@ -42,6 +44,8 @@ final class SelectInvitationViewModel: ViewModelProtocol {
                 switch action {
                 case .didTapOptionCard(let type):
                     owner.toggleSelection(type)
+                case .didTapConfirmButton:
+                    owner.dismissVC()
                 }
             }
             .disposed(by: disposeBag)
@@ -59,5 +63,10 @@ final class SelectInvitationViewModel: ViewModelProtocol {
     private func isEnabledConfirm() {
         let isEnabled = state.selectedOption.value != nil
         state.isEnabledConfirmButton.accept(isEnabled)
+    }
+
+    private func dismissVC() {
+        guard let selectedType = state.selectedOption.value else { return }
+        state.dismiss.accept(selectedType)
     }
 }

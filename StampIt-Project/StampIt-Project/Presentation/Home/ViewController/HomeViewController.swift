@@ -63,6 +63,12 @@ final class HomeViewController: UIViewController {
     private func showSelectInvitationVC() {
         let vm = SelectInvitationViewModel()
         let vc = SelectInvitationViewController(viewModel: vm)
+
+        vc.didTapConfirmButton
+            .map { HomeViewModel.Action.didReceiveInvitationType($0) }
+            .bind(to: viewModel.action)
+            .disposed(by: vc.disposeBag)
+
         if let sheet = vc.sheetPresentationController {
             sheet.detents = [.medium()]
             sheet.prefersGrabberVisible = true
