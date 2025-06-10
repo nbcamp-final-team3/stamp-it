@@ -21,8 +21,14 @@ final class MissionListViewController: UIViewController {
         $0.register(MissionListCell.self, forCellReuseIdentifier: MissionListCell.reuseIdentifier)
     }
     
+    private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
+        $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
+    }
+    
     private let viewModel: MissionListViewModel
     private let disposeBag = DisposeBag()
+    
+    private var dataSource: UICollectionViewDiffableDataSource<MissionListViewModel.Section, MissionListViewModel.Item>?
     
     init(viewModel: MissionListViewModel = .init()) {
         self.viewModel = viewModel
@@ -42,6 +48,8 @@ final class MissionListViewController: UIViewController {
         
         setNavigationBar()
         
+        configureDataSource()
+        
         bind()
         
         // 미션 샘플 데이터 로드
@@ -57,7 +65,7 @@ final class MissionListViewController: UIViewController {
     private func prepareSubviews() {
         view.backgroundColor = .white
         
-        [searchBar, tableView].forEach {
+        [searchBar, collectionView, tableView].forEach {
             view.addSubview($0)
         }
     }
@@ -68,8 +76,14 @@ final class MissionListViewController: UIViewController {
             $0.horizontalEdges.equalToSuperview()
         }
         
-        tableView.snp.makeConstraints {
+        collectionView.snp.makeConstraints {
             $0.top.equalTo(searchBar.snp.bottom).offset(8)
+            $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges)
+            $0.height.equalTo(36)
+        }
+        
+        tableView.snp.makeConstraints {
+            $0.top.equalTo(collectionView.snp.bottom).offset(8)
             $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges)
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
         }
@@ -92,6 +106,15 @@ final class MissionListViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(tableView.rx.items(cellIdentifier: MissionListCell.reuseIdentifier, cellType: MissionListCell.self)) { (_, element, cell) in
                 cell.configure(with: element.title)
+            }
+            .disposed(by: disposeBag)
+        
+        // 컬렉션 뷰 스냅샷 변경 시 뷰 반영
+        viewModel.output.snapshot
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] snapshot in
+                guard let self, let snapshot, let dataSource else { return }
+                dataSource.apply(snapshot, animatingDifferences: true)
             }
             .disposed(by: disposeBag)
         
@@ -123,5 +146,42 @@ final class MissionListViewController: UIViewController {
         let viewModel = AssignMissionViewModel(mission: mission)
         let viewController = AssignMissionViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)
+    }
+    
+    // 컬렉션 뷰 레이아웃 설정
+    private func createLayout() -> UICollectionViewLayout {
+        let layout = UICollectionViewCompositionalLayout { _, _ in
+            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+                                                  heightDimension: .fractionalHeight(1))
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.2),
+                                                   heightDimension: .absolute(32))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+            
+            let section = NSCollectionLayoutSection(group: group)
+            section.interGroupSpacing = 8
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
+            section.orthogonalScrollingBehavior = .continuous
+            return section
+        }
+        
+        return layout
+    }
+    
+    // 컬렉션 뷰 데이터소스 설정
+    private func configureDataSource() {
+        dataSource = UICollectionViewDiffableDataSource<MissionListViewModel.Section, MissionListViewModel.Item>(collectionView: collectionView) { collectionView, indexPath, item in
+            switch item {
+            case .all:
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
+                cell.configure(title: "전체보기", titleColor: .white, titleWeight: .bold, backgroundColor: .red400)
+                return cell
+            case .category(let category):
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
+                cell.configure(image: category.image, title: category.title, titleColor: .darkGray, backgroundColor: .white)
+                return cell
+            }
+        }
     }
 }

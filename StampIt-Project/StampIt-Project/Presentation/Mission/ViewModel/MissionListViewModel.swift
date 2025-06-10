@@ -5,7 +5,7 @@
 //  Created by 권순욱 on 6/4/25.
 //
 
-import Foundation
+import UIKit
 import RxSwift
 import RxRelay
 
@@ -19,6 +19,7 @@ final class MissionListViewModel: MissionViewModelProtocol {
     struct Output {
         var missions = BehaviorRelay<[SampleMission]>(value: []) // 뷰에 반영되는 샘플 미션 데이터
         var searchText = BehaviorRelay<String>(value: "")
+        var snapshot = BehaviorRelay<NSDiffableDataSourceSnapshot<Section, Item>?>(value: nil)
     }
     
     var input = PublishRelay<Input>()
@@ -33,6 +34,8 @@ final class MissionListViewModel: MissionViewModelProtocol {
         self.sampleMissionUseCaseImpl = sampleMissionUseCaseImpl
         
         bind()
+        
+        updateSnapshot()
     }
     
     private func bind() {
@@ -66,5 +69,32 @@ final class MissionListViewModel: MissionViewModelProtocol {
         let filteredMissions = _missions
             .filter { $0.title.localizedStandardContains(output.searchText.value.trimmingCharacters(in: .whitespaces)) } // 검색어 맨앞 공백 무시
         output.missions.accept(filteredMissions)
+    }
+    
+    // 컬렉션 뷰 스냅샷 업데이트
+    private func updateSnapshot() {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+        snapshot.appendSections([.category])
+        
+        var items: [Item] = []
+        items.append(.all)
+        MissionCategory.allCases.forEach {
+            items.append(.category($0))
+        }
+        snapshot.appendItems(items)
+        
+        output.snapshot.accept(snapshot)
+    }
+}
+
+// 컬렉션 뷰 섹션/아이템 정의
+extension MissionListViewModel {
+    enum Section: Hashable {
+        case category
+    }
+    
+    enum Item: Hashable {
+        case all
+        case category(MissionCategory)
     }
 }
