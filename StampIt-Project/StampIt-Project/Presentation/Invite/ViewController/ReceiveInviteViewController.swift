@@ -28,26 +28,24 @@ final class ReceiveInviteViewController: UIViewController {
     private let helpLabel = UILabel().then {
         $0.text = "초대 받을 그룹의 코드를 입력해주세요"
         $0.textAlignment = .center
-        $0.font = .systemFont(ofSize: 14)
-        $0.textColor = .black
+        $0.font = .pretendard(size: 14, weight: .medium)
+        $0.textColor = .gray800
     }
 
     private let floatingLabel = UILabel().then {
         $0.text = "초대 코드"
-        $0.font = .systemFont(ofSize: 16)
-        $0.textColor = .gray
-
+        $0.font = .pretendard(size: 16, weight: .black)
+        $0.textColor = .gray300
         $0.numberOfLines = 1
     }
 
     private let textField = UITextField().then {
         $0.placeholder = "코드를 입력하세요"
-        $0.font = .systemFont(ofSize: 16)
+        $0.font = .pretendard(size: 16, weight: .medium)
         $0.borderStyle = .none
         $0.backgroundColor = .clear
         $0.autocorrectionType = .no
         $0.autocapitalizationType = .none
-
     }
 
     private let stackView = UIStackView().then {
@@ -58,9 +56,7 @@ final class ReceiveInviteViewController: UIViewController {
     }
 
     private let textFieldContainer = UIView().then {
-        $0.backgroundColor = .white
-        $0.layer.borderColor = UIColor.gray.cgColor
-        $0.layer.borderWidth = 1
+        $0.backgroundColor = .gray50
         $0.layer.cornerRadius = 12
         $0.layer.masksToBounds = true
     }
@@ -99,6 +95,10 @@ final class ReceiveInviteViewController: UIViewController {
             $0.top.equalTo(helpLabel.snp.bottom).offset(20)
             $0.leading.trailing.equalToSuperview().inset(24)
             $0.height.equalTo(72)
+        }
+
+        floatingLabel.snp.makeConstraints {
+            $0.width.equalTo(100)
         }
 
         stackView.snp.makeConstraints {
