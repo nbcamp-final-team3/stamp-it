@@ -9,6 +9,6 @@ import Foundation
 
 struct Invitation {
     let groupID: String
-    let createBy: String
+    let createdBy: String
     let expiredAt: Date
 }
