@@ -140,8 +140,11 @@ extension ReceiveInviteViewController: UITextFieldDelegate {
         UIView.animate(withDuration: 0.2) {
             self.stackView.axis = .vertical
             self.stackView.alignment = .leading
-            self.floatingLabel.font = .systemFont(ofSize: 12)
-            self.floatingLabel.textColor = .gray
+            self.floatingLabel.font = .pretendard(size: 12, weight: .medium)
+            self.floatingLabel.textColor = .gray300
+            self.textFieldContainer.layer.borderColor = UIColor.gray800.cgColor
+            self.textFieldContainer.backgroundColor = .clear
+            self.textFieldContainer.layer.borderWidth = 1.5
             self.view.layoutIfNeeded()
         }
     }
@@ -153,8 +156,11 @@ extension ReceiveInviteViewController: UITextFieldDelegate {
                 self.stackView.axis = .horizontal
                 self.stackView.alignment = .center
                 self.stackView.spacing = 20
-                self.floatingLabel.font = .systemFont(ofSize: 16)
-                self.floatingLabel.textColor = .gray
+                self.floatingLabel.font = .pretendard(size: 16, weight: .medium)
+                self.floatingLabel.textColor = .gray300
+                self.textFieldContainer.layer.borderColor = .none
+                self.textFieldContainer.backgroundColor = .gray50
+                self.textFieldContainer.layer.borderWidth = 0
                 self.view.layoutIfNeeded()
             }
         }
