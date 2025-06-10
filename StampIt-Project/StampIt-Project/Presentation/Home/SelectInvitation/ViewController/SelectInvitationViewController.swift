@@ -58,5 +58,12 @@ final class SelectInvitationViewController: UIViewController {
                 owner.selectInvitationView.handleSelectedOption(type)
             }
             .disposed(by: disposeBag)
+
+        viewModel.state.isEnabledConfirmButton
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, isEnabled in
+                owner.selectInvitationView.setConfirmButton(isEnabled: isEnabled)
+            }
+            .disposed(by: disposeBag)
     }
 }

@@ -19,6 +19,7 @@ final class SelectInvitationViewModel: ViewModelProtocol {
 
     struct State {
         let selectedOption = BehaviorRelay<InvitationType?>(value: nil)
+        let isEnabledConfirmButton = PublishRelay<Bool>()
     }
 
     // MARK: - Properties
@@ -52,6 +53,11 @@ final class SelectInvitationViewModel: ViewModelProtocol {
         let current = state.selectedOption.value
         let new: InvitationType? = current == type ? nil : type
         state.selectedOption.accept(new)
+        isEnabledConfirm()
     }
 
+    private func isEnabledConfirm() {
+        let isEnabled = state.selectedOption.value != nil
+        state.isEnabledConfirmButton.accept(isEnabled)
+    }
 }

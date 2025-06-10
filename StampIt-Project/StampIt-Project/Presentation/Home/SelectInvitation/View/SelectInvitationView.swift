@@ -143,4 +143,8 @@ final class SelectInvitationView: UIView {
             receiveOptionCard.isSelected = false
         }
     }
+
+    func setConfirmButton(isEnabled: Bool) {
+        confirmButton.isEnabled = isEnabled
+    }
 }
