@@ -11,11 +11,6 @@ import SnapKit
 import RxSwift
 import RxCocoa
 
-enum TabType {
-    case stampBoard
-    case profile
-}
-
 final class TabButton: UIView {
     
     // MARK: - UI Components
@@ -26,12 +21,12 @@ final class TabButton: UIView {
     }
     
     private let stampButton = UIButton(type: .system).then {
-        $0.setTitle(MyPage.Tab.stamp, for: .normal)
+        $0.setTitle(TabType.stampBoard.title, for: .normal)
         $0.titleLabel?.font = .pretendard(size: MyPage.Tab.fontSize, weight: .medium)
     }
     
     private let profileButton = UIButton(type: .system).then {
-        $0.setTitle(MyPage.Tab.profile, for: .normal)
+        $0.setTitle(TabType.profile.title, for: .normal)
         $0.titleLabel?.font = .pretendard(size: MyPage.Tab.fontSize, weight: .medium)
     }
     

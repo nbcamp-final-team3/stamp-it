@@ -12,7 +12,6 @@ import RxSwift
 
 final class MyPageViewController: UIViewController {
     
-    
     // MARK: - Properties
     
     private let disposeBag = DisposeBag()
@@ -124,10 +123,10 @@ extension MyPageViewController: UITableViewDelegate {
         let section = MyPageProfileSection.allCases[section]
         let title = section.headerTitle
         
-        let header = MyPageHeaderView()
+        let header = MyPageHeader()
         header.configureLabel(with: title)
         if section == .groupMember {
-            header.isDividerHidden(true)
+            header.isDividerHidden = true
         }
         return header
     }
