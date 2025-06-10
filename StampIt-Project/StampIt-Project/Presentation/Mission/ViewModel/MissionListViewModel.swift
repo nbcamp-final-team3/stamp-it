@@ -14,6 +14,7 @@ final class MissionListViewModel: MissionViewModelProtocol {
         case onAppear
         case searchTextChanged(String)
         case didSelectTableViewCell(SampleMission)
+        case didSelectCollectionViewCell(IndexPath)
     }
     
     struct Output {
@@ -54,6 +55,14 @@ final class MissionListViewModel: MissionViewModelProtocol {
                     searchMission()
                 case .didSelectTableViewCell(let mission):
                     print("didSelectTableViewCell: \(mission.title)")
+                case .didSelectCollectionViewCell(let indexPath):
+//                    if indexPath.item == 0 {
+//                        print("전체보기")
+//                    } else {
+//                        let category = MissionCategory.allCases[indexPath.item - 1]
+//                        print("category: \(category.title)")
+//                    }
+                    filterMission(indexPath: indexPath)
                 }
             }
             .disposed(by: disposeBag)
@@ -69,6 +78,22 @@ final class MissionListViewModel: MissionViewModelProtocol {
         let filteredMissions = _missions
             .filter { $0.title.localizedStandardContains(output.searchText.value.trimmingCharacters(in: .whitespaces)) } // 검색어 맨앞 공백 무시
         output.missions.accept(filteredMissions)
+    }
+    
+    private func filterMission(indexPath: IndexPath) {
+        switch indexPath.item {
+        case 0:
+            output.missions.accept(_missions)
+            print("전체보기")
+        case let x where x > 0:
+            let category = MissionCategory.allCases[x - 1]
+            let filteredMissions = _missions
+                .filter { $0.category == category }
+            output.missions.accept(filteredMissions)
+            print("category: \(category.title)")
+        default:
+            break
+        }
     }
     
     // 컬렉션 뷰 스냅샷 업데이트

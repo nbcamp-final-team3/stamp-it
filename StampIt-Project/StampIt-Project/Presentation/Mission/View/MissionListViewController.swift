@@ -139,6 +139,16 @@ final class MissionListViewController: UIViewController {
                 pushAssignMissionViewController(mission: $0)
             }
             .disposed(by: disposeBag)
+        
+        // 컬렉션 뷰 셀 선택하면 뷰 반영(해당 카테고리 필터링)
+        collectionView.rx.itemSelected
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] in
+                guard let self else { return }
+                
+                viewModel.input.accept(.didSelectCollectionViewCell($0))
+            }
+            .disposed(by: disposeBag)
     }
     
     // 미션 할당 화면으로 이동
