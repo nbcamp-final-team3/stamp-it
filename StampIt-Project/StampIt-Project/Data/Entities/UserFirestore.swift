@@ -25,8 +25,8 @@ struct UserFirestore: Codable {
 
 // MARK: - Domain Model 변환
 extension UserFirestore {
-    func toDomainModel() -> User {
-        return User(
+    func toDomainModel() -> StampIt_Project.User {
+        return StampIt_Project.User(
             userID: self.userId,
             nickname: self.nickname,
             profileImageURL: self.profileImage,
@@ -34,6 +34,23 @@ extension UserFirestore {
             groupID: self.groupId,
             groupName: "", // 별도 조회 필요
             isLeader: false, // 별도 조회 필요
+            joinedGroupAt: self.createdAt.dateValue()
+        )
+    }
+    
+    /// 그룹 정보와 함께 도메인 모델 변환 (AuthRepo에서 사용)
+    func toDomainModel(
+        groupName: String,
+        isLeader: Bool
+    ) -> StampIt_Project.User {
+        return StampIt_Project.User(
+            userID: self.userId,
+            nickname: self.nickname,
+            profileImageURL: self.profileImage,
+            boards: [],
+            groupID: self.groupId,
+            groupName: groupName,
+            isLeader: isLeader,
             joinedGroupAt: self.createdAt.dateValue()
         )
     }
