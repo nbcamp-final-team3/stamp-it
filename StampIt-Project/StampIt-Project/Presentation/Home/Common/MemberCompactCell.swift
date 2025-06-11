@@ -14,7 +14,7 @@ final class MemberCompactCell: UICollectionViewCell {
     
     // MARK: - Properties
     
-    let identifier = "MemberCompactCell"
+    static let identifier = "MemberCompactCell"
     let type: CellType
 
     override var isSelected: Bool {

@@ -13,7 +13,7 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     // MARK: - Properties
 
-    let identifier = "AssignedMissionCell"
+    static let identifier = "AssignedMissionCell"
     private let type: MissionType
 
     // MARK: - UI Components

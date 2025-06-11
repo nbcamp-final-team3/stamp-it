@@ -13,7 +13,7 @@ final class MissionCardCell: UICollectionViewCell {
 
     // MARK: - Properties
 
-    let identifier = "MissionCardCell"
+    static let identifier = "MissionCardCell"
 
     // MARK: - UI Components
 
