@@ -48,7 +48,6 @@ class SendInviteViewModel: ViewModelProtocol {
                     showCopyMessageRelay.accept("초대 코드가 복사되었습니다")
                 }
             }).disposed(by: disposeBag)
-    }
 
     // MARK: - Helper 초대 코드 생성 함수
     private static func generateInviteCode(length: Int = 8) -> String {

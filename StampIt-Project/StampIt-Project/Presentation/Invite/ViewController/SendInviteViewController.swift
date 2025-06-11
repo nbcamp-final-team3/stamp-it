@@ -33,20 +33,20 @@ class SendInviteViewController: UIViewController {
     private let textFiledInTitle = UILabel().then {
         $0.text = "초대코드"
         $0.font = .systemFont(ofSize: 14)
-        $0.textColor = .black
+        $0.textColor = .gray800
         $0.setContentHuggingPriority(.required, for: .horizontal)
     }
 
     private let inviteCodeLabel = UILabel().then {
         $0.font = .boldSystemFont(ofSize: 16)
-        $0.text = "abc123qwe"
-        $0.textColor = .black
+        
+        $0.textColor = .gray800
         $0.setContentHuggingPriority(.defaultLow, for: .horizontal)
     }
 
     private let copyButton = UIButton(type: .system).then {
         $0.setImage(UIImage(systemName: "doc.on.doc"), for: .normal)
-        $0.tintColor = .black
+        $0.tintColor = .gray800
         $0.setContentHuggingPriority(.required, for: .horizontal)
     }
 
@@ -55,7 +55,7 @@ class SendInviteViewController: UIViewController {
         $0.spacing = 8
         $0.alignment = .center
         $0.distribution = .fill
-        $0.backgroundColor = .inviteCodeBackground
+        $0.backgroundColor = UIColor.gray50
         $0.layer.cornerRadius = 12
         $0.layoutMargins = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
         $0.isLayoutMarginsRelativeArrangement = true
@@ -103,6 +103,10 @@ class SendInviteViewController: UIViewController {
 
         textFiledInTitle.snp.makeConstraints {
             $0.width.equalTo(60)
+        }
+
+        copyButton.snp.makeConstraints {
+            $0.width.equalTo(32)
         }
     }
 
