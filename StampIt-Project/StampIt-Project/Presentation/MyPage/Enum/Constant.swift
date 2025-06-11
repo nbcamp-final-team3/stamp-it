@@ -19,6 +19,15 @@ enum TabType {
     }
 }
 
+enum Stamp: String, Hashable {
+    case stampGray
+    case stampRed
+    
+    enum Board {
+        static let imageSize: CGFloat = 53
+    }
+}
+
 enum MyPage {
     enum Tab {
         static let fontSize: CGFloat = 24

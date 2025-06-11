@@ -166,7 +166,7 @@ final class StampSummary: UIView {
         }
         
         divider.snp.makeConstraints {
-            $0.directionalVerticalEdges.equalToSuperview().inset(14)
+            $0.directionalVerticalEdges.equalToSuperview().inset(12)
             $0.width.equalTo(1)
             $0.center.equalToSuperview()
         }

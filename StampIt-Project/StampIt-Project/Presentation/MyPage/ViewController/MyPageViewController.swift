@@ -14,13 +14,17 @@ final class MyPageViewController: UIViewController {
     
     // MARK: - Properties
     
+    private var viewModel = MyPageViewModel()
+    
+    private var stampBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
+    
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
 
     private let tabButton = TabButton()
-    private let stampBoardView = StampBoard()
-    private let profileView = UserProfile()
+    private let stampBoardView = StampBoardTab()
+    private let profileView = ProfileTab()
     
     // MARK: - View Life Cycle
     
@@ -32,6 +36,7 @@ final class MyPageViewController: UIViewController {
         setDelegate()
         setDataSource()
         bind()
+        updateUI(item: viewModel.stamps)
     }
     
     // MARK: - Bind
@@ -90,13 +95,41 @@ final class MyPageViewController: UIViewController {
     }
     
     // MARK: - Delegate Helper
+    
     private func setDelegate() {
         profileView.tableView.delegate = self
     }
 
     // MARK: - DataSource Helper
+    
     private func setDataSource() {
+        stampBoardDataSource = UICollectionViewDiffableDataSource(
+            collectionView: stampBoardView.getStampBoardView(),
+            cellProvider: { collectionView, indexPath, itemIdentifier in
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: StampCell.identifier,
+                    for: indexPath
+                ) as! StampCell
+                
+                let backgroundBoard = StampBoardSection.defaultBoard.type.flatMap { $0 }
+                if backgroundBoard.indices.contains(indexPath.item) {
+                    cell.configureDashedLine(with: backgroundBoard[indexPath.item])
+                }
+                cell.configureStamp(with: itemIdentifier)
+                return cell
+            })
+        stampBoardView.setCollectionViewDataSource(stampBoardDataSource)
+
         profileView.tableView.dataSource = self
+    }
+
+    // MARK: - Snapshot
+    
+    private func updateUI(item: [Sticker]) {
+        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
+        snapshot.appendSections([.defaultBoard])
+        snapshot.appendItems(item, toSection: .defaultBoard)
+        stampBoardDataSource.apply(snapshot, animatingDifferences: true)
     }
     
     // MARK: - Methods
@@ -111,57 +144,5 @@ final class MyPageViewController: UIViewController {
             stampBoardView.isHidden = true
             profileView.isHidden = false
         }
-    }
-}
-
-extension MyPageViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        MyPage.TableView.sectionHeight
-    }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let section = MyPageProfileSection.allCases[section]
-        let title = section.headerTitle
-        
-        let header = ProfileHeader()
-        header.configureLabel(with: title)
-        if section == .groupMember {
-            header.isDividerHidden = true
-        }
-        return header
-    }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        MyPage.TableView.cellHeight
-    }
-}
-
-extension MyPageViewController: UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int {
-        MyPageProfileSection.allCases.count
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let section = MyPageProfileSection.allCases[section]
-        return section.menus.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: ProfileMenuCell.identifier,
-            for: indexPath
-        ) as! ProfileMenuCell
-        
-        let section = MyPageProfileSection.allCases[indexPath.section]
-        let menu = section.menus[indexPath.item]
-        
-        if section == .groupMember {
-            if indexPath.item == .zero {
-                cell.setLayoutForOnlyTitle()
-            }
-        }
-        
-        cell.configureLabels(title: menu.title, description: menu.subtitle)
-        return cell
     }
 }

@@ -10,7 +10,7 @@ import Then
 import SnapKit
 import Kingfisher
 
-final class UserProfile: UIView {
+final class ProfileTab: UIView {
     
     // MARK: - UI Components
     

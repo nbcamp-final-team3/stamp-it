@@ -7,10 +7,12 @@
 
 import Foundation
 
-struct Sticker {
-    let stickerID: String
+struct Sticker: Hashable {
+    let stickerID: UUID
+//    let stickerID: String
     let title: String
     let description: String
     let imageURL: String
+    let imageType: Stamp // 추가 고려 
     let createdAt: Date
 }

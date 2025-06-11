@@ -53,3 +53,32 @@ enum MyPageMenu: CaseIterable {
         }
     }
 }
+
+typealias StampBoardSection = MyPageStampBoardSection
+typealias StampBoardItem = Sticker
+
+enum MyPageStampBoardSection: Hashable {
+    case defaultBoard
+    
+    var type: [[StampCellType]] {
+        switch self {
+        case .defaultBoard:
+            return [
+                [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
+                [.both, .horizontal, .horizontal, .horizontal, .none],
+                [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
+                [.both, .horizontal, .horizontal, .horizontal, .none],
+                [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
+                [.horizontal, .horizontal, .horizontal, .horizontal, .none],
+            ]
+        }
+    }
+}
+
+/// Dashed Line 기준
+enum StampCellType: Hashable {
+    case horizontal
+    case vertical
+    case both
+    case none
+}
