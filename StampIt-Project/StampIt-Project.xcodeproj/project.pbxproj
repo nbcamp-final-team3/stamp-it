@@ -23,6 +23,7 @@
 		783A8A132DF599670095BF4E /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 783A8A122DF599670095BF4E /* GoogleSignIn */; };
 		783A8A152DF599670095BF4E /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 783A8A142DF599670095BF4E /* GoogleSignInSwift */; };
 		787754A02DF5D36F0035D1B4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7877549F2DF5D36F0035D1B4 /* GoogleService-Info.plist */; };
+		F47C18982DF43DD800D1C7E7 /* Toast in Frameworks */ = {isa = PBXBuildFile; productRef = F47C18972DF43DD800D1C7E7 /* Toast */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,6 +88,7 @@
 			files = (
 				783A8A152DF599670095BF4E /* GoogleSignInSwift in Frameworks */,
 				783A885B2DF1506C0095BF4E /* FirebaseMessaging in Frameworks */,
+				F47C18982DF43DD800D1C7E7 /* Toast in Frameworks */,
 				783A875A2DF02D100095BF4E /* RxSwift in Frameworks */,
 				783A884F2DF1506C0095BF4E /* FirebaseAuth in Frameworks */,
 				783A88512DF1506C0095BF4E /* FirebaseCore in Frameworks */,
@@ -176,6 +178,7 @@
 				783A885C2DF1506C0095BF4E /* FirebaseStorage */,
 				783A8A122DF599670095BF4E /* GoogleSignIn */,
 				783A8A142DF599670095BF4E /* GoogleSignInSwift */,
+				F47C18972DF43DD800D1C7E7 /* Toast */,
 			);
 			productName = "StampIt-Project";
 			productReference = 783A87142DF02CA80095BF4E /* StampIt-Project.app */;
@@ -267,6 +270,7 @@
 				783A875B2DF02D1F0095BF4E /* XCRemoteSwiftPackageReference "lottie-ios" */,
 				783A88492DF1506C0095BF4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				783A8A112DF599670095BF4E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				F47C18962DF43DD800D1C7E7 /* XCRemoteSwiftPackageReference "Toast-Swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 783A87152DF02CA80095BF4E /* Products */;
@@ -700,6 +704,14 @@
 				minimumVersion = 8.0.0;
 			};
 		};
+		F47C18962DF43DD800D1C7E7 /* XCRemoteSwiftPackageReference "Toast-Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scalessec/Toast-Swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -777,6 +789,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 783A8A112DF599670095BF4E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		F47C18972DF43DD800D1C7E7 /* Toast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F47C18962DF43DD800D1C7E7 /* XCRemoteSwiftPackageReference "Toast-Swift" */;
+			productName = Toast;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
