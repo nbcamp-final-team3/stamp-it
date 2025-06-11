@@ -12,6 +12,7 @@ import Foundation
 enum RepositoryError: Error {
     case authenticationFailed(String)  // 인증 실패
     case userNotFound                  // 사용자 없음
+    case userNotInGroup                  // 그룹 없음
     case dataError(String)             // 데이터 처리 오류
     case networkError(String)          // 네트워크 오류
     case uiError(String)              // UI 관련 오류
@@ -23,6 +24,8 @@ enum RepositoryError: Error {
             return "인증 실패: \(message)"
         case .userNotFound:
             return "사용자를 찾을 수 없습니다"
+        case .userNotInGroup:
+            return "사용자가 그룹에 속해 있지 않습니다"
         case .dataError(let message):
             return "데이터 오류: \(message)"
         case .networkError(let message):
