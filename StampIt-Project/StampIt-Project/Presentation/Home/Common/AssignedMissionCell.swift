@@ -93,6 +93,7 @@ final class AssignedMissionCell: UICollectionViewCell {
             titleLabel,
             statusView,
             statusButton,
+            separatorView,
         ].forEach{ contentView.addSubview($0) }
 
         [
@@ -165,6 +166,11 @@ final class AssignedMissionCell: UICollectionViewCell {
         statusButton.snp.makeConstraints { make in
             make.trailing.equalToSuperview()
             make.centerY.equalToSuperview()
+        }
+
+        separatorView.snp.makeConstraints { make in
+            make.height.equalTo(1)
+            make.directionalHorizontalEdges.bottom.equalToSuperview()
         }
     }
 
