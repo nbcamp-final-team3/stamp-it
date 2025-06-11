@@ -41,7 +41,6 @@ struct LoginFlowResult {
 enum LoginNextAction {
     case navigateToMain          // 메인 화면으로 이동
     case showWelcomeMessage      // 환영 메시지 표시 후 메인
-    case setupGroup             // 그룹 설정 필요
 }
 
 /// 런치 플로우 결과 (화면 분기용)
