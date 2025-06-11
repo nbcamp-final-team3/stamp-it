@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "AppLogo.png",
+      "filename" : "AppLogo.pdf",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "AppLogo 1.png",
+      "filename" : "AppLogo 1.pdf",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "AppLogo 2.png",
+      "filename" : "AppLogo 2.pdf",
       "idiom" : "universal",
       "scale" : "3x"
     }

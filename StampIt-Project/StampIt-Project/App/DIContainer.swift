@@ -26,6 +26,22 @@ final class DIContainer {
         )
     }()
     
+    // MARK: - Use Cases (Domain Layer)
+        lazy var loginUseCase: LoginUseCaseProtocol = {
+            return LoginUseCase(authRepository: authRepository)
+        }()
+        
+        // MARK: - ViewModels (Domain Layer)
+        func makeLoginViewModel() -> LoginViewModel {
+            return LoginViewModel(loginUseCase: loginUseCase)
+        }
+        
+    // MARK: - ViewControllers (Presentation Layer)
+        func makeLoginViewController() -> LoginViewController {
+            let viewModel = makeLoginViewModel()
+            return LoginViewController(viewModel: viewModel)
+        }
+    
     // MARK: - Singleton
     static let shared = DIContainer()
     private init() {}
