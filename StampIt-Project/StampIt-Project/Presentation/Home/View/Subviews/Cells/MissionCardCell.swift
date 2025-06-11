@@ -71,14 +71,15 @@ final class MissionCardCell: UICollectionViewCell {
         super.layoutSubviews()
         layer.shadowPath = UIBezierPath(
             roundedRect: bounds,
-            cornerRadius: layer.cornerRadius
+            cornerRadius: contentView.layer.cornerRadius
         ).cgPath
     }
 
     // MARK: - Set Styles
 
     private func setStyles() {
-        layer.cornerRadius = 20
+        contentView.layer.masksToBounds = true
+        contentView.layer.cornerRadius = 20
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOpacity = 0.16
         layer.shadowRadius = 4
@@ -132,7 +133,7 @@ final class MissionCardCell: UICollectionViewCell {
 
     func configure(category: MissionCategory, date: String, assigner: String, title: String) {
         categoryImageView.image = category.image
-        backgroundColor = category.backgroundColor
+        contentView.backgroundColor = category.backgroundColor
         dateTag.configure(with: date)
         assignerTag.configure(with: assigner)
         titleLabel.text = title
