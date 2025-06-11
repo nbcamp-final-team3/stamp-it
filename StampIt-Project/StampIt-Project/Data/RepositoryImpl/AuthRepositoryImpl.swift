@@ -301,3 +301,27 @@ final class AuthRepository: AuthRepositoryProtocol {
         }
     }
 }
+
+// MARK: - Extension 특정 정보만 반환
+
+extension AuthRepository {
+    /// 현재 사용자의 그룹 ID 반환
+    func getCurrentGroupID() -> Observable<String> {
+        return getCurrentUser()
+            .compactMap { $0?.groupID }
+            .ifEmpty(switchTo: Observable.error(RepositoryError.userNotInGroup))
+    }
+    
+    /// 현재 사용자의 ID 반환
+    func getCurrentUserID() -> Observable<String> {
+        return getCurrentUser()
+            .compactMap { $0?.userID }
+            .ifEmpty(switchTo: Observable.error(RepositoryError.userNotFound))
+    }
+    
+    /// 현재 사용자가 리더인지 확인
+    func isCurrentUserLeader() -> Observable<Bool> {
+        return getCurrentUser()
+            .map { $0?.isLeader ?? false }
+    }
+}
