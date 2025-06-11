@@ -30,21 +30,24 @@ final class LoginViewController: UIViewController {
     /// 컨텐츠 컨테이너
     private let contentView = UIView()
     
-    /// 로고 이미지뷰
+    /// 상단 타이틀 라벨
+    private let topTitleLabel = UILabel().then {
+        $0.text = "미션으로 함께하는 집안일"
+        $0.font = .pretendard(size: 16, weight: .medium)
+        $0.textColor = .label
+        $0.textAlignment = .center
+        $0.numberOfLines = 1
+    }
+    
+    /// 메인 로고 이미지뷰 (Stamp it)
     private let logoImageView = UIImageView().then {
         $0.image = UIImage(named: "AppLogo")
         $0.contentMode = .scaleAspectFit
         $0.backgroundColor = .clear
     }
     
-    /// 앱 소개 타이틀
-    private let titleLabel = UILabel().then {
-        $0.text = "미션으로 함께하는 집안일"
-        $0.font = .pretendard(size: 18, weight: .medium)
-        $0.textColor = .secondaryLabel
-        $0.textAlignment = .center
-        $0.numberOfLines = 1
-    }
+    /// 하단 로그인 섹션 컨테이너
+    private let loginSectionView = UIView()
     
     /// 로그인 버튼들을 담는 스택뷰
     private let loginButtonStackView = UIStackView().then {
@@ -59,20 +62,22 @@ final class LoginViewController: UIViewController {
         authorizationButtonType: .signIn,
         authorizationButtonStyle: .black
     ).then {
-        $0.cornerRadius = 8
+        $0.cornerRadius = 12
     }
     
-    /// Google 로그인 버튼 (iOS 15+ UIButtonConfiguration 사용)
+    /// Google 로그인 버튼
     private lazy var googleLoginButton: UIButton = {
         let button = UIButton(type: .system)
         
         // iOS 15+ UIButtonConfiguration 사용
         if #available(iOS 15.0, *) {
-            var config = UIButton.Configuration.plain()
+            var config = UIButton.Configuration.filled()
             config.title = "구글로 로그인하기"
-            config.image = UIImage(systemName: "google") // 실제로는 Google 아이콘 사용
+            config.image = UIImage(systemName: "globe") // 실제로는 Google 아이콘 사용
             config.imagePadding = 8
-            config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+            config.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 20, bottom: 16, trailing: 20)
+            config.baseBackgroundColor = .systemBackground
+            config.baseForegroundColor = .label
             
             button.configuration = config
         } else {
@@ -81,18 +86,24 @@ final class LoginViewController: UIViewController {
             button.setImage(UIImage(systemName: "globe"), for: .normal)
             button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
             button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: -8)
+            button.backgroundColor = .systemBackground
         }
         
-        button.backgroundColor = .systemBackground
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.systemGray4.cgColor
-        button.layer.cornerRadius = 8
-        button.titleLabel?.font = .pretendard(size: 16, weight: .medium)
+        button.layer.cornerRadius = 12
+        button.titleLabel?.font = .pretendard(size: 16, weight: .bold)
         button.setTitleColor(.label, for: .normal)
         button.tintColor = .label
         
         return button
     }()
+    
+    /// 로딩 컨테이너 (최하단에 배치)
+    private let loadingContainerView = UIView().then {
+        $0.backgroundColor = .clear
+        $0.isHidden = true
+    }
     
     /// 로딩 인디케이터
     private let loadingIndicator = UIActivityIndicatorView(style: .medium).then {
@@ -106,7 +117,6 @@ final class LoginViewController: UIViewController {
         $0.textColor = .systemGray
         $0.textAlignment = .center
         $0.numberOfLines = 1
-        $0.isHidden = true
     }
     
     // MARK: - Init
@@ -129,7 +139,6 @@ final class LoginViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // 네비게이션 바 숨기기 (로그인 화면에서는 불필요)
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
     
@@ -141,8 +150,17 @@ final class LoginViewController: UIViewController {
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
-        [logoImageView, titleLabel, loginButtonStackView, loadingIndicator, loadingMessageLabel].forEach {
+        // 메인 뷰들 추가
+        [topTitleLabel, logoImageView, loginSectionView, loadingContainerView].forEach {
             contentView.addSubview($0)
+        }
+        
+        // 로그인 섹션 구성
+        loginSectionView.addSubview(loginButtonStackView)
+        
+        // 로딩 컨테이너 구성
+        [loadingIndicator, loadingMessageLabel].forEach {
+            loadingContainerView.addSubview($0)
         }
         
         // Apple 로그인 버튼을 스택뷰에 먼저 추가 (HIG: Apple 로그인이 있으면 최상단 배치)
@@ -158,59 +176,75 @@ final class LoginViewController: UIViewController {
             make.edges.equalTo(view.safeAreaLayoutGuide)
         }
         
-        // 컨텐츠뷰 제약조건
+        // 컨텐츠뷰 제약조건 (수정)
         contentView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
             make.width.equalToSuperview()
             make.height.greaterThanOrEqualTo(view.safeAreaLayoutGuide).priority(.low)
         }
         
-        // 로고 이미지뷰 제약조건
-        logoImageView.snp.makeConstraints { make in
+        // 상단 타이틀 라벨 제약조건
+        topTitleLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.top.equalToSuperview().offset(160)
-            make.width.equalTo(250)
+            make.top.equalToSuperview().offset(230)
+            make.leading.trailing.equalToSuperview().inset(40)
+        }
+        
+        // 메인 로고 이미지뷰 제약조건
+        logoImageView.snp.makeConstraints { make in
+            make.top.equalTo(topTitleLabel.snp.bottom).offset(15)
+            make.centerX.equalToSuperview()
+            make.width.equalTo(240)
             make.height.equalTo(70)
         }
-
         
-        // 타이틀 라벨 제약조건
-        titleLabel.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.top.equalTo(logoImageView.snp.bottom).offset(24)
-            make.leading.trailing.equalToSuperview().inset(40)
+        // 로그인 섹션 제약조건
+        loginSectionView.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview()
+            make.top.equalTo(logoImageView.snp.bottom).offset(60)
+            make.height.equalTo(140)
         }
         
         // 로그인 버튼 스택뷰 제약조건
         loginButtonStackView.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
             make.leading.trailing.equalToSuperview().inset(40)
-            make.bottom.equalTo(view.safeAreaLayoutGuide).offset(-60)
+            make.centerY.equalToSuperview()
         }
         
-        // Apple 로그인 버튼 높이 (HIG 권장: 최소 44pt)
+        // Apple 로그인 버튼 높이
         appleLoginButton.snp.makeConstraints { make in
-            make.height.equalTo(50)
+            make.height.equalTo(56)
         }
         
         // Google 로그인 버튼 높이
         googleLoginButton.snp.makeConstraints { make in
-            make.height.equalTo(50)
+            make.height.equalTo(56)
+        }
+        
+        // 로딩 컨테이너 제약조건 (최하단)
+        loadingContainerView.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview()
+            make.bottom.equalTo(view.safeAreaLayoutGuide).offset(-40)
+            make.height.equalTo(60)
         }
         
         // 로딩 인디케이터 제약조건
         loadingIndicator.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.top.equalTo(titleLabel.snp.bottom).offset(40)
+            make.top.equalToSuperview().offset(8)
         }
         
         // 로딩 메시지 라벨 제약조건
         loadingMessageLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.top.equalTo(loadingIndicator.snp.bottom).offset(12)
+            make.top.equalTo(loadingIndicator.snp.bottom).offset(8)
             make.leading.trailing.equalToSuperview().inset(40)
+            make.bottom.equalToSuperview().offset(-8)
         }
     }
+
+
     
     // MARK: - Bind ViewModel
     private func bindViewModel() {
@@ -266,34 +300,39 @@ final class LoginViewController: UIViewController {
             })
             .disposed(by: disposeBag)
     }
-
     
     // MARK: - Private Methods
     
-    /// 로딩 상태 UI 업데이트
+    /// 로딩 상태 UI 업데이트 (하단에 표시)
     private func updateLoadingState(_ isLoading: Bool) {
-        if isLoading {
-            loadingIndicator.startAnimating()
-            loadingMessageLabel.isHidden = false
-            
-            // 버튼 비활성화
-            appleLoginButton.isEnabled = false
-            googleLoginButton.isEnabled = false
-            
-            // 버튼 투명도 조정
-            appleLoginButton.alpha = 0.6
-            googleLoginButton.alpha = 0.6
-        } else {
-            loadingIndicator.stopAnimating()
-            loadingMessageLabel.isHidden = true
-            
-            // 버튼 활성화
-            appleLoginButton.isEnabled = true
-            googleLoginButton.isEnabled = true
-            
-            // 버튼 투명도 복원
-            appleLoginButton.alpha = 1.0
-            googleLoginButton.alpha = 1.0
+        UIView.animate(withDuration: 0.3) { [weak self] in
+            if isLoading {
+                // 로딩 시작
+                self?.loadingContainerView.isHidden = false
+                self?.loadingContainerView.alpha = 1.0
+                self?.loadingIndicator.startAnimating()
+                
+                // 버튼 비활성화
+                self?.appleLoginButton.isEnabled = false
+                self?.googleLoginButton.isEnabled = false
+                self?.appleLoginButton.alpha = 0.6
+                self?.googleLoginButton.alpha = 0.6
+                
+            } else {
+                // 로딩 종료
+                self?.loadingContainerView.alpha = 0.0
+                self?.loadingIndicator.stopAnimating()
+                
+                // 버튼 활성화
+                self?.appleLoginButton.isEnabled = true
+                self?.googleLoginButton.isEnabled = true
+                self?.appleLoginButton.alpha = 1.0
+                self?.googleLoginButton.alpha = 1.0
+            }
+        } completion: { [weak self] _ in
+            if !isLoading {
+                self?.loadingContainerView.isHidden = true
+            }
         }
     }
     
