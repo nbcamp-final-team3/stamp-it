@@ -1,5 +1,5 @@
 //
-//  SampleMissionRepository.swift
+//  MissionRepository.swift
 //  StampIt-Project
 //
 //  Created by 권순욱 on 6/5/25.
@@ -7,12 +7,12 @@
 
 import Foundation
 
-protocol SampleMissionRepository {
-    func loadData() -> [SampleMission]
+protocol MissionRepository {
+    func loadSampleMission() -> [SampleMission]
 }
 
-final class SampleMissionRepositoryImpl: SampleMissionRepository {
-    func loadData() -> [SampleMission] {
+final class MissionRepositoryImpl: MissionRepository {
+    func loadSampleMission() -> [SampleMission] {
         let houses: [SampleMission] = load("house+category.json")
         let families: [SampleMission] = load("family+category.json")
         return houses + families
