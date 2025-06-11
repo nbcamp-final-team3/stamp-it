@@ -65,8 +65,12 @@ final class TagView: UIView {
 
     // MARK: - Methods
 
-    func configure(with text: String) {
+    func updateText(with text: String) {
         label.text = text
+    }
+
+    func updateTextColor(_ color: UIColor) {
+        label.textColor = color
     }
 }
 

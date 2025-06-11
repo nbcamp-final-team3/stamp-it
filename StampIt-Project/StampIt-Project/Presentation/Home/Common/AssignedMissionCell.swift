@@ -31,7 +31,7 @@ final class AssignedMissionCell: UICollectionViewCell {
     }
 
     private let newTag = TagView(type: .outlined).then {
-        $0.configure(with: "New")
+        $0.updateText(with: "New")
     }
 
     private let nameTag = TagView(type: .filledBold)
@@ -82,6 +82,7 @@ final class AssignedMissionCell: UICollectionViewCell {
     // MARK: - Set Styles
 
     private func setStyles() {
+        toggleViewOnType()
     }
 
     // MARK: - Set Hierarchy
@@ -184,33 +185,38 @@ final class AssignedMissionCell: UICollectionViewCell {
         title: String,
         status: MissionStatus,
         isNew: Bool = false,
+        isOverdue: Bool = false,
     ) {
         imageContainerView.backgroundColor = category.backgroundColor
         categoryImageView.image = category.image
-
         newTag.isHidden = !isNew || type == .sended
-        nameTag.configure(with: name)
-        dateTag.configure(with: dueDate)
+        nameTag.updateText(with: name)
+        dateTag.updateText(with: dueDate)
+        if isOverdue { dateTag.updateTextColor(.gray200) }
         daysLeftLabel.text = daysLeft
         titleLabel.text = title
 
         switch type {
         case .received:
-            statusButton.isHidden = false
-            statusView.isHidden = true
             statusButton.updateStatus(to: status)
         case .sended:
-            statusButton.isHidden = true
-            statusView.isHidden = false
-
-            statusLabel.isHidden = status == .assigned
-            statusLabel.text = status.text
-            statusLabel.textColor = status == .completed ? .blue400 : .gray400
-
-            statusImage.image = status == .completed ? .checkBlue : .xGray
-            statusImage.isHidden = status == .assigned
-            statusImage.tintColor = status == .completed ? .blue400 : .gray400
+            updateStatusView(for: status)
         }
+    }
+
+    private func toggleViewOnType() {
+        statusButton.isHidden = type == .received
+        statusView.isHidden = type == .sended
+    }
+
+    private func updateStatusView(for status: MissionStatus) {
+        statusLabel.isHidden = status == .assigned
+        statusLabel.text = status.text
+        statusLabel.textColor = status == .completed ? .blue400 : .gray400
+
+        statusImage.image = status == .completed ? .checkBlue : .xGray
+        statusImage.isHidden = status == .assigned
+        statusImage.tintColor = status == .completed ? .blue400 : .gray400
     }
 }
 

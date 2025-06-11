@@ -5,7 +5,7 @@
 //  Created by 곽다은 on 6/6/25.
 //
 
-import UIKit
+import Foundation
 
 extension MissionStatus {
     var text: String {

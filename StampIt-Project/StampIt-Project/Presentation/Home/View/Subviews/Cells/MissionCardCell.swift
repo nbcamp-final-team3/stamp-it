@@ -134,8 +134,8 @@ final class MissionCardCell: UICollectionViewCell {
     func configure(category: MissionCategory, date: String, assigner: String, title: String) {
         categoryImageView.image = category.image
         contentView.backgroundColor = category.backgroundColor
-        dateTag.configure(with: date)
-        assignerTag.configure(with: assigner)
+        dateTag.updateText(with: date)
+        assignerTag.updateText(with: assigner)
         titleLabel.text = title
     }
 }
