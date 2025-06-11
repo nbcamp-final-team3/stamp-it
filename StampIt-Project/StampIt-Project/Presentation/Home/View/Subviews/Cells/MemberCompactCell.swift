@@ -15,14 +15,22 @@ final class MemberCompactCell: UICollectionViewCell {
     // MARK: - Properties
     
     let identifier = "MemberCompactCell"
+    let type: CellType
+
+    override var isSelected: Bool {
+        didSet {
+            setStylesIfSelectedForNormalType()
+        }
+    }
 
     // MARK: - UI Components
     
-    private let profileImageView = UIImageView().then {
+    private lazy var profileImageView = UIImageView().then {
         $0.contentMode = .scaleAspectFit
         $0.backgroundColor = .clear
-        $0.layer.borderWidth = 1
-        $0.layer.borderColor = UIColor.gray200.cgColor
+        $0.layer.borderWidth = borderWidth
+        $0.layer.borderColor = borderColor
+        $0.layer.opacity = opacity
         $0.layer.cornerRadius = 60 / 2
         $0.clipsToBounds = true
     }
@@ -32,10 +40,10 @@ final class MemberCompactCell: UICollectionViewCell {
         $0.clipsToBounds = true
     }
     
-    private let nameLabel = UILabel().then {
+    private lazy var nameLabel = UILabel().then {
         $0.setTextWithLineHeight(text: nil, lineHeight: 14 * 1.5)
         $0.font = .pretendard(size: 14, weight: .regular)
-        $0.textColor = ._000000
+        $0.textColor = nameTextColor
         $0.textAlignment = .center
     }
     
@@ -48,14 +56,25 @@ final class MemberCompactCell: UICollectionViewCell {
 
     // MARK: - Init
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(type: CellType) {
+        self.type = type
+        super.init(frame: .zero)
+        setStyles()
         setHierarchy()
         setConstraints()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Set Styles
+
+    private func setStyles() {
+        if type != .rank {
+            rankBadgeImageView.isHidden = true
+            stickerCountLabel.isHidden = true
+        }
     }
 
     // MARK: - Set Hierarchy
@@ -85,7 +104,8 @@ final class MemberCompactCell: UICollectionViewCell {
         }
 
         nameLabel.snp.makeConstraints { make in
-            make.top.equalTo(profileImageView.snp.bottom).offset(8)
+            let offset = type == .rank ? 8 : 4
+            make.top.equalTo(profileImageView.snp.bottom).offset(offset)
             make.directionalHorizontalEdges.equalToSuperview()
         }
 
@@ -110,6 +130,49 @@ final class MemberCompactCell: UICollectionViewCell {
             rankBadgeImageView.image = rank == 1 ? .first : rank == 2 ? .second : .third
         } else {
             rankBadgeImageView.isHidden = true
+        }
+    }
+
+    private func setStylesIfSelectedForNormalType() {
+        guard type == .normal else { return }
+        profileImageView.layer.borderColor = borderColor
+        profileImageView.layer.borderWidth = borderWidth
+        profileImageView.layer.opacity = opacity
+        nameLabel.textColor = nameTextColor
+    }
+}
+
+extension MemberCompactCell {
+    enum CellType {
+        case rank
+        case normal
+    }
+
+    var borderColor: CGColor {
+        switch type {
+        case .rank: UIColor.gray200.cgColor
+        case .normal: isSelected ? UIColor.red400.cgColor : UIColor.gray200.cgColor
+        }
+    }
+
+    var borderWidth: CGFloat {
+        switch type {
+        case .rank: 1
+        case .normal: isSelected ? 2 : 1
+        }
+    }
+
+    var opacity: Float {
+        switch type {
+        case .rank: 1
+        case .normal: isSelected ? 1 : 0.5
+        }
+    }
+
+    var nameTextColor: UIColor {
+        switch type {
+        case .rank: ._000000
+        case .normal: isSelected ? ._000000 : .gray400
         }
     }
 }
