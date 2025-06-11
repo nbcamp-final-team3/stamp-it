@@ -46,9 +46,16 @@ final class MissionListViewModel: MissionViewModelProtocol {
                 
                 switch input {
                 case .onAppear:
-                    let missions = missionUseCaseImpl.loadSampleMission()
-                    output.missions.accept(missions)
-                    _missions = missions
+                    missionUseCaseImpl.loadSampleMission()
+                        .subscribe { [weak self] missions in
+                            guard let self else { return }
+                            
+                            output.missions.accept(missions)
+                            _missions = missions
+                        } onFailure: { error in
+                            print(error)
+                        }
+                        .disposed(by: disposeBag)
                 case .searchTextChanged(let searchText):
                     output.searchText.accept(searchText)
                     print("searchText: \(searchText)")

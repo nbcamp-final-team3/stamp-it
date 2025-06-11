@@ -30,9 +30,11 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
     var disposeBag = DisposeBag()
     
     private let mission: SampleMission
+    private let missionUseCaseImpl: MissionUseCase
     
-    init(mission: SampleMission) {
+    init(mission: SampleMission, missionUseCaseImpl: MissionUseCase = MissionUseCaseImpl()) {
         self.mission = mission
+        self.missionUseCaseImpl = missionUseCaseImpl
         
         bind()
     }
@@ -49,8 +51,8 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
                 switch input {
                 case .onAppear:
                     output.mission.accept(mission)
-                    output.members.accept(loadMembers())
-                    print("mission: \(String(describing: output.mission.value?.title)), members: \(output.members.value.count)")
+                    loadMembers()
+                    print("mission: \(String(describing: output.mission.value?.title)), members count: \(output.members.value.count)")
                 case .didSelectMember(let member):
                     output.selectedMember.accept(member)
                     print("selected member: \(member)")
@@ -64,14 +66,20 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
             .disposed(by: disposeBag)
     }
     
-    // 더미 데이터 주입: 나중에 실제 데이터 로드로 구현 변경 필요!!!!!!!!!!!!!!!!!!!!!!!!
-    private func loadMembers() -> [Member] {
-        let dummyMembers: [Member] = [
-            Member(userID: "12345", nickname: "유진", joinedAt: Date(), isLeader: true),
-            Member(userID: "67890", nickname: "엄마", joinedAt: Date(), isLeader: false),
-            Member(userID: "112233", nickname: "파덜", joinedAt: Date(), isLeader: false),
-        ]
-        
-        return dummyMembers
+    // 우선 group ID를 확인 -> group ID를 parameter로 해서 멤버 데이터 조회 -> 받아온 멤버 데이터를 output.members에 반영
+    private func loadMembers() {
+        missionUseCaseImpl.getCurrentGroupID()
+            .flatMap { [weak self] groupID -> Observable<[Member]> in
+                guard let self else {
+                    return Observable.just([])
+                }
+                return missionUseCaseImpl.fetchMembers(ofGroup: groupID)
+            }
+            .subscribe { [weak self] members in
+                self?.output.members.accept(members)
+            } onError: { error in
+                print(error)
+            }
+            .disposed(by: disposeBag)
     }
 }
