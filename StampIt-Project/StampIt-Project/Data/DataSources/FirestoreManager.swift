@@ -17,17 +17,20 @@ protocol FirestoreManagerProtocol {
     func checkNetworkConnection() -> Observable<Bool>
     
     // User 관련
+    func fetchUserOnce(userId: String) -> Observable<UserFirestore>
     func fetchUser(userId: String) -> Observable<UserFirestore>
     func createUser(_ user: UserFirestore) -> Observable<Void>
     func updateUser(_ user: UserFirestore) -> Observable<Void>
     func deleteUser(userId: String) -> Observable<Void>
-    
+    func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void>
+
     // Group 관련
     func fetchGroup(groupId: String) -> Observable<GroupFirestore>
     func createGroup(_ group: GroupFirestore) -> Observable<Void>
     func updateGroup(_ group: GroupFirestore) -> Observable<Void>
     func deleteGroup(groupId: String) -> Observable<Void>
-    
+    func updateGroupName(groupId: String, name: String, changedAt: Date) -> Observable<Void>
+
     // Member 관련
     func fetchMembers(groupId: String) -> Observable<[MemberFirestore]>
     func addMember(groupId: String, member: MemberFirestore) -> Observable<Void>
@@ -88,9 +91,9 @@ final class FirestoreManager: FirestoreManagerProtocol {
         return groupsCollection.document(groupId).collection("missions")
     }
     
-    // MARK: - Singleton
-    static let shared = FirestoreManager()
-    private init() {}
+    // MARK: - Init
+    // ✅ Singleton 제거, 일반 init으로 변경
+    init() {}
     
     // MARK: - 네트워크 모니터링 설정
     func checkNetworkConnection() -> Observable<Bool> {
@@ -121,6 +124,37 @@ final class FirestoreManager: FirestoreManagerProtocol {
 
 // MARK: - User Operations
 extension FirestoreManager {
+    
+    /// 사용자 정보 일회성 조회 (로그인용)
+        func fetchUserOnce(userId: String) -> Observable<UserFirestore> {
+            return Observable.create { observer in
+                self.usersCollection.document(userId)
+                    .getDocument(source: .server) { documentSnapshot, error in
+                        if let error = error {
+                            observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                            return
+                        }
+                        
+                        guard let document = documentSnapshot,
+                              document.exists,
+                              let data = document.data() else {
+                            observer.onError(FirestoreError.documentNotFound)
+                            return
+                        }
+                        
+                        do {
+                            let jsonData = try JSONSerialization.data(withJSONObject: data)
+                            let user = try JSONDecoder().decode(UserFirestore.self, from: jsonData)
+                            observer.onNext(user)
+                            observer.onCompleted()
+                        } catch {
+                            observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
+                        }
+                    }
+                
+                return Disposables.create()
+            }
+        }
     
     /// 사용자 정보 실시간 조회 (스냅샷 리스너)
     func fetchUser(userId: String) -> Observable<UserFirestore> {
@@ -224,6 +258,23 @@ extension FirestoreManager {
         }
     }
     
+    /// 닉네임 업데이트
+    func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void> {
+        return Observable.create { observer in
+            self.usersCollection.document(userId).updateData([
+                "nickname": nickname,
+                "nicknameChangedAt": Timestamp(date: changedAt)
+            ]) { error in
+                if let error = error {
+                    observer.onError(error)
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
+    }
 }
 
 // MARK: - Group Operations
@@ -329,6 +380,23 @@ extension FirestoreManager {
         }
     }
     
+    /// 그룹명 업데이트
+    func updateGroupName(groupId: String, name: String, changedAt: Date) -> Observable<Void> {
+        return Observable.create { observer in
+            self.groupsCollection.document(groupId).updateData([
+                "name": name,
+                "nameChangedAt": Timestamp(date: changedAt)
+            ]) { error in
+                if let error = error {
+                    observer.onError(error)
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
+    }
 }
 
 // MARK: - Member Operations

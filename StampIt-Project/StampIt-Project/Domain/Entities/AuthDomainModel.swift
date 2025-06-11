@@ -17,22 +17,22 @@ struct AuthUser {
 
 /// 로그인 완료 결과
 struct LoginResult {
-    let user: User              // 도메인 모델
-    let isNewUser: Bool         // 신규 가입 여부
-    let needsGroupSetup: Bool   // 그룹 설정 필요 여부
+    let user: StampIt_Project.User       // 도메인 모델
+    let isNewUser: Bool                  // 신규 가입 여부
+    let needsGroupSetup: Bool            // 그룹 설정 필요 여부
 }
 
 /// 런치 화면 결과
 struct LaunchResult {
     let isAuthenticated: Bool   // 인증 상태
-    let user: User?            // 사용자 정보 (인증된 경우)
+    let user: StampIt_Project.User?           // 사용자 정보 (인증된 경우)
     let needsOnboarding: Bool  // 온보딩 필요 여부
 }
 
 // MARK: - UseCase 전용 Models
 /// 로그인 플로우 결과
 struct LoginFlowResult {
-    let user: User
+    let user: StampIt_Project.User
     let isNewUser: Bool
     let nextAction: LoginNextAction
 }
@@ -47,7 +47,7 @@ enum LoginNextAction {
 /// 런치 플로우 결과 (화면 분기용)
 struct LaunchFlowResult {
     let nextScreen: LaunchNextScreen
-    let user: User?
+    let user: StampIt_Project.User?
 }
 
 /// 런치 후 이동할 화면
