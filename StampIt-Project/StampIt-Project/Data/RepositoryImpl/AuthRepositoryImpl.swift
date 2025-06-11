@@ -28,7 +28,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func signInWithGoogle() -> Observable<LoginResult> {
         return authManager.signInWithGoogle()
             .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
-                guard let self = self else {
+                guard self != nil else {
                     return Observable.error(RepositoryError.unknownError)
                 }
                 let firebaseUser = authDataResult.user
@@ -67,7 +67,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func signInWithApple() -> Observable<LoginResult> {
         return authManager.signInWithApple()
             .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
-                guard let self = self else {
+                guard self != nil else {
                     return Observable.error(RepositoryError.unknownError)
                 }
                 let firebaseUser = authDataResult.user
