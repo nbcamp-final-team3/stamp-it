@@ -11,19 +11,24 @@ import Then
 
 final class TagView: UIView {
 
+    // MARK: - Properties
+
+    private var type: TagType
+
     // MARK: - UI Components
 
-    private var label = UILabel().then {
-        $0.font = .pretendard(size: 12, weight: .regular)
-        $0.textColor = ._000000
+    private lazy var label = UILabel().then {
+        $0.font = font
+        $0.textColor = textColor
         $0.textAlignment = .center
         $0.baselineAdjustment = .alignCenters
     }
 
     // MARK: - Init
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(type: TagType) {
+        self.type = type
+        super.init(frame: .zero)
         setStyles()
         setHierarchy()
         setConstraints()
@@ -36,8 +41,10 @@ final class TagView: UIView {
     // MARK: - Set Styles
 
     private func setStyles() {
-        backgroundColor = .gray50
-        layer.cornerRadius = 10
+        backgroundColor = baseBackgroundColor
+        layer.cornerRadius = (labelHeight + verticalInset * 2) / 2
+        layer.borderColor = borderColor
+        layer.borderWidth = borderWidth
     }
 
     // MARK: - Set Hierarchy
@@ -50,9 +57,9 @@ final class TagView: UIView {
 
     private func setConstraints() {
         label.snp.makeConstraints { make in
-            make.verticalEdges.equalToSuperview().inset(1)
+            make.verticalEdges.equalToSuperview().inset(verticalInset)
             make.directionalHorizontalEdges.equalToSuperview().inset(8)
-            make.height.equalTo(18)
+            make.height.equalTo(labelHeight)
         }
     }
 
@@ -60,5 +67,64 @@ final class TagView: UIView {
 
     func configure(with text: String) {
         label.text = text
+    }
+}
+
+extension TagView {
+    enum TagType {
+        case filledLight
+        case filledBold
+        case outlined
+    }
+
+    private var borderWidth: CGFloat {
+        switch type {
+        case .outlined: 1
+        default: 0
+        }
+    }
+
+    private var borderColor: CGColor? {
+        switch type {
+        case .outlined: UIColor.yellow400.cgColor
+        case .filledLight, .filledBold: nil
+        }
+    }
+
+    private var textColor: UIColor {
+        switch type {
+        case .filledLight: ._000000
+        case .filledBold: .gray400
+        case .outlined: .yellow400
+        }
+    }
+
+    private var font: UIFont {
+        switch type {
+        case .filledLight: .pretendard(size: 12, weight: .regular)
+        case .filledBold, .outlined: .pretendard(size: 12, weight: .semibold)
+        }
+    }
+
+    private var baseBackgroundColor: UIColor? {
+        switch type {
+        case .filledLight: .gray50
+        case .filledBold: .gray25
+        case .outlined: .FFFFFF
+        }
+    }
+
+    private var labelHeight: CGFloat {
+        switch type {
+        case .filledLight: 18
+        case .filledBold, .outlined: 14
+        }
+    }
+
+    private var verticalInset: CGFloat {
+        switch type {
+        case .filledLight: 1
+        case .filledBold, .outlined: 4
+        }
     }
 }

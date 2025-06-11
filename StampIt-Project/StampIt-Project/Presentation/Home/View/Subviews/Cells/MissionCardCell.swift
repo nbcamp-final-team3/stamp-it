@@ -25,9 +25,9 @@ final class MissionCardCell: UICollectionViewCell {
         $0.spacing = 4
     }
 
-    private let dateTag = TagView()
+    private let dateTag = TagView(type: .filledLight)
 
-    private let assignerTag = TagView()
+    private let assignerTag = TagView(type: .filledLight)
 
     private let titleLabel = UILabel().then {
         $0.font = .pretendard(size: 20, weight: .semibold)
@@ -56,8 +56,8 @@ final class MissionCardCell: UICollectionViewCell {
 
     // MARK: - Life Cycles
 
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setStyles()
         setHierarchy()
         setConstraints()
