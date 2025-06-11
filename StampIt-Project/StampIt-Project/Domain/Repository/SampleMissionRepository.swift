@@ -13,8 +13,8 @@ protocol SampleMissionRepository {
 
 final class SampleMissionRepositoryImpl: SampleMissionRepository {
     func loadData() -> [SampleMission] {
-        let houses: [SampleMission] = load("house.json")
-        let families: [SampleMission] = load("family.json")
+        let houses: [SampleMission] = load("house+category.json")
+        let families: [SampleMission] = load("family+category.json")
         return houses + families
     }
     
