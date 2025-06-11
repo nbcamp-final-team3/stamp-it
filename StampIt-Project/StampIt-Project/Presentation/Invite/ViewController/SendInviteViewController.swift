@@ -19,7 +19,7 @@ class SendInviteViewController: UIViewController {
     private let disposeBag = DisposeBag()
 
     private let imageView = UIImageView().then {
-        $0.image = UIImage(named: "mascotRed")
+        $0.image = UIImage(named: "MascotCharacter")
         $0.contentMode = .scaleAspectFit
         $0.clipsToBounds = true
     }
