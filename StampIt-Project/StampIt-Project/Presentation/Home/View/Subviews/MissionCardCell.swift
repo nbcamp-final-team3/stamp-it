@@ -45,6 +45,8 @@ final class MissionCardCell: UICollectionViewCell {
         container.font = .pretendard(size: 16, weight: .semibold)
         let styled = attributed.settingAttributes(container)
         config.attributedTitle = styled
+        $0.layer.cornerRadius = 12
+        $0.layer.masksToBounds = true
 
         // color
         config.baseBackgroundColor = .FFFFFF
