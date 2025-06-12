@@ -1,15 +1,16 @@
 //
-//  MissionRepositoryImpl.swift
+//  MissionRepositoryTest.swift
 //  StampIt-Project
 //
-//  Created by 권순욱 on 6/11/25.
+//  Created by 권순욱 on 6/12/25.
 //
 
 import Foundation
 import RxSwift
 import FirebaseCore
 
-final class MissionRepositoryImpl: MissionRepository {
+// MissionRepositoryImpl 테스트 클래스
+final class MissionRepositoryTest: MissionRepository {
     private let firestoreManager: FirestoreManagerProtocol
     private let authRepository: AuthRepositoryProtocol
     
@@ -35,15 +36,31 @@ final class MissionRepositoryImpl: MissionRepository {
         }
     }
     
-    // 멤버 데이터 패치
+    // 멤버 더미 데이터 패치
     func fetchMembers(ofGroup groupID: String) -> Observable<[Member]> {
-        return firestoreManager.fetchMembers(groupId: groupID)
-            .map { $0.map { $0.toDomainModel() } }
+        print("groupID into fetchMembers(): \(groupID)")
+        return Observable.create { observer in
+            let dummyMembers: [Member] = [
+                Member(userID: "12345", nickname: "유진", joinedAt: Date(), isLeader: true),
+                Member(userID: "67890", nickname: "엄마", joinedAt: Date(), isLeader: false),
+                Member(userID: "112233", nickname: "파덜", joinedAt: Date(), isLeader: false),
+                Member(userID: "112433", nickname: "삼동이", joinedAt: Date(), isLeader: false),
+            ]
+            observer.onNext(dummyMembers)
+            observer.onCompleted()
+            return Disposables.create()
+        }
     }
     
-    // 현재 로그인된 사용자의 정보 가져오기
+    // 유저 더미 데이터 반환
     func getCurrentUser() -> Observable<User?> {
-        authRepository.getCurrentUser()
+        return Observable.create { observer in
+            let user = User(userID: "dummyUserID", nickname: "dummyNickname", profileImageURL: "www.dummyURL.com", boards: [], groupID: "dummyGroupID", groupName: "dummyGroupName", isLeader: false, joinedGroupAt: Date())
+            
+            observer.onNext(user)
+            observer.onCompleted()
+            return Disposables.create()
+        }
     }
     
     // 새 미션 생성
@@ -75,7 +92,23 @@ final class MissionRepositoryImpl: MissionRepository {
             missionType: MissionFirestore.MissionType.app.rawValue,
             createdAt: Timestamp(date: mission.createDate))
         
-        return firestoreManager.createMission(groupId: groupId, mission: missionFirestore)
+        return Observable.create { _ in
+            print("""
+                  mission created.
+                  --------------------------------------------
+                  ID: \(missionFirestore.missionId)
+                  title: \(missionFirestore.title)
+                  assignedBy: \(missionFirestore.assignedBy)
+                  assignedTo: \(missionFirestore.assignedTo)
+                  createDate: \(missionFirestore.createDate)
+                  dueDate: \(missionFirestore.dueDate)
+                  category: \(missionFirestore.category)
+                  status: \(missionFirestore.status)
+                  missionType: \(missionFirestore.missionType)
+                  createdAt: \(missionFirestore.createdAt)
+                  """)
+            return Disposables.create()
+        }
     }
     
     // 샘플 미션 JSON 로드 헬퍼

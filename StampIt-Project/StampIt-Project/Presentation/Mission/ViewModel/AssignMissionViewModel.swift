@@ -31,6 +31,8 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
     
     private let mission: SampleMission
     private let missionUseCaseImpl: MissionUseCase
+    // private var groupID: String?
+    private var user: User?
     
     init(mission: SampleMission, missionUseCaseImpl: MissionUseCase = MissionUseCaseImpl()) {
         self.mission = mission
@@ -61,25 +63,64 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
                     print("due date: \(date)")
                 case .didTapAssignButton:
                     print("did tap assign button")
+                    createMission()
+                        .subscribe {
+                            print("mission created.")
+                        } onError: { error in
+                            print(error)
+                        }
+                        .disposed(by: disposeBag)
                 }
             }
             .disposed(by: disposeBag)
     }
     
-    // 우선 group ID를 확인 -> group ID를 parameter로 해서 멤버 데이터 조회 -> 받아온 멤버 데이터를 output.members에 반영
+    // 우선 유저 정보를 요청하여 받고 -> 받은 유저 정보을 이용해서 멤버 정보를 받음
     private func loadMembers() {
-        missionUseCaseImpl.getCurrentGroupID()
-            .flatMap { [weak self] groupID -> Observable<[Member]> in
-                guard let self else {
-                    return Observable.just([])
-                }
-                return missionUseCaseImpl.fetchMembers(ofGroup: groupID)
+        missionUseCaseImpl.getCurrentUser()
+            .subscribe { [weak self] user in
+                guard let self else { return }
+                
+                self.user = user
+                fetchMembers() // 유저 정보를 받으면 멤버 정보 요청
+            } onError: { error in
+                print(error)
             }
+            .disposed(by: disposeBag)
+    }
+    
+    // 멤버 정보 패치
+    private func fetchMembers() {
+        guard let user else { return }
+        
+        missionUseCaseImpl.fetchMembers(ofGroup: user.groupID)
             .subscribe { [weak self] members in
                 self?.output.members.accept(members)
             } onError: { error in
                 print(error)
             }
             .disposed(by: disposeBag)
+    }
+    
+    // 미션 정보 저장
+    private func createMission() -> Observable<Void> {
+        let nickname = output.selectedMember.value.map { $0.nickname }
+        let dueDate = output.dueDate.value
+        guard let nickname, let user else {
+            return Observable.error(NSError(domain: "user data or member data is nil.", code: 0, userInfo: nil))
+        }
+        
+        let mission = Mission(
+            missionID: mission.missionId,
+            title: mission.title,
+            assignedTo: nickname,
+            assignedBy: user.nickname,
+            createDate: Date(),
+            dueDate: dueDate,
+            status: MissionStatus.assigned,
+            imageURL: "",
+            category: mission.category)
+        
+        return missionUseCaseImpl.createMission(groupId: user.groupID, mission: mission)
     }
 }

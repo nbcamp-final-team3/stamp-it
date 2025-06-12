@@ -15,22 +15,23 @@ struct MissionUseCaseImpl: MissionUseCase {
         self.missionRepositoryImpl = missionRepositoryImpl
     }
     
-    /// 샘플 미션 데이터 로드
-    /// - Returns: 샘플 미션 JSON 데이터(총 100개)
+    // 샘플 미션 데이터 로드
     func loadSampleMission() -> Single<[SampleMission]> {
         missionRepositoryImpl.loadSampleMission()
     }
     
-    /// 멤버 데이터 패치
-    /// - Parameter groupID: getCurrentGroupID()를 호출하여 groupID를 얻을 수 있음
-    /// - Returns: 도메인 레이어 멤버 모델
+    // 멤버 데이터 패치
     func fetchMembers(ofGroup groupID: String) -> Observable<[Member]> {
         missionRepositoryImpl.fetchMembers(ofGroup: groupID)
     }
     
-    /// 현재 사용자의 그룹 ID 반환
-    /// - Returns: 그룹 ID String
-    func getCurrentGroupID() -> Observable<String> {
-        missionRepositoryImpl.getCurrentGroupID()
+    // 현재 로그인된 사용자의 정보 가져오기
+    func getCurrentUser() -> Observable<User?> {
+        missionRepositoryImpl.getCurrentUser()
+    }
+    
+    // 새 미션 생성
+    func createMission(groupId: String, mission: Mission) -> Observable<Void> {
+        missionRepositoryImpl.createMission(groupId: groupId, mission: mission)
     }
 }
