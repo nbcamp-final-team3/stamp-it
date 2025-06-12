@@ -18,6 +18,7 @@ final class MemberCompactCell: UICollectionViewCell {
     var type: CellType = .normal {
         didSet {
             setStyles()
+            updateNameLabelConstraints()
         }
     }
 
@@ -124,8 +125,14 @@ final class MemberCompactCell: UICollectionViewCell {
         stickerCountLabel.snp.makeConstraints { make in
             make.top.equalTo(nameLabel.snp.bottom)
             make.directionalHorizontalEdges.equalToSuperview()
-            make.bottom.equalToSuperview()
             make.height.equalTo(18)
+        }
+    }
+
+    private func updateNameLabelConstraints() {
+        nameLabel.snp.updateConstraints { make in
+            let offset = type == .rank ? 8 : 4
+            make.top.equalTo(imageContainerView.snp.bottom).offset(offset)
         }
     }
 

@@ -122,7 +122,7 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     private func setConstraints() {
         imageContainerView.snp.makeConstraints { make in
-            make.verticalEdges.leading.equalToSuperview().inset(12)
+            make.verticalEdges.equalToSuperview().inset(12)
             make.leading.equalToSuperview()
             make.size.equalTo(50)
         }
