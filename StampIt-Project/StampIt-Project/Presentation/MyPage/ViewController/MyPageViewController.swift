@@ -14,17 +14,26 @@ final class MyPageViewController: UIViewController {
     
     // MARK: - Properties
     
-//    private var viewModel = MyPageViewModel(useCase: MyPageUseCase())
-    
-    private var stampBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
-    
+    private var viewModel: MyPageViewModel
     private let disposeBag = DisposeBag()
+    private var stampBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
     
     // MARK: - UI Components
 
     private let tabButton = TabButton()
     private let stampBoardView = StampBoardTab()
     private let profileView = ProfileTab()
+    
+    // MARK: - Initializer, Deinit, requiered
+    
+    init(viewModel: MyPageViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     // MARK: - View Life Cycle
     
@@ -36,7 +45,7 @@ final class MyPageViewController: UIViewController {
         setDelegate()
         setDataSource()
         bind()
-        updateUI(item: MyPageViewModel.stamps)
+        updateUI(item: viewModel.state.stickers.value)
     }
     
     // MARK: - Bind

@@ -13,7 +13,7 @@ final class MyPageViewModel: ViewModelProtocol {
     
     // MARK: - Dependency
 
-    private let useCase: MyPageUseCase
+    private let myPageUseCase: MyPageUseCase
     
     // MARK: - Action & State
     
@@ -23,7 +23,7 @@ final class MyPageViewModel: ViewModelProtocol {
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let stickers = BehaviorRelay<[Sticker]>(value: stamps)
+        let stickers = BehaviorRelay<[Sticker]>(value: DummyData.stamps)
     }
     
     // MARK: - Properties
@@ -34,8 +34,8 @@ final class MyPageViewModel: ViewModelProtocol {
     
     // MARK: - Initializer, Deinit, requiered
     
-    init(useCase: MyPageUseCase) {
-        self.useCase = useCase
+    init(myPageUseCase: MyPageUseCase) {
+        self.myPageUseCase = myPageUseCase
         bind()
     }
     
@@ -53,7 +53,7 @@ final class MyPageViewModel: ViewModelProtocol {
     }
     
     private func bindUser() {
-        useCase.fetchUser()
+        myPageUseCase.fetchUser()
             .subscribe(with: self) { owner, user in
                 self.state.user.accept(user)
             }.disposed(by: disposeBag)
@@ -61,13 +61,16 @@ final class MyPageViewModel: ViewModelProtocol {
     
     private func bindSticker() {
         guard let user = state.user.value else { return }
-        useCase.fetchStickers(userId: user.userID)
+        myPageUseCase.fetchStickers(userId: user.userID)
             .subscribe(with: self) { owner, stickers in
                 self.state.stickers.accept(stickers)
             }.disposed(by: disposeBag)
     }
     
     // UI 확인용 데이터
+}
+
+struct DummyData {
     static let stamps: [Sticker] = [
         Sticker(stickerID: "1", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
         Sticker(stickerID: "2", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
