@@ -50,8 +50,9 @@ final class MissionListViewModel: MissionViewModelProtocol {
                         .subscribe { [weak self] missions in
                             guard let self else { return }
                             
-                            output.missions.accept(missions)
-                            _missions = missions
+                            let sortedMissions = missions.sorted { $0.title < $1.title }
+                            output.missions.accept(sortedMissions)
+                            _missions = sortedMissions
                         } onFailure: { error in
                             print(error)
                         }

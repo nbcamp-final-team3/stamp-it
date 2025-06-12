@@ -28,6 +28,8 @@ final class MissionListViewController: UIViewController {
         $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
     }
     
+    private let noResultsView = NoResultsView()
+    
     private let viewModel: MissionListViewModel
     private let disposeBag = DisposeBag()
     
@@ -152,6 +154,20 @@ final class MissionListViewController: UIViewController {
                 guard let self else { return }
                 
                 viewModel.input.accept(.didSelectCollectionViewCell($0))
+            }
+            .disposed(by: disposeBag)
+        
+        // 검색 결과가 없으면 결과없음 레이블 표시
+        viewModel.output.missions
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] results in
+                guard let self else { return }
+                
+                if results.isEmpty {
+                    tableView.backgroundView = noResultsView
+                } else {
+                    tableView.backgroundView = nil
+                }
             }
             .disposed(by: disposeBag)
     }
