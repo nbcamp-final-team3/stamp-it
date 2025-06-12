@@ -19,13 +19,8 @@ enum TabType {
     }
 }
 
-enum Stamp: String, Hashable {
-    case stampGray
-    case stampRed
-    
-    enum Board {
-        static let imageSize: CGFloat = 53
-    }
+extension StickerType {
+    static let imageSize: CGFloat = 53
 }
 
 enum MyPage {

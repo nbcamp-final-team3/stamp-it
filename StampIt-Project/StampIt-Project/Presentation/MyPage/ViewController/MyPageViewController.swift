@@ -14,7 +14,7 @@ final class MyPageViewController: UIViewController {
     
     // MARK: - Properties
     
-    private var viewModel = MyPageViewModel()
+//    private var viewModel = MyPageViewModel(useCase: MyPageUseCase())
     
     private var stampBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
     
@@ -36,12 +36,13 @@ final class MyPageViewController: UIViewController {
         setDelegate()
         setDataSource()
         bind()
-        updateUI(item: viewModel.stamps)
+        updateUI(item: MyPageViewModel.stamps)
     }
     
     // MARK: - Bind
     
     private func bind() {
+        // TODO: VM 에서 tabButton 상태관리
         tabButton.stampTapped
             .bind { [weak self] in
                 guard let self else { return }
@@ -126,11 +127,23 @@ final class MyPageViewController: UIViewController {
     // MARK: - Snapshot
     
     private func updateUI(item: [Sticker]) {
+        let allStamps = makeAllStamps(item: item)
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.defaultBoard])
-        snapshot.appendItems(item, toSection: .defaultBoard)
+        snapshot.appendItems(allStamps, toSection: .defaultBoard)
+//        snapshot.appendItems(item, toSection: .defaultBoard)
         stampBoardDataSource.apply(snapshot, animatingDifferences: true)
     }
+    
+    private func makeAllStamps(item: [Sticker]) -> [Sticker] {
+        let redItems = Array(repeating: StickerType.stampRed, count: item.count)
+        let grayItems = Array(repeating: StickerType.stampGray, count: 30 - item.count)
+        return (redItems + grayItems).map {
+            Sticker(stickerID: "0", title: "", description: "", imageURL: "", type: $0, createdAt: Date())
+        }
+    }
+    
+//    private func zigzagOrder
     
     // MARK: - Methods
     
