@@ -51,19 +51,22 @@ final class MyPageViewController: UIViewController {
     // MARK: - Bind
     
     private func bind() {
-        // TODO: VM 에서 tabButton 상태관리
+        viewModel.action.accept(.viewDidLoad)
+        
         tabButton.stampTapped
-            .bind { [weak self] in
-                guard let self else { return }
-                tabButton.updateTitleColor(selected: .stampBoard)
-                updateSelectedTab(selected: .stampBoard)
+            .bind(with: self) { owner, _ in
+                owner.viewModel.action.accept(.tabButtonTapped(.stampBoard))
             }.disposed(by: disposeBag)
         
         tabButton.profileTapped
-            .bind { [weak self] in
-                guard let self else { return }
-                tabButton.updateTitleColor(selected: .profile)
-                updateSelectedTab(selected: .profile)
+            .bind(with: self) { owner, _ in
+                owner.viewModel.action.accept(.tabButtonTapped(.profile))
+            }.disposed(by: disposeBag)
+    
+        viewModel.state.tabType
+            .bind(with: self) { owner, tab in
+                owner.tabButton.updateTitleColor(selected: tab)
+                owner.updateSelectedTab(selected: tab)
             }.disposed(by: disposeBag)
     }
     
@@ -140,7 +143,6 @@ final class MyPageViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.defaultBoard])
         snapshot.appendItems(allStamps, toSection: .defaultBoard)
-//        snapshot.appendItems(item, toSection: .defaultBoard)
         stampBoardDataSource.apply(snapshot, animatingDifferences: true)
     }
     

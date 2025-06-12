@@ -19,11 +19,13 @@ final class MyPageViewModel: ViewModelProtocol {
     
     enum Action {
         case viewDidLoad
+        case tabButtonTapped(TabType)
     }
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
         let stickers = BehaviorRelay<[Sticker]>(value: DummyData.stamps)
+        let tabType = BehaviorRelay<TabType>(value: .stampBoard)
     }
     
     // MARK: - Properties
@@ -47,7 +49,8 @@ final class MyPageViewModel: ViewModelProtocol {
                 switch action {
                 case .viewDidLoad:
                     owner.bindUser()
-                    owner.bindSticker()
+                case .tabButtonTapped(let type):
+                    owner.state.tabType.accept(type)
                 }
             }.disposed(by: disposeBag)
     }
@@ -56,6 +59,7 @@ final class MyPageViewModel: ViewModelProtocol {
         myPageUseCase.fetchUser()
             .subscribe(with: self) { owner, user in
                 self.state.user.accept(user)
+                owner.bindSticker()
             }.disposed(by: disposeBag)
     }
     
@@ -66,8 +70,6 @@ final class MyPageViewModel: ViewModelProtocol {
                 self.state.stickers.accept(stickers)
             }.disposed(by: disposeBag)
     }
-    
-    // UI 확인용 데이터
 }
 
 struct DummyData {
