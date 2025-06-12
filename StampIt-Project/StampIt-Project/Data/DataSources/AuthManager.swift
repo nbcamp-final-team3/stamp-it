@@ -12,7 +12,7 @@ import GoogleSignIn
 import RxSwift
 import AuthenticationServices
 
-// MARK: - AuthManager Protocol
+// MARK: - AuthManagerProtocol
 protocol AuthManagerProtocol {
     func configureGoogleSignIn()
     func signInWithGoogle() -> Observable<AuthDataResult>
@@ -24,10 +24,12 @@ protocol AuthManagerProtocol {
 }
 
 // MARK: - AuthManager Implementation
-final class AuthManager: NSObject, AuthManagerProtocol {
+final class AuthManager: NSObject,AuthManagerProtocol {
     
     // MARK: - Properties
     private let disposeBag = DisposeBag()
+    private var currentNonce: String?
+    private var appleSignInObserver: ((Result<AuthDataResult, Error>) -> Void)?
     
     // MARK: - Init
     override init() {
@@ -62,7 +64,7 @@ final class AuthManager: NSObject, AuthManagerProtocol {
             
             GIDSignIn.sharedInstance.signIn(withPresenting: presentingViewController) { result, error in
                 if let error = error {
-                    observer.onError(AuthError.googleSignInFailed(error.localizedDescription))
+                    observer.onError(AuthError.googleSignInFailed)
                     return
                 }
                 
@@ -79,7 +81,7 @@ final class AuthManager: NSObject, AuthManagerProtocol {
                 
                 Auth.auth().signIn(with: credential) { authResult, error in
                     if let error = error {
-                        observer.onError(AuthError.firebaseSignInFailed(error.localizedDescription))
+                        observer.onError(AuthError.firebaseSignInFailed)
                     } else if let authResult = authResult {
                         observer.onNext(authResult)
                         observer.onCompleted()
@@ -91,22 +93,45 @@ final class AuthManager: NSObject, AuthManagerProtocol {
         }
     }
     
-    // MARK: - Apple Sign-In (준비, 구조 변경 될 수 있음)
-    /// Apple 로그인을 수행하고 Firebase 인증 결과를 반환 (준비 단계)
+    // MARK: - Apple Sign-In
     func signInWithApple() -> Observable<AuthDataResult> {
-        return Observable.create { observer in
+        return Observable.create { [weak self] observer in
+            guard let self = self else {
+                observer.onError(AuthError.unknownError)
+                return Disposables.create()
+            }
+            
+            // 1. Nonce 생성
+            let nonce = self.randomNonceString()
+            self.currentNonce = nonce
+            
+            // 2. Apple 요청 준비
             let appleIDProvider = ASAuthorizationAppleIDProvider()
             let request = appleIDProvider.createRequest()
             request.requestedScopes = [.fullName, .email]
+            request.nonce = nonce.sha256
             
             let authorizationController = ASAuthorizationController(authorizationRequests: [request])
             authorizationController.delegate = self
             authorizationController.presentationContextProvider = self
+            
+            // 3. 콜백 저장
+            self.appleSignInObserver = { result in
+                switch result {
+                case .success(let authDataResult):
+                    observer.onNext(authDataResult)
+                    observer.onCompleted()
+                case .failure(let error):
+                    observer.onError(error)
+                }
+            }
+            
+            // 4. 요청 시작
             authorizationController.performRequests()
             
-            // TODO: Apple Sign-In 완료 후 Firebase 연동
-            observer.onError(AuthError.appleSignInNotImplemented)
-            return Disposables.create()
+            return Disposables.create {
+                self.appleSignInObserver = nil
+            }
         }
     }
     
@@ -120,7 +145,7 @@ final class AuthManager: NSObject, AuthManagerProtocol {
                 observer.onNext(())
                 observer.onCompleted()
             } catch {
-                observer.onError(AuthError.signOutFailed(error.localizedDescription))
+                observer.onError(AuthError.signOutFailed)
             }
             
             return Disposables.create()
@@ -138,7 +163,7 @@ final class AuthManager: NSObject, AuthManagerProtocol {
             
             user.delete { error in
                 if let error = error {
-                    observer.onError(AuthError.accountDeletionFailed(error.localizedDescription))
+                    observer.onError(AuthError.accountDeletionFailed)
                 } else {
                     observer.onNext(())
                     observer.onCompleted()
@@ -167,6 +192,39 @@ final class AuthManager: NSObject, AuthManagerProtocol {
             }
         }
     }
+    
+    // MARK: - Apple Sign-In Helper Methods (✅ 추가)
+    /// 랜덤 Nonce 문자열 생성 (보안용)
+    private func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+        var result = ""
+        var remainingLength = length
+        
+        while remainingLength > 0 {
+            let randoms: [UInt8] = (0..<16).map { _ in
+                var random: UInt8 = 0
+                let errorCode = SecRandomCopyBytes(kSecRandomDefault, 1, &random)
+                if errorCode != errSecSuccess {
+                    fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
+                }
+                return random
+            }
+            
+            randoms.forEach { random in
+                if remainingLength == 0 {
+                    return
+                }
+                
+                if random < charset.count {
+                    result.append(charset[Int(random)])
+                    remainingLength -= 1
+                }
+            }
+        }
+        
+        return result
+    }
 }
 
 // MARK: - Apple Sign-In Delegates (준비, 구조 변경 될 수 있음)
@@ -184,11 +242,75 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
     
     /// Apple Sign-In 인증 성공 시 호출되는 델리게이트 메서드
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        // TODO: Apple Sign-In 완료 처리
+        
+        if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+            
+            // 1. 필수 데이터 검증
+            guard let nonce = currentNonce else {
+                print("❌ Invalid state: A login callback was received, but no login request was sent.")
+                appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+                return
+            }
+            
+            guard let appleIDToken = appleIDCredential.identityToken else {
+                print("❌ Unable to fetch identity token")
+                appleSignInObserver?(.failure(AuthError.tokenRetrievalFailed))
+                return
+            }
+            
+            guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
+                print("❌ Unable to serialize token string from data: \(appleIDToken.debugDescription)")
+                appleSignInObserver?(.failure(AuthError.tokenRetrievalFailed))
+                return
+            }
+            
+            // 2. Firebase 인증 자격 증명 생성 (✅ 수정된 부분)
+            let credential = OAuthProvider.appleCredential(
+                withIDToken: idTokenString,
+                rawNonce: nonce,
+                fullName: appleIDCredential.fullName
+            )
+            
+            // 3. Firebase 로그인 수행
+            Auth.auth().signIn(with: credential) { [weak self] authResult, error in
+                if let error = error {
+                    print("❌ Firebase Apple Sign-In Error: \(error.localizedDescription)")
+                    self?.appleSignInObserver?(.failure(AuthError.firebaseSignInFailed))
+                    return
+                }
+                
+                guard let authResult = authResult else {
+                    self?.appleSignInObserver?(.failure(AuthError.unknownError))
+                    return
+                }
+                
+                print("✅ Apple Sign-In 성공: \(authResult.user.uid)")
+                self?.appleSignInObserver?(.success(authResult))
+                
+                // 정리
+                self?.appleSignInObserver = nil
+                self?.currentNonce = nil
+            }
+        }
     }
     
     /// Apple Sign-In 인증 실패 시 호출되는 델리게이트 메서드
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         print("❌ Apple Sign-In Error: \(error.localizedDescription)")
+        
+        if let authError = error as? ASAuthorizationError {
+            switch authError.code {
+            case .canceled:
+                appleSignInObserver?(.failure(AuthError.appleSignInCanceled))
+            default:
+                appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+            }
+        } else {
+            appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+        }
+        
+        // 정리
+        appleSignInObserver = nil
+        currentNonce = nil
     }
 }

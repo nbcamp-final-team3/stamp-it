@@ -288,8 +288,10 @@ final class AuthRepository: AuthRepositoryProtocol {
     private func mapToRepositoryError(_ error: Error) -> RepositoryError {
         if let authError = error as? AuthError {
             switch authError {
-            case .googleSignInFailed(let message), .firebaseSignInFailed(let message):
-                return .authenticationFailed(message)
+            case .googleSignInFailed:
+                return .authenticationFailed("Google 로그인에 실패했습니다")
+            case .firebaseSignInFailed:
+                return .authenticationFailed("Firebase 로그인에 실패했습니다")
             case .userNotFound:
                 return .userNotFound
             case .presentingViewControllerNotFound:
