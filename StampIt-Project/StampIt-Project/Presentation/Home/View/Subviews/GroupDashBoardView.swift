@@ -15,8 +15,10 @@ import RxCocoa
 
 final class GroupDashboardView: UIView {
 
-    // MARK: - Actions
+    // MARK: - States
 
+    let username = BehaviorRelay<String>(value: "유저")
+    let groupName = BehaviorRelay<String>(value: "그룹")
 
     // MARK: - Properties
 
@@ -33,6 +35,11 @@ final class GroupDashboardView: UIView {
         $0.register(MemberCompactCell.self, forCellWithReuseIdentifier: MemberCompactCell.identifier)
         $0.register(MissionCardCell.self, forCellWithReuseIdentifier: MissionCardCell.identifier)
         $0.register(AssignedMissionCell.self, forCellWithReuseIdentifier: AssignedMissionCell.identifier)
+        $0.register(
+            DashboardHeader.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: DashboardHeader.identifier
+        )
     }
 
     // MARK: - Init
@@ -100,6 +107,36 @@ final class GroupDashboardView: UIView {
             }
         }
 
+        dataSource?.supplementaryViewProvider = { [weak self]
+            collectionView, kind, indexPath -> UICollectionReusableView? in
+            guard let self else { return nil }
+
+            let header = collectionView.dequeueReusableSupplementaryView(
+                ofKind: UICollectionView.elementKindSectionHeader,
+                withReuseIdentifier: DashboardHeader.identifier,
+                for: indexPath
+            ) as! DashboardHeader
+
+            let section = HomeSection.allCases[indexPath.section]
+            let title: String
+            let desctription: String
+
+            switch section {
+            case .ranking:
+                return nil
+            case .receivedMission:
+                title = "내 미션"
+                desctription = "이번 주 \(username.value)님에게 부여된 미션이에요"
+            case .sendedMission:
+                title = "멤버 미션"
+                desctription = "\(username.value)님이 \(groupName.value) 멤버들에게 전달한 미션이에요"
+            }
+
+            header.configure(title: title, description: desctription)
+
+            return header
+        }
+
         guard let dataSource else { return }
         var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
         snapshot.appendSections(HomeSection.allCases)
@@ -120,6 +157,17 @@ final class GroupDashboardView: UIView {
     private func createLayout() -> UICollectionViewLayout {
         UICollectionViewCompositionalLayout { section, environment in
             let section = HomeSection.allCases[section]
+
+            let headerSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1),
+                heightDimension: .absolute(57)
+            )
+
+            let header = NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: headerSize,
+                elementKind: UICollectionView.elementKindSectionHeader,
+                alignment: .top)
+
             switch section {
             case .ranking:
                 let itemSize = NSCollectionLayoutSize(
@@ -157,6 +205,7 @@ final class GroupDashboardView: UIView {
                 section.orthogonalScrollingBehavior = .continuous
                 section.interGroupSpacing = 12
                 section.contentInsets = .init(top: 20, leading: 16, bottom: 20, trailing: 16)
+                section.boundarySupplementaryItems = [header]
                 return section
 
             case .sendedMission:
@@ -175,6 +224,7 @@ final class GroupDashboardView: UIView {
                 let section = NSCollectionLayoutSection(group: group)
                 section.interGroupSpacing = 6
                 section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
+                section.boundarySupplementaryItems = [header]
                 return section
             }
         }
