@@ -54,5 +54,4 @@ enum LaunchNextScreen {
     case login                  // 로그인 화면
     case onboarding            // 온보딩 화면
     case main                  // 메인 화면
-    case groupSetup            // 그룹 설정 화면
 }

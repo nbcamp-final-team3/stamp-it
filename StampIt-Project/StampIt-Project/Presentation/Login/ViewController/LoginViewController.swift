@@ -62,40 +62,39 @@ final class LoginViewController: UIViewController {
         authorizationButtonType: .signIn,
         authorizationButtonStyle: .black
     ).then {
-        $0.cornerRadius = 12
+        $0.cornerRadius = 8
     }
     
-    /// Google 로그인 버튼
+    /// Google 로그인 버튼 (구글 제공 이미지 사용)
     private lazy var googleLoginButton: UIButton = {
         let button = UIButton(type: .system)
-        
-        // iOS 15+ UIButtonConfiguration 사용
-        if #available(iOS 15.0, *) {
-            var config = UIButton.Configuration.filled()
-            config.title = "구글로 로그인하기"
-            config.image = UIImage(systemName: "globe") // 실제로는 Google 아이콘 사용
-            config.imagePadding = 8
-            config.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 20, bottom: 16, trailing: 20)
-            config.baseBackgroundColor = .systemBackground
-            config.baseForegroundColor = .label
-            
-            button.configuration = config
-        } else {
-            // iOS 14 이하 호환성
-            button.setTitle("구글로 로그인하기", for: .normal)
-            button.setImage(UIImage(systemName: "globe"), for: .normal)
-            button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
-            button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: -8)
-            button.backgroundColor = .systemBackground
-        }
-        
+        button.backgroundColor = .white
+        button.layer.cornerRadius = 8
         button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.systemGray4.cgColor
-        button.layer.cornerRadius = 12
-        button.titleLabel?.font = .pretendard(size: 16, weight: .bold)
-        button.setTitleColor(.label, for: .normal)
-        button.tintColor = .label
-        
+        button.layer.borderColor = UIColor(red: 218/255, green: 220/255, blue: 224/255, alpha: 1).cgColor // 공식 가이드 연회색
+        button.clipsToBounds = true
+
+        let title = "Sign in with Google"
+        let font = UIFont.systemFont(ofSize: 16, weight: .medium)
+
+        let googleLogo = UIImage(named: "GoogleLogo")
+        let imageAttachment = NSTextAttachment()
+        imageAttachment.image = googleLogo
+        imageAttachment.bounds = CGRect(x: 0, y: -2, width: 20, height: 20)
+
+        let fullString = NSMutableAttributedString()
+        fullString.append(NSAttributedString(attachment: imageAttachment))
+        // 10pt 간격
+        let space = NSAttributedString(string: "\u{200A}", attributes: [.font: font, .kern: 10])
+        fullString.append(space)
+        fullString.append(NSAttributedString(string: title, attributes: [
+            .font: font,
+            .foregroundColor: UIColor.black
+        ]))
+        button.setAttributedTitle(fullString, for: .normal)
+
+        button.setImage(nil, for: .normal)
+        button.accessibilityLabel = "구글로 로그인하기"
         return button
     }()
     
@@ -214,12 +213,12 @@ final class LoginViewController: UIViewController {
         
         // Apple 로그인 버튼 높이
         appleLoginButton.snp.makeConstraints { make in
-            make.height.equalTo(56)
+            make.height.equalTo(44)
         }
         
         // Google 로그인 버튼 높이
         googleLoginButton.snp.makeConstraints { make in
-            make.height.equalTo(56)
+            make.height.equalTo(44)
         }
         
         // 로딩 컨테이너 제약조건 (최하단)
@@ -243,8 +242,6 @@ final class LoginViewController: UIViewController {
             make.bottom.equalToSuperview().offset(-8)
         }
     }
-
-
     
     // MARK: - Bind ViewModel
     private func bindViewModel() {

@@ -191,3 +191,5 @@ Derived/
 
 # Git merge files
 *.orig
+
+StampIt-Project/StampIt-Project/Resource/Info.plist
