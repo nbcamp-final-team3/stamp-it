@@ -30,9 +30,10 @@ final class MissionCardCell: UICollectionViewCell {
     private let assignerTag = TagView(type: .filledLight)
 
     private let titleLabel = UILabel().then {
-        $0.font = .pretendard(size: 20, weight: .semibold)
+        $0.font = .pretendard(size: 18, weight: .regular)
         $0.textColor = ._000000
         $0.textAlignment = .center
+        $0.numberOfLines = 2
     }
 
     private let completeButton = UIButton().then {
@@ -41,13 +42,13 @@ final class MissionCardCell: UICollectionViewCell {
         // attributedTitle
         let attributed = AttributedString("미션 완료하기")
         var container = AttributeContainer()
-        container.font = .pretendard(size: 16, weight: .regular)
+        container.font = .pretendard(size: 16, weight: .semibold)
         let styled = attributed.settingAttributes(container)
         config.attributedTitle = styled
 
         // color
         config.baseBackgroundColor = .FFFFFF
-        config.baseForegroundColor = ._1_E_1_E_1_E
+        config.baseForegroundColor = .gray600
 
         config.contentInsets = .init(top: 6, leading: 20, bottom: 6, trailing: 20)
 
@@ -111,14 +112,14 @@ final class MissionCardCell: UICollectionViewCell {
         }
 
         tagStackView.snp.makeConstraints { make in
-            make.top.equalTo(categoryImageView.snp.bottom).offset(24)
+            make.top.equalTo(categoryImageView.snp.bottom).offset(12)
             make.centerX.equalToSuperview()
         }
 
         titleLabel.snp.makeConstraints { make in
             make.top.equalTo(tagStackView.snp.bottom).offset(4)
             make.directionalHorizontalEdges.equalToSuperview().inset(24)
-            make.height.equalTo(30)
+            make.height.equalTo(54)
         }
 
         completeButton.snp.makeConstraints { make in

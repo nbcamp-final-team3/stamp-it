@@ -121,7 +121,8 @@ extension CompletionStateButton {
     private var baseColor: UIColor {
         switch status {
         case .assigned: .red50
-        case .completed, .failed: .clear
+        case .completed: .clear
+        case .failed: .gray25
         }
     }
 
@@ -136,7 +137,7 @@ extension CompletionStateButton {
     private var textColor: UIColor {
         switch status {
         case .assigned, .completed: .red400
-        case .failed: .gray400
+        case .failed: .gray200
         }
     }
 
@@ -144,7 +145,7 @@ extension CompletionStateButton {
         switch status {
         case .assigned: nil
         case .completed: .checkRed
-        case .failed: .xGray
+        case .failed: .xGray200
         }
     }
 }

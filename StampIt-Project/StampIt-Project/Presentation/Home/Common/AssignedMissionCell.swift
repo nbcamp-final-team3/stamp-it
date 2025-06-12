@@ -205,8 +205,8 @@ final class AssignedMissionCell: UICollectionViewCell {
     }
 
     private func toggleViewOnType() {
-        statusButton.isHidden = type == .received
-        statusView.isHidden = type == .sended
+        statusButton.isHidden = type == .sended
+        statusView.isHidden = type == .received
     }
 
     private func updateStatusView(for status: MissionStatus) {
@@ -214,7 +214,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         statusLabel.text = status.text
         statusLabel.textColor = status == .completed ? .blue400 : .gray400
 
-        statusImage.image = status == .completed ? .checkBlue : .xGray
+        statusImage.image = status == .completed ? .checkBlue : .xGray400
         statusImage.isHidden = status == .assigned
         statusImage.tintColor = status == .completed ? .blue400 : .gray400
     }
