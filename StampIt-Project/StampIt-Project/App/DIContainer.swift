@@ -26,8 +26,8 @@ final class DIContainer {
         )
     }()
     
-    private lazy var myPageRepository: MyPageRepositoryProtocol = {
-        return MyPageRepository(firestoreManager: firestoreManager)
+    private lazy var myPageRepository: MyPageRepository = {
+        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
     }()
     
     // MARK: - Use Cases (Domain Layer)
@@ -35,8 +35,8 @@ final class DIContainer {
         return LoginUseCase(authRepository: authRepository)
     }()
     
-    private lazy var myPageUseCase: MyPageUseCaseProtocol = {
-        return MyPageUseCase(
+    private lazy var myPageUseCase: MyPageUseCase = {
+        return MyPageUseCaseImpl(
             authRepository: authRepository,
             mypageRepository: myPageRepository
         )
