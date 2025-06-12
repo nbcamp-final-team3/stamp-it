@@ -15,7 +15,7 @@ final class MemberCompactCell: UICollectionViewCell {
     // MARK: - Properties
     
     static let identifier = "MemberCompactCell"
-    let type: CellType
+    var type: CellType = .normal
 
     override var isSelected: Bool {
         didSet {
@@ -59,9 +59,8 @@ final class MemberCompactCell: UICollectionViewCell {
 
     // MARK: - Init
 
-    init(type: CellType) {
-        self.type = type
-        super.init(frame: .zero)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setStyles()
         setHierarchy()
         setConstraints()
@@ -130,7 +129,8 @@ final class MemberCompactCell: UICollectionViewCell {
 
     // MARK: - Methods
 
-    func configureCell(with member: HomeMember) {
+    func configureCell(with member: HomeMember, type: CellType) {
+        self.type = type
         // TODO: member에 저장된 이미지로 변경하기
         profileImageView.image = .mascotRed
         nameLabel.text = member.nickname

@@ -14,7 +14,12 @@ final class AssignedMissionCell: UICollectionViewCell {
     // MARK: - Properties
 
     static let identifier = "AssignedMissionCell"
-    private let type: MissionType
+    private var type: MissionType? {
+        didSet {
+            toggleViewOnType()
+            newTag.isHidden = type == .sended
+        }
+    }
 
     // MARK: - UI Components
 
@@ -67,9 +72,8 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     // MARK: - Life Cycles
 
-    init(type: MissionType) {
-        self.type = type
-        super.init(frame: .zero)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setStyles()
         setHierarchy()
         setConstraints()
@@ -82,7 +86,7 @@ final class AssignedMissionCell: UICollectionViewCell {
     // MARK: - Set Styles
 
     private func setStyles() {
-        toggleViewOnType()
+
     }
 
     // MARK: - Set Hierarchy
@@ -177,31 +181,16 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     // MARK: - Methods
 
-    func configureCell(
-        category: MissionCategory,
-        name: String,
-        dueDate: String,
-        daysLeft: String,
-        title: String,
-        status: MissionStatus,
-        isNew: Bool = false,
-        isOverdue: Bool = false,
-    ) {
-        imageContainerView.backgroundColor = category.backgroundColor
-        categoryImageView.image = category.image
-        newTag.isHidden = !isNew || type == .sended
-        nameTag.updateText(with: name)
-        dateTag.updateText(with: dueDate)
-        if isOverdue { dateTag.updateTextColor(.gray200) }
-        daysLeftLabel.text = daysLeft
-        titleLabel.text = title
-
-        switch type {
-        case .received:
-            statusButton.updateStatus(to: status)
-        case .sended:
-            updateStatusView(for: status)
-        }
+    func configureAsSended(with mission: HomeSendedMission, type: MissionType) {
+        self.type = type
+        imageContainerView.backgroundColor = mission.category.backgroundColor
+        categoryImageView.image = mission.category.image
+        nameTag.updateText(with: mission.assignee)
+        dateTag.updateText(with: mission.dueDate)
+        if mission.isOverdue { dateTag.updateTextColor(.gray200) }
+        daysLeftLabel.text = mission.daysLeft
+        titleLabel.text = mission.title
+        updateStatusView(for: mission.status)
     }
 
     private func toggleViewOnType() {

@@ -126,17 +126,17 @@ final class MissionCardCell: UICollectionViewCell {
             make.top.equalTo(titleLabel.snp.bottom).offset(16)
             make.directionalHorizontalEdges.equalToSuperview().inset(24)
             make.bottom.equalToSuperview().inset(24)
-            make.height.equalTo(36)
+            make.height.equalTo(40)
         }
     }
 
     // MARK: - Methods
 
-    func configure(category: MissionCategory, date: String, assigner: String, title: String) {
-        categoryImageView.image = category.image
-        contentView.backgroundColor = category.backgroundColor
-        dateTag.updateText(with: date)
-        assignerTag.updateText(with: assigner)
-        titleLabel.text = title
+    func configure(with mission: HomeReceivedMission) {
+        categoryImageView.image = mission.category.image
+        contentView.backgroundColor = mission.category.backgroundColor
+        dateTag.updateText(with: mission.dueDate)
+        assignerTag.updateText(with: mission.assigner)
+        titleLabel.text = mission.title
     }
 }
