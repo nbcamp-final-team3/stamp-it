@@ -200,7 +200,7 @@ final class LoginViewController: UIViewController {
         // 로그인 섹션 제약조건
         loginSectionView.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview()
-            make.top.equalTo(logoImageView.snp.bottom).offset(60)
+            make.top.equalTo(logoImageView.snp.bottom).offset(100)
             make.height.equalTo(140)
         }
         
