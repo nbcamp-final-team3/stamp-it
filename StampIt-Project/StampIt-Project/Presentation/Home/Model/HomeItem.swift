@@ -7,11 +7,30 @@
 
 import Foundation
 
+enum HomeSection: Hashable, CaseIterable {
+    case ranking
+    case receivedMission
+    case sendedMission
+}
+
+extension HomeSection {
+    var placeholderText: String? {
+        switch self {
+        case .ranking:
+            return nil
+        case .receivedMission:
+            return "아직 부여된 미션이 없어요!"
+        case .sendedMission:
+            return "아직 전달한 미션이 없어요!"
+        }
+    }
+}
 
 enum HomeItem: Hashable {
     case member(HomeMember)
     case received(HomeReceivedMission)
     case sended(HomeSendedMission)
+    case placeholder(HomeSection)
 
     var member: HomeMember? {
         if case .member(let member) = self {

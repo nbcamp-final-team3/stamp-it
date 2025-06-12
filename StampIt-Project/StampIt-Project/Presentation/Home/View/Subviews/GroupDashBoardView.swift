@@ -35,6 +35,7 @@ final class GroupDashboardView: UIView {
         $0.register(MemberCompactCell.self, forCellWithReuseIdentifier: MemberCompactCell.identifier)
         $0.register(MissionCardCell.self, forCellWithReuseIdentifier: MissionCardCell.identifier)
         $0.register(AssignedMissionCell.self, forCellWithReuseIdentifier: AssignedMissionCell.identifier)
+        $0.register(PlaceholderCell.self, forCellWithReuseIdentifier: PlaceholderCell.identifier)
         $0.register(
             DashboardHeader.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -104,6 +105,18 @@ final class GroupDashboardView: UIView {
                 cell.configureAsSended(with: mission, type: .sended)
 
                 return cell
+
+            case .placeholder(let section):
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: PlaceholderCell.identifier,
+                    for: indexPath
+                ) as! PlaceholderCell
+
+                if let text = section.placeholderText {
+                    cell.configure(with: text)
+                }
+
+                return cell
             }
         }
 
@@ -144,7 +157,23 @@ final class GroupDashboardView: UIView {
         snapshot.appendItems(HomeItem.homeMembers, toSection: .ranking)
         snapshot.appendItems(HomeItem.receivedMissions, toSection: .receivedMission)
         snapshot.appendItems(HomeItem.sendedMissions, toSection: .sendedMission)
+//        snapshot.appendItems([.placeholder(.receivedMission)], toSection: .receivedMission)
+//        snapshot.appendItems([.placeholder(.sendedMission)], toSection: .sendedMission)
         dataSource.apply(snapshot)
+    }
+
+    func updateSnapshot(with items: [HomeItem], toSection section: HomeSection) {
+        guard var snapshot = dataSource?.snapshot() else { return }
+        let itemForDelete = snapshot.itemIdentifiers(inSection: section)
+        snapshot.deleteItems(itemForDelete)
+
+        if items.isEmpty {
+            snapshot.appendItems([.placeholder(section)])
+        } else {
+            snapshot.appendItems(items, toSection: section)
+        }
+
+        dataSource?.apply(snapshot)
     }
 
     // MARK: - Bind
@@ -155,86 +184,125 @@ final class GroupDashboardView: UIView {
     // MARK: - Methods
 
     private func createLayout() -> UICollectionViewLayout {
-        UICollectionViewCompositionalLayout { section, environment in
+        UICollectionViewCompositionalLayout { [weak self] section, environment in
+            guard let self else { return nil }
+
             let section = HomeSection.allCases[section]
-
-            let headerSize = NSCollectionLayoutSize(
-                widthDimension: .fractionalWidth(1),
-                heightDimension: .absolute(57)
-            )
-
-            let header = NSCollectionLayoutBoundarySupplementaryItem(
-                layoutSize: headerSize,
-                elementKind: UICollectionView.elementKindSectionHeader,
-                alignment: .top)
+            if isOnlyPlaceholder(inSection: section) { return createEmptySection() }
 
             switch section {
             case .ranking:
-                let itemSize = NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(1),
-                    heightDimension: .fractionalHeight(1)
-                )
-                let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-                let groupSize = NSCollectionLayoutSize(
-                    widthDimension: .absolute(60),
-                    heightDimension: .absolute(107)
-                )
-                let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-
-                let section = NSCollectionLayoutSection(group: group)
-                section.orthogonalScrollingBehavior = .continuous
-                section.interGroupSpacing = 12
-                section.contentInsets = .init(top: 12, leading: 16, bottom: 36, trailing: 16)
-                return section
-
+                return createRankingSection()
             case .receivedMission:
-                let itemSize = NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(1),
-                    heightDimension: .fractionalHeight(1)
-                )
-                let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-                let groupSize = NSCollectionLayoutSize(
-                    widthDimension: .absolute(200),
-                    heightDimension: .absolute(290)
-                )
-                let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-
-                let section = NSCollectionLayoutSection(group: group)
-                section.orthogonalScrollingBehavior = .continuous
-                section.interGroupSpacing = 12
-                section.contentInsets = .init(top: 20, leading: 16, bottom: 20, trailing: 16)
-                section.boundarySupplementaryItems = [header]
-                return section
-
+                return createReceivedMissionSection()
             case .sendedMission:
-                let itemSize = NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(1),
-                    heightDimension: .fractionalHeight(1)
-                )
-                let item = NSCollectionLayoutItem(layoutSize: itemSize)
-
-                let groupSize = NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(1),
-                    heightDimension: .absolute(74)
-                )
-                let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
-
-                let section = NSCollectionLayoutSection(group: group)
-                section.interGroupSpacing = 6
-                section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
-                section.boundarySupplementaryItems = [header]
-                return section
+                return createSendMissionSection()
             }
         }
     }
-}
 
-extension GroupDashboardView {
-    enum HomeSection: Hashable, CaseIterable {
-        case ranking
-        case receivedMission
-        case sendedMission
+    private func isOnlyPlaceholder(inSection section: HomeSection) -> Bool {
+        let item = dataSource?.snapshot().itemIdentifiers(inSection: section)
+        return item?.count == 1 && item?.first == .placeholder(section)
+    }
+
+    private func createEmptySection() -> NSCollectionLayoutSection {
+        let header = makeHeaderLayout()
+
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .fractionalHeight(1)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .absolute(61)
+        )
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = .init(top: 16, leading: 16, bottom: 36, trailing: 16)
+        section.boundarySupplementaryItems = [header]
+        return section
+    }
+
+    private func createRankingSection() -> NSCollectionLayoutSection {
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .fractionalHeight(1)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .absolute(60),
+            heightDimension: .absolute(107)
+        )
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.orthogonalScrollingBehavior = .continuous
+        section.interGroupSpacing = 12
+        section.contentInsets = .init(top: 12, leading: 16, bottom: 36, trailing: 16)
+        return section
+    }
+
+    private func createReceivedMissionSection() -> NSCollectionLayoutSection {
+        let header = makeHeaderLayout()
+
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .fractionalHeight(1)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .absolute(200),
+            heightDimension: .absolute(290)
+        )
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.orthogonalScrollingBehavior = .continuous
+        section.interGroupSpacing = 12
+        section.contentInsets = .init(top: 20, leading: 16, bottom: 20, trailing: 16)
+        section.boundarySupplementaryItems = [header]
+        return section
+    }
+
+    private func createSendMissionSection() -> NSCollectionLayoutSection {
+        let header = makeHeaderLayout()
+
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .fractionalHeight(1)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .absolute(74)
+        )
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 6
+        section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
+        section.boundarySupplementaryItems = [header]
+        return section
+    }
+
+    private func makeHeaderLayout() -> NSCollectionLayoutBoundarySupplementaryItem {
+        let headerSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .absolute(57)
+        )
+
+        let header = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: headerSize,
+            elementKind: UICollectionView.elementKindSectionHeader,
+            alignment: .top)
+
+        return header
     }
 }
