@@ -15,7 +15,11 @@ final class MemberCompactCell: UICollectionViewCell {
     // MARK: - Properties
     
     static let identifier = "MemberCompactCell"
-    var type: CellType = .normal
+    var type: CellType = .normal {
+        didSet {
+            setStyles()
+        }
+    }
 
     override var isSelected: Bool {
         didSet {
@@ -25,16 +29,13 @@ final class MemberCompactCell: UICollectionViewCell {
 
     // MARK: - UI Components
 
-    private lazy var imageContainerView = UIView().then {
+    private let imageContainerView = UIView().then {
         $0.backgroundColor = .clear
-        $0.layer.borderWidth = borderWidth
-        $0.layer.borderColor = borderColor
-        $0.layer.opacity = opacity
         $0.layer.cornerRadius = 60 / 2
         $0.clipsToBounds = true
     }
 
-    private lazy var profileImageView = UIImageView().then {
+    private let profileImageView = UIImageView().then {
         $0.contentMode = .scaleAspectFit
     }
     
@@ -43,15 +44,12 @@ final class MemberCompactCell: UICollectionViewCell {
         $0.clipsToBounds = true
     }
     
-    private lazy var nameLabel = UILabel().then {
-        $0.setTextWithLineHeight(text: nil, lineHeight: 14 * 1.5)
+    private let nameLabel = UILabel().then {
         $0.font = .pretendard(size: 14, weight: .regular)
-        $0.textColor = nameTextColor
         $0.textAlignment = .center
     }
     
     private let stickerCountLabel = UILabel().then {
-        $0.setTextWithLineHeight(text: nil, lineHeight: 12 * 1.5)
         $0.font = .pretendard(size: 12, weight: .regular)
         $0.textColor = .gray300
         $0.textAlignment = .center
@@ -73,10 +71,12 @@ final class MemberCompactCell: UICollectionViewCell {
     // MARK: - Set Styles
 
     private func setStyles() {
-        if type != .rank {
-            rankBadgeImageView.isHidden = true
-            stickerCountLabel.isHidden = true
-        }
+        rankBadgeImageView.isHidden = type != .rank
+        stickerCountLabel.isHidden = type != .rank
+        imageContainerView.layer.borderWidth = borderWidth
+        imageContainerView.layer.borderColor = borderColor
+        imageContainerView.layer.opacity = opacity
+        nameLabel.textColor = nameTextColor
     }
 
     // MARK: - Set Hierarchy
@@ -118,12 +118,14 @@ final class MemberCompactCell: UICollectionViewCell {
             let offset = type == .rank ? 8 : 4
             make.top.equalTo(imageContainerView.snp.bottom).offset(offset)
             make.directionalHorizontalEdges.equalToSuperview()
+            make.height.equalTo(21)
         }
 
         stickerCountLabel.snp.makeConstraints { make in
             make.top.equalTo(nameLabel.snp.bottom)
             make.directionalHorizontalEdges.equalToSuperview()
             make.bottom.equalToSuperview()
+            make.height.equalTo(18)
         }
     }
 
