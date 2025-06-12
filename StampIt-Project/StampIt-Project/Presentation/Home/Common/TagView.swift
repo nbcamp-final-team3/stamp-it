@@ -112,8 +112,7 @@ extension TagView {
 
     private var baseBackgroundColor: UIColor? {
         switch type {
-        case .filledLight: .gray50
-        case .filledBold: .gray25
+        case .filledLight, .filledBold: .gray25
         case .outlined: .FFFFFF
         }
     }

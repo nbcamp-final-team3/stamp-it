@@ -21,8 +21,13 @@ final class HomeView: UIView {
 
     // MARK: - UI Components
 
-    private let groupOrganizationView = GroupOrganizationView()
-    private let groupDashboardView = GroupDashboardView()
+    private let groupOrganizationView = GroupOrganizationView().then {
+        $0.isHidden = true
+    }
+
+    private let groupDashboardView = GroupDashboardView().then {
+        $0.isHidden = false
+    }
 
     // MARK: - Init
 
@@ -41,14 +46,23 @@ final class HomeView: UIView {
     // MARK: - Set Hierarchy
 
     private func setHierarchy() {
-        addSubview(groupOrganizationView)
+        [
+            groupOrganizationView,
+            groupDashboardView,
+        ].forEach { addSubview($0) }
     }
 
     // MARK: - Set Constraints
 
     private func setConstraints() {
         groupOrganizationView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.top.equalTo(safeAreaLayoutGuide).inset(16)
+            make.directionalHorizontalEdges.bottom.equalToSuperview()
+        }
+
+        groupDashboardView.snp.makeConstraints { make in
+            make.verticalEdges.equalTo(safeAreaLayoutGuide)
+            make.directionalHorizontalEdges.equalToSuperview()
         }
     }
 

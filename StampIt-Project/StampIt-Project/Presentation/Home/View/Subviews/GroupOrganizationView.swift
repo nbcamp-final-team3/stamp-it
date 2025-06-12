@@ -76,8 +76,7 @@ final class GroupOrganizationView: UIView {
 
     private func setConstraints() {
         containerView.snp.makeConstraints { make in
-            make.top.equalTo(safeAreaLayoutGuide).inset(16)
-            make.directionalHorizontalEdges.equalToSuperview().inset(16)
+            make.top.directionalHorizontalEdges.equalToSuperview().inset(16)
         }
 
         mascotImageView.snp.makeConstraints { make in
