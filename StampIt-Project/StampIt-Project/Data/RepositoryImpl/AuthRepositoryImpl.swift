@@ -28,7 +28,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func signInWithGoogle() -> Observable<LoginResult> {
         return authManager.signInWithGoogle()
             .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
-                guard let self = self else {
+                guard self != nil else {
                     return Observable.error(RepositoryError.unknownError)
                 }
                 let firebaseUser = authDataResult.user
@@ -67,7 +67,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     func signInWithApple() -> Observable<LoginResult> {
         return authManager.signInWithApple()
             .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
-                guard let self = self else {
+                guard self != nil else {
                     return Observable.error(RepositoryError.unknownError)
                 }
                 let firebaseUser = authDataResult.user
@@ -220,58 +220,68 @@ final class AuthRepository: AuthRepositoryProtocol {
         member: MemberFirestore
     ) -> Observable<StampIt_Project.User> {
         return Observable.create { [weak self] observer in
-            guard let self = self else {
+            guard let _ = self else {
                 observer.onError(RepositoryError.unknownError)
                 return Disposables.create()
             }
             
             let batch = Firestore.firestore().batch()
             
-            do {
-                // 유저
-                let userDict = try JSONSerialization.jsonObject(
-                    with: JSONEncoder().encode(user)
-                ) as! [String: Any]
-                let userRef = Firestore.firestore().collection("users").document(user.documentID)
-                batch.setData(userDict, forDocument: userRef)
-                
-                // 그룹
-                let groupDict = try JSONSerialization.jsonObject(
-                    with: JSONEncoder().encode(group)
-                ) as! [String: Any]
-                let groupRef = Firestore.firestore().collection("groups").document(group.documentID)
-                batch.setData(groupDict, forDocument: groupRef)
-                
-                // 멤버
-                let memberDict = try JSONSerialization.jsonObject(
-                    with: JSONEncoder().encode(member)
-                ) as! [String: Any]
-                let memberRef = Firestore.firestore()
-                    .collection("groups")
-                    .document(group.groupId)
-                    .collection("members")
-                    .document(member.documentID)
-                batch.setData(memberDict, forDocument: memberRef)
-                
-                // 커밋
-                batch.commit { error in
-                    if let error = error {
-                        observer.onError(RepositoryError.dataError("신규 사용자 생성 실패: \(error.localizedDescription)"))
-                    } else {
-                        let completeUser = user.toDomainModel(
-                            groupName: group.name,
-                            isLeader: true
-                        )
-                        observer.onNext(completeUser)
-                        observer.onCompleted()
-                    }
+            // 1. 유저
+            let userDict: [String: Any] = [
+                "userId": user.userId,
+                "nickname": user.nickname,
+                "profileImage": user.profileImage as Any,
+                "groupId": user.groupId,
+                "nicknameChangedAt": user.nicknameChangedAt,
+                "createdAt": user.createdAt
+            ]
+            let userRef = Firestore.firestore().collection("users").document(user.documentID)
+            batch.setData(userDict, forDocument: userRef)
+
+            // 2. 그룹
+            let groupDict: [String: Any] = [
+                "groupId": group.groupId,
+                "name": group.name,
+                "leaderId": group.leaderId,
+                "inviteCode": group.inviteCode,
+                "nameChangedAt": group.nameChangedAt,
+                "createdAt": group.createdAt
+            ]
+            let groupRef = Firestore.firestore().collection("groups").document(group.documentID)
+            batch.setData(groupDict, forDocument: groupRef)
+
+            // 3. 멤버
+            let memberDict: [String: Any] = [
+                "userId": member.userId,
+                "nickname": member.nickname,
+                "joinedAt": member.joinedAt,
+                "isLeader": member.isLeader
+            ]
+            let memberRef = Firestore.firestore()
+                .collection("groups")
+                .document(group.groupId)
+                .collection("members")
+                .document(member.documentID)
+            batch.setData(memberDict, forDocument: memberRef)
+            
+            // 커밋
+            batch.commit { error in
+                if let error = error {
+                    observer.onError(RepositoryError.dataError("신규 사용자 생성 실패: \(error.localizedDescription)"))
+                } else {
+                    let completeUser = user.toDomainModel(
+                        groupName: group.name,
+                        isLeader: true
+                    )
+                    observer.onNext(completeUser)
+                    observer.onCompleted()
                 }
-            } catch {
-                observer.onError(RepositoryError.dataError("데이터 인코딩 실패: \(error.localizedDescription)"))
             }
             return Disposables.create()
         }
     }
+
     
     // MARK: - Private Methods
     /// 다양한 에러 타입을 RepositoryError로 매핑
