@@ -28,11 +28,11 @@ final class MissionListViewModel: MissionViewModelProtocol {
     
     var disposeBag = DisposeBag()
     
-    private let sampleMissionUseCaseImpl: SampleMissionUseCase
+    private let missionUseCaseImpl: MissionUseCase
     private var _missions: [SampleMission] = [] // 샘플 미션 JSON 원본 데이터
     
-    init(sampleMissionUseCaseImpl: SampleMissionUseCase = SampleMissionUseCaseImpl()) {
-        self.sampleMissionUseCaseImpl = sampleMissionUseCaseImpl
+    init(missionUseCaseImpl: MissionUseCase = MissionUseCaseImpl()) {
+        self.missionUseCaseImpl = missionUseCaseImpl
         
         bind()
         
@@ -46,9 +46,16 @@ final class MissionListViewModel: MissionViewModelProtocol {
                 
                 switch input {
                 case .onAppear:
-                    let missions = sampleMissionUseCaseImpl.loadData()
-                    output.missions.accept(missions)
-                    _missions = missions
+                    missionUseCaseImpl.loadSampleMission()
+                        .subscribe { [weak self] missions in
+                            guard let self else { return }
+                            
+                            output.missions.accept(missions)
+                            _missions = missions
+                        } onFailure: { error in
+                            print(error)
+                        }
+                        .disposed(by: disposeBag)
                 case .searchTextChanged(let searchText):
                     output.searchText.accept(searchText)
                     print("searchText: \(searchText)")
@@ -56,12 +63,6 @@ final class MissionListViewModel: MissionViewModelProtocol {
                 case .didSelectTableViewCell(let mission):
                     print("didSelectTableViewCell: \(mission.title)")
                 case .didSelectCollectionViewCell(let indexPath):
-//                    if indexPath.item == 0 {
-//                        print("전체보기")
-//                    } else {
-//                        let category = MissionCategory.allCases[indexPath.item - 1]
-//                        print("category: \(category.title)")
-//                    }
                     filterMission(indexPath: indexPath)
                 }
             }
