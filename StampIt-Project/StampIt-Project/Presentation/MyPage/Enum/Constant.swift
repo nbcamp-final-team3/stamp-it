@@ -19,6 +19,15 @@ enum TabType {
     }
 }
 
+enum Stamp: String, Hashable {
+    case stampGray
+    case stampRed
+    
+    enum Board {
+        static let imageSize: CGFloat = 53
+    }
+}
+
 enum MyPage {
     enum Tab {
         static let fontSize: CGFloat = 24
@@ -38,13 +47,24 @@ enum MyPage {
     }
     
     enum Menu {
-        static let fontSizeMedium: CGFloat = 16
         static let fontSizeSmall: CGFloat = 14
+        static let fontSizeMedium: CGFloat = 16
         static let dividerHeight: CGFloat = 1
     }
     
     enum TableView {
         static let sectionHeight: CGFloat = 45
         static let cellHeight: CGFloat = 58
+    }
+    
+    enum Stamp {
+        static let collected: String = "내가 모은 스탬프"
+        static let completed: String = "완성한 스탬프"
+        static let unit: String = "개"
+        static let slash: String = "/"
+        static let totalStamp: String = "30"
+        static let fontSizeSmall: CGFloat = 14
+        static let fontSizeMedium: CGFloat = 16
+        static let vStackSpacing: CGFloat = 6
     }
 }

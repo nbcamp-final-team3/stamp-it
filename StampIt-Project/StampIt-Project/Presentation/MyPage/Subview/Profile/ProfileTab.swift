@@ -10,7 +10,7 @@ import Then
 import SnapKit
 import Kingfisher
 
-final class UserProfile: UIView {
+final class ProfileTab: UIView {
     
     // MARK: - UI Components
     
@@ -62,8 +62,8 @@ final class UserProfile: UIView {
             forCellReuseIdentifier: ProfileMenuCell.identifier
         )
         $0.register(
-            MyPageHeader.self,
-            forHeaderFooterViewReuseIdentifier: MyPageHeader.identifier
+            ProfileHeader.self,
+            forHeaderFooterViewReuseIdentifier: ProfileHeader.identifier
         )
         $0.allowsSelection = false
         $0.separatorStyle = .none

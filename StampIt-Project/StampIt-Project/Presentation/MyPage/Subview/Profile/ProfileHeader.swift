@@ -9,7 +9,7 @@ import UIKit
 import Then
 import SnapKit
 
-final class MyPageHeader: UITableViewHeaderFooterView {
+final class ProfileHeader: UITableViewHeaderFooterView {
     
     // MARK: - Properties
     
