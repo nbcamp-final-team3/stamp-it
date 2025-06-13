@@ -20,8 +20,9 @@ final class MissionListViewController: UIViewController {
         $0.searchTextField.clipsToBounds = true
     }
     
-    private let tableView = UITableView().then {
+    private lazy var tableView = UITableView().then {
         $0.register(MissionListCell.self, forCellReuseIdentifier: MissionListCell.reuseIdentifier)
+        $0.delegate = self
     }
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
@@ -29,6 +30,8 @@ final class MissionListViewController: UIViewController {
     }
     
     private let noResultsView = NoResultsView()
+    
+    private let headerView = HeaderView()
     
     private let viewModel: MissionListViewModel
     private let disposeBag = DisposeBag()
@@ -170,6 +173,16 @@ final class MissionListViewController: UIViewController {
                 }
             }
             .disposed(by: disposeBag)
+        
+        // 검색 결과가 있으면 테이블 뷰 헤더에 "ㅇㅇ으로 검색한 결과입니다" 표시
+        viewModel.output.searchText
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] searchText in
+                guard let self, !searchText.isEmpty else { return }
+                
+                headerView.configure(with: searchText)
+            }
+            .disposed(by: disposeBag)
     }
     
     private func setCollectionViewCell() {
@@ -220,5 +233,22 @@ final class MissionListViewController: UIViewController {
                 return cell
             }
         }
+    }
+}
+
+extension MissionListViewController: UITableViewDelegate {
+    // 검색 결과가 있을 때만 헤더 표시
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        if viewModel.output.missions.value.isEmpty || viewModel.output.searchText.value.isEmpty {
+            return nil
+        }
+        return headerView
+    }
+    
+    func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
+        if viewModel.output.missions.value.isEmpty || viewModel.output.searchText.value.isEmpty {
+            return 0
+        }
+        return 16
     }
 }
