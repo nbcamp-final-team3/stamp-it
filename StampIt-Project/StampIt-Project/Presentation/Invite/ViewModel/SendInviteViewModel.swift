@@ -9,7 +9,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 import UIKit
-
+import FirebaseFirestore
 
 class SendInviteViewModel: ViewModelProtocol {
 
@@ -27,11 +27,12 @@ class SendInviteViewModel: ViewModelProtocol {
     var disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     let state: State
+    private let firestoreManager = FirestoreManager.shared
+    private var currentGroupId: String?
 
     // MARK: - Init
     init() {
-        let inviteCode = Self.generateInviteCode()
-        let inviteCodeRelay = BehaviorRelay<String>(value: inviteCode)
+        let inviteCodeRelay = BehaviorRelay<String>(value: "복사 이미지를 클릭해주세요!")
         let showCopyMessageRelay = PublishRelay<String>()
 
         self.state = State(
@@ -41,19 +42,48 @@ class SendInviteViewModel: ViewModelProtocol {
 
         // Action 처리
         action
-            .subscribe(onNext: { action in
+            .subscribe(onNext: { [weak self] action in
                 switch action {
                 case .copyButtonTapped:
-                    UIPasteboard.general.string = inviteCode
-                    showCopyMessageRelay.accept("초대 코드가 복사되었습니다")
+                    guard let self = self,
+                          let groupId = self.currentGroupId else { return }
+                    
+                    // 초대장 생성
+                    let invite = InviteFirestore(
+                        inviteCode: groupId,
+                        groupId: groupId,
+                        createdBy: "currentUserId003", // TODO: 실제 현재 유저 ID로 교체
+                        createdAt: Timestamp(date: Date()),
+                        expiredAt: nil
+                    )
+                    
+                    // Firestore에 초대장 저장
+                    self.firestoreManager.createInvite(invite)
+                        .subscribe(onNext: { [weak self] _ in
+                            // 초대 코드 복사
+                            UIPasteboard.general.string = groupId
+                            self?.state.showCopyMessage.accept("초대 코드가 복사되었습니다")
+                        }, onError: { [weak self] error in
+                            self?.state.showCopyMessage.accept("초대 코드 생성 실패: \(error.localizedDescription)")
+                        })
+                        .disposed(by: self.disposeBag)
                 }
-            }).disposed(by: disposeBag)
-
-    // MARK: - Helper 초대 코드 생성 함수
-    private static func generateInviteCode(length: Int = 8) -> String {
-        let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return String((0..<length).compactMap { _ in chars.randomElement() })
+            })
+            .disposed(by: disposeBag)
+            
+        // 현재 유저의 그룹 ID 가져오기
+        fetchCurrentUserGroup()
     }
-
-
+    
+    // MARK: - Methods
+    private func fetchCurrentUserGroup() {
+        let testGroupId = "testGroup003"
+        
+        self.currentGroupId = testGroupId
+        
+        // 초대 코드 표시 업데이트
+        if let groupId = currentGroupId {
+            state.inviteCode.accept(groupId)
+        }
+    }
 }
