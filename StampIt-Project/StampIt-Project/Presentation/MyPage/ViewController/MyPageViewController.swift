@@ -154,7 +154,7 @@ final class MyPageViewController: UIViewController {
         let redItems = Array(repeating: StickerType.stampRed, count: item.count)
         let grayItems = Array(repeating: StickerType.stampGray, count: 30 - item.count)
         return (redItems + grayItems).map {
-            Sticker(stickerID: "0", title: "", description: "", imageURL: "", type: $0, createdAt: Date())
+            Sticker(stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: $0, createdAt: Date())
         }
     }
     
