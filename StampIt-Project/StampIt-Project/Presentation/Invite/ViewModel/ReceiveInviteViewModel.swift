@@ -55,13 +55,38 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     private func bindActions() {
         action
             .subscribe(onNext: { [weak self] action in
+                guard let self = self else { return }
+                
                 switch action {
                 case .codeChanged(let code):
-                    self?.state.inviteCode.accept(code)
-                    self?.state.isEnterButtonEnabled.accept(!code.isEmpty)
+                    self.state.inviteCode.accept(code)
+                    self.state.isEnterButtonEnabled.accept(!code.isEmpty)
+                    
                 case .enterButtonTapped:
-                    // 미완 입장 처리 로직 필요
-                    print("입장하기 버튼 눌림. 코드: \(self?.state.inviteCode.value ?? "")")
+                    let inviteCode = self.state.inviteCode.value
+                    
+                    // 초대장 조회
+                    self.firestoreManager.fetchInvite(inviteCode: inviteCode)
+                        .flatMap { [weak self] invite -> Observable<Void> in
+                            guard let self = self else { return .empty() }
+                            
+                            // 새 멤버 생성 (Mock 데이터 사용)
+                            let newMember = MemberFirestore(
+                                userId: self.mockUser.userId,
+                                nickname: self.mockUser.nickname,
+                                joinedAt: Timestamp(),
+                                isLeader: false
+                            )
+                            
+                            // 초대장의 그룹 ID로 멤버 추가
+                            return self.firestoreManager.addMember(groupId: invite.groupId, member: newMember)
+                        }
+                        .subscribe(onNext: { [weak self] _ in
+                            self?.state.showMessage.accept("그룹에 성공적으로 참여했습니다!")
+                        }, onError: { [weak self] error in
+                            self?.state.showMessage.accept("초대 코드 처리 실패: \(error.localizedDescription)")
+                        })
+                        .disposed(by: self.disposeBag)
                 }
             })
             .disposed(by: disposeBag)
