@@ -32,7 +32,7 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     let state = State()
-    private let firestoreManager = FirestoreManager.shared
+    private let receiveInviteUseCase: ReceiveInviteUseCaseProtocol
     
     // Mock 데이터
     private let mockUser = UserFirestore(
@@ -46,7 +46,8 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     )
 
     // MARK: - Init
-    init() {
+    init(receiveInviteUseCase: ReceiveInviteUseCaseProtocol = ReceiveInviteUseCase()) {
+        self.receiveInviteUseCase = receiveInviteUseCase
         bindActions()
     }
 
@@ -65,22 +66,7 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
                 case .enterButtonTapped:
                     let inviteCode = self.state.inviteCode.value
                     
-                    // 초대장 조회
-                    self.firestoreManager.fetchInvite(inviteCode: inviteCode)
-                        .flatMap { [weak self] invite -> Observable<Void> in
-                            guard let self = self else { return .empty() }
-                            
-                            // 새 멤버 생성 (Mock 데이터 사용)
-                            let newMember = MemberFirestore(
-                                userId: self.mockUser.userId,
-                                nickname: self.mockUser.nickname,
-                                joinedAt: Timestamp(),
-                                isLeader: false
-                            )
-                            
-                            // 초대장의 그룹 ID로 멤버 추가
-                            return self.firestoreManager.addMember(groupId: invite.groupId, member: newMember)
-                        }
+                    self.receiveInviteUseCase.receiveInvite(withCode: inviteCode)
                         .subscribe(onNext: { [weak self] _ in
                             self?.state.showMessage.accept("그룹에 성공적으로 참여했습니다!")
                         }, onError: { [weak self] error in
