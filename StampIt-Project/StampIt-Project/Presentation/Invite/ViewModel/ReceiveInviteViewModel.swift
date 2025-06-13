@@ -24,6 +24,7 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     struct State {
         let inviteCode = BehaviorRelay<String>(value: "")
         let isEnterButtonEnabled = BehaviorRelay<Bool>(value: false)
+        let showMessage = PublishRelay<String>()
     }
 
     // MARK: - Properties
@@ -31,6 +32,18 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     let state = State()
+    private let firestoreManager = FirestoreManager.shared
+    
+    // Mock 데이터
+    private let mockUser = UserFirestore(
+        userId: "testUser004",
+        nickname: "테스트유저004",
+        email: "test004@example.com",
+        profileImage: nil,
+        groupId: "",
+        nicknameChangedAt: Timestamp(),
+        createdAt: Timestamp()
+    )
 
     // MARK: - Init
     init() {
