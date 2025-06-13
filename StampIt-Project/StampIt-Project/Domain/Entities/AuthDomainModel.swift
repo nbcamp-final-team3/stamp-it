@@ -17,7 +17,8 @@ struct AuthUser {
 
 /// 로그인 완료 결과
 struct LoginResult {
-    let user: StampIt_Project.User       // 도메인 모델
+    let authUser: AuthUser?              // 신규 사용자용 (Firebase 인증 정보)
+    let user: StampIt_Project.User?      // 기존 사용자용 (완전한 도메인 정보)
     let isNewUser: Bool                  // 신규 가입 여부
     let needsGroupSetup: Bool            // 그룹 설정 필요 여부
 }

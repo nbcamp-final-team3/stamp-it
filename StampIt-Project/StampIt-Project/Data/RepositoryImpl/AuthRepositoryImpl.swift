@@ -57,12 +57,31 @@ final class AuthRepository: AuthRepositoryProtocol {
     /// AuthDataResult를 LoginResult로 변환
     private func processAuthResult(_ authDataResult: AuthDataResult) -> Observable<LoginResult> {
         let firebaseUser = authDataResult.user
-        let authUser = createAuthUser(from: firebaseUser,
-                                    isNewUser: authDataResult.additionalUserInfo?.isNewUser ?? false)
-        let domainUser = createDomainUser(from: authUser)
-        let loginResult = createLoginResult(user: domainUser, isNewUser: authUser.isNewUser)
+        let authUser = createAuthUser(
+            from: firebaseUser,
+            isNewUser: authDataResult.additionalUserInfo?.isNewUser ?? false
+        )
         
-        return Observable.just(loginResult)
+        if authUser.isNewUser {
+            // 신규 사용자: AuthUser 정보만 반환 (나머진 UseCase에서 완전한 User 생성)
+            return Observable.just(LoginResult(
+                authUser: authUser,
+                user: nil,
+                isNewUser: true,
+                needsGroupSetup: true
+            ))
+        } else {
+            // 기존 사용자: Firestore에서 완전한 정보 조회
+            return fetchUserWithGroupInfo(userId: authUser.uid)
+                .map { completeUser in
+                    return LoginResult(
+                        authUser: nil,
+                        user: completeUser,
+                        isNewUser: false,
+                        needsGroupSetup: false
+                    )
+                }
+        }
     }
     
     /// Firebase User를 AuthUser로 변환
@@ -73,29 +92,6 @@ final class AuthRepository: AuthRepositoryProtocol {
             displayName: firebaseUser.displayName ?? "사용자",
             photoURL: firebaseUser.photoURL?.absoluteString,
             isNewUser: isNewUser
-        )
-    }
-    
-    /// AuthUser를 도메인 User로 변환
-    private func createDomainUser(from authUser: AuthUser) -> StampIt_Project.User {
-        return StampIt_Project.User(
-            userID: authUser.uid,
-            nickname: authUser.displayName,
-            profileImageURL: authUser.photoURL,
-            boards: [],
-            groupID: "",
-            groupName: "",
-            isLeader: false,
-            joinedGroupAt: Date()
-        )
-    }
-    
-    /// LoginResult 생성
-    private func createLoginResult(user: StampIt_Project.User, isNewUser: Bool) -> LoginResult {
-        return LoginResult(
-            user: user,
-            isNewUser: isNewUser,
-            needsGroupSetup: isNewUser
         )
     }
     
