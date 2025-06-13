@@ -220,7 +220,10 @@ final class HomeViewModel: ViewModelProtocol {
                 category: mission.category,
                 dueDate: mission.dueDate.toMonthDayString(),
                 assignee: assignee,
-                status: mission.status.text
+                status: mission.status,
+                // TODO: 계산해서 할당
+                isOverdue: true,
+                daysLeft: "3일 전"
             )
             return HomeItem.sended(homeMission)
         }

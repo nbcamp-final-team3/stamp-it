@@ -1,8 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "open book.svg",
-      "idiom" : "universal"
+      "filename" : "독서학습미션.svg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x"
     }
   ],
   "info" : {
