@@ -45,7 +45,6 @@ final class MyPageViewController: UIViewController {
         setDelegate()
         setDataSource()
         bind()
-        updateUI(item: viewModel.state.stickers.value)
     }
     
     // MARK: - Bind
@@ -67,6 +66,11 @@ final class MyPageViewController: UIViewController {
             .bind(with: self) { owner, tab in
                 owner.tabButton.updateTitleColor(selected: tab)
                 owner.updateSelectedTab(selected: tab)
+            }.disposed(by: disposeBag)
+        
+        viewModel.state.stickers
+            .bind(with: self) { owner, stickers in
+                self.updateUI(with: stickers)
             }.disposed(by: disposeBag)
     }
     
@@ -138,15 +142,15 @@ final class MyPageViewController: UIViewController {
 
     // MARK: - Snapshot
     
-    private func updateUI(item: [Sticker]) {
-        let allStamps = makeAllStamps(item: item)
+    private func updateUI(with item: [Sticker]) {
+        let allStamps = makeAllStamps(with: item)
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.defaultBoard])
         snapshot.appendItems(allStamps, toSection: .defaultBoard)
         stampBoardDataSource.apply(snapshot, animatingDifferences: true)
     }
     
-    private func makeAllStamps(item: [Sticker]) -> [Sticker] {
+    private func makeAllStamps(with item: [Sticker]) -> [Sticker] {
         let redItems = Array(repeating: StickerType.stampRed, count: item.count)
         let grayItems = Array(repeating: StickerType.stampGray, count: 30 - item.count)
         return (redItems + grayItems).map {
