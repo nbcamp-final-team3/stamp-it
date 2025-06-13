@@ -10,72 +10,62 @@ import RxSwift
 import RxCocoa
 import UIKit
 import FirebaseFirestore
+import FirebaseAuth
 
 final class SendInviteViewModel: ViewModelProtocol {
-
-    // MARK: - Action&State
+    // MARK: - Action & State
     enum Action {
         case copyButtonTapped
     }
 
     struct State {
-        let inviteCode: BehaviorRelay<String>
-        let showCopyMessage: PublishRelay<String>
+        let inviteCode = BehaviorRelay<String>(value: "")
+        let showMessage = PublishRelay<String>()
     }
 
     // MARK: - Properties
-    var disposeBag = DisposeBag()
+    let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
-    let state: State
-    private let createInviteUseCase: CreateInviteUseCaseProtocol
-    private var currentGroupId: String?
-
+    let state = State()
+    private let firestoreManager = FirestoreManager()
+    
     // MARK: - Init
-    init(createInviteUseCase: CreateInviteUseCaseProtocol = CreateInviteUseCase()) {
-        let inviteCodeRelay = BehaviorRelay<String>(value: "복사 이미지를 클릭해주세요!")
-        let showCopyMessageRelay = PublishRelay<String>()
+    init() {
+        bindActions()
+    }
 
-        self.state = State(
-            inviteCode: inviteCodeRelay,
-            showCopyMessage: showCopyMessageRelay
-        )
-        self.createInviteUseCase = createInviteUseCase
-
-        // Action 처리
+    // MARK: - Bind
+    private func bindActions() {
         action
             .subscribe(onNext: { [weak self] action in
+                guard let self = self else { return }
+                
                 switch action {
                 case .copyButtonTapped:
-                    guard let self = self,
-                          let groupId = self.currentGroupId else { return }
-                    
-                    self.createInviteUseCase.createInvite(groupId: groupId)
-                        .flatMap { [weak self] code in
-                            self?.createInviteUseCase.copyInviteCode(code) ?? .empty()
-                        }
-                        .subscribe(onNext: { [weak self] message in
-                            self?.state.showCopyMessage.accept(message)
-                        }, onError: { [weak self] error in
-                            self?.state.showCopyMessage.accept("초대 코드 생성 실패: \(error.localizedDescription)")
-                        })
-                        .disposed(by: self.disposeBag)
+                    self.copyInviteCode()
                 }
             })
             .disposed(by: disposeBag)
-            
-        // 현재 유저의 그룹 ID 가져오기
-        fetchCurrentUserGroup()
     }
     
-    // MARK: - Methods
-    private func fetchCurrentUserGroup() {
-        let testGroupId = "testGroup003"
-        
-        self.currentGroupId = testGroupId
-        
-        // 초대 코드 표시 업데이트
-        if let groupId = currentGroupId {
-            state.inviteCode.accept(groupId)
+    // MARK: - Private Methods
+    private func copyInviteCode() {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            self.state.showMessage.accept("로그인이 필요합니다")
+            return
         }
+        
+        firestoreManager.fetchUserOnce(userId: currentUserId)
+            .subscribe(onNext: { [weak self] user in
+                guard let self = self else { return }
+                
+                let groupId = user.groupId
+                UIPasteboard.general.string = groupId
+                self.state.showMessage.accept("초대 코드가 복사되었습니다")
+                
+            }, onError: { [weak self] error in
+                self?.state.showMessage.accept("사용자 정보 조회 실패: \(error.localizedDescription)")
+            })
+            .disposed(by: self.disposeBag)
     }
 }

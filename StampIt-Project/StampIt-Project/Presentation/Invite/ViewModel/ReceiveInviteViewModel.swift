@@ -32,22 +32,10 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     let state = State()
-    private let receiveInviteUseCase: ReceiveInviteUseCaseProtocol
-    
-    // Mock 데이터
-    private let mockUser = UserFirestore(
-        userId: "testUser004",
-        nickname: "테스트유저004",
-        email: "test004@example.com",
-        profileImage: nil,
-        groupId: "",
-        nicknameChangedAt: Timestamp(),
-        createdAt: Timestamp()
-    )
+    private let firestoreManager = FirestoreManager()
 
     // MARK: - Init
-    init(receiveInviteUseCase: ReceiveInviteUseCaseProtocol = ReceiveInviteUseCase()) {
-        self.receiveInviteUseCase = receiveInviteUseCase
+    init() {
         bindActions()
     }
 
@@ -66,7 +54,29 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
                 case .enterButtonTapped:
                     let inviteCode = self.state.inviteCode.value
                     
-                    self.receiveInviteUseCase.receiveInvite(withCode: inviteCode)
+                    // 1. 현재 로그인된 사용자 ID 가져오기
+                    guard let currentUserId = Auth.auth().currentUser?.uid else {
+                        self.state.showMessage.accept("로그인이 필요합니다")
+                        return
+                    }
+                    
+                    // 2. 초대장 조회
+                    self.firestoreManager.fetchInvite(inviteCode: inviteCode)
+                        .flatMap { invite -> Observable<Void> in
+                            // 3. 사용자 정보 조회
+                            return self.firestoreManager.fetchUserOnce(userId: currentUserId)
+                                .flatMap { currentUser -> Observable<Void> in
+                                    // 4. 새 멤버 생성 및 추가
+                                    let newMember = MemberFirestore(
+                                        userId: currentUser.userId,
+                                        nickname: currentUser.nickname,
+                                        joinedAt: Timestamp(),
+                                        isLeader: false
+                                    )
+                                    
+                                    return self.firestoreManager.addMember(groupId: invite.groupId, member: newMember)
+                                }
+                        }
                         .subscribe(onNext: { [weak self] _ in
                             self?.state.showMessage.accept("그룹에 성공적으로 참여했습니다!")
                         }, onError: { [weak self] error in

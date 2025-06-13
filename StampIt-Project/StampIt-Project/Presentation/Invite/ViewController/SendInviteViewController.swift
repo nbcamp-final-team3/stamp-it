@@ -116,7 +116,7 @@ final class SendInviteViewController: UIViewController {
             .bind(to: inviteCodeLabel.rx.text)
             .disposed(by: disposeBag)
 
-        viewModel.state.showCopyMessage
+        viewModel.state.showMessage
             .subscribe(onNext: { [weak self] message in
                 /// toast 색상설정을 위한 변수
                 var style = ToastStyle()
