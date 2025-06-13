@@ -8,6 +8,7 @@
 import RxSwift
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
 final class AuthRepository: AuthRepositoryProtocol {
     
@@ -23,80 +24,79 @@ final class AuthRepository: AuthRepositoryProtocol {
         self.firestoreManager = firestoreManager
     }
     
-    // MARK: - Google Sign-In
-    /// Google 로그인을 수행하고 도메인 모델로 변환된 LoginResult를 반환
+    // MARK: - Sign-In
+    /// Google 로그인
     func signInWithGoogle() -> Observable<LoginResult> {
-        return authManager.signInWithGoogle()
+        return performSignIn(authMethod: authManager.signInWithGoogle())
+    }
+    
+    /// Apple 로그인
+    func signInWithApple() -> Observable<LoginResult> {
+        return performSignIn(authMethod: authManager.signInWithApple())
+    }
+    
+    // MARK: - Sign-In Helper Methods (Private)
+    /// 공통 로그인 로직 처리
+    private func performSignIn(authMethod: Observable<AuthDataResult>) -> Observable<LoginResult> {
+        return authMethod
             .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
-                guard self != nil else {
+                guard let self = self else {
                     return Observable.error(RepositoryError.unknownError)
                 }
-                let firebaseUser = authDataResult.user
-                let authUser = AuthUser(
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email ?? "",
-                    displayName: firebaseUser.displayName ?? "",
-                    photoURL: firebaseUser.photoURL?.absoluteString,
-                    isNewUser: authDataResult.additionalUserInfo?.isNewUser ?? false
-                )
-                // 도메인 모델로 변환
-                let user = StampIt_Project.User(
-                    userID: authUser.uid,
-                    nickname: authUser.displayName,
-                    profileImageURL: authUser.photoURL,
-                    boards: [],
-                    groupID: "",
-                    groupName: "",
-                    isLeader: false,
-                    joinedGroupAt: Date()
-                )
-                return Observable.just(LoginResult(
-                    user: user,
-                    isNewUser: authUser.isNewUser,
-                    needsGroupSetup: authUser.isNewUser
-                ))
+                return self.processAuthResult(authDataResult)
             }
-            .catch { error in
+            .catch { [weak self] error in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
                 let repositoryError = self.mapToRepositoryError(error)
                 return Observable.error(repositoryError)
             }
     }
     
-    // MARK: - Apple Sign-In (준비)
-    /// Apple 로그인을 수행하고 도메인 모델로 변환된 LoginResult를 반환 (준비 단계)
-    func signInWithApple() -> Observable<LoginResult> {
-        return authManager.signInWithApple()
-            .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
-                guard self != nil else {
-                    return Observable.error(RepositoryError.unknownError)
-                }
-                let firebaseUser = authDataResult.user
-                let authUser = AuthUser(
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email ?? "",
-                    displayName: firebaseUser.displayName ?? "사용자",
-                    photoURL: nil,
-                    isNewUser: authDataResult.additionalUserInfo?.isNewUser ?? false
-                )
-                let user = StampIt_Project.User(
-                    userID: authUser.uid,
-                    nickname: authUser.displayName,
-                    profileImageURL: authUser.photoURL,
-                    boards: [],
-                    groupID: "", groupName: "",
-                    isLeader: false,
-                    joinedGroupAt: Date()
-                )
-                return Observable.just(LoginResult(
-                    user: user,
-                    isNewUser: authUser.isNewUser,
-                    needsGroupSetup: authUser.isNewUser
-                ))
-            }
-            .catch { error in
-                let repositoryError = self.mapToRepositoryError(error)
-                return Observable.error(repositoryError)
-            }
+    /// AuthDataResult를 LoginResult로 변환
+    private func processAuthResult(_ authDataResult: AuthDataResult) -> Observable<LoginResult> {
+        let firebaseUser = authDataResult.user
+        let authUser = createAuthUser(from: firebaseUser,
+                                    isNewUser: authDataResult.additionalUserInfo?.isNewUser ?? false)
+        let domainUser = createDomainUser(from: authUser)
+        let loginResult = createLoginResult(user: domainUser, isNewUser: authUser.isNewUser)
+        
+        return Observable.just(loginResult)
+    }
+    
+    /// Firebase User를 AuthUser로 변환
+    private func createAuthUser(from firebaseUser: FirebaseAuth.User, isNewUser: Bool) -> AuthUser {
+        return AuthUser(
+            uid: firebaseUser.uid,
+            email: firebaseUser.email ?? "",
+            displayName: firebaseUser.displayName ?? "사용자",
+            photoURL: firebaseUser.photoURL?.absoluteString,
+            isNewUser: isNewUser
+        )
+    }
+    
+    /// AuthUser를 도메인 User로 변환
+    private func createDomainUser(from authUser: AuthUser) -> StampIt_Project.User {
+        return StampIt_Project.User(
+            userID: authUser.uid,
+            nickname: authUser.displayName,
+            profileImageURL: authUser.photoURL,
+            boards: [],
+            groupID: "",
+            groupName: "",
+            isLeader: false,
+            joinedGroupAt: Date()
+        )
+    }
+    
+    /// LoginResult 생성
+    private func createLoginResult(user: StampIt_Project.User, isNewUser: Bool) -> LoginResult {
+        return LoginResult(
+            user: user,
+            isNewUser: isNewUser,
+            needsGroupSetup: isNewUser
+        )
     }
     
     // MARK: - 사용자+그룹 정보 통합 조회
