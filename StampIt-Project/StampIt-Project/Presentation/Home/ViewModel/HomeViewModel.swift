@@ -68,6 +68,7 @@ final class HomeViewModel: ViewModelProtocol {
             .subscribe(with: self) { owner, action in
                 switch action {
                 case .viewWillAppear:
+                    owner.showPlaceholderOnSendedSection()
                     owner.bindUser()
                 case .didTapGroupOrganizationButton:
                     owner.handleSelectIvitation()
@@ -174,6 +175,11 @@ final class HomeViewModel: ViewModelProtocol {
     }
 
     // MARK: - Methods
+
+    /// fetch 전 placeholder 제공
+    private func showPlaceholderOnSendedSection() {
+        state.sendedMissionsForDisplay.accept([])
+    }
 
     /// [User]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapUsersToHomeItems(_ users: [User]) -> [HomeItem] {
