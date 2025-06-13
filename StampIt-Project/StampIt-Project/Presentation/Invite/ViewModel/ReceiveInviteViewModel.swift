@@ -6,10 +6,10 @@
 //
 
 import Foundation
-
-import Foundation
 import RxSwift
-import RxRelay
+import RxCocoa
+import FirebaseFirestore
+import FirebaseAuth
 
 /// 그룹 초대 코드 입력 화면 viewModel
 final class ReceiveInviteViewModel: ViewModelProtocol {
