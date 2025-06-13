@@ -13,7 +13,7 @@ import UIKit
 final class HomeViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
-    private let useCase: HomeUseCase
+    private let useCase: HomeUseCaseProtocol
 
     // MARK: - Action & State
 
@@ -52,7 +52,7 @@ final class HomeViewModel: ViewModelProtocol {
 
     // MARK: - Init
 
-    init(useCase: HomeUseCase) {
+    init(useCase: HomeUseCaseProtocol) {
         self.useCase = useCase
         bind()
     }

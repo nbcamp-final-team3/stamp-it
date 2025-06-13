@@ -8,8 +8,8 @@
 import Foundation
 import RxSwift
 
-protocol HomeUseCase {
-    func fetchUser() -> Observable<User>
+protocol HomeUseCaseProtocol {
+    func fetchUser() -> Observable<User?>
     func fetchRanking(ofGroup groupID: String) -> Observable<[User]>
     func fetchRecievedMissions(ofUser userID: String) -> Observable<[Mission]>
     func fetchSendedMissions(ofUser userID: String) -> Observable<[Mission]>

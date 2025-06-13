@@ -8,10 +8,8 @@
 import Foundation
 import RxSwift
 
-protocol HomeRepository {
-    func fetchUser() -> Observable<User>
-    func fetchMembers(ofGroup groupID: String) -> Observable<[Member]>
-    func fetchUsers(for userIDs: [String]) -> Observable<[User]>
+protocol HomeRepositoryProtocol {
+    func fetchGroupMembers(ofGroup groupID: String) -> Observable<[User]>
     func fetchRecievedMissions(ofUser userID: String) -> Observable<[Mission]>
     func fetchSendedMissions(ofUser userID: String) -> Observable<[Mission]>
     func updateMissionStatus(for missionID: String, to status: MissionStatus)
