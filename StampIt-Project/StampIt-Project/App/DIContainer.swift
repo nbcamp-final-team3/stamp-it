@@ -26,21 +26,41 @@ final class DIContainer {
         )
     }()
     
+    private lazy var myPageRepository: MyPageRepository = {
+        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+    }()
+    
     // MARK: - Use Cases (Domain Layer)
-        lazy var loginUseCase: LoginUseCaseProtocol = {
-            return LoginUseCase(authRepository: authRepository)
-        }()
-        
-        // MARK: - ViewModels (Domain Layer)
-        func makeLoginViewModel() -> LoginViewModel {
-            return LoginViewModel(loginUseCase: loginUseCase)
-        }
-        
+    lazy var loginUseCase: LoginUseCaseProtocol = {
+        return LoginUseCase(authRepository: authRepository)
+    }()
+    
+    private lazy var myPageUseCase: MyPageUseCase = {
+        return MyPageUseCaseImpl(
+            authRepository: authRepository,
+            mypageRepository: myPageRepository
+        )
+    }()
+    
+    // MARK: - ViewModels (Domain Layer)
+    func makeLoginViewModel() -> LoginViewModel {
+        return LoginViewModel(loginUseCase: loginUseCase)
+    }
+    
+    private func makeMyPageViewModel() -> MyPageViewModel {
+        return MyPageViewModel(myPageUseCase: myPageUseCase)
+    }
+    
     // MARK: - ViewControllers (Presentation Layer)
-        func makeLoginViewController() -> LoginViewController {
-            let viewModel = makeLoginViewModel()
-            return LoginViewController(viewModel: viewModel)
-        }
+    func makeLoginViewController() -> LoginViewController {
+        let viewModel = makeLoginViewModel()
+        return LoginViewController(viewModel: viewModel)
+    }
+    
+    func makeMyPageViewController() -> MyPageViewController {
+        let viewModel = makeMyPageViewModel()
+        return MyPageViewController(viewModel: viewModel)
+    }
     
     // MARK: - Singleton
     static let shared = DIContainer()

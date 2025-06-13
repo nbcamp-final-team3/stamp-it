@@ -61,7 +61,7 @@ final class StampBoardTab: UIView {
         stampBoard.snp.makeConstraints {
             $0.top.equalTo(stampSummary.snp.bottom).offset(34)
             $0.leading.equalToSuperview().inset(36)
-            $0.trailing.equalToSuperview().inset(Stamp.Board.imageSize / 3)
+            $0.trailing.equalToSuperview().inset(StickerType.imageSize / 3)
             $0.bottom.equalToSuperview()
         }
     }

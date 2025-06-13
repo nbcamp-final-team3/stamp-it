@@ -14,17 +14,26 @@ final class MyPageViewController: UIViewController {
     
     // MARK: - Properties
     
-//    private var viewModel = MyPageViewModel(useCase: MyPageUseCase())
-    
-    private var stampBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
-    
+    private var viewModel: MyPageViewModel
     private let disposeBag = DisposeBag()
+    private var stampBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
     
     // MARK: - UI Components
 
     private let tabButton = TabButton()
     private let stampBoardView = StampBoardTab()
     private let profileView = ProfileTab()
+    
+    // MARK: - Initializer, Deinit, requiered
+    
+    init(viewModel: MyPageViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     // MARK: - View Life Cycle
     
@@ -36,25 +45,32 @@ final class MyPageViewController: UIViewController {
         setDelegate()
         setDataSource()
         bind()
-        updateUI(item: MyPageViewModel.stamps)
     }
     
     // MARK: - Bind
     
     private func bind() {
-        // TODO: VM 에서 tabButton 상태관리
+        viewModel.action.accept(.viewDidLoad)
+        
         tabButton.stampTapped
-            .bind { [weak self] in
-                guard let self else { return }
-                tabButton.updateTitleColor(selected: .stampBoard)
-                updateSelectedTab(selected: .stampBoard)
+            .bind(with: self) { owner, _ in
+                owner.viewModel.action.accept(.tabButtonTapped(.stampBoard))
             }.disposed(by: disposeBag)
         
         tabButton.profileTapped
-            .bind { [weak self] in
-                guard let self else { return }
-                tabButton.updateTitleColor(selected: .profile)
-                updateSelectedTab(selected: .profile)
+            .bind(with: self) { owner, _ in
+                owner.viewModel.action.accept(.tabButtonTapped(.profile))
+            }.disposed(by: disposeBag)
+    
+        viewModel.state.tabType
+            .bind(with: self) { owner, tab in
+                owner.tabButton.updateTitleColor(selected: tab)
+                owner.updateSelectedTab(selected: tab)
+            }.disposed(by: disposeBag)
+        
+        viewModel.state.stickers
+            .bind(with: self) { owner, stickers in
+                self.updateUI(with: stickers)
             }.disposed(by: disposeBag)
     }
     
@@ -126,16 +142,15 @@ final class MyPageViewController: UIViewController {
 
     // MARK: - Snapshot
     
-    private func updateUI(item: [Sticker]) {
-        let allStamps = makeAllStamps(item: item)
+    private func updateUI(with item: [Sticker]) {
+        let allStamps = makeAllStamps(with: item)
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.defaultBoard])
         snapshot.appendItems(allStamps, toSection: .defaultBoard)
-//        snapshot.appendItems(item, toSection: .defaultBoard)
         stampBoardDataSource.apply(snapshot, animatingDifferences: true)
     }
     
-    private func makeAllStamps(item: [Sticker]) -> [Sticker] {
+    private func makeAllStamps(with item: [Sticker]) -> [Sticker] {
         let redItems = Array(repeating: StickerType.stampRed, count: item.count)
         let grayItems = Array(repeating: StickerType.stampGray, count: 30 - item.count)
         return (redItems + grayItems).map {

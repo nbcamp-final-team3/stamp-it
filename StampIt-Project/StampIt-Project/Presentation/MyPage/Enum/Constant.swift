@@ -54,7 +54,7 @@ enum MyPage {
     
     enum Stamp {
         static let collected: String = "내가 모은 스탬프"
-        static let completed: String = "완성한 스탬프"
+        static let completed: String = "완성한 스탬프판"
         static let unit: String = "개"
         static let slash: String = "/"
         static let totalStamp: String = "30"
