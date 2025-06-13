@@ -17,22 +17,23 @@ struct AuthUser {
 
 /// 로그인 완료 결과
 struct LoginResult {
-    let user: User              // 도메인 모델
-    let isNewUser: Bool         // 신규 가입 여부
-    let needsGroupSetup: Bool   // 그룹 설정 필요 여부
+    let authUser: AuthUser?              // 신규 사용자용 (Firebase 인증 정보)
+    let user: StampIt_Project.User?      // 기존 사용자용 (완전한 도메인 정보)
+    let isNewUser: Bool                  // 신규 가입 여부
+    let needsGroupSetup: Bool            // 그룹 설정 필요 여부
 }
 
 /// 런치 화면 결과
 struct LaunchResult {
     let isAuthenticated: Bool   // 인증 상태
-    let user: User?            // 사용자 정보 (인증된 경우)
+    let user: StampIt_Project.User?           // 사용자 정보 (인증된 경우)
     let needsOnboarding: Bool  // 온보딩 필요 여부
 }
 
 // MARK: - UseCase 전용 Models
 /// 로그인 플로우 결과
 struct LoginFlowResult {
-    let user: User
+    let user: StampIt_Project.User
     let isNewUser: Bool
     let nextAction: LoginNextAction
 }
@@ -41,13 +42,12 @@ struct LoginFlowResult {
 enum LoginNextAction {
     case navigateToMain          // 메인 화면으로 이동
     case showWelcomeMessage      // 환영 메시지 표시 후 메인
-    case setupGroup             // 그룹 설정 필요
 }
 
 /// 런치 플로우 결과 (화면 분기용)
 struct LaunchFlowResult {
     let nextScreen: LaunchNextScreen
-    let user: User?
+    let user: StampIt_Project.User?
 }
 
 /// 런치 후 이동할 화면
@@ -55,5 +55,4 @@ enum LaunchNextScreen {
     case login                  // 로그인 화면
     case onboarding            // 온보딩 화면
     case main                  // 메인 화면
-    case groupSetup            // 그룹 설정 화면
 }

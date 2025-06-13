@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		783429D62DF965A0007081C3 /* RxTest in Frameworks */ = {isa = PBXBuildFile; productRef = 783429D52DF965A0007081C3 /* RxTest */; };
 		783A874D2DF02CE40095BF4E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 783A874C2DF02CE40095BF4E /* Kingfisher */; };
 		783A87502DF02CEE0095BF4E /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 783A874F2DF02CEE0095BF4E /* Then */; };
 		783A87532DF02CFA0095BF4E /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 783A87522DF02CFA0095BF4E /* SnapKit */; };
@@ -107,6 +108,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				783429D62DF965A0007081C3 /* RxTest in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -199,6 +201,7 @@
 			);
 			name = "StampIt-ProjectTests";
 			packageProductDependencies = (
+				783429D52DF965A0007081C3 /* RxTest */,
 			);
 			productName = "StampIt-ProjectTests";
 			productReference = 783A872D2DF02CA90095BF4E /* StampIt-ProjectTests.xctest */;
@@ -348,11 +351,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_ENTITLEMENTS = "StampIt-Project/StampIt-Project.entitlements";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 373K7546A3;
+				DEVELOPMENT_TEAM = 373K7546A3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";
@@ -385,11 +387,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_ENTITLEMENTS = "StampIt-Project/StampIt-Project.entitlements";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 373K7546A3;
+				DEVELOPMENT_TEAM = 373K7546A3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";
@@ -719,6 +720,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		783429D52DF965A0007081C3 /* RxTest */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A87542DF02D100095BF4E /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxTest;
+		};
 		783A874C2DF02CE40095BF4E /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 783A874B2DF02CE40095BF4E /* XCRemoteSwiftPackageReference "Kingfisher" */;

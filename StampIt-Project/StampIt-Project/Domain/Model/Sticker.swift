@@ -7,10 +7,16 @@
 
 import Foundation
 
-struct Sticker {
+struct Sticker: Hashable {
     let stickerID: String
     let title: String
     let description: String
     let imageURL: String
+    let type: StickerType
     let createdAt: Date
+}
+
+enum StickerType: String, Hashable {
+    case stampGray
+    case stampRed
 }
