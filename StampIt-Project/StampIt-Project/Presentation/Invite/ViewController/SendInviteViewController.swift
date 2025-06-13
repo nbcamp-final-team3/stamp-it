@@ -12,7 +12,7 @@ import SnapKit
 import RxSwift
 import Toast
 
-class SendInviteViewController: UIViewController {
+final class SendInviteViewController: UIViewController {
 
     // MARK: - Properties
     private let viewModel = SendInviteViewModel()

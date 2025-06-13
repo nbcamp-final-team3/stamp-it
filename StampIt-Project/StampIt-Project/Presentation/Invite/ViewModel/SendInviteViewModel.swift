@@ -11,7 +11,7 @@ import RxCocoa
 import UIKit
 import FirebaseFirestore
 
-class SendInviteViewModel: ViewModelProtocol {
+final class SendInviteViewModel: ViewModelProtocol {
 
     // MARK: - Action&State
     enum Action {
