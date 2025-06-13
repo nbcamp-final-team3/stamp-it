@@ -11,7 +11,6 @@ import FirebaseFirestore
 struct UserFirestore: Codable {
     let userId: String
     let nickname: String
-    let email: String
     let profileImage: String?        // nullable
     let groupId: String
     let nicknameChangedAt: Timestamp

@@ -31,8 +31,10 @@ extension StickerFirestore {
             stickerID: self.stickerId,
             title: self.missionTitle,
             description: self.missionTitle, // 현재는 동일
-            imageURL: "", // 별도 로직 필요
+            imageURL: "",
+            type: StickerType(rawValue: self.type) ?? .stampGray,
             createdAt: self.createdAt.dateValue()
         )
+        
     }
 }

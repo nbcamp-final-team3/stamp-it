@@ -14,7 +14,10 @@ import Then
 final class MissionListViewController: UIViewController {
     private let searchBar = UISearchBar().then {
         $0.searchBarStyle = .minimal
-        $0.placeholder = "검색어를 입력해주세요."
+        $0.placeholder = "검색어를 입력해주세요"
+        $0.searchTextField.font = .pretendard(size: 16, weight: .regular)
+        $0.searchTextField.layer.cornerRadius = 18
+        $0.searchTextField.clipsToBounds = true
     }
     
     private let tableView = UITableView().then {
@@ -51,6 +54,8 @@ final class MissionListViewController: UIViewController {
         configureDataSource()
         
         bind()
+        
+        setCollectionViewCell()
         
         // 미션 샘플 데이터 로드
         viewModel.input.accept(.onAppear)
@@ -151,6 +156,12 @@ final class MissionListViewController: UIViewController {
             .disposed(by: disposeBag)
     }
     
+    private func setCollectionViewCell() {
+        // 전체보기 셀의 isSelected = true로 설정
+        let defaultSelection = IndexPath(item: 0, section: 0)
+        collectionView.selectItem(at: defaultSelection, animated: false, scrollPosition: [])
+    }
+    
     // 미션 할당 화면으로 이동
     private func pushAssignMissionViewController(mission: SampleMission) {
         let viewModel = AssignMissionViewModel(mission: mission)
@@ -189,7 +200,7 @@ final class MissionListViewController: UIViewController {
                 return cell
             case .category(let category):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
-                cell.configure(image: category.image, title: category.title, titleColor: .darkGray, backgroundColor: .white)
+                cell.configure(image: category.image, title: category.title, titleColor: .gray400, backgroundColor: .white)
                 return cell
             }
         }

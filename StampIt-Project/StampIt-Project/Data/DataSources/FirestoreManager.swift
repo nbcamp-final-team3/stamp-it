@@ -126,35 +126,32 @@ final class FirestoreManager: FirestoreManagerProtocol {
 extension FirestoreManager {
     
     /// 사용자 정보 일회성 조회 (로그인용)
-        func fetchUserOnce(userId: String) -> Observable<UserFirestore> {
-            return Observable.create { observer in
-                self.usersCollection.document(userId)
-                    .getDocument(source: .server) { documentSnapshot, error in
-                        if let error = error {
-                            observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
-                            return
-                        }
-                        
-                        guard let document = documentSnapshot,
-                              document.exists,
-                              let data = document.data() else {
-                            observer.onError(FirestoreError.documentNotFound)
-                            return
-                        }
-                        
-                        do {
-                            let jsonData = try JSONSerialization.data(withJSONObject: data)
-                            let user = try JSONDecoder().decode(UserFirestore.self, from: jsonData)
-                            observer.onNext(user)
-                            observer.onCompleted()
-                        } catch {
-                            observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
-                        }
+    func fetchUserOnce(userId: String) -> Observable<UserFirestore> {
+        return Observable.create { observer in
+            self.usersCollection.document(userId)
+                .getDocument(source: .server) { documentSnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                        return
                     }
-                
-                return Disposables.create()
-            }
+                    
+                    guard let document = documentSnapshot, document.exists else {
+                        observer.onError(FirestoreError.documentNotFound)
+                        return
+                    }
+                    
+                    do {
+                        let user = try document.data(as: UserFirestore.self)
+                        observer.onNext(user)
+                        observer.onCompleted()
+                    } catch {
+                        observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
+                    }
+                }
+            
+            return Disposables.create()
         }
+    }
     
     /// 사용자 정보 실시간 조회 (스냅샷 리스너)
     func fetchUser(userId: String) -> Observable<UserFirestore> {
@@ -166,17 +163,13 @@ extension FirestoreManager {
                         return
                     }
                     
-                    guard let document = documentSnapshot,
-                          document.exists,
-                          let data = document.data() else {
+                    guard let document = documentSnapshot, document.exists else {
                         observer.onError(FirestoreError.documentNotFound)
                         return
                     }
                     
-                    // Firestore 데이터를 UserFirestore 모델로 변환
                     do {
-                        let jsonData = try JSONSerialization.data(withJSONObject: data)
-                        let user = try JSONDecoder().decode(UserFirestore.self, from: jsonData)
+                        let user = try document.data(as: UserFirestore.self)
                         observer.onNext(user)
                     } catch {
                         observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
@@ -192,14 +185,9 @@ extension FirestoreManager {
     /// 새 사용자 생성
     func createUser(_ user: UserFirestore) -> Observable<Void> {
         return Observable.create { observer in
-            // UserFirestore 모델을 Dictionary로 변환
             do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(user)
-                let dictionary = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-                
-                self.usersCollection.document(user.documentID)
-                    .setData(dictionary) { error in
+                try self.usersCollection.document(user.documentID)
+                    .setData(from: user) { error in
                         if let error = error {
                             observer.onError(FirestoreError.createFailed(error.localizedDescription))
                         } else {
@@ -219,12 +207,8 @@ extension FirestoreManager {
     func updateUser(_ user: UserFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(user)
-                let dictionary = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-                
-                self.usersCollection.document(user.documentID)
-                    .updateData(dictionary) { error in
+                try self.usersCollection.document(user.documentID)
+                    .setData(from: user, merge: true) { error in
                         if let error = error {
                             observer.onError(FirestoreError.updateFailed(error.localizedDescription))
                         } else {
@@ -244,8 +228,6 @@ extension FirestoreManager {
     func deleteUser(userId: String) -> Observable<Void> {
         return Observable.create { observer in
             let userRef = self.usersCollection.document(userId)
-            // 1. 연관 데이터(스티커, 멤버 등) 먼저 삭제
-            // 2. 유저 문서 삭제
             userRef.delete { error in
                 if let error = error {
                     observer.onError(error)
@@ -290,16 +272,13 @@ extension FirestoreManager {
                         return
                     }
                     
-                    guard let document = documentSnapshot,
-                          document.exists,
-                          let data = document.data() else {
+                    guard let document = documentSnapshot, document.exists else {
                         observer.onError(FirestoreError.documentNotFound)
                         return
                     }
                     
                     do {
-                        let jsonData = try JSONSerialization.data(withJSONObject: data)
-                        let group = try JSONDecoder().decode(GroupFirestore.self, from: jsonData)
+                        let group = try document.data(as: GroupFirestore.self)
                         observer.onNext(group)
                     } catch {
                         observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
@@ -316,12 +295,8 @@ extension FirestoreManager {
     func createGroup(_ group: GroupFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(group)
-                let dictionary = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-                
-                self.groupsCollection.document(group.documentID)
-                    .setData(dictionary) { error in
+                try self.groupsCollection.document(group.documentID)
+                    .setData(from: group) { error in
                         if let error = error {
                             observer.onError(FirestoreError.createFailed(error.localizedDescription))
                         } else {
@@ -341,12 +316,8 @@ extension FirestoreManager {
     func updateGroup(_ group: GroupFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(group)
-                let dictionary = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-                
-                self.groupsCollection.document(group.documentID)
-                    .updateData(dictionary) { error in
+                try self.groupsCollection.document(group.documentID)
+                    .setData(from: group, merge: true) { error in
                         if let error = error {
                             observer.onError(FirestoreError.updateFailed(error.localizedDescription))
                         } else {
@@ -366,19 +337,44 @@ extension FirestoreManager {
     func deleteGroup(groupId: String) -> Observable<Void> {
         return Observable.create { observer in
             let groupRef = self.groupsCollection.document(groupId)
-            // 1. 하위 컬렉션(멤버, 미션 등) 먼저 삭제 (반복적으로)
-            // 2. 그룹 문서 삭제
-            groupRef.delete { error in
+            let membersRef = groupRef.collection("members")
+            let missionsRef = groupRef.collection("missions")
+            
+            // 1. 멤버 컬렉션 삭제
+            membersRef.getDocuments { snapshot, error in
                 if let error = error {
                     observer.onError(error)
-                } else {
-                    observer.onNext(())
-                    observer.onCompleted()
+                    return
+                }
+                let batch = Firestore.firestore().batch()
+                snapshot?.documents.forEach { doc in
+                    batch.deleteDocument(doc.reference)
+                }
+                // 2. 미션 컬렉션 삭제
+                missionsRef.getDocuments { snapshot, error in
+                    if let error = error {
+                        observer.onError(error)
+                        return
+                    }
+                    snapshot?.documents.forEach { doc in
+                        batch.deleteDocument(doc.reference)
+                    }
+                    // 3. 그룹 문서 삭제
+                    batch.deleteDocument(groupRef)
+                    batch.commit { error in
+                        if let error = error {
+                            observer.onError(error)
+                        } else {
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
                 }
             }
             return Disposables.create()
         }
     }
+
     
     /// 그룹명 업데이트
     func updateGroupName(groupId: String, name: String, changedAt: Date) -> Observable<Void> {
@@ -417,12 +413,9 @@ extension FirestoreManager {
                         return
                     }
                     
-                    // 각 문서를 MemberFirestore 모델로 변환
                     do {
                         let members = try documents.compactMap { document -> MemberFirestore? in
-                            let data = document.data()
-                            let jsonData = try JSONSerialization.data(withJSONObject: data)
-                            return try JSONDecoder().decode(MemberFirestore.self, from: jsonData)
+                            return try document.data(as: MemberFirestore.self)
                         }
                         observer.onNext(members)
                     } catch {
@@ -440,12 +433,8 @@ extension FirestoreManager {
     func addMember(groupId: String, member: MemberFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(member)
-                let dictionary = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-                
-                self.membersCollection(groupId: groupId).document(member.documentID)
-                    .setData(dictionary) { error in
+                try self.membersCollection(groupId: groupId).document(member.documentID)
+                    .setData(from: member) { error in
                         if let error = error {
                             observer.onError(FirestoreError.createFailed(error.localizedDescription))
                         } else {
@@ -499,9 +488,7 @@ extension FirestoreManager {
                     
                     do {
                         let missions = try documents.compactMap { document -> MissionFirestore? in
-                            let data = document.data()
-                            let jsonData = try JSONSerialization.data(withJSONObject: data)
-                            return try JSONDecoder().decode(MissionFirestore.self, from: jsonData)
+                            return try document.data(as: MissionFirestore.self)
                         }
                         observer.onNext(missions)
                     } catch {
@@ -519,12 +506,8 @@ extension FirestoreManager {
     func createMission(groupId: String, mission: MissionFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(mission)
-                let dictionary = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-                
-                self.missionsCollection(groupId: groupId).document(mission.documentID)
-                    .setData(dictionary) { error in
+                try self.missionsCollection(groupId: groupId).document(mission.documentID)
+                    .setData(from: mission) { error in
                         if let error = error {
                             observer.onError(FirestoreError.createFailed(error.localizedDescription))
                         } else {
@@ -544,12 +527,8 @@ extension FirestoreManager {
     func updateMission(groupId: String, mission: MissionFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(mission)
-                let dictionary = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-                
-                self.missionsCollection(groupId: groupId).document(mission.documentID)
-                    .updateData(dictionary) { error in
+                try self.missionsCollection(groupId: groupId).document(mission.documentID)
+                    .setData(from: mission, merge: true) { error in
                         if let error = error {
                             observer.onError(FirestoreError.updateFailed(error.localizedDescription))
                         } else {
@@ -605,9 +584,7 @@ extension FirestoreManager {
                     
                     do {
                         let stickers = try documents.compactMap { document -> StickerFirestore? in
-                            let data = document.data()
-                            let jsonData = try JSONSerialization.data(withJSONObject: data)
-                            return try JSONDecoder().decode(StickerFirestore.self, from: jsonData)
+                            return try document.data(as: StickerFirestore.self)
                         }
                         observer.onNext(stickers)
                     } catch {
@@ -625,12 +602,8 @@ extension FirestoreManager {
     func addSticker(_ sticker: StickerFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(sticker)
-                let dictionary = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-                
-                self.stickersCollection.document(sticker.documentID)
-                    .setData(dictionary) { error in
+                try self.stickersCollection.document(sticker.documentID)
+                    .setData(from: sticker) { error in
                         if let error = error {
                             observer.onError(FirestoreError.createFailed(error.localizedDescription))
                         } else {
@@ -660,16 +633,13 @@ extension FirestoreManager {
                         return
                     }
                     
-                    guard let document = documentSnapshot,
-                          document.exists,
-                          let data = document.data() else {
+                    guard let document = documentSnapshot, document.exists else {
                         observer.onError(FirestoreError.documentNotFound)
                         return
                     }
                     
                     do {
-                        let jsonData = try JSONSerialization.data(withJSONObject: data)
-                        let invite = try JSONDecoder().decode(InviteFirestore.self, from: jsonData)
+                        let invite = try document.data(as: InviteFirestore.self)
                         observer.onNext(invite)
                         observer.onCompleted()
                     } catch {
@@ -685,12 +655,9 @@ extension FirestoreManager {
     func createInvite(_ invite: InviteFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                let encoder = JSONEncoder()
-                let data = try encoder.encode(invite)
-                let dictionary = try JSONSerialization.jsonObject(with: data) as! [String: Any]
-                
-                self.invitesCollection.document(invite.documentID)
-                    .setData(dictionary) { error in
+                // ✅ Firestore 자동 Codable 인코딩
+                try self.invitesCollection.document(invite.documentID)
+                    .setData(from: invite) { error in
                         if let error = error {
                             observer.onError(FirestoreError.createFailed(error.localizedDescription))
                         } else {
@@ -744,9 +711,7 @@ extension FirestoreManager {
                     
                     do {
                         let appMissions = try documents.compactMap { document -> AppMissionFirestore? in
-                            let data = document.data()
-                            let jsonData = try JSONSerialization.data(withJSONObject: data)
-                            return try JSONDecoder().decode(AppMissionFirestore.self, from: jsonData)
+                            return try document.data(as: AppMissionFirestore.self)
                         }
                         observer.onNext(appMissions)
                         observer.onCompleted()

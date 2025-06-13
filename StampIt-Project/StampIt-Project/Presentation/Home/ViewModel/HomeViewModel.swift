@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import RxRelay
+import UIKit
 
 final class HomeViewModel: ViewModelProtocol {
     // MARK: - Dependency
@@ -173,12 +174,13 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// [User]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapUsersToHomeItems(_ users: [User]) -> [HomeItem] {
-        users.map { user in
+        users.enumerated().map { index, user in
             let stickerCount = getStickerCount(ofUser: user)
-            let member = HomeItem.HomeMember(
+            let member = HomeMember(
                 memberID: user.userID,
                 nickname: user.nickname,
-                stickerCount: stickerCount,
+                stickerCount: "\(stickerCount)개",
+                rank: index + 1,
                 profileImageURL: user.profileImageURL
             )
             return HomeItem.member(member)
@@ -195,7 +197,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapReceivedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
         missions.map { mission in
-            let homeMission = HomeItem.HomeReceivedMission(
+            let homeMission = HomeReceivedMission(
                 missionID: mission.missionID,
                 title: mission.title,
                 category: mission.category,
@@ -212,13 +214,16 @@ final class HomeViewModel: ViewModelProtocol {
     private func mapSendedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
         missions.map { mission in
             let assignee = memberCache[mission.assignedTo]?.nickname ?? ""
-            let homeMission = HomeItem.HomeSendedMission(
+            let homeMission = HomeSendedMission(
                 missionID: mission.missionID,
                 title: mission.title,
                 category: mission.category,
                 dueDate: mission.dueDate.toMonthDayString(),
                 assignee: assignee,
-                status: mission.status.text
+                status: mission.status,
+                // TODO: 계산해서 할당
+                isOverdue: true,
+                daysLeft: "3일 전"
             )
             return HomeItem.sended(homeMission)
         }

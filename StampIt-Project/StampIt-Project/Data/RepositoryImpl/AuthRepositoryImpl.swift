@@ -8,6 +8,7 @@
 import RxSwift
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
 final class AuthRepository: AuthRepositoryProtocol {
     
@@ -23,80 +24,75 @@ final class AuthRepository: AuthRepositoryProtocol {
         self.firestoreManager = firestoreManager
     }
     
-    // MARK: - Google Sign-In
-    /// Google 로그인을 수행하고 도메인 모델로 변환된 LoginResult를 반환
+    // MARK: - Sign-In
+    /// Google 로그인
     func signInWithGoogle() -> Observable<LoginResult> {
-        return authManager.signInWithGoogle()
+        return performSignIn(authMethod: authManager.signInWithGoogle())
+    }
+    
+    /// Apple 로그인
+    func signInWithApple() -> Observable<LoginResult> {
+        return performSignIn(authMethod: authManager.signInWithApple())
+    }
+    
+    // MARK: - Sign-In Helper Methods (Private)
+    /// 공통 로그인 로직 처리
+    private func performSignIn(authMethod: Observable<AuthDataResult>) -> Observable<LoginResult> {
+        return authMethod
             .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
                 guard let self = self else {
                     return Observable.error(RepositoryError.unknownError)
                 }
-                let firebaseUser = authDataResult.user
-                let authUser = AuthUser(
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email ?? "",
-                    displayName: firebaseUser.displayName ?? "",
-                    photoURL: firebaseUser.photoURL?.absoluteString,
-                    isNewUser: authDataResult.additionalUserInfo?.isNewUser ?? false
-                )
-                // 도메인 모델로 변환
-                let user = StampIt_Project.User(
-                    userID: authUser.uid,
-                    nickname: authUser.displayName,
-                    profileImageURL: authUser.photoURL,
-                    boards: [],
-                    groupID: "",
-                    groupName: "",
-                    isLeader: false,
-                    joinedGroupAt: Date()
-                )
-                return Observable.just(LoginResult(
-                    user: user,
-                    isNewUser: authUser.isNewUser,
-                    needsGroupSetup: authUser.isNewUser
-                ))
+                return self.processAuthResult(authDataResult)
             }
-            .catch { error in
+            .catch { [weak self] error in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
                 let repositoryError = self.mapToRepositoryError(error)
                 return Observable.error(repositoryError)
             }
     }
     
-    // MARK: - Apple Sign-In (준비)
-    /// Apple 로그인을 수행하고 도메인 모델로 변환된 LoginResult를 반환 (준비 단계)
-    func signInWithApple() -> Observable<LoginResult> {
-        return authManager.signInWithApple()
-            .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
-                guard let self = self else {
-                    return Observable.error(RepositoryError.unknownError)
+    /// AuthDataResult를 LoginResult로 변환
+    private func processAuthResult(_ authDataResult: AuthDataResult) -> Observable<LoginResult> {
+        let firebaseUser = authDataResult.user
+        let authUser = createAuthUser(
+            from: firebaseUser,
+            isNewUser: authDataResult.additionalUserInfo?.isNewUser ?? false
+        )
+        
+        if authUser.isNewUser {
+            // 신규 사용자: AuthUser 정보만 반환 (나머진 UseCase에서 완전한 User 생성)
+            return Observable.just(LoginResult(
+                authUser: authUser,
+                user: nil,
+                isNewUser: true,
+                needsGroupSetup: true
+            ))
+        } else {
+            // 기존 사용자: Firestore에서 완전한 정보 조회
+            return fetchUserWithGroupInfo(userId: authUser.uid)
+                .map { completeUser in
+                    return LoginResult(
+                        authUser: nil,
+                        user: completeUser,
+                        isNewUser: false,
+                        needsGroupSetup: false
+                    )
                 }
-                let firebaseUser = authDataResult.user
-                let authUser = AuthUser(
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email ?? "",
-                    displayName: firebaseUser.displayName ?? "사용자",
-                    photoURL: nil,
-                    isNewUser: authDataResult.additionalUserInfo?.isNewUser ?? false
-                )
-                let user = StampIt_Project.User(
-                    userID: authUser.uid,
-                    nickname: authUser.displayName,
-                    profileImageURL: authUser.photoURL,
-                    boards: [],
-                    groupID: "", groupName: "",
-                    isLeader: false,
-                    joinedGroupAt: Date()
-                )
-                return Observable.just(LoginResult(
-                    user: user,
-                    isNewUser: authUser.isNewUser,
-                    needsGroupSetup: authUser.isNewUser
-                ))
-            }
-            .catch { error in
-                let repositoryError = self.mapToRepositoryError(error)
-                return Observable.error(repositoryError)
-            }
+        }
+    }
+    
+    /// Firebase User를 AuthUser로 변환
+    private func createAuthUser(from firebaseUser: FirebaseAuth.User, isNewUser: Bool) -> AuthUser {
+        return AuthUser(
+            uid: firebaseUser.uid,
+            email: firebaseUser.email ?? "",
+            displayName: firebaseUser.displayName ?? "사용자",
+            photoURL: firebaseUser.photoURL?.absoluteString,
+            isNewUser: isNewUser
+        )
     }
     
     // MARK: - 사용자+그룹 정보 통합 조회
@@ -220,66 +216,78 @@ final class AuthRepository: AuthRepositoryProtocol {
         member: MemberFirestore
     ) -> Observable<StampIt_Project.User> {
         return Observable.create { [weak self] observer in
-            guard let self = self else {
+            guard let _ = self else {
                 observer.onError(RepositoryError.unknownError)
                 return Disposables.create()
             }
             
             let batch = Firestore.firestore().batch()
             
-            do {
-                // 유저
-                let userDict = try JSONSerialization.jsonObject(
-                    with: JSONEncoder().encode(user)
-                ) as! [String: Any]
-                let userRef = Firestore.firestore().collection("users").document(user.documentID)
-                batch.setData(userDict, forDocument: userRef)
-                
-                // 그룹
-                let groupDict = try JSONSerialization.jsonObject(
-                    with: JSONEncoder().encode(group)
-                ) as! [String: Any]
-                let groupRef = Firestore.firestore().collection("groups").document(group.documentID)
-                batch.setData(groupDict, forDocument: groupRef)
-                
-                // 멤버
-                let memberDict = try JSONSerialization.jsonObject(
-                    with: JSONEncoder().encode(member)
-                ) as! [String: Any]
-                let memberRef = Firestore.firestore()
-                    .collection("groups")
-                    .document(group.groupId)
-                    .collection("members")
-                    .document(member.documentID)
-                batch.setData(memberDict, forDocument: memberRef)
-                
-                // 커밋
-                batch.commit { error in
-                    if let error = error {
-                        observer.onError(RepositoryError.dataError("신규 사용자 생성 실패: \(error.localizedDescription)"))
-                    } else {
-                        let completeUser = user.toDomainModel(
-                            groupName: group.name,
-                            isLeader: true
-                        )
-                        observer.onNext(completeUser)
-                        observer.onCompleted()
-                    }
+            // 1. 유저
+            let userDict: [String: Any] = [
+                "userId": user.userId,
+                "nickname": user.nickname,
+                "profileImage": user.profileImage as Any,
+                "groupId": user.groupId,
+                "nicknameChangedAt": user.nicknameChangedAt,
+                "createdAt": user.createdAt
+            ]
+            let userRef = Firestore.firestore().collection("users").document(user.documentID)
+            batch.setData(userDict, forDocument: userRef)
+
+            // 2. 그룹
+            let groupDict: [String: Any] = [
+                "groupId": group.groupId,
+                "name": group.name,
+                "leaderId": group.leaderId,
+                "inviteCode": group.inviteCode,
+                "nameChangedAt": group.nameChangedAt,
+                "createdAt": group.createdAt
+            ]
+            let groupRef = Firestore.firestore().collection("groups").document(group.documentID)
+            batch.setData(groupDict, forDocument: groupRef)
+
+            // 3. 멤버
+            let memberDict: [String: Any] = [
+                "userId": member.userId,
+                "nickname": member.nickname,
+                "joinedAt": member.joinedAt,
+                "isLeader": member.isLeader
+            ]
+            let memberRef = Firestore.firestore()
+                .collection("groups")
+                .document(group.groupId)
+                .collection("members")
+                .document(member.documentID)
+            batch.setData(memberDict, forDocument: memberRef)
+            
+            // 커밋
+            batch.commit { error in
+                if let error = error {
+                    observer.onError(RepositoryError.dataError("신규 사용자 생성 실패: \(error.localizedDescription)"))
+                } else {
+                    let completeUser = user.toDomainModel(
+                        groupName: group.name,
+                        isLeader: true
+                    )
+                    observer.onNext(completeUser)
+                    observer.onCompleted()
                 }
-            } catch {
-                observer.onError(RepositoryError.dataError("데이터 인코딩 실패: \(error.localizedDescription)"))
             }
             return Disposables.create()
         }
     }
+
     
     // MARK: - Private Methods
     /// 다양한 에러 타입을 RepositoryError로 매핑
     private func mapToRepositoryError(_ error: Error) -> RepositoryError {
         if let authError = error as? AuthError {
             switch authError {
-            case .googleSignInFailed(let message), .firebaseSignInFailed(let message):
-                return .authenticationFailed(message)
+            case .googleSignInFailed:
+                return .authenticationFailed("Google 로그인에 실패했습니다")
+            case .firebaseSignInFailed:
+                return .authenticationFailed("Firebase 로그인에 실패했습니다")
             case .userNotFound:
                 return .userNotFound
             case .presentingViewControllerNotFound:

@@ -30,9 +30,13 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
     var disposeBag = DisposeBag()
     
     private let mission: SampleMission
+    private let missionUseCaseImpl: MissionUseCase
+    // private var groupID: String?
+    private var user: User?
     
-    init(mission: SampleMission) {
+    init(mission: SampleMission, missionUseCaseImpl: MissionUseCase = MissionUseCaseImpl()) {
         self.mission = mission
+        self.missionUseCaseImpl = missionUseCaseImpl
         
         bind()
     }
@@ -49,8 +53,8 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
                 switch input {
                 case .onAppear:
                     output.mission.accept(mission)
-                    output.members.accept(loadMembers())
-                    print("mission: \(String(describing: output.mission.value?.title)), members: \(output.members.value.count)")
+                    loadMembers()
+                    print("mission: \(String(describing: output.mission.value?.title)), members count: \(output.members.value.count)")
                 case .didSelectMember(let member):
                     output.selectedMember.accept(member)
                     print("selected member: \(member)")
@@ -59,19 +63,64 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
                     print("due date: \(date)")
                 case .didTapAssignButton:
                     print("did tap assign button")
+                    createMission()
+                        .subscribe {
+                            print("mission created.")
+                        } onError: { error in
+                            print(error)
+                        }
+                        .disposed(by: disposeBag)
                 }
             }
             .disposed(by: disposeBag)
     }
     
-    // 더미 데이터 주입: 나중에 실제 데이터 로드로 구현 변경 필요!!!!!!!!!!!!!!!!!!!!!!!!
-    private func loadMembers() -> [Member] {
-        let dummyMembers: [Member] = [
-            Member(userID: "12345", nickname: "유진", joinedAt: Date(), isLeader: true),
-            Member(userID: "67890", nickname: "엄마", joinedAt: Date(), isLeader: false),
-            Member(userID: "112233", nickname: "파덜", joinedAt: Date(), isLeader: false),
-        ]
+    // 우선 유저 정보를 요청하여 받고 -> 받은 유저 정보을 이용해서 멤버 정보를 받음
+    private func loadMembers() {
+        missionUseCaseImpl.getCurrentUser()
+            .subscribe { [weak self] user in
+                guard let self else { return }
+                
+                self.user = user
+                fetchMembers() // 유저 정보를 받으면 멤버 정보 요청
+            } onError: { error in
+                print(error)
+            }
+            .disposed(by: disposeBag)
+    }
+    
+    // 멤버 정보 패치
+    private func fetchMembers() {
+        guard let user else { return }
         
-        return dummyMembers
+        missionUseCaseImpl.fetchMembers(ofGroup: user.groupID)
+            .subscribe { [weak self] members in
+                self?.output.members.accept(members)
+            } onError: { error in
+                print(error)
+            }
+            .disposed(by: disposeBag)
+    }
+    
+    // 미션 정보 저장
+    private func createMission() -> Observable<Void> {
+        let nickname = output.selectedMember.value.map { $0.nickname }
+        let dueDate = output.dueDate.value
+        guard let nickname, let user else {
+            return Observable.error(NSError(domain: "user data or member data is nil.", code: 0, userInfo: nil))
+        }
+        
+        let mission = Mission(
+            missionID: mission.missionId,
+            title: mission.title,
+            assignedTo: nickname,
+            assignedBy: user.nickname,
+            createDate: Date(),
+            dueDate: dueDate,
+            status: MissionStatus.assigned,
+            imageURL: "",
+            category: mission.category)
+        
+        return missionUseCaseImpl.createMission(groupId: user.groupID, mission: mission)
     }
 }
