@@ -15,12 +15,12 @@ final class LoginUseCase: LoginUseCaseProtocol {
     
     // MARK: - Properties
     private let authRepository: AuthRepositoryProtocol
-    private let randomNicknameProvider: (String) -> String  // ✅ 수정: userID 파라미터 추가
+    private let randomNicknameProvider: (String) -> String
     private let disposeBag = DisposeBag()
     
     // MARK: - Init
     init(authRepository: AuthRepositoryProtocol,
-         randomNicknameProvider: @escaping (String) -> String = LoginUseCase.generateSecureUniqueNickname) {  // ✅ 수정
+         randomNicknameProvider: @escaping (String) -> String = LoginUseCase.generateSecureUniqueNickname) {
         self.authRepository = authRepository
         self.randomNicknameProvider = randomNicknameProvider
     }
@@ -141,7 +141,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
             let memberFirestore = MemberFirestore(
                 userId: loginResult.user.userID,
                 nickname: randomNickname,
-                joinedAt: Timestamp(date: now),  // ✅ Timestamp 변환
+                joinedAt: Timestamp(date: now),
                 isLeader: true
             )
             

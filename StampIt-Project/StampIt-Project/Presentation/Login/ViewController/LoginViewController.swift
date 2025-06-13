@@ -379,26 +379,3 @@ final class LoginViewController: UIViewController {
         present(alert, animated: true)
     }
 }
-
-// MARK: - ASAuthorizationControllerDelegate
-// TODO: 애플로그인 작업에서 추가 구현 예정, 프레임만 구성함
-extension LoginViewController: ASAuthorizationControllerDelegate {
-    
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        // Apple 로그인 성공 처리는 ViewModel에서 담당
-        // 여기서는 UI 관련 처리만
-    }
-    
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        // Apple 로그인 실패 처리는 ViewModel에서 담당
-        // 여기서는 UI 관련 처리만
-    }
-}
-
-// MARK: - ASAuthorizationControllerPresentationContextProviding
-extension LoginViewController: ASAuthorizationControllerPresentationContextProviding {
-    
-    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        return view.window!
-    }
-}
