@@ -30,6 +30,7 @@ final class ReceiveInviteViewController: UIViewController {
         $0.textAlignment = .center
         $0.font = .pretendard(size: 14, weight: .medium)
         $0.textColor = .gray800
+        $0.numberOfLines = 1
     }
 
     private let floatingLabel = UILabel().then {
@@ -59,6 +60,7 @@ final class ReceiveInviteViewController: UIViewController {
         $0.backgroundColor = .gray50
         $0.layer.cornerRadius = 12
         $0.layer.masksToBounds = true
+        $0.layer.borderWidth = 0
     }
 
     private let enterButton = DefaultButton(type: .enter)
@@ -102,7 +104,8 @@ final class ReceiveInviteViewController: UIViewController {
         }
 
         stackView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(12)
+            $0.centerY.equalToSuperview()
+            $0.leading.trailing.equalToSuperview().inset(12)
         }
 
         enterButton.snp.makeConstraints {
@@ -139,13 +142,12 @@ extension ReceiveInviteViewController: UITextFieldDelegate {
     func textFieldDidBeginEditing(_ textField: UITextField) {
         UIView.animate(withDuration: 0.2) {
             self.stackView.axis = .vertical
+            self.stackView.spacing = 5
             self.stackView.alignment = .leading
             self.floatingLabel.font = .pretendard(size: 12, weight: .medium)
-            self.floatingLabel.textColor = .gray300
             self.textFieldContainer.layer.borderColor = UIColor.gray800.cgColor
             self.textFieldContainer.backgroundColor = .clear
             self.textFieldContainer.layer.borderWidth = 1.5
-            self.view.layoutIfNeeded()
         }
     }
 
@@ -154,14 +156,11 @@ extension ReceiveInviteViewController: UITextFieldDelegate {
         if textField.text?.isEmpty ?? true {
             UIView.animate(withDuration: 0.2) {
                 self.stackView.axis = .horizontal
+                self.stackView.spacing = 8
                 self.stackView.alignment = .center
-                self.stackView.spacing = 20
                 self.floatingLabel.font = .pretendard(size: 16, weight: .medium)
-                self.floatingLabel.textColor = .gray300
-                self.textFieldContainer.layer.borderColor = .none
-                self.textFieldContainer.backgroundColor = .gray50
                 self.textFieldContainer.layer.borderWidth = 0
-                self.view.layoutIfNeeded()
+                self.textFieldContainer.backgroundColor = .gray50
             }
         }
     }
