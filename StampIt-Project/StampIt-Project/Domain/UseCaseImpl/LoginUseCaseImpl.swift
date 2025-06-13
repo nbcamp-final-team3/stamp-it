@@ -88,12 +88,18 @@ final class LoginUseCase: LoginUseCaseProtocol {
     /// 로그인 결과 공통 처리 로직 (중복 제거)
     private func processLoginResult(_ loginResult: LoginResult) -> Observable<LoginFlowResult> {
         if loginResult.isNewUser {
-            // 신규 사용자: 자동 그룹 생성
-            return createNewUserWithAutoGroup(from: loginResult)
+            // 신규 사용자: AuthUser에서 userID 추출
+            guard let authUser = loginResult.authUser else {
+                return Observable.error(UseCaseError.processingFailed("신규 사용자 정보가 없습니다"))
+            }
+            return createNewUserWithAutoGroup(authUser: authUser)
         } else {
-            // 기존 사용자: 바로 메인으로
+            // 기존 사용자: User에서 정보 추출
+            guard let user = loginResult.user else {
+                return Observable.error(UseCaseError.processingFailed("기존 사용자 정보가 없습니다"))
+            }
             return Observable.just(LoginFlowResult(
-                user: loginResult.user,
+                user: user,
                 isNewUser: false,
                 nextAction: .navigateToMain
             ))
@@ -101,29 +107,29 @@ final class LoginUseCase: LoginUseCaseProtocol {
     }
     
     /// 신규 사용자 자동 그룹 생성 플로우
-    private func createNewUserWithAutoGroup(from loginResult: LoginResult) -> Observable<LoginFlowResult> {
+    private func createNewUserWithAutoGroup(authUser: AuthUser) -> Observable<LoginFlowResult> {
         return Observable.create { [weak self] observer in
             guard let self = self else {
                 observer.onError(UseCaseError.unknownError)
                 return Disposables.create()
             }
             
-            let randomNickname = self.randomNicknameProvider(loginResult.user.userID)
+            let randomNickname = self.randomNicknameProvider(authUser.uid)
             let groupId = UUID().uuidString
             let now = Date()
             let inviteCode = self.generateInviteCode()
             
             // TODO: 디버깅용 로그, 삭제 예정
             print("🆕 신규 사용자 그룹 생성 시작")
-            print("   - 사용자 ID: \(loginResult.user.userID)")
+            print("   - 사용자 ID: \(authUser.uid)")
             print("   - 닉네임: \(randomNickname)")
             print("   - 그룹 ID: \(groupId)")
             print("   - 초대코드: \(inviteCode)")
             
             let userFirestore = UserFirestore(
-                userId: loginResult.user.userID,
+                userId: authUser.uid,
                 nickname: randomNickname,
-                profileImage: loginResult.user.profileImageURL,
+                profileImage: authUser.photoURL,
                 groupId: groupId,
                 nicknameChangedAt: Timestamp(date: now),
                 createdAt: Timestamp(date: now)
@@ -132,14 +138,14 @@ final class LoginUseCase: LoginUseCaseProtocol {
             let groupFirestore = GroupFirestore(
                 groupId: groupId,
                 name: "\(randomNickname)의 그룹",
-                leaderId: loginResult.user.userID,
+                leaderId: authUser.uid,
                 inviteCode: inviteCode,
                 nameChangedAt: Timestamp(date: now),
                 createdAt: Timestamp(date: now) 
             )
             
             let memberFirestore = MemberFirestore(
-                userId: loginResult.user.userID,
+                userId: authUser.uid,
                 nickname: randomNickname,
                 joinedAt: Timestamp(date: now),
                 isLeader: true
