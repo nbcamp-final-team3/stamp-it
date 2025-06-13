@@ -32,7 +32,7 @@ final class HomeViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func loadView() {
         view = homeView
     }
@@ -42,9 +42,18 @@ final class HomeViewController: UIViewController {
         bind()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        viewModel.action.accept(.viewWillAppear)
+    }
+
     // MARK: - Bind
 
     private func bind() {
+        bindGroupOrganizationView()
+        bindDashboardView()
+    }
+
+    private func bindGroupOrganizationView() {
         homeView.didTapGroupOrganizationButton
             .map { HomeViewModel.Action.didTapGroupOrganizationButton }
             .bind(to: viewModel.action)
@@ -54,6 +63,29 @@ final class HomeViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, _ in
                 owner.showSelectInvitationVC()
+            }
+            .disposed(by: disposeBag)
+    }
+
+    private func bindDashboardView() {
+        viewModel.state.rankedMembers
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.homeView.updateSnapshot(withItems: items, toSection: .ranking)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.receivedMissions
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.homeView.updateSnapshot(withItems: items, toSection: .receivedMission)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.sendedMissionsForDisplay
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.homeView.updateSnapshot(withItems: items, toSection: .sendedMission)
             }
             .disposed(by: disposeBag)
     }

@@ -73,4 +73,8 @@ final class HomeView: UIView {
             .bind(to: didTapGroupOrganizationButton)
             .disposed(by: disposeBag)
     }
+
+    func updateSnapshot(withItems items: [HomeItem], toSection section: HomeSection) {
+        groupDashboardView.updateSnapshot(withItems: items, toSection: section)
+    }
 }

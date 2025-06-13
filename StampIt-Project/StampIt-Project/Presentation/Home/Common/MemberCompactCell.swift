@@ -143,7 +143,7 @@ final class MemberCompactCell: UICollectionViewCell {
         // TODO: member에 저장된 이미지로 변경하기
         profileImageView.image = .mascotRed
         nameLabel.text = member.nickname
-        stickerCountLabel.text = "\(member.stickerCount)개"
+        stickerCountLabel.text = member.stickerCount
         handleRank(rank: member.rank)
     }
 

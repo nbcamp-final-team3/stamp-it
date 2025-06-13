@@ -153,22 +153,16 @@ final class GroupDashboardView: UIView {
         guard let dataSource else { return }
         var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
         snapshot.appendSections(HomeSection.allCases)
-        // TODO: 레이아웃 확인용
-        snapshot.appendItems(HomeItem.homeMembers, toSection: .ranking)
-        snapshot.appendItems(HomeItem.receivedMissions, toSection: .receivedMission)
-        snapshot.appendItems(HomeItem.sendedMissions, toSection: .sendedMission)
-//        snapshot.appendItems([.placeholder(.receivedMission)], toSection: .receivedMission)
-//        snapshot.appendItems([.placeholder(.sendedMission)], toSection: .sendedMission)
         dataSource.apply(snapshot)
     }
 
-    func updateSnapshot(with items: [HomeItem], toSection section: HomeSection) {
+    func updateSnapshot(withItems items: [HomeItem], toSection section: HomeSection) {
         guard var snapshot = dataSource?.snapshot() else { return }
         let itemForDelete = snapshot.itemIdentifiers(inSection: section)
         snapshot.deleteItems(itemForDelete)
 
         if items.isEmpty {
-            snapshot.appendItems([.placeholder(section)])
+            snapshot.appendItems([.placeholder(section)], toSection: section)
         } else {
             snapshot.appendItems(items, toSection: section)
         }

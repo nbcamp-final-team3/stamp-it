@@ -18,7 +18,6 @@ final class HomeViewModel: ViewModelProtocol {
     // MARK: - Action & State
 
     enum Action {
-        case viewDidLoad
         case viewWillAppear
         case didTapGroupOrganizationButton
         case didReceiveInvitationType(InvitationType)
@@ -55,6 +54,11 @@ final class HomeViewModel: ViewModelProtocol {
     init(useCase: HomeUseCaseProtocol) {
         self.useCase = useCase
         bind()
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+//            self?.state.rankedMembers.accept(HomeItem.homeMembers)
+//            self?.state.receivedMissions.accept(HomeItem.receivedMissions)
+//            self?.state.sendedMissionsForDisplay.accept(HomeItem.sendedMissions)
+//        }
     }
 
     // MARK: - Bind
@@ -63,12 +67,8 @@ final class HomeViewModel: ViewModelProtocol {
         action
             .subscribe(with: self) { owner, action in
                 switch action {
-                case .viewDidLoad:
-                    owner.bindUser()
                 case .viewWillAppear:
-                    owner.bindRankedMembers()
-                    owner.bindReceivedMissions()
-                    owner.bindSendedMissions()
+                    owner.bindUser()
                 case .didTapGroupOrganizationButton:
                     owner.handleSelectIvitation()
                 case .didReceiveInvitationType(let type):
@@ -89,6 +89,12 @@ final class HomeViewModel: ViewModelProtocol {
     /// user 정보 바인딩
     private func bindUser() {
         useCase.fetchUser()
+            .do(onNext: { [weak self] user in
+                guard let self, let user else { return }
+                bindRankedMembers(ofGroupID: user.groupID)
+//                bindReceivedMissions()
+//                bindSendedMissions()
+            })
             .bind(to: state.user)
             .disposed(by: disposeBag)
     }
@@ -97,9 +103,8 @@ final class HomeViewModel: ViewModelProtocol {
     ///
     /// HomeItem으로 매핑하기 전에 멤버 정보 캐싱하고,
     /// 멤버가 1명(유저 혼자)이면 그룹 구성하기 뷰로 전환
-    private func bindRankedMembers() {
-        guard let user = state.user.value else { return }
-        useCase.fetchRanking(ofGroup: user.groupID)
+    private func bindRankedMembers(ofGroupID id: String) {
+        useCase.fetchRanking(ofGroup: id)
             .do(onNext: { [weak self] users in
                 self?.memberCache = .init(uniqueKeysWithValues: users.map { ($0.userID, $0) })
             })
@@ -113,18 +118,16 @@ final class HomeViewModel: ViewModelProtocol {
     }
 
     /// 유저가 그룹 구성원으로부터 받은 미션 바인딩
-    private func bindReceivedMissions() {
-        guard let user = state.user.value else { return }
-        useCase.fetchRecievedMissions(ofUser: user.userID)
+    private func bindReceivedMissions(ofUserID id: String) {
+        useCase.fetchRecievedMissions(ofUser: id)
             .map { self.mapReceivedMissionsToHomeItems($0) }
             .bind(to: state.receivedMissions)
             .disposed(by: disposeBag)
     }
 
     /// 유저가 다른 그룹 구성원에게 보낸 미션 바인딩
-    private func bindSendedMissions() {
-        guard let user = state.user.value else { return }
-        useCase.fetchSendedMissions(ofUser: user.userID)
+    private func bindSendedMissions(ofUserID id: String) {
+        useCase.fetchSendedMissions(ofUser: id)
             .do(onNext: { [weak self] sendedMissions in
                 self?.sendedMissions = sendedMissions
             })
