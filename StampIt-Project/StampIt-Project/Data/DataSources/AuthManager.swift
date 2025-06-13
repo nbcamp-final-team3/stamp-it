@@ -63,7 +63,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
             }
             
             GIDSignIn.sharedInstance.signIn(withPresenting: presentingViewController) { result, error in
-                if let error = error {
+                if error != nil {
                     observer.onError(AuthError.googleSignInFailed)
                     return
                 }
@@ -80,7 +80,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
                 )
                 
                 Auth.auth().signIn(with: credential) { authResult, error in
-                    if let error = error {
+                    if error != nil {
                         observer.onError(AuthError.firebaseSignInFailed)
                     } else if let authResult = authResult {
                         observer.onNext(authResult)
@@ -162,7 +162,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
             }
             
             user.delete { error in
-                if let error = error {
+                if error != nil {
                     observer.onError(AuthError.accountDeletionFailed)
                 } else {
                     observer.onNext(())
