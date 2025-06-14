@@ -12,56 +12,71 @@ import SnapKit
 import Then
 
 final class AssignMissionViewController: UIViewController {
+    private let missionTitleLabel = UILabel().then {
+        $0.font = .pretendard(size: 18, weight: .bold)
+    }
+    
     private let memberLabel = UILabel().then {
-        $0.text = "미션을 수행할 구성원"
+        $0.text = "미션을 수행할 멤버"
+        $0.font = .pretendard(size: 16, weight: .regular)
+        $0.textColor = .gray800
     }
     
-    // 멤버 선택 메뉴 버튼
-    private lazy var memberMenuButton = UIButton().then {
-        var configuration = UIButton.Configuration.filled()
-        configuration.baseBackgroundColor = .systemGray6
-        configuration.baseForegroundColor = .label
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
-        configuration.cornerStyle = .medium
-        configuration.title = "구성원 선택하기"
-        
-        $0.configuration = configuration
-        $0.showsMenuAsPrimaryAction = true
-        $0.menu = createMenu()
+    // 멤버 선택 버튼
+    private lazy var memberSelectionButton = UIButton().then {
+        $0.configuration = configureButton(title: "구성원 선택하기")
+        $0.addTarget(self, action: #selector(dropdown), for: .touchUpInside)
     }
     
-    // memberLabel + memberMenuButton
+    // 멤버 선택 버튼을 누르면 드랍다운으로 멤버 리스트를 보여줌.
+    private let dropdownView = UIStackView().then {
+        $0.axis = .vertical
+        $0.distribution = .fillEqually
+        $0.spacing = 1
+        $0.isHidden = true
+        $0.layer.cornerRadius = 8
+        $0.clipsToBounds = true
+        $0.layer.borderWidth = 1
+        $0.layer.borderColor = UIColor.gray50.cgColor
+        $0.backgroundColor = .gray25
+    }
+    
+    // memberLabel + memberSelectionButton
     private let memberStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.alignment = .center
-        $0.distribution = .equalCentering
+        $0.distribution = .equalSpacing
     }
     
     private let dueDateLabel = UILabel().then {
         $0.text = "미션 기한"
+        $0.font = .pretendard(size: 16, weight: .regular)
+        $0.textColor = .gray800
     }
     
     // 날짜 선택 피커
     private let dueDatePicker = UIDatePicker().then {
         $0.preferredDatePickerStyle = .compact
         $0.datePickerMode = .date
-        $0.tintColor = .systemRed
+        $0.tintColor = .red400
     }
     
     // dueDateLabel + dueDatePicker
     private let dueDateStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.alignment = .center
-        $0.distribution = .equalCentering
+        $0.distribution = .equalSpacing
     }
     
-    // 전달하기 버튼(화면 맨 아래)
+    // 미션 전달하기 버튼(화면 맨 아래)
     private let assignButton = DefaultButton(type: .send).then {
         $0.isEnabled = false
     }
     
     private let viewModel: AssignMissionViewModel
     private let disposeBag = DisposeBag()
+    
+    private var isDropdown = false // 멤버 선택 버튼이 눌려서 멤버 리스트가 펼쳐있는 상태인지 여부
     
     init(viewModel: AssignMissionViewModel) {
         self.viewModel = viewModel
@@ -93,11 +108,12 @@ final class AssignMissionViewController: UIViewController {
     private func prepareSubviews() {
         view.backgroundColor = .white
         
-        [memberStackView, dueDateStackView, assignButton].forEach {
+        // dropdownView는 보여질 때 일부 화면이 가려지므로(예: dueDateStackView) 마지막에 서브 뷰로 추가
+        [missionTitleLabel, memberStackView, dueDateStackView, assignButton, dropdownView].forEach {
             view.addSubview($0)
         }
         
-        [memberLabel, memberMenuButton].forEach {
+        [memberLabel, memberSelectionButton].forEach {
             memberStackView.addArrangedSubview($0)
         }
         
@@ -107,8 +123,13 @@ final class AssignMissionViewController: UIViewController {
     }
     
     private func setConstraints() {
+        missionTitleLabel.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(16)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+        }
+        
         memberStackView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
+            $0.top.equalTo(missionTitleLabel.snp.bottom).offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
@@ -121,29 +142,44 @@ final class AssignMissionViewController: UIViewController {
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-16)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
+        
+        memberSelectionButton.snp.makeConstraints {
+            $0.width.equalTo(140)
+        }
+        
+        dueDatePicker.snp.makeConstraints {
+            $0.width.equalTo(140)
+        }
+        
+        dropdownView.snp.makeConstraints {
+            $0.top.equalTo(memberSelectionButton.snp.bottom).offset(4)
+            $0.horizontalEdges.equalTo(memberSelectionButton.snp.horizontalEdges)
+        }
     }
     
     private func setNavigationBar() {
+        navigationItem.title = "미션 전달하기"
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.tintColor = .black
     }
     
     private func bind() {
-        // 내비게이션 타이틀 설정
+        // 미션 제목 뷰에 반영
         viewModel.output.mission
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] mission in
                 guard let self, let mission else { return }
-                navigationItem.title = mission.title
+                missionTitleLabel.text = mission.title
             }
             .disposed(by: disposeBag)
         
-        // "미션을 수행할 구성원" 메뉴 버튼에 멤버 전체 데이터 반영
+        // 멤버 선택 버튼의 멤버 리스트(드랍 다운 형태)에 데이터 반영
         viewModel.output.members
             .asDriver(onErrorDriveWith: .empty())
-            .drive { [weak self] member in
+            .drive { [weak self] members in
                 guard let self else { return }
-                memberMenuButton.menu = createMenu()
+                
+                setupDropdownView(members: members)
             }
             .disposed(by: disposeBag)
         
@@ -152,8 +188,11 @@ final class AssignMissionViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] member in
                 guard let self, let member else { return }
-                memberMenuButton.setTitle("\(member.nickname)", for: .normal) // 버튼에 선택한 멤버 이름 표시
-                assignButton.isEnabled = true // 전달하기 버튼 활성화
+                
+                memberSelectionButton.configuration = configureButton(title: member.nickname) // 버튼에 선택한 멤버 이름 표시
+                assignButton.isEnabled = true // 미션 전달하기 버튼 활성화
+                dropdownView.isHidden = true
+                isDropdown = false
             }
             .disposed(by: disposeBag)
         
@@ -161,8 +200,8 @@ final class AssignMissionViewController: UIViewController {
         dueDatePicker.rx.date
             .asDriver(onErrorDriveWith: .empty())
             .distinctUntilChanged()
-            .drive { date in
-                print("due date: \(date)")
+            .drive { [weak self] date in
+                self?.viewModel.input.accept(.didSelectDueDate(date))
             }
             .disposed(by: disposeBag)
         
@@ -177,16 +216,45 @@ final class AssignMissionViewController: UIViewController {
             .disposed(by: disposeBag)
     }
     
-    // "미션을 수행할 구성원" 메뉴 버튼 구성 헬퍼
-    private func createMenu() -> UIMenu {
-        let members = viewModel.output.members.value
-        let actions = members.map { member in
-            UIAction(title: member.nickname) { [weak self] _ in
-                self?.viewModel.input.accept(.didSelectMember(member))
-            }
-        }
+    // 멤버 선택 버튼 configuration 설정
+    private func configureButton(title: String) -> UIButton.Configuration {
+        var configuration = UIButton.Configuration.filled()
+        configuration.baseBackgroundColor = .gray50
+        configuration.baseForegroundColor = .gray800
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
+        configuration.cornerStyle = .medium
+        configuration.title = title
         
-        return UIMenu(children: actions)
+        // 폰트 및 폰트 색상 설정
+        let font = UIFont.pretendard(size: 16, weight: .regular)
+        let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.gray800]
+        let attributedTitle = NSAttributedString(string: configuration.title ?? "", attributes: attributes)
+        configuration.attributedTitle = AttributedString(attributedTitle)
+        
+        return configuration
+    }
+    
+    // 멤버 리스트 구성 헬퍼
+    private func setupDropdownView(members: [Member]) {
+        for member in members {
+            let button = MemberButton(member: member)
+            button.addTarget(self, action: #selector(memberSelected), for: .touchUpInside)
+            dropdownView.addArrangedSubview(button)
+        }
+    }
+    
+    @objc private func memberSelected(_ sender: UIButton) {
+        let button = sender as? MemberButton
+        let member = button?.getMember()
+        guard let member else { return }
+        
+        viewModel.input.accept(.didSelectMember(member))
+    }
+    
+    // 멤버 선택 버튼을 누르면 드랍다운으로 멤버 리스트를 보여줌. 다시 누르면 닫음.
+    @objc private func dropdown() {
+        isDropdown.toggle()
+        dropdownView.isHidden = !isDropdown
     }
     
     // 전달하기 버튼 누르면 원래 화면으로 복귀
