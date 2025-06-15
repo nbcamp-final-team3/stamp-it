@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum MissionStatus {
+enum MissionStatus: String {
     case assigned
     case completed
     case failed
