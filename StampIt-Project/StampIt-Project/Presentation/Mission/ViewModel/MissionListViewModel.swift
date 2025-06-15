@@ -20,6 +20,7 @@ final class MissionListViewModel: ViewModelProtocol {
     struct State {
         var missions = BehaviorRelay<[SampleMission]>(value: []) // 뷰에 반영되는 샘플 미션 데이터
         var searchText = BehaviorRelay<String>(value: "")
+        var selectedCategory = BehaviorRelay<MissionCategory?>(value: nil)
         var snapshot = BehaviorRelay<NSDiffableDataSourceSnapshot<Section, Item>?>(value: nil)
     }
     
@@ -35,6 +36,8 @@ final class MissionListViewModel: ViewModelProtocol {
         self.missionUseCaseImpl = missionUseCaseImpl
         
         bind()
+        
+        bindFilterMisson()
         
         updateSnapshot()
     }
@@ -60,54 +63,54 @@ final class MissionListViewModel: ViewModelProtocol {
                 case .searchTextChanged(let searchText):
                     state.searchText.accept(searchText)
                     print("searchText: \(searchText)")
-                    searchMission()
                 case .didSelectTableViewCell(let mission):
                     print("didSelectTableViewCell: \(mission.title)")
                 case .didSelectCollectionViewCell(let indexPath):
-                    filterMission(indexPath: indexPath)
+                    if indexPath.item == 0 {
+                        state.selectedCategory.accept(nil)
+                        print("전체보기")
+                    } else {
+                        let category = MissionCategory.allCases[indexPath.item - 1]
+                        state.selectedCategory.accept(category)
+                        print("category: \(category.title)")
+                    }
                 }
             }
             .disposed(by: disposeBag)
     }
     
-    private func searchMission() {
-        // 검색어가 없으면 원본 데이터를 뷰에 반영하고 리턴
-        guard !state.searchText.value.isEmpty else {
-            state.missions.accept(_missions)
-            return
-        }
-        
-        let searchText = state.searchText.value.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // 단어 단위로 쪼갠 후, 각 단어가 미션 제목에 포함되는지 확인
-        let filteredMissions = _missions.filter { mission in
-            let title = mission.title.replacingOccurrences(of: " ", with: "")
-            let keywords = searchText
-                .components(separatedBy: .whitespaces)
-                .filter { !$0.isEmpty }
-            
-            return keywords.allSatisfy { keyword in
-                title.localizedStandardContains(keyword)
+    // 미션 검색 + 카테고리 선택
+    private func bindFilterMisson() {
+        Observable.combineLatest(state.searchText, state.selectedCategory)
+            .map { [weak self] searchText, selectedCategory -> [SampleMission] in
+                guard let self else { return [] }
+                
+                // 단어 단위로 분할
+                let trimmedText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                let keywords = trimmedText
+                    .components(separatedBy: .whitespaces)
+                    .filter { !$0.isEmpty }
+                
+                return _missions.filter { mission in
+                    // 카테고리 필터
+                    if let category = selectedCategory, mission.category != category {
+                        return false
+                    }
+                    
+                    // 검색어 필터
+                    if keywords.isEmpty {
+                        return true
+                    }
+                    
+                    // 위에서 분할한 단어들이 미션 제목에 포함되는지 확인
+                    let title = mission.title.replacingOccurrences(of: " ", with: "")
+                    return keywords.allSatisfy { keyword in
+                        title.localizedStandardContains(keyword)
+                    }
+                }
             }
-        }
-        
-        state.missions.accept(filteredMissions)
-    }
-    
-    private func filterMission(indexPath: IndexPath) {
-        switch indexPath.item {
-        case 0:
-            state.missions.accept(_missions)
-            print("전체보기")
-        case let x where x > 0:
-            let category = MissionCategory.allCases[x - 1]
-            let filteredMissions = _missions
-                .filter { $0.category == category }
-            state.missions.accept(filteredMissions)
-            print("category: \(category.title)")
-        default:
-            break
-        }
+            .bind(to: state.missions)
+            .disposed(by: disposeBag)
     }
     
     // 컬렉션 뷰 스냅샷 업데이트
