@@ -84,40 +84,27 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// user 정보 바인딩
     private func bindUser() {
-        useCase.fetchUser()
-            .do(onNext: { [weak self] user in
-                guard let self, let user else { return }
-                bindRankedMembers(ofGroupID: user.groupID)
-                bindReceivedMissions(ofUserID: user.userID, groupID: user.groupID)
-//                bindSendedMissions()
-            })
-            .bind(to: state.user)
-            .disposed(by: disposeBag)
-    }
+        useCase.fetchCurrentUser()
+            .compactMap { $0 }
+            .flatMap { user -> Observable<([User], [Mission])> in
+                let rankingObs = self.useCase.fetchRanking(ofGroup: user.groupID)
+                    .do(onNext: { users in
+                        self.memberCache = Dictionary(uniqueKeysWithValues: users.map { ($0.userID, $0) })
+                    })
+                let receivedObs = self.useCase.fetchRecievedMissions(ofUser: user.userID, fromGroup: user.groupID)
 
-    /// 유저가 속한 그룹의 멤버 랭킹 바인딩
-    ///
-    /// HomeItem으로 매핑하기 전에 멤버 정보 캐싱하고,
-    /// 멤버가 1명(유저 혼자)이면 그룹 구성하기 뷰로 전환
-    private func bindRankedMembers(ofGroupID id: String) {
-        useCase.fetchRanking(ofGroup: id)
-            .do(onNext: { [weak self] users in
-                self?.memberCache = .init(uniqueKeysWithValues: users.map { ($0.userID, $0) })
-            })
-            .map { self.mapUsersToHomeItems($0) }
-            .do(onNext: { [weak self] items in
-                let isShow = items.count == 1
-                self?.state.isShowGroupOrganizationView.accept(isShow)
-            })
-            .bind(to: state.rankedMembers)
-            .disposed(by: disposeBag)
-    }
+                return Observable.zip(rankingObs, receivedObs)
+            }
+            .subscribe(onNext: { [weak self] (users, missions) in
+                guard let self = self else { return }
 
-    /// 유저가 그룹 구성원으로부터 받은 미션 바인딩
-    private func bindReceivedMissions(ofUserID userID: String, groupID: String) {
-        useCase.fetchRecievedMissions(ofUser: userID, fromGroup: groupID)
-            .map { self.mapReceivedMissionsToHomeItems($0) }
-            .bind(to: state.receivedMissions)
+                let memberItems = self.mapUsersToHomeItems(users)
+                self.state.isShowGroupOrganizationView.accept(users.count == 1)
+                self.state.rankedMembers.accept(memberItems)
+
+                let receivedItems = self.mapReceivedMissionsToHomeItems(missions)
+                self.state.receivedMissions.accept(receivedItems)
+            })
             .disposed(by: disposeBag)
     }
 
@@ -201,14 +188,14 @@ final class HomeViewModel: ViewModelProtocol {
     /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapReceivedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
         missions.map { mission in
+            let assigner = memberCache[mission.assignedBy]?.nickname ?? mission.assignedBy
             let homeMission = HomeReceivedMission(
                 missionID: mission.missionID,
                 title: mission.title,
                 category: mission.category,
                 dueDate: mission.dueDate.toMonthDayString(),
-                assigner: mission.assignedBy,
-                // TODO: UseCase에서 isNew 판별
-                isNew: true
+                assigner: assigner,
+                isNew: nil
             )
             return HomeItem.received(homeMission)
         }

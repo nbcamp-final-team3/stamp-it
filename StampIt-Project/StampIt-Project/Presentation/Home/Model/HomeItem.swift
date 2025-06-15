@@ -71,7 +71,7 @@ struct HomeReceivedMission: Hashable {
     let category: MissionCategory
     let dueDate: String
     let assigner: String
-    let isNew: Bool
+    let isNew: Bool?
 }
 
 struct HomeSendedMission: Hashable {

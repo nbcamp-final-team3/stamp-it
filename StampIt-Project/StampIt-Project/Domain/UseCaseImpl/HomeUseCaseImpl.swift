@@ -17,9 +17,10 @@ final class HomeUseCase: HomeUseCaseProtocol {
         self.homeRepository = homeRepository
     }
 
-    func fetchUser() -> Observable<User?> {
+    func fetchCurrentUser() -> Observable<User?> {
         authRepository.getCurrentUser()
     }
+	
     func fetchRanking(ofGroup groupID: String) -> Observable<[User]> {
         homeRepository.fetchGroupMembers(ofGroup: groupID)
             .map { users in
