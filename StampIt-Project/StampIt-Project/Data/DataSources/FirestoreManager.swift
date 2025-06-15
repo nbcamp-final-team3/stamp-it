@@ -38,7 +38,11 @@ protocol FirestoreManagerProtocol {
     
     // Mission 관련
     func fetchMissions(groupId: String) -> Observable<[MissionFirestore]>
-    func fetchMissions(assignedTo userId: String, fromGroup groupId: String) -> Observable<[MissionFirestore]>
+    func fetchMissions(
+        to assigneeId: String?,
+        by assignerId: String?,
+        ofGroup groupId: String
+    ) -> Observable<[MissionFirestore]>
     func createMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
     func updateMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
     func deleteMission(groupId: String, missionId: String) -> Observable<Void>
@@ -504,11 +508,13 @@ extension FirestoreManager {
     }
 
     /// 유저가 받은 미션 목록 조회
-    func fetchMissions(assignedTo userId: String, fromGroup groupId: String) -> Observable<[MissionFirestore]> {
+    func fetchMissions(to assigneeId: String?, by assignerId: String?, ofGroup groupId: String) -> Observable<[MissionFirestore]> {
         return Observable.create { observer in
-            
+            let field = assigneeId != nil ? "assignedTo" : "assignedBy"
+            let id = assigneeId ?? assignerId ?? ""
+
             let listener = self.missionsCollection(groupId: groupId)
-                .whereField("assignedTo", isEqualTo: userId)
+                .whereField(field, isEqualTo: id)
                 .addSnapshotListener { querySnapshot, error in
                     if let error = error {
                         observer.onError(FirestoreError.fetchFailed(error.localizedDescription))

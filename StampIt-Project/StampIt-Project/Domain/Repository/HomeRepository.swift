@@ -10,7 +10,10 @@ import RxSwift
 
 protocol HomeRepositoryProtocol {
     func fetchGroupMembers(ofGroup groupID: String) -> Observable<[User]>
-    func fetchRecievedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]>
-    func fetchSendedMissions(ofUser userID: String) -> Observable<[Mission]>
+    func fetchMissions(
+        to assigneeID: String?,
+        by assignerID: String?,
+        ofGroup groupID: String
+    ) -> Observable<[Mission]>
     func updateMissionStatus(for missionID: String, to status: MissionStatus)
 }

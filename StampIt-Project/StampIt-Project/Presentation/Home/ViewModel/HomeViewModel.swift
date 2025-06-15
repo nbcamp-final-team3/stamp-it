@@ -86,36 +86,33 @@ final class HomeViewModel: ViewModelProtocol {
     private func bindUser() {
         useCase.fetchCurrentUser()
             .compactMap { $0 }
-            .flatMap { user -> Observable<([User], [Mission])> in
-                let rankingObs = self.useCase.fetchRanking(ofGroup: user.groupID)
+            .flatMap { [weak self] user -> Observable<([User], [Mission], [Mission])> in
+                guard let self else { return .empty() }
+                let rankingObs = useCase.fetchRanking(ofGroup: user.groupID)
                     .do(onNext: { users in
                         self.memberCache = Dictionary(uniqueKeysWithValues: users.map { ($0.userID, $0) })
                     })
-                let receivedObs = self.useCase.fetchRecievedMissions(ofUser: user.userID, fromGroup: user.groupID)
+                let receivedObs = useCase.fetchRecievedMissions(ofUser: user.userID, fromGroup: user.groupID)
+                let sendedObs = useCase.fetchSendedMissions(ofUser: user.userID, fromGroup: user.groupID)
+                    .do(onNext: { sendedMissions in
+                        self.sendedMissions = sendedMissions
+                    })
 
-                return Observable.zip(rankingObs, receivedObs)
+                return Observable.zip(rankingObs, receivedObs, sendedObs)
             }
-            .subscribe(onNext: { [weak self] (users, missions) in
+            .subscribe(onNext: { [weak self] (users, received, sended) in
                 guard let self = self else { return }
 
                 let memberItems = self.mapUsersToHomeItems(users)
-                self.state.isShowGroupOrganizationView.accept(users.count == 1)
-                self.state.rankedMembers.accept(memberItems)
+                state.isShowGroupOrganizationView.accept(users.count == 1)
+                state.rankedMembers.accept(memberItems)
 
-                let receivedItems = self.mapReceivedMissionsToHomeItems(missions)
-                self.state.receivedMissions.accept(receivedItems)
-            })
-            .disposed(by: disposeBag)
-    }
+                let receivedItems = self.mapReceivedMissionsToHomeItems(received)
+                state.receivedMissions.accept(receivedItems)
 
-    /// 유저가 다른 그룹 구성원에게 보낸 미션 바인딩
-    private func bindSendedMissions(ofUserID id: String) {
-        useCase.fetchSendedMissions(ofUser: id)
-            .do(onNext: { [weak self] sendedMissions in
-                self?.sendedMissions = sendedMissions
+                let sendedMissionsForDisplay = self.mapSendedMissionsToHomeItems(Array(sended.prefix(4)))
+                state.sendedMissionsForDisplay.accept(sendedMissionsForDisplay)
             })
-            .map { self.mapSendedMissionsToHomeItems(Array($0.prefix(4))) }
-            .bind(to: state.sendedMissionsForDisplay)
             .disposed(by: disposeBag)
     }
 

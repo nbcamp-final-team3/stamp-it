@@ -27,15 +27,15 @@ final class HomeRepository: HomeRepositoryProtocol {
             }
     }
 
-    func fetchRecievedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
-        manager.fetchMissions(assignedTo: userID, fromGroup: groupID)
+    func fetchMissions(
+        to assigneeID: String?,
+        by assignerID: String?,
+        ofGroup groupID: String
+    ) -> Observable<[Mission]> {
+        manager.fetchMissions(to: assigneeID, by: assignerID, ofGroup: groupID)
             .map { $0.map { $0.toDomainModel() } }
     }
-
-    func fetchSendedMissions(ofUser userID: String) -> Observable<[Mission]> {
-        .empty()
-    }
-
+    
     func updateMissionStatus(for missionID: String, to status: MissionStatus) {
         
     }
