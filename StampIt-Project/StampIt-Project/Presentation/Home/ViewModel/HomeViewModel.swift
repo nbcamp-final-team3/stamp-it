@@ -202,6 +202,7 @@ final class HomeViewModel: ViewModelProtocol {
     private func mapSendedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
         missions.map { mission in
             let assignee = memberCache[mission.assignedTo]?.nickname ?? ""
+            let (isOverdue, daysLeft) = formatOverdueAndDays(from: mission.dueDate)
             let homeMission = HomeSendedMission(
                 missionID: mission.missionID,
                 title: mission.title,
@@ -209,11 +210,23 @@ final class HomeViewModel: ViewModelProtocol {
                 dueDate: mission.dueDate.toMonthDayString(),
                 assignee: assignee,
                 status: mission.status,
-                // TODO: 계산해서 할당
-                isOverdue: true,
-                daysLeft: "3일 전"
+                isOverdue: isOverdue,
+                daysLeft: daysLeft,
             )
             return HomeItem.sended(homeMission)
         }
+    }
+
+    private func formatOverdueAndDays(from dueDate: Date) -> (isOverdue: Bool, daysLeft: String) {
+        let cal = Calendar.current
+        let todayStart = cal.startOfDay(for: Date())
+        let dueStart = cal.startOfDay(for: dueDate)
+
+        let dayDiff = cal.dateComponents([.day], from: todayStart, to: dueStart).day ?? 0
+
+        let isOverdue = dayDiff < 0
+        let daysLeft = dayDiff == 0 ? "오늘" : "\(dayDiff)일 전"
+
+        return (isOverdue, daysLeft)
     }
 }
