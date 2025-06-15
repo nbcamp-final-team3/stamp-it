@@ -63,7 +63,7 @@ final class MissionListViewController: UIViewController {
         setCollectionViewCell()
         
         // 미션 샘플 데이터 로드
-        viewModel.input.accept(.onAppear)
+        viewModel.action.accept(.onAppear)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -112,7 +112,7 @@ final class MissionListViewController: UIViewController {
     
     private func bind() {
         // 미션 샘플 데이터를 테이블 뷰에 표시
-        viewModel.output.missions
+        viewModel.state.missions
             .asDriver(onErrorDriveWith: .empty())
             .drive(tableView.rx.items(cellIdentifier: MissionListCell.reuseIdentifier, cellType: MissionListCell.self)) { (_, element, cell) in
                 cell.configure(with: element.title)
@@ -120,7 +120,7 @@ final class MissionListViewController: UIViewController {
             .disposed(by: disposeBag)
         
         // 컬렉션 뷰 스냅샷 변경 시 뷰 반영
-        viewModel.output.snapshot
+        viewModel.state.snapshot
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] snapshot in
                 guard let self, let snapshot, let dataSource else { return }
@@ -135,7 +135,7 @@ final class MissionListViewController: UIViewController {
             .skip(1)
             .debounce(.milliseconds(300))
             .drive { [weak self] in
-                self?.viewModel.input.accept(.searchTextChanged($0))
+                self?.viewModel.action.accept(.searchTextChanged($0))
             }
             .disposed(by: disposeBag)
         
@@ -145,7 +145,7 @@ final class MissionListViewController: UIViewController {
             .drive { [weak self] in
                 guard let self else { return }
                 
-                viewModel.input.accept(.didSelectTableViewCell($0))
+                viewModel.action.accept(.didSelectTableViewCell($0))
                 pushAssignMissionViewController(mission: $0)
             }
             .disposed(by: disposeBag)
@@ -156,12 +156,12 @@ final class MissionListViewController: UIViewController {
             .drive { [weak self] in
                 guard let self else { return }
                 
-                viewModel.input.accept(.didSelectCollectionViewCell($0))
+                viewModel.action.accept(.didSelectCollectionViewCell($0))
             }
             .disposed(by: disposeBag)
         
         // 검색 결과가 없으면 결과없음 레이블 표시
-        viewModel.output.missions
+        viewModel.state.missions
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] results in
                 guard let self else { return }
@@ -175,7 +175,7 @@ final class MissionListViewController: UIViewController {
             .disposed(by: disposeBag)
         
         // 검색 결과가 있으면 테이블 뷰 헤더에 "ㅇㅇ으로 검색한 결과입니다" 표시
-        viewModel.output.searchText
+        viewModel.state.searchText
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] searchText in
                 guard let self, !searchText.isEmpty else { return }
@@ -239,14 +239,14 @@ final class MissionListViewController: UIViewController {
 extension MissionListViewController: UITableViewDelegate {
     // 검색 결과가 있을 때만 헤더 표시
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if viewModel.output.missions.value.isEmpty || viewModel.output.searchText.value.isEmpty {
+        if viewModel.state.missions.value.isEmpty || viewModel.state.searchText.value.isEmpty {
             return nil
         }
         return headerView
     }
     
     func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
-        if viewModel.output.missions.value.isEmpty || viewModel.output.searchText.value.isEmpty {
+        if viewModel.state.missions.value.isEmpty || viewModel.state.searchText.value.isEmpty {
             return 0
         }
         return 16

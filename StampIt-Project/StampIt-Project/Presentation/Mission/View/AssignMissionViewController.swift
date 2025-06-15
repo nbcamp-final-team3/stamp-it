@@ -104,7 +104,7 @@ final class AssignMissionViewController: UIViewController {
         
         bind()
         
-        viewModel.input.accept(.onAppear)
+        viewModel.action.accept(.onAppear)
     }
     
     private func prepareSubviews() {
@@ -163,7 +163,7 @@ final class AssignMissionViewController: UIViewController {
     
     private func bind() {
         // 미션 제목 뷰에 반영
-        viewModel.output.mission
+        viewModel.state.mission
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] mission in
                 guard let self, let mission else { return }
@@ -172,7 +172,7 @@ final class AssignMissionViewController: UIViewController {
             .disposed(by: disposeBag)
         
         // 멤버 선택 버튼의 멤버 리스트(드랍 다운 형태)에 데이터 반영
-        viewModel.output.members
+        viewModel.state.members
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] members in
                 guard let self else { return }
@@ -182,7 +182,7 @@ final class AssignMissionViewController: UIViewController {
             .disposed(by: disposeBag)
         
         // 사용자가 멤버 선택 시
-        viewModel.output.selectedMember
+        viewModel.state.selectedMember
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] member in
                 guard let self, let member else { return }
@@ -199,7 +199,7 @@ final class AssignMissionViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .distinctUntilChanged()
             .drive { [weak self] date in
-                self?.viewModel.input.accept(.didSelectDueDate(date))
+                self?.viewModel.action.accept(.didSelectDueDate(date))
             }
             .disposed(by: disposeBag)
         
@@ -208,7 +208,7 @@ final class AssignMissionViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] _ in
                 guard let self else { return }
-                viewModel.input.accept(.didTapAssignButton)
+                viewModel.action.accept(.didTapAssignButton)
                 dismiss()
             }
             .disposed(by: disposeBag)
@@ -217,7 +217,7 @@ final class AssignMissionViewController: UIViewController {
     // 멤버 선택 버튼 configuration 설정
     private func configureButton(title: String) -> UIButton.Configuration {
         var configuration = UIButton.Configuration.filled()
-        configuration.baseBackgroundColor = .gray50
+        configuration.baseBackgroundColor = .gray25
         configuration.baseForegroundColor = .gray800
         configuration.cornerStyle = .medium
         configuration.title = title
@@ -245,7 +245,7 @@ final class AssignMissionViewController: UIViewController {
         let member = button?.getMember()
         guard let member else { return }
         
-        viewModel.input.accept(.didSelectMember(member))
+        viewModel.action.accept(.didSelectMember(member))
     }
     
     // 멤버 선택 버튼을 누르면 드랍다운으로 멤버 리스트를 보여줌. 다시 누르면 닫음.

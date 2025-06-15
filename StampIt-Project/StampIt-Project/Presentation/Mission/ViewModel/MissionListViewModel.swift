@@ -9,22 +9,22 @@ import UIKit
 import RxSwift
 import RxRelay
 
-final class MissionListViewModel: MissionViewModelProtocol {
-    enum Input {
+final class MissionListViewModel: ViewModelProtocol {
+    enum Action {
         case onAppear
         case searchTextChanged(String)
         case didSelectTableViewCell(SampleMission)
         case didSelectCollectionViewCell(IndexPath)
     }
     
-    struct Output {
+    struct State {
         var missions = BehaviorRelay<[SampleMission]>(value: []) // 뷰에 반영되는 샘플 미션 데이터
         var searchText = BehaviorRelay<String>(value: "")
         var snapshot = BehaviorRelay<NSDiffableDataSourceSnapshot<Section, Item>?>(value: nil)
     }
     
-    var input = PublishRelay<Input>()
-    var output = Output()
+    var action = PublishRelay<Action>()
+    var state = State()
     
     var disposeBag = DisposeBag()
     
@@ -40,7 +40,7 @@ final class MissionListViewModel: MissionViewModelProtocol {
     }
     
     private func bind() {
-        input
+        action
             .subscribe { [weak self] input in
                 guard let self else { return }
                 
@@ -51,14 +51,14 @@ final class MissionListViewModel: MissionViewModelProtocol {
                             guard let self else { return }
                             
                             let sortedMissions = missions.sorted { $0.title < $1.title }
-                            output.missions.accept(sortedMissions)
+                            state.missions.accept(sortedMissions)
                             _missions = sortedMissions
                         } onFailure: { error in
                             print(error)
                         }
                         .disposed(by: disposeBag)
                 case .searchTextChanged(let searchText):
-                    output.searchText.accept(searchText)
+                    state.searchText.accept(searchText)
                     print("searchText: \(searchText)")
                     searchMission()
                 case .didSelectTableViewCell(let mission):
@@ -72,12 +72,12 @@ final class MissionListViewModel: MissionViewModelProtocol {
     
     private func searchMission() {
         // 검색어가 없으면 원본 데이터를 뷰에 반영하고 리턴
-        guard !output.searchText.value.isEmpty else {
-            output.missions.accept(_missions)
+        guard !state.searchText.value.isEmpty else {
+            state.missions.accept(_missions)
             return
         }
         
-        let searchText = output.searchText.value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let searchText = state.searchText.value.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // 단어 단위로 쪼갠 후, 각 단어가 미션 제목에 포함되는지 확인
         let filteredMissions = _missions.filter { mission in
@@ -91,19 +91,19 @@ final class MissionListViewModel: MissionViewModelProtocol {
             }
         }
         
-        output.missions.accept(filteredMissions)
+        state.missions.accept(filteredMissions)
     }
     
     private func filterMission(indexPath: IndexPath) {
         switch indexPath.item {
         case 0:
-            output.missions.accept(_missions)
+            state.missions.accept(_missions)
             print("전체보기")
         case let x where x > 0:
             let category = MissionCategory.allCases[x - 1]
             let filteredMissions = _missions
                 .filter { $0.category == category }
-            output.missions.accept(filteredMissions)
+            state.missions.accept(filteredMissions)
             print("category: \(category.title)")
         default:
             break
@@ -122,7 +122,7 @@ final class MissionListViewModel: MissionViewModelProtocol {
         }
         snapshot.appendItems(items)
         
-        output.snapshot.accept(snapshot)
+        state.snapshot.accept(snapshot)
     }
 }
 
