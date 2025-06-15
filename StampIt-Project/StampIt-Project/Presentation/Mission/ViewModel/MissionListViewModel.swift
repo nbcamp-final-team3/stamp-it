@@ -77,8 +77,20 @@ final class MissionListViewModel: MissionViewModelProtocol {
             return
         }
         
-        let filteredMissions = _missions
-            .filter { $0.title.localizedStandardContains(output.searchText.value.trimmingCharacters(in: .whitespaces)) } // 검색어 맨앞 공백 무시
+        let searchText = output.searchText.value.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // 단어 단위로 쪼갠 후, 각 단어가 미션 제목에 포함되는지 확인
+        let filteredMissions = _missions.filter { mission in
+            let title = mission.title.replacingOccurrences(of: " ", with: "")
+            let keywords = searchText
+                .components(separatedBy: .whitespaces)
+                .filter { !$0.isEmpty }
+            
+            return keywords.allSatisfy { keyword in
+                title.localizedStandardContains(keyword)
+            }
+        }
+        
         output.missions.accept(filteredMissions)
     }
     

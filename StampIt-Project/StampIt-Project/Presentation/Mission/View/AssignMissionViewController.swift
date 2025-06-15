@@ -24,7 +24,7 @@ final class AssignMissionViewController: UIViewController {
     
     // 멤버 선택 버튼
     private lazy var memberSelectionButton = UIButton().then {
-        $0.configuration = configureButton(title: "구성원 선택하기")
+        $0.configuration = configureButton(title: "멤버 선택하기")
         $0.addTarget(self, action: #selector(dropdown), for: .touchUpInside)
     }
     
@@ -58,6 +58,8 @@ final class AssignMissionViewController: UIViewController {
     private let dueDatePicker = UIDatePicker().then {
         $0.preferredDatePickerStyle = .compact
         $0.datePickerMode = .date
+        $0.locale = Locale(identifier: "ko_KR")
+        $0.minimumDate = Date()
         $0.tintColor = .red400
     }
     
@@ -144,11 +146,7 @@ final class AssignMissionViewController: UIViewController {
         }
         
         memberSelectionButton.snp.makeConstraints {
-            $0.width.equalTo(140)
-        }
-        
-        dueDatePicker.snp.makeConstraints {
-            $0.width.equalTo(140)
+            $0.width.equalTo(dueDatePicker.snp.width)
         }
         
         dropdownView.snp.makeConstraints {
@@ -221,7 +219,6 @@ final class AssignMissionViewController: UIViewController {
         var configuration = UIButton.Configuration.filled()
         configuration.baseBackgroundColor = .gray50
         configuration.baseForegroundColor = .gray800
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
         configuration.cornerStyle = .medium
         configuration.title = title
         
