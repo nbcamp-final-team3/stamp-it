@@ -27,8 +27,9 @@ final class HomeRepository: HomeRepositoryProtocol {
             }
     }
 
-    func fetchRecievedMissions(ofUser userID: String) -> Observable<[Mission]> {
-        .empty()
+    func fetchRecievedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
+        manager.fetchMissions(assignedTo: userID, fromGroup: groupID)
+            .map { $0.map { $0.toDomainModel() } }
     }
 
     func fetchSendedMissions(ofUser userID: String) -> Observable<[Mission]> {

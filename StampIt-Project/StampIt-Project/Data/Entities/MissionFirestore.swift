@@ -25,6 +25,23 @@ struct MissionFirestore: Codable {
     }
 }
 
+// MARK: - Domain Model 변환
+extension MissionFirestore {
+    func toDomainModel() -> Mission {
+        return Mission(
+            missionID: self.missionId,
+            title: self.title,
+            assignedTo: self.assignedTo,
+            assignedBy: self.assignedBy,
+            createDate: self.createDate.dateValue(),
+            dueDate: self.dueDate.dateValue(),
+            status: MissionStatus(rawValue: self.status)!,
+            imageURL: "", // TODO: imageName으로 변경 예정
+            category: MissionCategory(rawValue: self.category)!
+        )
+    }
+}
+
 // MARK: - 상태 enum
 extension MissionFirestore {
     enum Status: String, CaseIterable {

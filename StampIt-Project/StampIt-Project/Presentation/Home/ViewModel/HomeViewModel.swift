@@ -54,11 +54,6 @@ final class HomeViewModel: ViewModelProtocol {
     init(useCase: HomeUseCaseProtocol) {
         self.useCase = useCase
         bind()
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-//            self?.state.rankedMembers.accept(HomeItem.homeMembers)
-//            self?.state.receivedMissions.accept(HomeItem.receivedMissions)
-//            self?.state.sendedMissionsForDisplay.accept(HomeItem.sendedMissions)
-//        }
     }
 
     // MARK: - Bind
@@ -93,7 +88,7 @@ final class HomeViewModel: ViewModelProtocol {
             .do(onNext: { [weak self] user in
                 guard let self, let user else { return }
                 bindRankedMembers(ofGroupID: user.groupID)
-//                bindReceivedMissions()
+                bindReceivedMissions(ofUserID: user.userID, groupID: user.groupID)
 //                bindSendedMissions()
             })
             .bind(to: state.user)
@@ -119,8 +114,8 @@ final class HomeViewModel: ViewModelProtocol {
     }
 
     /// 유저가 그룹 구성원으로부터 받은 미션 바인딩
-    private func bindReceivedMissions(ofUserID id: String) {
-        useCase.fetchRecievedMissions(ofUser: id)
+    private func bindReceivedMissions(ofUserID userID: String, groupID: String) {
+        useCase.fetchRecievedMissions(ofUser: userID, fromGroup: groupID)
             .map { self.mapReceivedMissionsToHomeItems($0) }
             .bind(to: state.receivedMissions)
             .disposed(by: disposeBag)

@@ -38,6 +38,7 @@ protocol FirestoreManagerProtocol {
     
     // Mission 관련
     func fetchMissions(groupId: String) -> Observable<[MissionFirestore]>
+    func fetchMissions(assignedTo userId: String, fromGroup groupId: String) -> Observable<[MissionFirestore]>
     func createMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
     func updateMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
     func deleteMission(groupId: String, missionId: String) -> Observable<Void>
@@ -90,7 +91,7 @@ final class FirestoreManager: FirestoreManagerProtocol {
     private func missionsCollection(groupId: String) -> CollectionReference {
         return groupsCollection.document(groupId).collection("missions")
     }
-    
+
     // MARK: - Init
     // ✅ Singleton 제거, 일반 init으로 변경
     init() {}
@@ -501,7 +502,40 @@ extension FirestoreManager {
             }
         }
     }
-    
+
+    /// 유저가 받은 미션 목록 조회
+    func fetchMissions(assignedTo userId: String, fromGroup groupId: String) -> Observable<[MissionFirestore]> {
+        return Observable.create { observer in
+            
+            let listener = self.missionsCollection(groupId: groupId)
+                .whereField("assignedTo", isEqualTo: userId)
+                .addSnapshotListener { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                        return
+                    }
+
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext([])
+                        return
+                    }
+
+                    do {
+                        let missions = try documents.compactMap { document -> MissionFirestore? in
+                            return try document.data(as: MissionFirestore.self)
+                        }
+                        observer.onNext(missions)
+                    } catch {
+                        observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
+                    }
+                }
+
+            return Disposables.create {
+                listener.remove()
+            }
+        }
+    }
+
     /// 새 미션 생성
     func createMission(groupId: String, mission: MissionFirestore) -> Observable<Void> {
         return Observable.create { observer in

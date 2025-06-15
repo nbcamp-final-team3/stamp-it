@@ -27,8 +27,21 @@ final class HomeUseCase: HomeUseCaseProtocol {
                 return users
             }
     }
-    func fetchRecievedMissions(ofUser userID: String) -> Observable<[Mission]> {
-        .empty()
+    func fetchRecievedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
+        homeRepository.fetchRecievedMissions(ofUser: userID, fromGroup: groupID)
+            .map { missions in
+                let startOfToday = Calendar.current.startOfDay(for: Date())
+                guard let endDate = Calendar.current.date(
+                    byAdding: .day,
+                    value: 6,
+                    to: startOfToday
+                ) else {
+                    return []
+                }
+                return missions
+                    .filter { startOfToday...endDate ~= $0.dueDate && $0.status == .assigned }
+                    .sorted { $0.createDate > $1.createDate }
+            }
     }
     func fetchSendedMissions(ofUser userID: String) -> Observable<[Mission]> {
         .empty()
