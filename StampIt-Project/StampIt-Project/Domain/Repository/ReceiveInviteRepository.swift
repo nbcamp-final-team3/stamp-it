@@ -6,3 +6,10 @@
 //
 
 import Foundation
+import RxSwift
+
+protocol ReceiveInviteRepository {
+    func fetchInvite(inviteCode: String) -> Observable<InviteFirestore>
+    func fetchUserOnce(userId: String) -> Observable<UserFirestore>
+    func addMember(groupId: String, member: MemberFirestore) -> Observable<Void>
+}
