@@ -17,31 +17,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window = UIWindow(windowScene: windowScene)
         
-        // 탭바 컨트롤러 생성
-        let tabBarController = UITabBarController()
-        
-        // SendInviteVC 설정
-        let sendVC = DIContainer.shared.makeSendInviteViewController()
-        sendVC.tabBarItem = UITabBarItem(
-            title: "초대하기",
-            image: nil,
-            selectedImage: nil
-        )
-        
-        // ReceiveInviteVC 설정
-        let receiveVC = DIContainer.shared.makeReceiveInviteViewController()
-        receiveVC.tabBarItem = UITabBarItem(
-            title: "초대받기",
-            image: nil,
-            selectedImage: nil
-        )
-        
-        // 탭바에 뷰컨트롤러 추가
-        tabBarController.viewControllers = [sendVC, receiveVC]
-        
-        // 루트 뷰컨트롤러로 설정
-        window?.rootViewController = tabBarController
-        
         let hasOnboarded = UserDefaults.standard.bool(forKey: "hasOnboarded")
         let nav: UINavigationController
 
