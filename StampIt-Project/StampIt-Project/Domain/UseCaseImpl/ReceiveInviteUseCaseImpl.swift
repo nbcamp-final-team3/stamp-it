@@ -11,11 +11,8 @@ import FirebaseCore
 
 final class ReceiveInviteUseCaseImpl: ReceiveInviteUseCase {
 
-
-    //fb authrepo
     private let authRepository: AuthRepositoryProtocol
 
-    //fb manager를 사용하는 repo
     private let receiveInviteRepository: ReceiveInviteRepository
 
     init(authRepository: AuthRepositoryProtocol,

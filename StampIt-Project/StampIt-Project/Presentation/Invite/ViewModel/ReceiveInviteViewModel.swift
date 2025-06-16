@@ -8,8 +8,6 @@
 import Foundation
 import RxSwift
 import RxCocoa
-import FirebaseFirestore
-import FirebaseAuth
 
 /// 그룹 초대 코드 입력 화면 viewModel
 /// 그룹 참여 실패 했을 때 토스트 메세지로 실패 여부 알림
