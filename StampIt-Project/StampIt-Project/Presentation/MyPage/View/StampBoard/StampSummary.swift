@@ -17,34 +17,34 @@ final class StampSummary: UIView {
     private let stampVStackView = UIStackView().then {
         $0.axis = .vertical
         $0.alignment = .center
-        $0.spacing = MyPage.Stamp.vStackSpacing
+        $0.spacing = MyPage.StampBoard.vStackSpacing
     }
     
     /// 내가 모은 스탬프
     private let collectedStampTitle = UILabel().then {
-        $0.text = MyPage.Stamp.collected
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .regular)
+        $0.text = MyPage.StampBoard.collected
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .regular)
         $0.textColor = .gray800
     }
     
     /// 내가 모은 스탬프 - 현재 개수
     private let currentStampLabel = UILabel().then {
         $0.text = "0"
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .bold)
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .bold)
         $0.textColor = .gray800
     }
     
     /// 내가 모은 스탬프 - /
     private let slashLabel = UILabel().then {
-        $0.text = MyPage.Stamp.slash
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .regular)
+        $0.text = MyPage.StampBoard.slash
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .regular)
         $0.textColor = .gray800
     }
-
+    
     /// 내가 모은 스탬프 - 30
     private let totalStampLabel = UILabel().then {
-        $0.text = MyPage.Stamp.totalStamp
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeSmall, weight: .regular)
+        $0.text = MyPage.StampBoard.totalStamp
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeSmall, weight: .regular)
         $0.textColor = .gray800
     }
     
@@ -58,20 +58,20 @@ final class StampSummary: UIView {
     private let boardVStackView = UIStackView().then {
         $0.axis = .vertical
         $0.alignment = .center
-        $0.spacing = MyPage.Stamp.vStackSpacing
+        $0.spacing = MyPage.StampBoard.vStackSpacing
     }
     
     /// 완성한 스탬프 판
     private let completedBoardTitle = UILabel().then {
-        $0.text = MyPage.Stamp.completed
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .regular)
+        $0.text = MyPage.StampBoard.completed
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .regular)
         $0.textColor = .gray800
     }
     
     /// 완성한 스탬프 판 - N개
     private let totalBoardLabel = UILabel().then {
-        $0.text = "0\(MyPage.Stamp.unit)"
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .bold)
+        $0.text = "0\(MyPage.StampBoard.unit)"
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .bold)
         $0.textColor = .gray800
     }
     
@@ -100,7 +100,7 @@ final class StampSummary: UIView {
     }
     
     // MARK: - Layout Subviews
-
+    
     override func layoutSubviews() {
         setShadow()
     }
@@ -111,10 +111,10 @@ final class StampSummary: UIView {
         layer.shadowPath = path.cgPath
         layer.cornerRadius = 12
         layer.shadowColor = UIColor._000000.cgColor
-        layer.shadowOpacity = 0.1
+        layer.shadowOpacity = 0.15
         layer.shadowOffset = .zero
     }
-
+    
     // MARK: - Style Helper
     
     private func setStyle() {
@@ -156,13 +156,13 @@ final class StampSummary: UIView {
         ]
             .forEach { boardVStackView.addArrangedSubview($0) }
     }
-
+    
     // MARK: - Layout Helper
     
     private func setLayout() {
         hStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(12)
-            $0.height.equalTo(44)
+            $0.height.equalTo(50)
         }
         
         divider.snp.makeConstraints {
@@ -170,5 +170,14 @@ final class StampSummary: UIView {
             $0.width.equalTo(1)
             $0.center.equalToSuperview()
         }
+    }
+    
+    // MARK: Bind
+    
+    private func configureItem(with sticker: Sticker) {
+        // TODO: 로그인 연결시 sticker 데이터로 바인딩
+        currentStampLabel.text = "" // 내가 모은 스탬프 - 현재 개수
+        totalStampLabel.text = MyPage.StampBoard.totalStamp
+        totalBoardLabel.text = "" // 완성한 스탬프 판 - N개
     }
 }
