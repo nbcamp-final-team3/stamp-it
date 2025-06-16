@@ -63,6 +63,10 @@ final class DIContainer {
         return MyPageViewModel(myPageUseCase: myPageUseCase)
     }
 
+    func makeOnboardingViewModel() -> OnboardingViewModel {
+        return OnboardingViewModel(totalPages: 3)
+    }
+    
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
@@ -78,7 +82,12 @@ final class DIContainer {
         let viewModel = makeMyPageViewModel()
         return MyPageViewController(viewModel: viewModel)
     }
-
+    
+    func makeOnboardingViewController() -> OnboardingViewController {
+        let viewModel = makeOnboardingViewModel()
+        return OnboardingViewController(viewModel: viewModel)
+    }
+    
     // MARK: - Singleton
     static let shared = DIContainer()
     private init() {}

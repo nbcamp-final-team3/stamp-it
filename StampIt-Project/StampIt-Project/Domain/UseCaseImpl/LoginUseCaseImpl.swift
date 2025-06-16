@@ -26,7 +26,6 @@ final class LoginUseCase: LoginUseCaseProtocol {
     }
     
     // MARK: - Login Methods
-    
     /// 구글 로그인 플로우
     func loginWithGoogle() -> Observable<LoginFlowResult> {
         return authRepository.signInWithGoogle()
@@ -52,7 +51,6 @@ final class LoginUseCase: LoginUseCaseProtocol {
     }
     
     // MARK: - Launch State Check
-    
     /// 앱 시작 시 상태 확인 및 화면 분기 결정
     func checkLaunchState() -> Observable<LaunchFlowResult> {
         return authRepository.checkLaunchState()
@@ -71,20 +69,8 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 return Observable.just(LaunchFlowResult(nextScreen: .login, user: nil))
             }
     }
-    
-    // MARK: - Onboarding
-    
-    /// 온보딩 완료 처리
-    func completeOnboarding() -> Observable<Void> {
-        return authRepository.completeOnboarding()
-            .catch { [weak self] error in
-                let useCaseError = self?.mapToUseCaseError(error) ?? UseCaseError.unknownError
-                return Observable.error(useCaseError)
-            }
-    }
-    
+
     // MARK: - Private Methods
-    
     /// 로그인 결과 공통 처리 로직 (중복 제거)
     private func processLoginResult(_ loginResult: LoginResult) -> Observable<LoginFlowResult> {
         if loginResult.isNewUser {
