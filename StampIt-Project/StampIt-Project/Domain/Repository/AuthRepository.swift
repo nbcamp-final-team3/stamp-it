@@ -31,6 +31,7 @@ protocol AuthRepositoryProtocol {
     func createNewUserWithGroup(
         user: UserFirestore,
         group: GroupFirestore,
-        member: MemberFirestore
+        member: MemberFirestore,
+        invite: InviteFirestore
     ) -> Observable<StampIt_Project.User>
 }

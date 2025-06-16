@@ -27,7 +27,9 @@ extension InviteFirestore {
         return Invitation(
             groupID: self.groupId,
             createdBy: self.createdBy,
-            expiredAt: self.expiredAt?.dateValue() ?? Date.distantFuture
+            expiredAt: self.expiredAt?.dateValue() ?? Date.distantFuture,
+            inviteCode: self.inviteCode,
+            createdAt: self.createdAt.dateValue()
         )
     }
 }

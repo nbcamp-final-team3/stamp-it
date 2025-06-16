@@ -137,11 +137,20 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 isLeader: true
             )
             
+            let inviteFirestore = InviteFirestore(
+                inviteCode: inviteCode,
+                groupId: groupId,
+                createdBy: authUser.uid,
+                createdAt: Timestamp(date: now),
+                expiredAt: nil // 영구 초대 코드
+            )
+            
             // 3. 트랜잭션으로 원자적 생성
             self.authRepository.createNewUserWithGroup(
                 user: userFirestore,
                 group: groupFirestore,
-                member: memberFirestore
+                member: memberFirestore,
+                invite: inviteFirestore
             )
             .subscribe(
                 onNext: { completeUser in

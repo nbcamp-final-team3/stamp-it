@@ -206,7 +206,8 @@ final class AuthRepository: AuthRepositoryProtocol {
     func createNewUserWithGroup(
         user: UserFirestore,
         group: GroupFirestore,
-        member: MemberFirestore
+        member: MemberFirestore,
+        invite: InviteFirestore
     ) -> Observable<StampIt_Project.User> {
         return Observable.create { [weak self] observer in
             guard let _ = self else {
@@ -227,7 +228,7 @@ final class AuthRepository: AuthRepositoryProtocol {
             ]
             let userRef = Firestore.firestore().collection("users").document(user.documentID)
             batch.setData(userDict, forDocument: userRef)
-
+            
             // 2. 그룹
             let groupDict: [String: Any] = [
                 "groupId": group.groupId,
@@ -239,7 +240,7 @@ final class AuthRepository: AuthRepositoryProtocol {
             ]
             let groupRef = Firestore.firestore().collection("groups").document(group.documentID)
             batch.setData(groupDict, forDocument: groupRef)
-
+            
             // 3. 멤버
             let memberDict: [String: Any] = [
                 "userId": member.userId,
@@ -253,6 +254,17 @@ final class AuthRepository: AuthRepositoryProtocol {
                 .collection("members")
                 .document(member.documentID)
             batch.setData(memberDict, forDocument: memberRef)
+            
+            // 4. 초대 코드
+            let inviteDict: [String: Any] = [
+                "inviteCode": invite.inviteCode,
+                "groupId": invite.groupId,
+                "createdBy": invite.createdBy,
+                "createdAt": invite.createdAt,
+                "expiredAt": invite.expiredAt as Any
+            ]
+            let inviteRef = Firestore.firestore().collection("invites").document(invite.documentID)
+            batch.setData(inviteDict, forDocument: inviteRef)
             
             // 커밋
             batch.commit { error in
@@ -270,7 +282,7 @@ final class AuthRepository: AuthRepositoryProtocol {
             return Disposables.create()
         }
     }
-
+    
     
     // MARK: - Private Methods
     /// 다양한 에러 타입을 RepositoryError로 매핑
