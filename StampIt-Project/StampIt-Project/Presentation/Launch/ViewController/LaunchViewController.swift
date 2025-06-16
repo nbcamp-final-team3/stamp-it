@@ -15,7 +15,7 @@ final class LaunchViewController: UIViewController {
     
     // 1. 로딩 인디케이터 추가
     private let loadingIndicator = UIActivityIndicatorView(style: .large).then {
-        $0.color = .systemBlue
+        $0.color = UIColor(named: "red400")
         $0.hidesWhenStopped = true
     }
 
