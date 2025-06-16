@@ -26,7 +26,7 @@ final class MyPageRepositoryImpl:
     }
     
     func fetchStickers(userId: String) -> Observable<[Sticker]> {
-        firestoreManager.fetchStickers(userId: userId, month: "1")
+        firestoreManager.fetchStickers(userId: userId, month: "")
             .map { stickers in
                 stickers.map { $0.toDomainModel() }
             }
