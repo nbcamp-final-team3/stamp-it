@@ -32,7 +32,7 @@ final class HomeViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func loadView() {
         view = homeView
     }
@@ -42,18 +42,71 @@ final class HomeViewController: UIViewController {
         bind()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        viewModel.action.accept(.viewWillAppear)
+    }
+
     // MARK: - Bind
 
     private func bind() {
+        bindGroupOrganizationView()
+        bindDashboardView()
+    }
+
+    private func bindGroupOrganizationView() {
         homeView.didTapGroupOrganizationButton
             .map { HomeViewModel.Action.didTapGroupOrganizationButton }
             .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
+        viewModel.state.isShowGroupOrganizationView
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, isShow in
+                owner.homeView.toggleView(showGroupOrganizationView: isShow)
+            }
             .disposed(by: disposeBag)
 
         viewModel.state.isShowSelectInvitationVC
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, _ in
                 owner.showSelectInvitationVC()
+            }
+            .disposed(by: disposeBag)
+    }
+
+    private func bindDashboardView() {
+        homeView.didTapMissionCompleteButton
+            .map { HomeViewModel.Action.didTapMissonCompleteButton($0) }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
+        viewModel.state.user
+            .asDriver()
+            .drive(with: self) { owner, user in
+                guard let user else { return }
+                owner.homeView.username.accept(user.nickname)
+                owner.homeView.groupName.accept(user.groupName)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.rankedMembers
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.homeView.updateSnapshot(withItems: items, toSection: .ranking)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.receivedMissions
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.homeView.updateSnapshot(withItems: items, toSection: .receivedMission)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.sendedMissionsForDisplay
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.homeView.updateSnapshot(withItems: items, toSection: .sendedMission)
             }
             .disposed(by: disposeBag)
     }
@@ -76,5 +129,4 @@ final class HomeViewController: UIViewController {
         }
         present(vc, animated: true)
     }
-
 }
