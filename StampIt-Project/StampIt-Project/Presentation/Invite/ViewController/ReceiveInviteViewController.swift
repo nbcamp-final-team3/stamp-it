@@ -17,8 +17,17 @@ final class ReceiveInviteViewController: UIViewController {
 
     // MARK: - properties
 
-    private let viewModel = ReceiveInviteViewModel()
+    private let viewModel: ReceiveInviteViewModel
     private let disposeBag = DisposeBag()
+
+    init(viewModel: ReceiveInviteViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     private let imageView = UIImageView().then {
         $0.image = UIImage(named: "MascotCharacterGroup")
@@ -64,6 +73,8 @@ final class ReceiveInviteViewController: UIViewController {
 
     private let enterButton = DefaultButton(type: .enter)
 
+
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -76,10 +87,10 @@ final class ReceiveInviteViewController: UIViewController {
         view.addSubview(textFieldContainer)
         textFieldContainer.addSubview(stackView)
         [floatingLabel, textField]
-        .forEach { stackView.addArrangedSubview($0) }
+            .forEach { stackView.addArrangedSubview($0) }
 
         [imageView, helpLabel, enterButton]
-        .forEach { view.addSubview($0) }
+            .forEach { view.addSubview($0) }
 
         imageView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(140)
