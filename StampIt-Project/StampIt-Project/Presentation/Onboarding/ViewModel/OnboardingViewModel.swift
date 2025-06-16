@@ -57,6 +57,7 @@ final class OnboardingViewModel: ViewModelProtocol {
     /// 액션 스트림을 바인딩하여 상태 변화를 처리
     private func bindAction() {
         action
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] action in
                 guard let self = self else { return }
                 switch action {

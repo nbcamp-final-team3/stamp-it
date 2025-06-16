@@ -343,7 +343,7 @@ final class LoginViewController: UIViewController {
         case .navigateToMain:
             navigateToHome(user: user)
         case .showWelcomeMessage:
-            navigateToOnboarding(user: user)
+            showWelcomeMessage(user: user)
         }
     }
     
@@ -353,10 +353,10 @@ final class LoginViewController: UIViewController {
         print("✅ 홈 화면으로 이동: \(user.nickname)")
     }
     
-    /// 온보딩 화면으로 이동
-    private func navigateToOnboarding(user: User) {
-        // TODO: 온보딩 화면 ViewController로 이동 (온보딩 작업에서 추가 예정)
-        print("✅ 온보딩 화면으로 이동: \(user.nickname)")
+    /// 신규 사용자 환영 메시지 표시
+    private func showWelcomeMessage(user: User) {
+        // TODO: 신규 사용자 환영 토스트 메시지로 변경 예정
+        print("✅ 신규 사용자 환영: \(user.nickname)")
     }
     
     /// 에러 알림 표시

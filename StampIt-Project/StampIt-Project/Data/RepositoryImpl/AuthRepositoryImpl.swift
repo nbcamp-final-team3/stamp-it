@@ -186,13 +186,6 @@ final class AuthRepository: AuthRepositoryProtocol {
             }
     }
     
-    // MARK: - 온보딩
-    /// 온보딩 완료 처리 (추후 구현 예정)
-    func completeOnboarding() -> Observable<Void> {
-        // TODO: 온보딩 완료 처리
-        return Observable.just(())
-    }
-    
     // MARK: - Internal Firestore Operations
     /// Firestore에 사용자 정보 생성 (내부 전용)
     func createUser(_ user: UserFirestore) -> Observable<Void> {
