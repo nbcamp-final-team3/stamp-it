@@ -15,9 +15,19 @@ import Toast
 final class SendInviteViewController: UIViewController {
 
     // MARK: - Properties
-    private let viewModel = SendInviteViewModel()
+    private let viewModel: SendInviteViewModel
     private let disposeBag = DisposeBag()
 
+    // MARK: - Init
+    init(viewModel: SendInviteViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     private let imageView = UIImageView().then {
         $0.image = UIImage(named: "MascotCharacter")
         $0.contentMode = .scaleAspectFit
@@ -112,15 +122,17 @@ final class SendInviteViewController: UIViewController {
     // MARK: - Bind
     private func bindViewModel() {
         viewModel.state.inviteCode
-            .bind(to: inviteCodeLabel.rx.text)
-            .disposed(by: disposeBag)
+            .subscribe(onNext: { code in
+                self.inviteCodeLabel.text = code
+                UIPasteboard.general.string = code
+            }).disposed(by: disposeBag)
+
 
         viewModel.state.showMessage
             .subscribe(onNext: { [weak self] message in
                 /// toast 색상설정을 위한 변수
                 var style = ToastStyle()
                 style.backgroundColor = .toastGray
-
 
                 self?.view.makeToast(message, duration: 1.5, position: .bottom, image: nil, style: style
                 , completion: nil)

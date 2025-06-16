@@ -1,38 +1,42 @@
 //
-//  SendInviteUseCaseImpl.swift
+//  SendInviteRepositoryImpl.swift
 //  StampIt-Project
 //
-//  Created by 윤주형 on 6/16/25.
+//  Created by 윤주형 on 6/17/25.
 //
 
 import Foundation
 import RxSwift
 import FirebaseCore
 
-final class SendInviteUseCaseImpl: SendInviteUseCase {
+final class SendInviteRepositoryImpl: SendInviteRepository {
 
+    private let firestoreManager: FirestoreManagerProtocol
     private let authRepository: AuthRepositoryProtocol
-    private let sendInviteRepository: SendInviteRepository
 
-    init(authRepository: AuthRepositoryProtocol,
-         sendInviteRepository: SendInviteRepository) {
+    init(firestoreManager: FirestoreManagerProtocol = FirestoreManager(),
+         authRepository: AuthRepositoryProtocol = AuthRepository(authManager: AuthManager(), firestoreManager: FirestoreManager())) {
+        self.firestoreManager = firestoreManager
         self.authRepository = authRepository
-        self.sendInviteRepository = sendInviteRepository
-    }
-
-    func getCurrentUser() -> Observable<User?> {
-        authRepository.getCurrentUser()
     }
 
     func fetchUserOnce(userId: String) -> Observable<UserFirestore> {
-        sendInviteRepository.fetchUserOnce(userId: userId)
+        return firestoreManager.fetchUserOnce(userId: userId)
+    }
+
+    func createInvite(_ invite: InviteFirestore) -> Observable<Void>{
+        return firestoreManager.createInvite(invite)
     }
 
     func fetchGroup(groupId: String) -> Observable<GroupFirestore> {
-        sendInviteRepository.fetchGroup(groupId: groupId)
+        return firestoreManager.fetchGroup(groupId: groupId)
     }
 
-    func createInvite(groupId: String) -> Observable<String> {
+    func getCurrentUser() -> Observable<StampIt_Project.User?> {
+        return authRepository.getCurrentUser()
+    }
+
+    func sequenceCreateCode() -> Observable<String> {
         return getCurrentUser()
             .flatMap { user -> Observable<UserFirestore> in
                 guard let user = user else {
@@ -58,7 +62,7 @@ final class SendInviteUseCaseImpl: SendInviteUseCase {
                     expiredAt: expired
                 )
 
-                return self.sendInviteRepository.createInvite(invite)
+                return self.createInvite(invite)
                     .map { invite.inviteCode }
             }
     }
