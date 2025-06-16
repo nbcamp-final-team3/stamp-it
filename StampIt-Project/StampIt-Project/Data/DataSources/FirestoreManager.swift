@@ -23,14 +23,14 @@ protocol FirestoreManagerProtocol {
     func updateUser(_ user: UserFirestore) -> Observable<Void>
     func deleteUser(userId: String) -> Observable<Void>
     func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void>
-
+    
     // Group 관련
     func fetchGroup(groupId: String) -> Observable<GroupFirestore>
     func createGroup(_ group: GroupFirestore) -> Observable<Void>
     func updateGroup(_ group: GroupFirestore) -> Observable<Void>
     func deleteGroup(groupId: String) -> Observable<Void>
     func updateGroupName(groupId: String, name: String, changedAt: Date) -> Observable<Void>
-
+    
     // Member 관련
     func fetchMembers(groupId: String) -> Observable<[MemberFirestore]>
     func addMember(groupId: String, member: MemberFirestore) -> Observable<Void>
@@ -49,7 +49,12 @@ protocol FirestoreManagerProtocol {
     
     // Sticker 관련
     func fetchStickers(userId: String, month: String) -> Observable<[StickerFirestore]>
+    func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[StickerFirestore]>
+    func fetchStickerCount(userId: String) -> Observable<Int>
+    func fetchGroupStickers(groupId: String, month: String) -> Observable<[StickerFirestore]>
+    func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]>
     func addSticker(_ sticker: StickerFirestore) -> Observable<Void>
+    func createStickerFromMission(userId: String, groupId: String, missionTitle: String, assignedBy: String, stickerType: String) -> Observable<StickerFirestore>
     
     // Invite 관련
     func fetchInvite(inviteCode: String) -> Observable<InviteFirestore>
@@ -379,7 +384,7 @@ extension FirestoreManager {
             return Disposables.create()
         }
     }
-
+    
     
     /// 그룹명 업데이트
     func updateGroupName(groupId: String, name: String, changedAt: Date) -> Observable<Void> {
@@ -611,6 +616,128 @@ extension FirestoreManager {
             let listener = self.stickersCollection
                 .whereField("userId", isEqualTo: userId)
                 .whereField("month", isEqualTo: month)
+                .order(by: "createdAt", descending: false)
+                .addSnapshotListener { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext([])
+                        return
+                    }
+                    
+                    do {
+                        let stickers = try documents.compactMap { document -> StickerFirestore? in
+                            return try document.data(as: StickerFirestore.self)
+                        }
+                        observer.onNext(stickers)
+                    } catch {
+                        observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
+                    }
+                }
+            
+            return Disposables.create {
+                listener.remove()
+            }
+        }
+    }
+    
+    /// 특정 사용자의 핀번호별 스티커 조회 (이전 스티커판용)
+    func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[StickerFirestore]> {
+        return Observable.create { observer in
+            let listener = self.stickersCollection
+                .whereField("userId", isEqualTo: userId)
+                .whereField("pinNumber", isEqualTo: pinNumber)
+                .order(by: "createdAt", descending: false)
+                .addSnapshotListener { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext([])
+                        return
+                    }
+                    
+                    do {
+                        let stickers = try documents.compactMap { document -> StickerFirestore? in
+                            return try document.data(as: StickerFirestore.self)
+                        }
+                        observer.onNext(stickers)
+                    } catch {
+                        observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
+                    }
+                }
+            
+            return Disposables.create {
+                listener.remove()
+            }
+        }
+    }
+    
+    /// 특정 사용자의 현재 스티커 개수 조회 (핀번호 계산용)
+    func fetchStickerCount(userId: String) -> Observable<Int> {
+        return Observable.create { observer in
+            self.stickersCollection
+                .whereField("userId", isEqualTo: userId)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    let count = querySnapshot?.documents.count ?? 0
+                    observer.onNext(count)
+                    observer.onCompleted()
+                }
+            
+            return Disposables.create()
+        }
+    }
+    
+    /// 특정 그룹의 모든 스티커 조회 (그룹 랭킹용-홈)
+    func fetchGroupStickers(groupId: String, month: String) -> Observable<[StickerFirestore]> {
+        return Observable.create { observer in
+            let listener = self.stickersCollection
+                .whereField("groupId", isEqualTo: groupId)
+                .whereField("month", isEqualTo: month)
+                .order(by: "createdAt", descending: false)
+                .addSnapshotListener { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext([])
+                        return
+                    }
+                    
+                    do {
+                        let stickers = try documents.compactMap { document -> StickerFirestore? in
+                            return try document.data(as: StickerFirestore.self)
+                        }
+                        observer.onNext(stickers)
+                    } catch {
+                        observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
+                    }
+                }
+            
+            return Disposables.create {
+                listener.remove()
+            }
+        }
+    }
+    
+    /// 특정 사용자의 모든 스티커 조회 (전체 기록용-마이페이지)
+    func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]> {
+        return Observable.create { observer in
+            let listener = self.stickersCollection
+                .whereField("userId", isEqualTo: userId)
+                .order(by: "createdAt", descending: false)
                 .addSnapshotListener { querySnapshot, error in
                     if let error = error {
                         observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
@@ -659,9 +786,66 @@ extension FirestoreManager {
         }
     }
     
+    /// 스티커 정보 업데이트 (타입 변경 등): 해당 코드는 추가 기능 구현을 위해 미리 만들어둠
+        func updateSticker(_ sticker: StickerFirestore) -> Observable<Void> {
+            return Observable.create { observer in
+                do {
+                    try self.stickersCollection.document(sticker.documentID)
+                        .setData(from: sticker, merge: true) { error in
+                            if let error = error {
+                                observer.onError(FirestoreError.updateFailed(error.localizedDescription))
+                            } else {
+                                observer.onNext(())
+                                observer.onCompleted()
+                            }
+                        }
+                } catch {
+                    observer.onError(FirestoreError.encodingFailed(error.localizedDescription))
+                }
+                
+                return Disposables.create()
+            }
+        }
     
-    
-    
+    /// 미션 완료 시 자동 스티커 생성 (핀번호 자동 계산)
+    func createStickerFromMission(
+        userId: String,
+        groupId: String,
+        missionTitle: String,
+        assignedBy: String,
+        stickerType: String = "일반"
+    ) -> Observable<StickerFirestore> {
+        return fetchStickerCount(userId: userId)
+            .flatMap { [weak self] currentCount -> Observable<StickerFirestore> in
+                guard let self = self else {
+                    return Observable.error(FirestoreError.unknownError)
+                }
+                
+                let now = Date()
+                let calendar = Calendar.current
+                let month = String(format: "%04d-%02d",
+                                   calendar.component(.year, from: now),
+                                   calendar.component(.month, from: now))
+                
+                // 핀번호 계산: 1~30개 = 핀1, 31~60개 = 핀2, ...
+                let pinNumber = (currentCount / 30) + 1
+                
+                let sticker = StickerFirestore(
+                    stickerId: UUID().uuidString,
+                    userId: userId,
+                    groupId: groupId,
+                    month: month,
+                    type: stickerType,
+                    pinNumber: pinNumber,
+                    createdAt: Timestamp(date: now),
+                    missionTitle: missionTitle,
+                    assignedBy: assignedBy
+                )
+                
+                return self.addSticker(sticker)
+                    .map { _ in sticker }
+            }
+    }
 }
 
 // MARK: - Invite Operations
@@ -699,7 +883,6 @@ extension FirestoreManager {
     func createInvite(_ invite: InviteFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                // ✅ Firestore 자동 Codable 인코딩
                 try self.invitesCollection.document(invite.documentID)
                     .setData(from: invite) { error in
                         if let error = error {
