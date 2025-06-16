@@ -30,6 +30,7 @@ final class UserCache {
     func setCurrentUser(_ user: User) {
         cachedUser = user
         cacheTimestamp = Date()
+        // TODO: 리팩토링 단계에서 삭제 예정
         print("💾 사용자 정보 캐시 저장: \(user.nickname)")
     }
     

@@ -116,15 +116,6 @@ final class LaunchViewController: UIViewController {
     }
 
     private func changeRoot(_ vc: UIViewController) {
-        guard let windowScene = UIApplication.shared.connectedScenes
-            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-              let window = windowScene.windows.first else { return }
-        
-        // 6. 애니메이션 시간 단축 및 부드러운 전환
-        UIView.transition(with: window, duration: 0.15, options: .transitionCrossDissolve) {
-            window.rootViewController = vc
-        } completion: { _ in
-            window.makeKeyAndVisible()
-        }
+        WindowTransitionManager.shared.changeRootViewController(to: vc)
     }
 }

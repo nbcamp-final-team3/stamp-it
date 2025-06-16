@@ -349,19 +349,10 @@ final class LoginViewController: UIViewController {
     
     /// 홈 화면으로 이동
     private func navigateToHome(user: User) {
-        // 1. DIContainer로 HomeViewController 생성
         let homeVC = DIContainer.shared.makeHomeViewController()
-
-        // 2. windowScene(iOS 15+) 방식으로 rootViewController 교체
-        if let windowScene = UIApplication.shared.connectedScenes
-            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-           let window = windowScene.windows.first {
-            window.rootViewController = UINavigationController(rootViewController: homeVC)
-            window.makeKeyAndVisible()
-        } else {
-            // 3. navigationController fallback
-            navigationController?.setViewControllers([homeVC], animated: true)
-        }
+        let navController = UINavigationController(rootViewController: homeVC)
+        
+        WindowTransitionManager.shared.changeRootViewController(to: navController)
     }
     
     /// 신규 사용자 환영 메시지 표시
