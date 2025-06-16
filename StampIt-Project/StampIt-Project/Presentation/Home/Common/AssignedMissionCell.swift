@@ -181,8 +181,8 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     // MARK: - Methods
 
-    func configureAsSended(with mission: HomeSendedMission, type: MissionType) {
-        self.type = type
+    func configureAsSended(with mission: HomeSendedMission) {
+        self.type = .sended
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
         nameTag.updateText(with: mission.assignee)
@@ -191,6 +191,18 @@ final class AssignedMissionCell: UICollectionViewCell {
         daysLeftLabel.text = mission.daysLeft
         titleLabel.text = mission.title
         updateStatusView(for: mission.status)
+    }
+
+    func configureAsReceived(with mission: HomeReceivedMission) {
+        self.type = .received
+        imageContainerView.backgroundColor = mission.category.backgroundColor
+        categoryImageView.image = mission.category.image
+        nameTag.isHidden = !(mission.isNew ?? false)
+        nameTag.updateText(with: mission.assigner)
+        dateTag.updateText(with: mission.dueDate)
+        if mission.isOverdue { dateTag.updateTextColor(.gray200) }
+        titleLabel.text = mission.title
+        statusButton.updateStatus(to: mission.status)
     }
 
     private func toggleViewOnType() {

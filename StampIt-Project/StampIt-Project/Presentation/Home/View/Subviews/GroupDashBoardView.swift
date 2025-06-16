@@ -109,7 +109,7 @@ final class GroupDashboardView: UIView {
                     for: indexPath
                 ) as! AssignedMissionCell
 
-                cell.configureAsSended(with: mission, type: .sended)
+                cell.configureAsSended(with: mission)
 
                 return cell
 

@@ -231,7 +231,9 @@ final class HomeViewModel: ViewModelProtocol {
                 category: mission.category,
                 dueDate: mission.dueDate.toMonthDayString(),
                 assigner: assigner,
-                isNew: nil
+                isNew: nil,
+                isOverdue: formatOverdueAndDays(from: mission.dueDate).isOverdue,
+                status: mission.status
             )
             return HomeItem.received(homeMission)
         }
