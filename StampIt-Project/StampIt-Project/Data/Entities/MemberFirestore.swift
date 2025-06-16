@@ -30,3 +30,14 @@ extension MemberFirestore {
         )
     }
 }
+
+extension Member {
+    func toFirestoreModel() -> MemberFirestore {
+        return MemberFirestore(
+            userId: self.userID,
+            nickname: self.nickname,
+            joinedAt: Timestamp(date: self.joinedAt),
+            isLeader: self.isLeader
+        )
+    }
+}

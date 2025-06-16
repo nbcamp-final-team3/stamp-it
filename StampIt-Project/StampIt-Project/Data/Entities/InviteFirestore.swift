@@ -33,3 +33,15 @@ extension InviteFirestore {
         )
     }
 }
+
+extension Invitation {
+    func toFirestoreModel() -> InviteFirestore {
+        return InviteFirestore(
+            inviteCode: self.inviteCode,
+            groupId: self.groupID,
+            createdBy: self.createdBy,
+            createdAt: Timestamp(date: self.createdAt),
+            expiredAt: self.expiredAt == Date.distantFuture ? nil : Timestamp(date: self.expiredAt)
+        )
+    }
+}
