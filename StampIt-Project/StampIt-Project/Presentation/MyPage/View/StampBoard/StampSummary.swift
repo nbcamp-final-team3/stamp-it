@@ -17,34 +17,34 @@ final class StampSummary: UIView {
     private let stampVStackView = UIStackView().then {
         $0.axis = .vertical
         $0.alignment = .center
-        $0.spacing = MyPage.Stamp.vStackSpacing
+        $0.spacing = MyPage.StampBoard.vStackSpacing
     }
     
     /// 내가 모은 스탬프
     private let collectedStampTitle = UILabel().then {
-        $0.text = MyPage.Stamp.collected
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .regular)
+        $0.text = MyPage.StampBoard.collected
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .regular)
         $0.textColor = .gray800
     }
     
     /// 내가 모은 스탬프 - 현재 개수
     private let currentStampLabel = UILabel().then {
         $0.text = "0"
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .bold)
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .bold)
         $0.textColor = .gray800
     }
     
     /// 내가 모은 스탬프 - /
     private let slashLabel = UILabel().then {
-        $0.text = MyPage.Stamp.slash
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .regular)
+        $0.text = MyPage.StampBoard.slash
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .regular)
         $0.textColor = .gray800
     }
 
     /// 내가 모은 스탬프 - 30
     private let totalStampLabel = UILabel().then {
-        $0.text = MyPage.Stamp.totalStamp
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeSmall, weight: .regular)
+        $0.text = MyPage.StampBoard.totalStamp
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeSmall, weight: .regular)
         $0.textColor = .gray800
     }
     
@@ -58,20 +58,20 @@ final class StampSummary: UIView {
     private let boardVStackView = UIStackView().then {
         $0.axis = .vertical
         $0.alignment = .center
-        $0.spacing = MyPage.Stamp.vStackSpacing
+        $0.spacing = MyPage.StampBoard.vStackSpacing
     }
     
     /// 완성한 스탬프 판
     private let completedBoardTitle = UILabel().then {
-        $0.text = MyPage.Stamp.completed
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .regular)
+        $0.text = MyPage.StampBoard.completed
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .regular)
         $0.textColor = .gray800
     }
     
     /// 완성한 스탬프 판 - N개
     private let totalBoardLabel = UILabel().then {
-        $0.text = "0\(MyPage.Stamp.unit)"
-        $0.font = .pretendard(size: MyPage.Stamp.fontSizeMedium, weight: .bold)
+        $0.text = "0\(MyPage.StampBoard.unit)"
+        $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .bold)
         $0.textColor = .gray800
     }
     
