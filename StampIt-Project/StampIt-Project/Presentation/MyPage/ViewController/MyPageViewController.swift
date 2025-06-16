@@ -70,6 +70,9 @@ final class MyPageViewController: UIViewController {
         
         viewModel.state.stickers
             .bind(with: self) { owner, stickers in
+                
+                print("BIND STICKER: \n\(stickers)")
+                
                 self.updateUI(with: stickers)
             }.disposed(by: disposeBag)
     }
@@ -142,23 +145,12 @@ final class MyPageViewController: UIViewController {
 
     // MARK: - Snapshot
     
-    private func updateUI(with item: [Sticker]) {
-        let allStamps = makeAllStamps(with: item)
+    private func updateUI(with stickers: [Sticker]) {
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.defaultBoard])
-        snapshot.appendItems(allStamps, toSection: .defaultBoard)
-        stampBoardDataSource.apply(snapshot, animatingDifferences: true)
+        snapshot.appendItems(stickers, toSection: .defaultBoard)
+        stampBoardDataSource.apply(snapshot, animatingDifferences: false)
     }
-    
-    private func makeAllStamps(with item: [Sticker]) -> [Sticker] {
-        let redItems = Array(repeating: StickerType.stampRed, count: item.count)
-        let grayItems = Array(repeating: StickerType.stampGray, count: 30 - item.count)
-        return (redItems + grayItems).map {
-            Sticker(stickerID: "0", title: "", description: "", imageURL: "", type: $0, createdAt: Date())
-        }
-    }
-    
-//    private func zigzagOrder
     
     // MARK: - Methods
     

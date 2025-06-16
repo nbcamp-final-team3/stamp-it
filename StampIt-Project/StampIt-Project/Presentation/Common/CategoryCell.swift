@@ -101,10 +101,16 @@ final class CategoryCell: UICollectionViewCell {
             contentView.layer.borderColor = UIColor.red400.cgColor
             stackView.backgroundColor = .red400
             label.textColor = .white
+            if label.text == MissionCategory.chore.title {
+                imageView.image = .choreStroke
+            }
         } else {
             contentView.layer.borderColor = UIColor.gray200.cgColor
             stackView.backgroundColor = .white
             label.textColor = .gray400
+            if label.text == MissionCategory.chore.title {
+                imageView.image = .chore
+            }
         }
     }
 }

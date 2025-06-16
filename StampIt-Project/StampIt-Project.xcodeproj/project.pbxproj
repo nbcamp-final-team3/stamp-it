@@ -50,7 +50,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F4D1E56A2DFBBDFD00323BF2 /* Exceptions for "StampIt-Project" folder in "StampIt-Project" target */ = {
+		F41771C82DFFB92100358F74 /* Exceptions for "StampIt-Project" folder in "StampIt-Project" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resource/Info.plist,
@@ -63,7 +63,7 @@
 		783A87162DF02CA80095BF4E /* StampIt-Project */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F4D1E56A2DFBBDFD00323BF2 /* Exceptions for "StampIt-Project" folder in "StampIt-Project" target */,
+				F41771C82DFFB92100358F74 /* Exceptions for "StampIt-Project" folder in "StampIt-Project" target */,
 			);
 			path = "StampIt-Project";
 			sourceTree = "<group>";
@@ -354,7 +354,7 @@
 				CODE_SIGN_ENTITLEMENTS = "StampIt-Project/StampIt-Project.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 373K7546A3;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";
@@ -390,7 +390,7 @@
 				CODE_SIGN_ENTITLEMENTS = "StampIt-Project/StampIt-Project.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 373K7546A3;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";

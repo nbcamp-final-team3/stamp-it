@@ -15,8 +15,9 @@ import RxCocoa
 
 final class GroupDashboardView: UIView {
 
-    // MARK: - States
+    // MARK: - Action & States
 
+    let didTapMissionCompleteButton = PublishRelay<String>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
 
@@ -94,6 +95,12 @@ final class GroupDashboardView: UIView {
 
                 cell.configure(with: mission)
 
+                cell.didTapMissionCompleteButton
+                    .bind(with: self, onNext: { owner, _ in
+                        owner.didTapMissionCompleteButton.accept(item.received!.missionID)
+                    })
+                    .disposed(by: cell.disposeBag)
+
                 return cell
 
             case .sended(let mission):
@@ -131,21 +138,27 @@ final class GroupDashboardView: UIView {
             ) as! DashboardHeader
 
             let section = HomeSection.allCases[indexPath.section]
-            let title: String
-            let desctription: String
 
             switch section {
             case .ranking:
                 return nil
-            case .receivedMission:
-                title = "내 미션"
-                desctription = "이번 주 \(username.value)님에게 부여된 미션이에요"
-            case .sendedMission:
-                title = "멤버 미션"
-                desctription = "\(username.value)님이 \(groupName.value) 멤버들에게 전달한 미션이에요"
-            }
 
-            header.configure(title: title, description: desctription)
+            case .receivedMission:
+                header.configure(title: "내 미션")
+                username
+                    .map { "이번주 \($0)님에게 부여된 미션이에요" }
+                    .bind(to: header.descriptionRxText)
+                    .disposed(by: header.disposeBag)
+
+            case .sendedMission:
+                header.configure(title: "멤버 미션")
+                Observable
+                    .combineLatest(username, groupName) { user, group in
+                        "\(user)님이 \(group) 멤버들에게 전달한 미션이에요"
+                    }
+                    .bind(to: header.descriptionRxText)
+                    .disposed(by: header.disposeBag)
+            }
 
             return header
         }
@@ -153,22 +166,16 @@ final class GroupDashboardView: UIView {
         guard let dataSource else { return }
         var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
         snapshot.appendSections(HomeSection.allCases)
-        // TODO: 레이아웃 확인용
-        snapshot.appendItems(HomeItem.homeMembers, toSection: .ranking)
-        snapshot.appendItems(HomeItem.receivedMissions, toSection: .receivedMission)
-        snapshot.appendItems(HomeItem.sendedMissions, toSection: .sendedMission)
-//        snapshot.appendItems([.placeholder(.receivedMission)], toSection: .receivedMission)
-//        snapshot.appendItems([.placeholder(.sendedMission)], toSection: .sendedMission)
         dataSource.apply(snapshot)
     }
 
-    func updateSnapshot(with items: [HomeItem], toSection section: HomeSection) {
+    func updateSnapshot(withItems items: [HomeItem], toSection section: HomeSection) {
         guard var snapshot = dataSource?.snapshot() else { return }
         let itemForDelete = snapshot.itemIdentifiers(inSection: section)
         snapshot.deleteItems(itemForDelete)
 
         if items.isEmpty {
-            snapshot.appendItems([.placeholder(section)])
+            snapshot.appendItems([.placeholder(section)], toSection: section)
         } else {
             snapshot.appendItems(items, toSection: section)
         }
