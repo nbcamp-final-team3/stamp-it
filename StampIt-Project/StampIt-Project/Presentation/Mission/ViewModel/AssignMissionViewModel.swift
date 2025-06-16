@@ -9,29 +9,28 @@ import Foundation
 import RxSwift
 import RxRelay
 
-final class AssignMissionViewModel: MissionViewModelProtocol {
-    enum Input {
+final class AssignMissionViewModel: ViewModelProtocol {
+    enum Action {
         case onAppear
         case didSelectMember(Member)
         case didSelectDueDate(Date)
         case didTapAssignButton
     }
     
-    struct Output {
+    struct State {
         var mission = BehaviorRelay<SampleMission?>(value: nil)
         var members = BehaviorRelay<[Member]>(value: [])
         var selectedMember = BehaviorRelay<Member?>(value: nil)
         var dueDate = BehaviorRelay<Date>(value: Date())
     }
     
-    var input = PublishRelay<Input>()
-    var output = Output()
+    var action = PublishRelay<Action>()
+    var state = State()
     
     var disposeBag = DisposeBag()
     
     private let mission: SampleMission
     private let missionUseCaseImpl: MissionUseCase
-    // private var groupID: String?
     private var user: User?
     
     init(mission: SampleMission, missionUseCaseImpl: MissionUseCase = MissionUseCaseImpl()) {
@@ -46,20 +45,20 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
     }
     
     private func bind() {
-        input
+        action
             .subscribe { [weak self] input in
                 guard let self else { return }
                 
                 switch input {
                 case .onAppear:
-                    output.mission.accept(mission)
+                    state.mission.accept(mission)
                     loadMembers()
-                    print("mission: \(String(describing: output.mission.value?.title)), members count: \(output.members.value.count)")
+                    print("mission: \(String(describing: state.mission.value?.title)), members count: \(state.members.value.count)")
                 case .didSelectMember(let member):
-                    output.selectedMember.accept(member)
+                    state.selectedMember.accept(member)
                     print("selected member: \(member)")
                 case .didSelectDueDate(let date):
-                    output.dueDate.accept(date)
+                    state.dueDate.accept(date)
                     print("due date: \(date)")
                 case .didTapAssignButton:
                     print("did tap assign button")
@@ -95,7 +94,7 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
         
         missionUseCaseImpl.fetchMembers(ofGroup: user.groupID)
             .subscribe { [weak self] members in
-                self?.output.members.accept(members)
+                self?.state.members.accept(members)
             } onError: { error in
                 print(error)
             }
@@ -104,8 +103,8 @@ final class AssignMissionViewModel: MissionViewModelProtocol {
     
     // 미션 정보 저장
     private func createMission() -> Observable<Void> {
-        let nickname = output.selectedMember.value.map { $0.nickname }
-        let dueDate = output.dueDate.value
+        let nickname = state.selectedMember.value.map { $0.nickname }
+        let dueDate = state.dueDate.value
         guard let nickname, let user else {
             return Observable.error(NSError(domain: "user data or member data is nil.", code: 0, userInfo: nil))
         }
