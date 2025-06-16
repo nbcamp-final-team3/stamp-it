@@ -38,7 +38,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
         let isShowStickerReceived = PublishRelay<Void>()
-        let isPushReceivedMissionVC = PublishRelay<Void>()
+        let isPushMyMissionVC = PublishRelay<Void>()
         let isPushSendedMissionVC = PublishRelay<Void>()
     }
 
@@ -77,7 +77,7 @@ final class HomeViewModel: ViewModelProtocol {
                 case .didTapCompleteCancelButton:
                     owner.cancelMissionComplete()
                 case .didTapMoreReceivedMissions:
-                    owner.state.isPushReceivedMissionVC.accept(())
+                    owner.state.isPushMyMissionVC.accept(())
                 case .didSelectReceivedMember(memberID: let id):
                     owner.updateSendedMissions(memberID: id)
                 case .didTapMoreSenededMissions:
@@ -113,7 +113,7 @@ final class HomeViewModel: ViewModelProtocol {
                 guard let self = self else { return }
 
                 let memberItems = self.mapUsersToHomeItems(users)
-                state.isShowGroupOrganizationView.accept(users.count == 1)
+//                state.isShowGroupOrganizationView.accept(users.count == 1)
                 state.rankedMembers.accept(memberItems)
 
                 let receivedItems = self.mapReceivedMissionsToHomeItems(received)

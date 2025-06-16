@@ -80,6 +80,11 @@ final class HomeViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        homeView.didTapMoreReceivedMissionButton
+            .map { HomeViewModel.Action.didTapMoreReceivedMissions }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.user
             .asDriver()
             .drive(with: self) { owner, user in
@@ -100,6 +105,14 @@ final class HomeViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
                 owner.homeView.updateSnapshot(withItems: items, toSection: .receivedMission)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.isPushMyMissionVC
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                let myMissionVC = DIContainer.shared.makeMyMissionViewController()
+                owner.navigationController?.pushViewController(myMissionVC, animated: true)
             }
             .disposed(by: disposeBag)
 

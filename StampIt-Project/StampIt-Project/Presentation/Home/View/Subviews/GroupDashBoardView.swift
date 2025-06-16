@@ -18,6 +18,7 @@ final class GroupDashboardView: UIView {
     // MARK: - Action & States
 
     let didTapMissionCompleteButton = PublishRelay<String>()
+    let didTapMoreReceivedMissionButton = PublishRelay<Void>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
 
@@ -148,6 +149,10 @@ final class GroupDashboardView: UIView {
                 username
                     .map { "이번주 \($0)님에게 부여된 미션이에요" }
                     .bind(to: header.descriptionRxText)
+                    .disposed(by: header.disposeBag)
+
+                header.didTapMoreMissionButton
+                    .bind(to: didTapMoreReceivedMissionButton)
                     .disposed(by: header.disposeBag)
 
             case .sendedMission:
