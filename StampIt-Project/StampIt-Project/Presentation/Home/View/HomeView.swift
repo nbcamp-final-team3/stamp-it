@@ -89,7 +89,14 @@ final class HomeView: UIView {
             .disposed(by: disposeBag)
     }
 
+    // MARK: - Methods
+
     func updateSnapshot(withItems items: [HomeItem], toSection section: HomeSection) {
         groupDashboardView.updateSnapshot(withItems: items, toSection: section)
+    }
+
+    func toggleView(showGroupOrganizationView: Bool) {
+        groupOrganizationView.isHidden = !showGroupOrganizationView
+        groupDashboardView.isHidden = showGroupOrganizationView
     }
 }

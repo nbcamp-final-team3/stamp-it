@@ -59,6 +59,13 @@ final class HomeViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        viewModel.state.isShowGroupOrganizationView
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, isShow in
+                owner.homeView.toggleView(showGroupOrganizationView: isShow)
+            }
+            .disposed(by: disposeBag)
+
         viewModel.state.isShowSelectInvitationVC
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, _ in
