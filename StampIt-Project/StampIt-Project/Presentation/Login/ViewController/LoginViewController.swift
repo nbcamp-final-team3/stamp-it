@@ -19,7 +19,6 @@ final class LoginViewController: UIViewController {
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
-    
     /// 메인 스크롤뷰 (키보드 대응)
     private let scrollView = UIScrollView().then {
         $0.showsVerticalScrollIndicator = false

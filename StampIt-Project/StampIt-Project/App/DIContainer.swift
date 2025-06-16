@@ -50,6 +50,10 @@ final class DIContainer {
     private func makeMyPageViewModel() -> MyPageViewModel {
         return MyPageViewModel(myPageUseCase: myPageUseCase)
     }
+
+    func makeOnboardingViewModel() -> OnboardingViewModel {
+        return OnboardingViewModel(totalPages: 3)
+    }
     
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
@@ -60,6 +64,11 @@ final class DIContainer {
     func makeMyPageViewController() -> MyPageViewController {
         let viewModel = makeMyPageViewModel()
         return MyPageViewController(viewModel: viewModel)
+    }
+    
+    func makeOnboardingViewController() -> OnboardingViewController {
+        let viewModel = makeOnboardingViewModel()
+        return OnboardingViewController(viewModel: viewModel)
     }
     
     // MARK: - Singleton
