@@ -30,7 +30,7 @@ final class SendInviteViewController: UIViewController {
         $0.font = .systemFont(ofSize: 16)
     }
 
-    private let textFiledInTitle = UILabel().then {
+    private let textFieldInTitle = UILabel().then {
         $0.text = "초대코드"
         $0.font = .systemFont(ofSize: 14)
         $0.textColor = .gray800
@@ -79,7 +79,7 @@ final class SendInviteViewController: UIViewController {
         [imageView, helpLabel, inviteCodeStackView]
             .forEach{ view.addSubview($0) }
 
-        [textFiledInTitle, inviteCodeLabel, copyButton]
+        [textFieldInTitle, inviteCodeLabel, copyButton]
             .forEach { inviteCodeStackView.addArrangedSubview($0) }
 
         imageView.snp.makeConstraints {
@@ -100,7 +100,7 @@ final class SendInviteViewController: UIViewController {
             $0.height.equalTo(70)
         }
 
-        textFiledInTitle.snp.makeConstraints {
+        textFieldInTitle.snp.makeConstraints {
             $0.width.equalTo(60)
         }
 
