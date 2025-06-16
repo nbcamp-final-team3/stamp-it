@@ -100,7 +100,6 @@ final class LoginViewModel {
     }
     
     /// 로딩 메시지 (ex: "구글 로그인 중...")
-    // TODO: 해당 로딩 내용은 제거 될 수 있음
     var loadingMessage: Observable<String> {
         return Observable.combineLatest(isLoading, loginType) { isLoading, loginType in
             guard isLoading, let type = loginType else { return "" }
