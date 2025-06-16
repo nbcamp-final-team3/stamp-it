@@ -92,12 +92,11 @@ final class MyMissionView: UIView {
     // MARK: - Methods
 
     func updateSnapshot(withItems items: [MyMissionItem], toSection section: MyMissionSection) {
-        guard let dataSource else { return }
-        var snapshot = dataSource.snapshot()
+        guard var snapshot = dataSource?.snapshot() else { return }
         let itemsToDelete = snapshot.itemIdentifiers(inSection: section)
         snapshot.deleteItems(itemsToDelete)
         snapshot.appendItems(items)
-        dataSource.apply(snapshot)
+        dataSource?.apply(snapshot)
     }
 
     private func createLayout() -> UICollectionViewLayout {

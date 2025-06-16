@@ -7,7 +7,7 @@
 
 import UIKit
 import RxSwift
-import RxRelay
+import RxCocoa
 
 final class MyMissionViewController: UIViewController {
 
@@ -43,6 +43,14 @@ final class MyMissionViewController: UIViewController {
     // MARK: - Bind
 
     private func bind() {
+        viewModel.action.accept(.viewDidLoad)
+
+        viewModel.state.missions
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.myMissionView.updateSnapshot(withItems: items, toSection: .mission)
+            }
+            .disposed(by: disposeBag)
     }
 
 }

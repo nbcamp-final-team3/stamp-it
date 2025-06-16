@@ -71,8 +71,8 @@ final class DIContainer {
         return OnboardingViewModel(totalPages: 3)
     }
 
-    func makeMyMissionViewModel(user: User) -> MyMissionViewModel {
-        return MyMissionViewModel(user: user, useCase: myMissionUseCase)
+    func makeMyMissionViewModel(user: User, memberCache: [String: User]) -> MyMissionViewModel {
+        return MyMissionViewModel(user: user, memberCache: memberCache, useCase: myMissionUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)
@@ -96,8 +96,8 @@ final class DIContainer {
         return OnboardingViewController(viewModel: viewModel)
     }
 
-    func makeMyMissionViewController(user: User) -> MyMissionViewController {
-        let viewModel = makeMyMissionViewModel(user: user)
+    func makeMyMissionViewController(user: User, memberCache: [String: User]) -> MyMissionViewController {
+        let viewModel = makeMyMissionViewModel(user: user, memberCache: memberCache)
         return MyMissionViewController(viewModel: viewModel)
     }
 

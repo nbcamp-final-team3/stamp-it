@@ -16,6 +16,6 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
     }
 
     func fetchReceivedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
-        .empty()
+        homeRepository.fetchMissions(to: userID, by: nil, ofGroup: groupID)
     }
 }

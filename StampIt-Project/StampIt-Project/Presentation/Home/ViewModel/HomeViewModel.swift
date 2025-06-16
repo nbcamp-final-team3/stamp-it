@@ -46,7 +46,7 @@ final class HomeViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
-    private var memberCache = [String: User]() // 멤버 정보 저장
+    var memberCache = [String: User]() // 멤버 정보 저장
     private var receivedMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
     private var sendedMissions = [Mission]()
     private var pendingCommits = DisposeBag()
@@ -109,16 +109,16 @@ final class HomeViewModel: ViewModelProtocol {
                 return Observable.zip(rankingObs, receivedObs, sendedObs)
             }
             .subscribe(onNext: { [weak self] (users, received, sended) in
-                guard let self = self else { return }
+                guard let self else { return }
 
-                let memberItems = self.mapUsersToHomeItems(users)
+                let memberItems = mapUsersToHomeItems(users)
 //                state.isShowGroupOrganizationView.accept(users.count == 1)
                 state.rankedMembers.accept(memberItems)
 
-                let receivedItems = self.mapReceivedMissionsToHomeItems(received)
+                let receivedItems = mapReceivedMissionsToHomeItems(received)
                 state.receivedMissions.accept(receivedItems)
 
-                let sendedMissionsForDisplay = self.mapSendedMissionsToHomeItems(Array(sended.prefix(4)))
+                let sendedMissionsForDisplay = mapSendedMissionsToHomeItems(Array(sended.prefix(4)))
                 state.sendedMissionsForDisplay.accept(sendedMissionsForDisplay)
             })
             .disposed(by: disposeBag)
