@@ -70,6 +70,9 @@ final class MyPageViewController: UIViewController {
         
         viewModel.state.stickers
             .bind(with: self) { owner, stickers in
+                
+                print("BIND STICKER: \n\(stickers)")
+                
                 self.updateUI(with: stickers)
             }.disposed(by: disposeBag)
     }
@@ -146,7 +149,7 @@ final class MyPageViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.defaultBoard])
         snapshot.appendItems(stickers, toSection: .defaultBoard)
-        stampBoardDataSource.apply(snapshot, animatingDifferences: true)
+        stampBoardDataSource.apply(snapshot, animatingDifferences: false)
     }
     
     // MARK: - Methods

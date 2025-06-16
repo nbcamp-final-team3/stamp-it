@@ -24,9 +24,7 @@ final class MyPageViewModel: ViewModelProtocol {
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        
-        // TODO: 로그인 연결시 목데이터 삭제
-        let stickers = BehaviorRelay<[Sticker]>(value: DummyData.stamps)
+        let stickers = BehaviorRelay<[Sticker]>(value: [])
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
     }
     
@@ -36,10 +34,6 @@ final class MyPageViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     var state = State()
     
-    // TODO: 로그인 연결시 삭제
-    // TODO: bindSticker() 내부에서 -> Sticker.maxStickers 변경
-    // TODO: Sticker 필드 maxStickers 확인
-    private let totalCount = 30
     
     // MARK: - Initializer, Deinit, requiered
     
@@ -71,23 +65,33 @@ final class MyPageViewModel: ViewModelProtocol {
     }
     
     private func bindSticker() {
-        guard let user = state.user.value else {
-            // TODO: 로그인 연결시 목데이터 삭제
-            self.state.stickers.accept(
-                self.makeZigzagOrder(from: self.state.stickers.value, columns: MyPage.StampBoard.column)
-            )
-            return
-        }
-        myPageUseCase.fetchStickers(userId: user.userID)
-            .subscribe(with: self) { owner, stickers in
-                self.state.stickers.accept(
-                    self.makeZigzagOrder(from: stickers, columns: MyPage.StampBoard.column)
-                )
-            }.disposed(by: disposeBag)
+        // TODO: Sticker 엔티티 수정완료시 변경
+//        guard let user = state.user.value else {
+//            self.state.stickers.accept(
+//                makeZigzagOrder(
+//                    from: self.state.stickers.value,
+//                    columns: MyPage.StampBoard.column
+//                )
+//            )
+//            return
+//        }
+        myPageUseCase.fetchStickers(userId: "testUser001")
+//        myPageUseCase.fetchStickers(userId: user.userID)
+            .subscribe(
+                with: self,
+                onNext: { owner, stickers in
+                    print("STICKER: \n\(stickers)")
+                    self.state.stickers.accept(
+                        self.makeZigzagOrder(from: stickers, columns: MyPage.StampBoard.column)
+                    )
+                }, onError: { owner, error in
+                    print("BIND ERROR: \(error.localizedDescription)")
+                }
+            ).disposed(by: disposeBag)
     }
     
     private func makeZigzagOrder(from stickers: [Sticker], columns: Int) -> [Sticker] {
-        let totalStickers: [Sticker] = (0..<self.totalCount).map { index in
+        let totalStickers: [Sticker] = (0..<MyPage.StampBoard.totalStampNumber).map { index in
             if index < stickers.count {
                 return stickers[index]
             } else {
@@ -105,27 +109,4 @@ final class MyPageViewModel: ViewModelProtocol {
         }
         return ordered
     }
-}
-
-// TODO: 로그인 연결시 목데이터 삭제
-struct DummyData {
-    static let stamps: [Sticker] = [
-        Sticker(stickerID: "1", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "2", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "3", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "4", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "5", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "6", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "7", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "8", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "9", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "10", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "11", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "12", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "13", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "14", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "15", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "16", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "17", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-    ]
 }

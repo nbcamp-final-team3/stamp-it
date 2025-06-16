@@ -60,7 +60,10 @@ enum MyPage {
         static let slash: String = "/"
         
         // TODO: 로그인 연결시 삭제
+        // TODO: bindSticker() 내부에서 -> Sticker.maxStickers 변경
+        // TODO: Sticker 필드 maxStickers 확인
         static let totalStamp: String = "30"
+        static let totalStampNumber: Int = 30
         static let column: Int = 5
         static let fontSizeSmall: CGFloat = 14
         static let fontSizeMedium: CGFloat = 16
