@@ -9,7 +9,13 @@ import UIKit
 
 extension MyPageViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        MyPage.TableView.sectionHeight
+        let section = MyPageProfileSection.allCases[section]
+        switch section {
+        case .groupMember:
+            return MyPage.TableView.headerHeightLow
+        case .groupService:
+            return MyPage.TableView.headerHeightHigh
+        }
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {

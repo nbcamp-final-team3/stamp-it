@@ -111,7 +111,7 @@ final class StampSummary: UIView {
         layer.shadowPath = path.cgPath
         layer.cornerRadius = 12
         layer.shadowColor = UIColor._000000.cgColor
-        layer.shadowOpacity = 0.1
+        layer.shadowOpacity = 0.15
         layer.shadowOffset = .zero
     }
     
@@ -162,7 +162,7 @@ final class StampSummary: UIView {
     private func setLayout() {
         hStackView.snp.makeConstraints {
             $0.edges.equalToSuperview().inset(12)
-            $0.height.equalTo(44)
+            $0.height.equalTo(50)
         }
         
         divider.snp.makeConstraints {

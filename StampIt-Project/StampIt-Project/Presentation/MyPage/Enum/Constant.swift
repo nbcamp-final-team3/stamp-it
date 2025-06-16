@@ -48,7 +48,8 @@ enum MyPage {
     }
     
     enum TableView {
-        static let sectionHeight: CGFloat = 45
+        static let headerHeightLow: CGFloat = 35
+        static let headerHeightHigh: CGFloat = 45
         static let cellHeight: CGFloat = 58
     }
     
