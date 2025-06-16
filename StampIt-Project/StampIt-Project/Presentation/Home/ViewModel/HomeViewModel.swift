@@ -22,6 +22,7 @@ final class HomeViewModel: ViewModelProtocol {
         case didTapGroupOrganizationButton
         case didReceiveInvitationType(InvitationType)
         case didTapMissonCompleteButton(String)
+        case didTapCompleteCancelButton
         case didTapMoreReceivedMissions
         case didSelectReceivedMember(memberID: String)
         case didTapMoreSenededMissions
@@ -47,7 +48,10 @@ final class HomeViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     var state = State()
     private var memberCache = [String: User]() // 멤버 정보 저장
+    private var receivedMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
     private var sendedMissions = [Mission]()
+    private var rollbackReceiveMissions: [HomeItem] = []
+    private var pendingCommit: Disposable?
 
     // MARK: - Init
 
@@ -70,7 +74,9 @@ final class HomeViewModel: ViewModelProtocol {
                 case .didReceiveInvitationType(let type):
                     owner.handleInvitation(type: type)
                 case .didTapMissonCompleteButton(let id):
-                    owner.handleMissionComplete(missionID: id)
+                    owner.handleMissionCompleteButtonTapped(missionID: id)
+                case .didTapCompleteCancelButton:
+                    owner.cancelMissionComplete()
                 case .didTapMoreReceivedMissions:
                     owner.state.isPushReceivedMissionVC.accept(())
                 case .didSelectReceivedMember(memberID: let id):
@@ -88,11 +94,15 @@ final class HomeViewModel: ViewModelProtocol {
             .compactMap { $0 }
             .flatMap { [weak self] user -> Observable<([User], [Mission], [Mission])> in
                 guard let self else { return .empty() }
+                state.user.accept(user)
                 let rankingObs = useCase.fetchRanking(ofGroup: user.groupID)
                     .do(onNext: { users in
                         self.memberCache = Dictionary(uniqueKeysWithValues: users.map { ($0.userID, $0) })
                     })
                 let receivedObs = useCase.fetchRecievedMissions(ofUser: user.userID, fromGroup: user.groupID)
+                    .do(onNext: { receivedMissions in
+                        self.receivedMissions = receivedMissions
+                    })
                 let sendedObs = useCase.fetchSendedMissions(ofUser: user.userID, fromGroup: user.groupID)
                     .do(onNext: { sendedMissions in
                         self.sendedMissions = sendedMissions
@@ -145,12 +155,46 @@ final class HomeViewModel: ViewModelProtocol {
     ///
     /// 미션 완료 API를 호출하고,
     /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 제거
-    private func handleMissionComplete(missionID: String) {
-        useCase.updateMissionStatus(for: missionID, to: .completed)
+    func handleMissionCompleteButtonTapped(missionID: String) {
+        rollbackReceiveMissions = state.receivedMissions.value
+        removeMissionItem(missionID: missionID)
 
-        var missions = state.receivedMissions.value
-        missions.removeAll(where: { $0.received!.missionID == missionID })
-        state.receivedMissions.accept(missions)
+        // 취소 확인용
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            self?.cancelMissionComplete()
+        }
+
+        // cancelMissionComplete() 호출 시 dispose되는 Observable
+        pendingCommit = Observable<Void>.just(())
+            .delay(.seconds(4), scheduler: MainScheduler.instance)
+            .subscribe(with: self) { owner, _ in
+                let removedMission = owner.removeMissionCache(missionID: missionID)
+                guard let mission = removedMission,
+                      let user = owner.state.user.value else { return }
+                _ = owner.useCase
+                    .updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
+                    .subscribe()
+            }
+    }
+
+    /// UI에서 미션 제거
+    private func removeMissionItem(missionID: String) {
+        let missions = state.receivedMissions.value
+        rollbackReceiveMissions = missions
+        let updated = missions.filter { $0.received!.missionID != missionID }
+        state.receivedMissions.accept(updated)
+    }
+
+    /// 도메인 미션 캐시에서 미션 제거
+    private func removeMissionCache(missionID: String) -> Mission? {
+        guard let index = receivedMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
+        return receivedMissions.remove(at: index)
+    }
+
+    /// 토스트 “취소하기” 버튼 눌렀을 때 호출
+    func cancelMissionComplete() {
+        pendingCommit?.dispose()
+        state.receivedMissions.accept(rollbackReceiveMissions)
     }
 
     // MARK: - Methods

@@ -13,5 +13,5 @@ protocol HomeUseCaseProtocol {
     func fetchRanking(ofGroup groupID: String) -> Observable<[User]>
     func fetchRecievedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]>
     func fetchSendedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]>
-    func updateMissionStatus(for missionID: String, to status: MissionStatus)
+    func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Void>
 }

@@ -15,8 +15,9 @@ import RxCocoa
 
 final class GroupDashboardView: UIView {
 
-    // MARK: - States
+    // MARK: - Action & States
 
+    let didTapMissionCompleteButton = PublishRelay<String>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
 
@@ -93,6 +94,12 @@ final class GroupDashboardView: UIView {
                 ) as! MissionCardCell
 
                 cell.configure(with: mission)
+
+                cell.didTapMissionCompleteButton
+                    .bind(with: self, onNext: { owner, _ in
+                        owner.didTapMissionCompleteButton.accept(item.received!.missionID)
+                    })
+                    .disposed(by: cell.disposeBag)
 
                 return cell
 

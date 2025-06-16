@@ -507,7 +507,7 @@ extension FirestoreManager {
         }
     }
 
-    /// 유저가 받은 미션 목록 조회
+    /// 할당된 미션 목록 조회
     func fetchMissions(to assigneeId: String?, by assignerId: String?, ofGroup groupId: String) -> Observable<[MissionFirestore]> {
         return Observable.create { observer in
             let field = assigneeId != nil ? "assignedTo" : "assignedBy"

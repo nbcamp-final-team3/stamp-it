@@ -15,5 +15,9 @@ protocol HomeRepositoryProtocol {
         by assignerID: String?,
         ofGroup groupID: String
     ) -> Observable<[Mission]>
-    func updateMissionStatus(for missionID: String, to status: MissionStatus)
+    func updateMissionStatus(
+        for mission: Mission,
+        ofGroup groupID: String,
+        to status: MissionStatus
+    ) -> Observable<Void>
 }

@@ -53,6 +53,7 @@ final class HomeUseCase: HomeUseCaseProtocol {
             }
     }
 
-    func updateMissionStatus(for missionID: String, to status: MissionStatus) {
+    func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Void> {
+        homeRepository.updateMissionStatus(for: mission, ofGroup: groupID, to: status)
     }
 }

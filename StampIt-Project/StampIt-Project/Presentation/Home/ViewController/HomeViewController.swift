@@ -68,6 +68,11 @@ final class HomeViewController: UIViewController {
     }
 
     private func bindDashboardView() {
+        homeView.didTapMissionCompleteButton
+            .map { HomeViewModel.Action.didTapMissonCompleteButton($0) }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.rankedMembers
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
