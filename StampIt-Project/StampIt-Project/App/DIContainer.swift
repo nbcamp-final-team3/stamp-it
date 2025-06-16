@@ -25,7 +25,11 @@ final class DIContainer {
             firestoreManager: firestoreManager
         )
     }()
-    
+
+    private lazy var receiveInviteRepository: ReceiveInviteRepository = {
+        return ReceiveInviteRepositoryImpl(firestoreManager: firestoreManager)
+    }()
+
     private lazy var myPageRepository: MyPageRepository = {
         return MyPageRepositoryImpl(firestoreManager: firestoreManager)
     }()
@@ -41,7 +45,14 @@ final class DIContainer {
             mypageRepository: myPageRepository
         )
     }()
-    
+
+    private lazy var receiveInviteUseCase: ReceiveInviteUseCase = {
+        return ReceiveInviteUseCaseImpl(
+            authRepository: authRepository,
+            receiveInviteRepository: receiveInviteRepository
+        )
+    }()
+
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -50,7 +61,11 @@ final class DIContainer {
     private func makeMyPageViewModel() -> MyPageViewModel {
         return MyPageViewModel(myPageUseCase: myPageUseCase)
     }
-    
+
+    func makeReceiveInviteViewModel() -> ReceiveInviteViewModel {
+        return ReceiveInviteViewModel(receiveInviteUseCase: receiveInviteUseCase, receiveInviteRepository: receiveInviteRepository)
+    }
+
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
@@ -61,7 +76,12 @@ final class DIContainer {
         let viewModel = makeMyPageViewModel()
         return MyPageViewController(viewModel: viewModel)
     }
-    
+
+    func makeReceiveInviteViewController() -> ReceiveInviteViewController {
+        let viewModel = makeReceiveInviteViewModel()
+        return ReceiveInviteViewController(viewModel: viewModel)
+    }
+
     // MARK: - Singleton
     static let shared = DIContainer()
     private init() {}
