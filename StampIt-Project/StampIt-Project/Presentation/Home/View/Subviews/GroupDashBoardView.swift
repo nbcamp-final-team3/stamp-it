@@ -138,21 +138,27 @@ final class GroupDashboardView: UIView {
             ) as! DashboardHeader
 
             let section = HomeSection.allCases[indexPath.section]
-            let title: String
-            let desctription: String
 
             switch section {
             case .ranking:
                 return nil
-            case .receivedMission:
-                title = "내 미션"
-                desctription = "이번 주 \(username.value)님에게 부여된 미션이에요"
-            case .sendedMission:
-                title = "멤버 미션"
-                desctription = "\(username.value)님이 \(groupName.value) 멤버들에게 전달한 미션이에요"
-            }
 
-            header.configure(title: title, description: desctription)
+            case .receivedMission:
+                header.configure(title: "내 미션")
+                username
+                    .map { "이번주 \($0)님에게 부여된 미션이에요" }
+                    .bind(to: header.descriptionRxText)
+                    .disposed(by: header.disposeBag)
+
+            case .sendedMission:
+                header.configure(title: "멤버 미션")
+                Observable
+                    .combineLatest(username, groupName) { user, group in
+                        "\(user)님이 \(group) 멤버들에게 전달한 미션이에요"
+                    }
+                    .bind(to: header.descriptionRxText)
+                    .disposed(by: header.disposeBag)
+            }
 
             return header
         }

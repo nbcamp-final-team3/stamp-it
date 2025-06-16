@@ -8,12 +8,17 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
 
 final class DashboardHeader: UICollectionReusableView {
 
     // MARK: - Properties
 
     static let identifier = "DashboardHeader"
+    var descriptionRxText: Binder<String?> {
+        descriptionLabel.rx.text
+    }
+    var disposeBag = DisposeBag()
 
     // MARK: - UI Components
 
@@ -67,6 +72,14 @@ final class DashboardHeader: UICollectionReusableView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+        setStyles()
+        setHierarchy()
+        setConstraints()
+    }
+
     // MARK: - Set Styles
 
     private func setStyles() {
@@ -90,7 +103,7 @@ final class DashboardHeader: UICollectionReusableView {
 
     private func setConstraints() {
         labelStackView.snp.makeConstraints { make in
-            make.verticalEdges.leading.equalToSuperview()
+            make.edges.equalToSuperview()
         }
 
         titleLabel.snp.makeConstraints { make in
@@ -109,8 +122,7 @@ final class DashboardHeader: UICollectionReusableView {
 
     // MARK: - Methods
 
-    func configure(title: String, description: String) {
+    func configure(title: String) {
         titleLabel.text = title
-        descriptionLabel.text = description
     }
 }

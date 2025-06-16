@@ -73,6 +73,15 @@ final class HomeViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        viewModel.state.user
+            .asDriver()
+            .drive(with: self) { owner, user in
+                guard let user else { return }
+                owner.homeView.username.accept(user.nickname)
+                owner.homeView.groupName.accept(user.groupName)
+            }
+            .disposed(by: disposeBag)
+
         viewModel.state.rankedMembers
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
