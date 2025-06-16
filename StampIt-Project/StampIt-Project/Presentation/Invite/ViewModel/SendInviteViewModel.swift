@@ -19,7 +19,7 @@ final class SendInviteViewModel: ViewModelProtocol {
     }
 
     struct State {
-        let inviteCode = BehaviorRelay<String>(value: "")
+        let inviteCode = BehaviorRelay<String>(value: "복사 버튼을 클릭해주세요.")
         let showMessage = PublishRelay<String>()
     }
 
@@ -62,7 +62,8 @@ final class SendInviteViewModel: ViewModelProtocol {
                 let groupId = user.groupId
                 UIPasteboard.general.string = groupId
                 self.state.showMessage.accept("초대 코드가 복사되었습니다")
-                
+                self.state.inviteCode.accept(groupId)
+
             }, onError: { [weak self] error in
                 self?.state.showMessage.accept("사용자 정보 조회 실패: \(error.localizedDescription)")
             })
