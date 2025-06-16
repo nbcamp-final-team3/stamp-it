@@ -28,7 +28,7 @@ final class ReceiveInviteViewController: UIViewController {
     private let helpLabel = UILabel().then {
         $0.text = "초대 받을 그룹의 코드를 입력해주세요"
         $0.textAlignment = .center
-        $0.font = .pretendard(size: 14, weight: .medium)
+        $0.font = .pretendard(size: 16, weight: .medium)
         $0.textColor = .gray800
         $0.numberOfLines = 1
     }
