@@ -35,18 +35,17 @@ final class ReceiveInviteViewController: UIViewController {
 
     private let floatingLabel = UILabel().then {
         $0.text = "초대 코드"
-        $0.font = .pretendard(size: 16, weight: .black)
+        $0.font = .pretendard(size: 16, weight: .semibold)
         $0.textColor = .gray300
         $0.numberOfLines = 1
     }
 
     private let textField = UITextField().then {
-        $0.placeholder = "코드를 입력하세요"
-        $0.font = .pretendard(size: 16, weight: .medium)
         $0.borderStyle = .none
         $0.backgroundColor = .clear
         $0.autocorrectionType = .no
         $0.autocapitalizationType = .none
+        $0.clearButtonMode = .whileEditing
     }
 
     private let stackView = UIStackView().then {
@@ -143,11 +142,13 @@ extension ReceiveInviteViewController: UITextFieldDelegate {
         UIView.animate(withDuration: 0.2) {
             self.stackView.axis = .vertical
             self.stackView.spacing = 5
-            self.stackView.alignment = .leading
+            self.stackView.alignment = .fill
             self.floatingLabel.font = .pretendard(size: 12, weight: .medium)
             self.textFieldContainer.layer.borderColor = UIColor.gray800.cgColor
             self.textFieldContainer.backgroundColor = .clear
             self.textFieldContainer.layer.borderWidth = 1.5
+
+
         }
     }
 

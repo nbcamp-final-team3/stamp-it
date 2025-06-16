@@ -27,18 +27,18 @@ final class SendInviteViewController: UIViewController {
     private let helpLabel = UILabel().then {
         $0.text = "초대할 멤버에게 아래 코드를 전달해주세요"
         $0.textAlignment = .center
-        $0.font = .systemFont(ofSize: 16)
+        $0.font = .pretendard(size: 16, weight: .regular)
     }
 
     private let textFieldInTitle = UILabel().then {
         $0.text = "초대코드"
-        $0.font = .systemFont(ofSize: 14)
+        $0.font = .pretendard(size: 16, weight: .regular)
         $0.textColor = .gray800
         $0.setContentHuggingPriority(.required, for: .horizontal)
     }
 
     private let inviteCodeLabel = UILabel().then {
-        $0.font = .boldSystemFont(ofSize: 16)
+        $0.font = .pretendard(size: 16, weight: .bold)
         $0.textColor = .gray800
         $0.setContentHuggingPriority(.defaultLow, for: .horizontal)
     }
@@ -96,7 +96,7 @@ final class SendInviteViewController: UIViewController {
 
         inviteCodeStackView.snp.makeConstraints {
             $0.top.equalTo(helpLabel.snp.bottom).offset(20)
-            $0.leading.trailing.equalToSuperview().inset(40)
+            $0.leading.trailing.equalToSuperview().inset(24)
             $0.height.equalTo(70)
         }
 
