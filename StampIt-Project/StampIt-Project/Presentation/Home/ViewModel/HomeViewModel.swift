@@ -50,8 +50,7 @@ final class HomeViewModel: ViewModelProtocol {
     private var memberCache = [String: User]() // 멤버 정보 저장
     private var receivedMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
     private var sendedMissions = [Mission]()
-    private var rollbackReceiveMissions: [HomeItem] = []
-    private var pendingCommit: Disposable?
+    private var pendingCommits = DisposeBag()
 
     // MARK: - Init
 
@@ -156,16 +155,10 @@ final class HomeViewModel: ViewModelProtocol {
     /// 미션 완료 API를 호출하고,
     /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 제거
     func handleMissionCompleteButtonTapped(missionID: String) {
-        rollbackReceiveMissions = state.receivedMissions.value
         removeMissionItem(missionID: missionID)
 
-        // 취소 확인용
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            self?.cancelMissionComplete()
-        }
-
         // cancelMissionComplete() 호출 시 dispose되는 Observable
-        pendingCommit = Observable<Void>.just(())
+        Observable<Void>.just(())
             .delay(.seconds(4), scheduler: MainScheduler.instance)
             .subscribe(with: self) { owner, _ in
                 let removedMission = owner.removeMissionCache(missionID: missionID)
@@ -174,13 +167,14 @@ final class HomeViewModel: ViewModelProtocol {
                 _ = owner.useCase
                     .updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
                     .subscribe()
+                    .disposed(by: owner.disposeBag)
             }
+            .disposed(by: pendingCommits)
     }
 
     /// UI에서 미션 제거
     private func removeMissionItem(missionID: String) {
         let missions = state.receivedMissions.value
-        rollbackReceiveMissions = missions
         let updated = missions.filter { $0.received!.missionID != missionID }
         state.receivedMissions.accept(updated)
     }
@@ -193,8 +187,9 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     func cancelMissionComplete() {
-        pendingCommit?.dispose()
-        state.receivedMissions.accept(rollbackReceiveMissions)
+        pendingCommits = DisposeBag()
+        let cachedMissions = mapReceivedMissionsToHomeItems(receivedMissions)
+        state.receivedMissions.accept(cachedMissions)
     }
 
     // MARK: - Methods
