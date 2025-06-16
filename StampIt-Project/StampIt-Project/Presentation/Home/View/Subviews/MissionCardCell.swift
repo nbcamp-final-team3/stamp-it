@@ -8,12 +8,19 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class MissionCardCell: UICollectionViewCell {
+
+    // MARK: - Actions
+
+    let didTapMissionCompleteButton = PublishRelay<Void>()
 
     // MARK: - Properties
 
     static let identifier = "MissionCardCell"
+    var disposeBag = DisposeBag()
 
     // MARK: - UI Components
 
@@ -64,6 +71,7 @@ final class MissionCardCell: UICollectionViewCell {
         setStyles()
         setHierarchy()
         setConstraints()
+        bind()
     }
     
     required init?(coder: NSCoder) {
@@ -76,6 +84,15 @@ final class MissionCardCell: UICollectionViewCell {
             roundedRect: bounds,
             cornerRadius: contentView.layer.cornerRadius
         ).cgPath
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+        setStyles()
+        setHierarchy()
+        setConstraints()
+        bind()
     }
 
     // MARK: - Set Styles
@@ -130,6 +147,13 @@ final class MissionCardCell: UICollectionViewCell {
             make.bottom.equalToSuperview().inset(24)
             make.height.equalTo(40)
         }
+    }
+
+    // MARK: - Bind
+    private func bind() {
+        completeButton.rx.tap
+            .bind(to: didTapMissionCompleteButton)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods

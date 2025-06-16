@@ -53,7 +53,7 @@ final class AuthRepository: AuthRepositoryProtocol {
                 return Observable.error(repositoryError)
             }
     }
-    
+
     /// AuthDataResult를 LoginResult로 변환
     private func processAuthResult(_ authDataResult: AuthDataResult) -> Observable<LoginResult> {
         let firebaseUser = authDataResult.user
