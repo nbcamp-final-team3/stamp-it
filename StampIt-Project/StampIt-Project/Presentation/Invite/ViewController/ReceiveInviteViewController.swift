@@ -83,7 +83,7 @@ final class ReceiveInviteViewController: UIViewController {
         .forEach { view.addSubview($0) }
 
         imageView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(120)
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(140)
             $0.centerX.equalToSuperview()
             $0.height.equalTo(100)
         }
