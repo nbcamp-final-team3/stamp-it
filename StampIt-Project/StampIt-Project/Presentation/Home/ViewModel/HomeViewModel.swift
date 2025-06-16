@@ -8,7 +8,6 @@
 import Foundation
 import RxSwift
 import RxRelay
-import UIKit
 
 final class HomeViewModel: ViewModelProtocol {
     // MARK: - Dependency

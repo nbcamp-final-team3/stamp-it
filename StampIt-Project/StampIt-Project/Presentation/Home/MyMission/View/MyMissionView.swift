@@ -37,6 +37,7 @@ final class MyMissionView: UIView {
         backgroundColor = .white
         setHierarchy()
         setConstraints()
+        setDataSource()
         bind()
     }
 
@@ -80,7 +81,6 @@ final class MyMissionView: UIView {
 
         var snapshot = NSDiffableDataSourceSnapshot<MyMissionSection, MyMissionItem>()
         snapshot.appendSections(MyMissionSection.allCases)
-        snapshot.appendItems([.mission(.init(missionID: "", title: "test", category: .chore, dueDate: "06/17/25", assigner: "나자신", isNew: true, isOverdue: false, status: .assigned))], toSection: .mission)
         dataSource?.apply(snapshot)
     }
 

@@ -49,7 +49,11 @@ final class DIContainer {
             mypageRepository: myPageRepository
         )
     }()
-    
+
+    lazy var myMissionUseCase: MyMissionUseCaseProtocol = {
+        return MyMissionUseCaseImpl(homeRepository: homeRepository)
+    }()
+
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -67,8 +71,8 @@ final class DIContainer {
         return OnboardingViewModel(totalPages: 3)
     }
 
-    func makeMyMissionViewModel() -> MyMissionViewModel {
-        return MyMissionViewModel()
+    func makeMyMissionViewModel(user: User) -> MyMissionViewModel {
+        return MyMissionViewModel(user: user, useCase: myMissionUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)
@@ -92,8 +96,8 @@ final class DIContainer {
         return OnboardingViewController(viewModel: viewModel)
     }
 
-    func makeMyMissionViewController() -> MyMissionViewController {
-        let viewModel = makeMyMissionViewModel()
+    func makeMyMissionViewController(user: User) -> MyMissionViewController {
+        let viewModel = makeMyMissionViewModel(user: user)
         return MyMissionViewController(viewModel: viewModel)
     }
 

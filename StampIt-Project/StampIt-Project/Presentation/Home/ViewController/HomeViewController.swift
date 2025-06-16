@@ -110,10 +110,7 @@ final class HomeViewController: UIViewController {
 
         viewModel.state.isPushMyMissionVC
             .asDriver(onErrorDriveWith: .empty())
-            .drive(with: self) { owner, items in
-                let myMissionVC = DIContainer.shared.makeMyMissionViewController()
-                owner.navigationController?.pushViewController(myMissionVC, animated: true)
-            }
+            .drive(onNext: pushMyMissionVC)
             .disposed(by: disposeBag)
 
         viewModel.state.sendedMissionsForDisplay
@@ -141,5 +138,11 @@ final class HomeViewController: UIViewController {
             sheet.preferredCornerRadius = 32
         }
         present(vc, animated: true)
+    }
+
+    private func pushMyMissionVC() {
+        guard let user = viewModel.state.user.value else { return }
+        let myMissionVC = DIContainer.shared.makeMyMissionViewController(user: user)
+        navigationController?.pushViewController(myMissionVC, animated: true)
     }
 }
