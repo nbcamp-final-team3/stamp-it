@@ -40,7 +40,7 @@ final class StampSummary: UIView {
         $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .regular)
         $0.textColor = .gray800
     }
-
+    
     /// 내가 모은 스탬프 - 30
     private let totalStampLabel = UILabel().then {
         $0.text = MyPage.StampBoard.totalStamp
@@ -100,7 +100,7 @@ final class StampSummary: UIView {
     }
     
     // MARK: - Layout Subviews
-
+    
     override func layoutSubviews() {
         setShadow()
     }
@@ -114,7 +114,7 @@ final class StampSummary: UIView {
         layer.shadowOpacity = 0.1
         layer.shadowOffset = .zero
     }
-
+    
     // MARK: - Style Helper
     
     private func setStyle() {
@@ -156,7 +156,7 @@ final class StampSummary: UIView {
         ]
             .forEach { boardVStackView.addArrangedSubview($0) }
     }
-
+    
     // MARK: - Layout Helper
     
     private func setLayout() {
@@ -170,5 +170,14 @@ final class StampSummary: UIView {
             $0.width.equalTo(1)
             $0.center.equalToSuperview()
         }
+    }
+    
+    // MARK: Bind
+    
+    private func configureItem(with sticker: Sticker) {
+        // TODO: 로그인 연결시 sticker 데이터로 바인딩
+        currentStampLabel.text = "" // 내가 모은 스탬프 - 현재 개수
+        totalStampLabel.text = MyPage.StampBoard.totalStamp
+        totalBoardLabel.text = "" // 완성한 스탬프 판 - N개
     }
 }

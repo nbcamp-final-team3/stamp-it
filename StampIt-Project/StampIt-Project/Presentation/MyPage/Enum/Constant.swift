@@ -57,6 +57,8 @@ enum MyPage {
         static let completed: String = "완성한 스탬프판"
         static let unit: String = "개"
         static let slash: String = "/"
+        
+        // TODO: 로그인 연결시 삭제
         static let totalStamp: String = "30"
         static let column: Int = 5
         static let fontSizeSmall: CGFloat = 14
