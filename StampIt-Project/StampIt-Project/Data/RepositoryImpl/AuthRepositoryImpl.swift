@@ -53,7 +53,7 @@ final class AuthRepository: AuthRepositoryProtocol {
                 return Observable.error(repositoryError)
             }
     }
-    
+
     /// AuthDataResult를 LoginResult로 변환
     private func processAuthResult(_ authDataResult: AuthDataResult) -> Observable<LoginResult> {
         let firebaseUser = authDataResult.user
@@ -184,13 +184,6 @@ final class AuthRepository: AuthRepositoryProtocol {
                     needsOnboarding: false
                 ))
             }
-    }
-    
-    // MARK: - 온보딩
-    /// 온보딩 완료 처리 (추후 구현 예정)
-    func completeOnboarding() -> Observable<Void> {
-        // TODO: 온보딩 완료 처리
-        return Observable.just(())
     }
     
     // MARK: - Internal Firestore Operations

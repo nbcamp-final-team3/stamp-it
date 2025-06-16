@@ -14,6 +14,9 @@ final class HomeView: UIView {
     // MARK: - Actions
 
     let didTapGroupOrganizationButton = PublishRelay<Void>()
+    let didTapMissionCompleteButton = PublishRelay<String>()
+    let username = PublishRelay<String>()
+    let groupName = PublishRelay<String>()
 
     // MARK: - Properties
 
@@ -72,5 +75,28 @@ final class HomeView: UIView {
         groupOrganizationView.didTapGroupOrganizationButton
             .bind(to: didTapGroupOrganizationButton)
             .disposed(by: disposeBag)
+
+        groupDashboardView.didTapMissionCompleteButton
+            .bind(to: didTapMissionCompleteButton)
+            .disposed(by: disposeBag)
+
+        username
+            .bind(to: groupDashboardView.username)
+            .disposed(by: disposeBag)
+
+        groupName
+            .bind(to: groupDashboardView.groupName)
+            .disposed(by: disposeBag)
+    }
+
+    // MARK: - Methods
+
+    func updateSnapshot(withItems items: [HomeItem], toSection section: HomeSection) {
+        groupDashboardView.updateSnapshot(withItems: items, toSection: section)
+    }
+
+    func toggleView(showGroupOrganizationView: Bool) {
+        groupOrganizationView.isHidden = !showGroupOrganizationView
+        groupDashboardView.isHidden = showGroupOrganizationView
     }
 }

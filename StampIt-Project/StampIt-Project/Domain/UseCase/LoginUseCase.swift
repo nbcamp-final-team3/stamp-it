@@ -15,7 +15,4 @@ protocol LoginUseCaseProtocol {
     
     // MARK: - Launch Check
     func checkLaunchState() -> Observable<LaunchFlowResult>
-    
-    // MARK: Onboarding Check
-    func completeOnboarding() -> Observable<Void>
 }

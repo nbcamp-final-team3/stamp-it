@@ -24,7 +24,7 @@ final class MyPageViewModel: ViewModelProtocol {
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let stickers = BehaviorRelay<[Sticker]>(value: DummyData.stamps)
+        let stickers = BehaviorRelay<[Sticker]>(value: [])
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
     }
     
@@ -33,6 +33,7 @@ final class MyPageViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
+    
     
     // MARK: - Initializer, Deinit, requiered
     
@@ -64,24 +65,48 @@ final class MyPageViewModel: ViewModelProtocol {
     }
     
     private func bindSticker() {
-        guard let user = state.user.value else { return }
-        myPageUseCase.fetchStickers(userId: user.userID)
-            .subscribe(with: self) { owner, stickers in
-                self.state.stickers.accept(stickers)
-            }.disposed(by: disposeBag)
+        // TODO: Sticker 엔티티 수정완료시 변경
+//        guard let user = state.user.value else {
+//            self.state.stickers.accept(
+//                makeZigzagOrder(
+//                    from: self.state.stickers.value,
+//                    columns: MyPage.StampBoard.column
+//                )
+//            )
+//            return
+//        }
+        myPageUseCase.fetchStickers(userId: "testUser001")
+//        myPageUseCase.fetchStickers(userId: user.userID)
+            .subscribe(
+                with: self,
+                onNext: { owner, stickers in
+                    print("STICKER: \n\(stickers)")
+                    self.state.stickers.accept(
+                        self.makeZigzagOrder(from: stickers, columns: MyPage.StampBoard.column)
+                    )
+                }, onError: { owner, error in
+                    print("BIND ERROR: \(error.localizedDescription)")
+                }
+            ).disposed(by: disposeBag)
     }
-}
-
-struct DummyData {
-    static let stamps: [Sticker] = [
-        Sticker(stickerID: "1", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "2", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "3", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "4", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "5", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "6", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "7", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "8", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-        Sticker(stickerID: "9", title: "", description: "", imageURL: "", type: .stampRed, createdAt: Date()),
-    ]
+    
+    private func makeZigzagOrder(from stickers: [Sticker], columns: Int) -> [Sticker] {
+        let totalStickers: [Sticker] = (0..<MyPage.StampBoard.totalStampNumber).map { index in
+            if index < stickers.count {
+                return stickers[index]
+            } else {
+                return Sticker(stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date())
+            }
+        }
+        
+        let rows = stride(from: 0, to: totalStickers.count, by: columns)
+            .map {
+                Array(totalStickers[$0..<min($0 + columns, totalStickers.count)])
+            }
+        
+        let ordered = rows.enumerated().flatMap { (index, row) in
+            index.isMultiple(of: 2) ? row : row.reversed()
+        }
+        return ordered
+    }
 }
