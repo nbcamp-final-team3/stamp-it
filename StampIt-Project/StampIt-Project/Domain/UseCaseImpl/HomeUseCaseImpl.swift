@@ -29,7 +29,7 @@ final class HomeUseCase: HomeUseCaseProtocol {
             }
     }
 
-    func fetchRecievedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
+    func fetchReceivedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
         homeRepository.fetchMissions(to: userID, by: nil, ofGroup: groupID)
             .map { missions in
                 let startOfToday = Calendar.current.startOfDay(for: Date())

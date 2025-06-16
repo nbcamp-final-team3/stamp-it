@@ -37,7 +37,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
-        let isShowStickerRecieved = PublishRelay<Void>()
+        let isShowStickerReceived = PublishRelay<Void>()
         let isPushReceivedMissionVC = PublishRelay<Void>()
         let isPushSendedMissionVC = PublishRelay<Void>()
     }
@@ -98,7 +98,7 @@ final class HomeViewModel: ViewModelProtocol {
                     .do(onNext: { users in
                         self.memberCache = Dictionary(uniqueKeysWithValues: users.map { ($0.userID, $0) })
                     })
-                let receivedObs = useCase.fetchRecievedMissions(ofUser: user.userID, fromGroup: user.groupID)
+                let receivedObs = useCase.fetchReceivedMissions(ofUser: user.userID, fromGroup: user.groupID)
                     .do(onNext: { receivedMissions in
                         self.receivedMissions = receivedMissions
                     })
