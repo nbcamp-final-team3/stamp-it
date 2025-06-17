@@ -68,7 +68,7 @@ final class CompletionStateButton: UIControl {
         titleLabel.textColor = textColor
     }
 
-    // MARK: - Set Styles
+    // MARK: - Set Hierarchy
 
     private func setHierarchy() {
         addSubview(containerStackView)
@@ -79,7 +79,7 @@ final class CompletionStateButton: UIControl {
         ].forEach { containerStackView.addArrangedSubview($0) }
     }
 
-    // MARK: - Set Styles
+    // MARK: - Set Constraints
 
     private func setConstraints() {
         containerStackView.snp.makeConstraints { make in

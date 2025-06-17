@@ -80,6 +80,11 @@ final class HomeViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        homeView.didTapMoreReceivedMissionButton
+            .map { HomeViewModel.Action.didTapMoreReceivedMissions }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.user
             .asDriver()
             .drive(with: self) { owner, user in
@@ -101,6 +106,11 @@ final class HomeViewController: UIViewController {
             .drive(with: self) { owner, items in
                 owner.homeView.updateSnapshot(withItems: items, toSection: .receivedMission)
             }
+            .disposed(by: disposeBag)
+
+        viewModel.state.isPushMyMissionVC
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(onNext: pushMyMissionVC)
             .disposed(by: disposeBag)
 
         viewModel.state.sendedMissionsForDisplay
@@ -128,5 +138,14 @@ final class HomeViewController: UIViewController {
             sheet.preferredCornerRadius = 32
         }
         present(vc, animated: true)
+    }
+
+    private func pushMyMissionVC() {
+        guard let user = viewModel.state.user.value else { return }
+        let myMissionVC = DIContainer.shared.makeMyMissionViewController(
+            user: user,
+            memberCache: viewModel.memberCache
+        )
+        navigationController?.pushViewController(myMissionVC, animated: true)
     }
 }
