@@ -10,7 +10,7 @@ import RxSwift
 import FirebaseCore
 
 final class InviteUseCaseImpl: InviteUseCase {
-    
+
 
     private let authRepository: AuthRepositoryProtocol
     private let inviteRepository: InviteRepository
@@ -32,6 +32,10 @@ final class InviteUseCaseImpl: InviteUseCase {
     // receive 관련 메서드
     func addMember(groupId: String, member: MemberFirestore) -> Observable<Void> {
         authRepository.addMember(groupId: groupId, member: member)
+    }
+
+    func updateUser(_ user: UserFirestore) -> Observable<Void> {
+        inviteRepository.updateUser(user)
     }
 
     // send 관련 메서드
@@ -62,6 +66,10 @@ final class InviteUseCaseImpl: InviteUseCase {
     /// 그룹 삭제
     func deleteGroup(groupId: String) -> Observable<Void> {
         inviteRepository.deleteGroup(groupId: groupId)
+    }
+
+    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String) -> Observable<Void> {
+        inviteRepository.switchUserGroup(userId: userId, fromGroupId: fromGroupId, toGroupId: toGroupId, userNickname: userNickname)
     }
 
     /// 초대코드를 받아서 해당 그룹에 새 멤버를 추가하는 코드
@@ -99,27 +107,30 @@ final class InviteUseCaseImpl: InviteUseCase {
                 // 로그인한 유저의 기존 그룹 멤버 수 확인 -> 1명이면 삭제
                 return self.fetchGroupMemberCount(groupId: oldGroupId)
                     .flatMap { oldGroupMemberCount -> Observable<InviteFirestore> in
-                        let maybeDelete: Observable<Void>
                         if oldGroupMemberCount == 1 {
-                            maybeDelete = self.deleteGroup(groupId: oldGroupId)
-                        } else {
-                            maybeDelete = .just(())
+
+                            return self.fetchGroupMemberCount(groupId: oldGroupId)
+                                .flatMap { oldGroupMemberCount -> Observable<InviteFirestore> in
+                                    let DeleteOrPass: Observable<Void>
+                                    if oldGroupMemberCount == 1 {
+                                        DeleteOrPass = self.deleteGroup(groupId: oldGroupId)
+                                    } else {
+                                        DeleteOrPass = .just(())
+                                    }
+                                    return DeleteOrPass
+                                        .flatMap {
+                                            return self.switchUserGroup(
+                                                userId: user.userID,
+                                                fromGroupId: oldGroupId,
+                                                toGroupId: group.groupId,
+                                                userNickname: user.nickname
+                                            )
+                                        }
+                                        .flatMap {
+                                            return self.fetchInvite(inviteCode: inviteCode)
+                                        }
+                                }
                         }
-
-                        // 초대받은 그룹에 유저를 추가
-                        let newMember = MemberFirestore(
-                            userId: user.userID,
-                            nickname: user.nickname,
-                            joinedAt: Timestamp(),
-                            isLeader: false
-                        )
-
-                        return maybeDelete
-                            .flatMap {
-                                self.addMember(groupId: group.groupId, member: newMember)
-                            }.flatMap {
-                                self.fetchInvite(inviteCode: inviteCode)
-                            }
                     }
             }
     }
@@ -157,3 +168,4 @@ final class InviteUseCaseImpl: InviteUseCase {
             }
     }
 }
+

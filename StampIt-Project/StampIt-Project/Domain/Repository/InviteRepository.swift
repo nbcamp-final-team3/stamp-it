@@ -12,6 +12,7 @@ protocol InviteRepository {
     // receive 관련 메서드
     func fetchInvite(inviteCode: String) -> Observable<InviteFirestore>
     func addMember(groupId: String, member: MemberFirestore) -> Observable<Void>
+    func updateUser(_ user: UserFirestore) -> Observable<Void>
     // send 관련 메서드
     func createInvite(_ invite: InviteFirestore) -> Observable<Void>
     func fetchGroup(groupId: String) -> Observable<GroupFirestore>

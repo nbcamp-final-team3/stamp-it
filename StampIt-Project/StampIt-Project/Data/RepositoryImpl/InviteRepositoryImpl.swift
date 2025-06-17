@@ -28,6 +28,10 @@ final class InviteRepositoryImpl: InviteRepository {
         firestoreManager.createInvite(invite)
     }
 
+    func updateUser(_ user: UserFirestore) -> Observable<Void> {
+        firestoreManager.updateUser(user)
+    }
+
     func fetchGroup(groupId: String) -> Observable<GroupFirestore> {
         firestoreManager.fetchGroup(groupId: groupId)
     }
