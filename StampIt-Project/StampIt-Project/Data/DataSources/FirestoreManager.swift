@@ -353,34 +353,45 @@ extension FirestoreManager {
             let groupRef = self.groupsCollection.document(groupId)
             let membersRef = groupRef.collection("members")
             let missionsRef = groupRef.collection("missions")
-            
+            let stickersQuery = self.stickersCollection.whereField("groupId", isEqualTo: groupId)
+
             // 1. 멤버 컬렉션 삭제
-            membersRef.getDocuments { snapshot, error in
+            membersRef.getDocuments { membersSnapshot, error in
                 if let error = error {
                     observer.onError(error)
                     return
                 }
                 let batch = Firestore.firestore().batch()
-                snapshot?.documents.forEach { doc in
+                membersSnapshot?.documents.forEach { doc in
                     batch.deleteDocument(doc.reference)
                 }
                 // 2. 미션 컬렉션 삭제
-                missionsRef.getDocuments { snapshot, error in
+                missionsRef.getDocuments { missionsSnapshot, error in
                     if let error = error {
                         observer.onError(error)
                         return
                     }
-                    snapshot?.documents.forEach { doc in
+                    missionsSnapshot?.documents.forEach { doc in
                         batch.deleteDocument(doc.reference)
                     }
-                    // 3. 그룹 문서 삭제
-                    batch.deleteDocument(groupRef)
-                    batch.commit { error in
+                    // 3. 스티커 컬렉션 삭제 (users/아닌 stickers/ 루트 기반)
+                    stickersQuery.getDocuments { stickersSnapshot, error in
                         if let error = error {
                             observer.onError(error)
-                        } else {
-                            observer.onNext(())
-                            observer.onCompleted()
+                            return
+                        }
+                        stickersSnapshot?.documents.forEach { doc in
+                            batch.deleteDocument(doc.reference)
+                        }
+                        // 4. 그룹 문서 삭제
+                        batch.deleteDocument(groupRef)
+                        batch.commit { error in
+                            if let error = error {
+                                observer.onError(error)
+                            } else {
+                                observer.onNext(())
+                                observer.onCompleted()
+                            }
                         }
                     }
                 }
@@ -388,7 +399,6 @@ extension FirestoreManager {
             return Disposables.create()
         }
     }
-    
     
     /// 그룹명 업데이트
     func updateGroupName(groupId: String, name: String, changedAt: Date) -> Observable<Void> {
