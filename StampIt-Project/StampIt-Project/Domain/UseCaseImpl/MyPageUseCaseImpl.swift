@@ -32,4 +32,8 @@ final class MyPageUseCaseImpl: MyPageUseCase {
     func fetchStickers(userId: String) -> Observable<[Sticker]> {
         mypageRepository.fetchStickers(userId: userId)
     }
+    
+    func fetchStickerCount(userId: String) -> Observable<Int> {
+        mypageRepository.fetchStickerCount(userId: userId)
+    }
 }

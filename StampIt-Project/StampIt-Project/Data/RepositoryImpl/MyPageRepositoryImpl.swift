@@ -32,4 +32,8 @@ final class MyPageRepositoryImpl:
                 stickers.map { $0.toDomainModel() }
             }
     }
+    
+    func fetchStickerCount(userId: String) -> Observable<Int> {
+        firestoreManager.fetchStickerCount(userId: userId)
+    }
 }

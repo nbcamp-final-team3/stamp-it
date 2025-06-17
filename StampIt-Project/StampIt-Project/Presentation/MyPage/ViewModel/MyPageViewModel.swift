@@ -26,6 +26,7 @@ final class MyPageViewModel: ViewModelProtocol {
         let user = BehaviorRelay<User?>(value: nil)
         let stickers = BehaviorRelay<[Sticker]>(value: [])
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
+        let stickerSummary = BehaviorRelay<(collectedSticker: Int, completedBoard: Int)>(value: (.zero, .zero))
     }
     
     // MARK: - Properties
@@ -39,12 +40,12 @@ final class MyPageViewModel: ViewModelProtocol {
     
     init(myPageUseCase: MyPageUseCase) {
         self.myPageUseCase = myPageUseCase
-        bind()
+        bindAction()
     }
     
     // MARK: - Bind
     
-    private func bind() {
+    private func bindAction() {
         action
             .subscribe(with: self) { owner, action in
                 switch action {
@@ -61,28 +62,19 @@ final class MyPageViewModel: ViewModelProtocol {
             .subscribe(with: self) { owner, user in
                 self.state.user.accept(user)
                 owner.bindSticker()
+                owner.bindStickerSummaryData()
             }.disposed(by: disposeBag)
     }
     
     private func bindSticker() {
-        // TODO: Sticker 엔티티 수정완료시 변경
-//        guard let user = state.user.value else {
-//            self.state.stickers.accept(
-//                makeZigzagOrder(
-//                    from: self.state.stickers.value,
-//                    columns: MyPage.StampBoard.column
-//                )
-//            )
-//            return
-//        }
-        myPageUseCase.fetchStickers(userId: "testUser001")
-//        myPageUseCase.fetchStickers(userId: user.userID)
+        guard let user = state.user.value else { return }
+        
+        myPageUseCase.fetchStickers(userId: user.userID)
             .subscribe(
                 with: self,
                 onNext: { owner, stickers in
-                    print("STICKER: \n\(stickers)")
                     self.state.stickers.accept(
-                        self.makeZigzagOrder(from: stickers, columns: MyPage.StampBoard.column)
+                        self.makeZigzagOrder(from: stickers, columns: StampBoardSection.defaultBoard.column)
                     )
                 }, onError: { owner, error in
                     print("BIND ERROR: \(error.localizedDescription)")
@@ -90,8 +82,22 @@ final class MyPageViewModel: ViewModelProtocol {
             ).disposed(by: disposeBag)
     }
     
+    private func bindStickerSummaryData() {
+        guard let user = state.user.value else { return }
+        
+        myPageUseCase.fetchStickerCount(userId: user.userID)
+            .subscribe(with: self) { owner, collectedSticker in
+                let totalSticker = StampBoardSection.defaultBoard.totalStamp
+                self.state.stickerSummary.accept((
+                    collectedSticker: Int(collectedSticker % totalSticker),
+                    completedBoard: Int(collectedSticker / totalSticker)
+                ))
+            }.disposed(by: disposeBag)
+    }
+    
     private func makeZigzagOrder(from stickers: [Sticker], columns: Int) -> [Sticker] {
-        let totalStickers: [Sticker] = (0..<MyPage.StampBoard.totalStampNumber).map { index in
+        let totalStickerCount = StampBoardSection.defaultBoard.totalStamp
+        let totalStickers: [Sticker] = (0..<totalStickerCount).map { index in
             if index < stickers.count {
                 return stickers[index]
             } else {
