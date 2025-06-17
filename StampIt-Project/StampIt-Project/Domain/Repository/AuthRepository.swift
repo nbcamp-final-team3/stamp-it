@@ -34,4 +34,13 @@ protocol AuthRepositoryProtocol {
         member: Member,
         invite: Invitation
     ) -> Observable<StampIt_Project.User>
-}
+    
+    // MARK: - 계정 관리
+    func signOut() -> Observable<Void>
+    func deleteAccount() -> Observable<Void>
+    func leaveGroup() -> Observable<User>
+    
+    // MARK: - 편의 메서드 (Extension에서 구현된 것들)
+    func getCurrentGroupID() -> Observable<String>
+    func getCurrentUserID() -> Observable<String>
+    func isCurrentUserLeader() -> Observable<Bool>}
