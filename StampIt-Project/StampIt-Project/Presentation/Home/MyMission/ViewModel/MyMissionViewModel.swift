@@ -51,16 +51,55 @@ final class MyMissionViewModel {
             .subscribe(with: self) { owner, action in
                 switch action {
                 case .viewDidLoad:
-                    guard let user = owner.state.user.value else { return }
-                    owner.useCase.fetchReceivedMissions(ofUser: user.userID, fromGroup: user.groupID)
-                        .map { owner.mapMissionsToMyMissionItems($0) }
-                        .bind(to: owner.state.missions)
-                        .disposed(by: owner.disposeBag)
+                    owner.fetchMissions()
                 case .didTapStatusButton(let id):
                     owner.handleMissionCompleteButtonTapped(missionID: id)
                 }
             }
             .disposed(by: disposeBag)
+    }
+
+    /// 유저에게 할당된 미션 바인딩
+    private func fetchMissions() {
+        guard let user = state.user.value else { return }
+        useCase.fetchReceivedMissions(ofUser: user.userID, fromGroup: user.groupID)
+            .do(onNext: { receivedMissions in
+                self.receivedMissions = receivedMissions
+            })
+            .map { [weak self] in
+                guard let self else { return [] }
+                return mapMissionsToMyMissionItems($0)
+            }
+            .bind(to: state.missions)
+            .disposed(by: disposeBag)
+    }
+
+    /// 미션 완료 바인딩
+    ///
+    /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 UI를 우선 업데이트,
+    /// 4초간 대기 후 캐시 업데이트 및 API 호출
+    func handleMissionCompleteButtonTapped(missionID: String) {
+        updateMissionItem(missionID: missionID)
+
+        #if DEBUG
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.cancelMissionComplete()
+        }
+        #endif
+
+        // cancelMissionComplete() 호출 시 dispose되는 Observable
+        Observable<Void>.just(())
+            .delay(.seconds(4), scheduler: MainScheduler.instance)
+            .subscribe(with: self) { owner, _ in
+                let removedMission = owner.updateMissionCache(missionID: missionID)
+                guard let mission = removedMission,
+                      let user = owner.state.user.value else { return }
+                _ = owner.useCase
+                    .updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
+                    .subscribe()
+                    .disposed(by: owner.disposeBag)
+            }
+            .disposed(by: pendingCommits)
     }
 
     // MARK: - Methods
@@ -80,34 +119,6 @@ final class MyMissionViewModel {
             )
             return MyMissionItem.mission(missionItem)
         }
-    }
-
-    /// 미션 완료 바인딩
-    ///
-    /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 UI를 우선 업데이트,
-    /// 4초간 대기 후 캐시 업데이트 및 API 호출
-    func handleMissionCompleteButtonTapped(missionID: String) {
-        updateMissionItem(missionID: missionID)
-
-        #if DEBUG
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            self.pendingCommits = DisposeBag()
-        }
-        #endif
-
-        // cancelMissionComplete() 호출 시 dispose되는 Observable
-        Observable<Void>.just(())
-            .delay(.seconds(4), scheduler: MainScheduler.instance)
-            .subscribe(with: self) { owner, _ in
-                let removedMission = owner.updateMissionCache(missionID: missionID)
-                guard let mission = removedMission,
-                      let user = owner.state.user.value else { return }
-                _ = owner.useCase
-                    .updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
-                    .subscribe()
-                    .disposed(by: owner.disposeBag)
-            }
-            .disposed(by: pendingCommits)
     }
 
     /// UI에서 미션 업데이트
@@ -139,7 +150,7 @@ final class MyMissionViewModel {
         let missionToUpdate = receivedMissions[index]
         let updated = Mission(
             missionID: missionToUpdate.missionID,
-            title: missionToUpdate.missionID,
+            title: missionToUpdate.title,
             assignedTo: missionToUpdate.assignedTo,
             assignedBy: missionToUpdate.assignedBy,
             createDate: missionToUpdate.createDate,
@@ -150,6 +161,13 @@ final class MyMissionViewModel {
         )
         receivedMissions[index] = updated
         return updated
+    }
+
+    /// 토스트 “취소하기” 버튼 눌렀을 때 호출
+    func cancelMissionComplete() {
+        pendingCommits = DisposeBag()
+        let cachedMissions = mapMissionsToMyMissionItems(receivedMissions)
+        state.missions.accept(cachedMissions)
     }
 
     private func isNew(createDate: Date) -> Bool {
