@@ -320,26 +320,218 @@ final class AuthRepository: AuthRepositoryProtocol {
     }
 }
 
-// MARK: - Extension 특정 정보만 반환
-
+// MARK: - Extension 특정 정보만 반환 (옵셔널 체이닝 사용)
 extension AuthRepository {
     /// 현재 사용자의 그룹 ID 반환
     func getCurrentGroupID() -> Observable<String> {
         return getCurrentUser()
-            .compactMap { $0?.groupID }
+            .compactMap { user -> String? in
+                return user?.groupID
+            }
             .ifEmpty(switchTo: Observable.error(RepositoryError.userNotInGroup))
     }
     
     /// 현재 사용자의 ID 반환
     func getCurrentUserID() -> Observable<String> {
         return getCurrentUser()
-            .compactMap { $0?.userID }
+            .compactMap { user -> String? in
+                return user?.userID
+            }
             .ifEmpty(switchTo: Observable.error(RepositoryError.userNotFound))
     }
     
     /// 현재 사용자가 리더인지 확인
     func isCurrentUserLeader() -> Observable<Bool> {
         return getCurrentUser()
-            .map { $0?.isLeader ?? false }
+            .map { user -> Bool in
+                return user?.isLeader ?? false
+            }
+    }
+}
+
+// MARK: - 계정 관리 기능 확장
+extension AuthRepository {
+    
+    // MARK: - 로그아웃
+    /// 현재 사용자 로그아웃
+    func signOut() -> Observable<Void> {
+        return authManager.signOut()
+            .catch { [weak self] error in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
+                return Observable.error(self.mapToRepositoryError(error))
+            }
+    }
+    
+    // MARK: - 계정 탈퇴
+    /// 계정 탈퇴 (소셜 로그인 연결 해제 + Firestore 데이터 완전 삭제)
+    func deleteAccount() -> Observable<Void> {
+        return getCurrentUserID()
+            .flatMap { [weak self] userId -> Observable<Void> in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
+                
+                // 1. Firestore 데이터 완전 삭제
+                return self.deleteAllUserData(userId: userId)
+                    .flatMap { _ in
+                        // 2. Firebase Auth 계정 삭제 (소셜 연결 해제 포함)
+                        return self.authManager.deleteAccountWithSocialRevoke()
+                    }
+            }
+            .catch { [weak self] error in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
+                return Observable.error(self.mapToRepositoryError(error))
+            }
+    }
+    
+    // MARK: - 그룹 탈퇴
+    /// 그룹 탈퇴 후 새로운 1인 그룹 생성
+    func leaveGroup() -> Observable<User> {
+        return getCurrentUser()
+            .compactMap { $0 }
+            .flatMap { [weak self] currentUser -> Observable<User> in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
+                
+                return self.leaveGroupAndCreateNew(
+                    userId: currentUser.userID,
+                    currentGroupId: currentUser.groupID,
+                    userNickname: currentUser.nickname
+                )
+            }
+            .catch { [weak self] error in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
+                return Observable.error(self.mapToRepositoryError(error))
+            }
+    }
+    
+    // MARK: - Private Methods
+    
+    /// 사용자 관련 모든 Firestore 데이터 삭제 (계정 탈퇴용)
+    private func deleteAllUserData(userId: String) -> Observable<Void> {
+        return getCurrentUser()
+            .compactMap { $0 }
+            .flatMap { [weak self] (user: StampIt_Project.User) -> Observable<Void> in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
+                let groupId = user.groupID
+                return Observable.zip(
+                    self.firestoreManager.deleteUserStickers(userId: userId),
+                    self.firestoreManager.deleteUserMissions(userId: userId, groupId: groupId),
+                    self.firestoreManager.deleteUserInvites(userId: userId),
+                    self.firestoreManager.removeMember(groupId: groupId, userId: userId),
+                    self.firestoreManager.deleteUser(userId: userId)
+                )
+                .map { _ in () }
+                .catch { error in
+                    return Observable.just(())
+                }
+            }
+    }
+    
+    /// 그룹 탈퇴 + 새 1인 그룹 생성 (트랜잭션)
+    private func leaveGroupAndCreateNew(
+        userId: String,
+        currentGroupId: String,
+        userNickname: String
+    ) -> Observable<User> {
+        return Observable.create { [weak self] observer in
+            guard let self = self else {
+                observer.onError(RepositoryError.unknownError)
+                return Disposables.create()
+            }
+            
+            let newGroupId = UUID().uuidString
+            let now = Date()
+            let inviteCode = self.generateInviteCode()
+            
+            let batch = Firestore.firestore().batch()
+            
+            // 1. 기존 그룹에서 멤버 제거
+            let oldMemberRef = Firestore.firestore()
+                .collection("groups")
+                .document(currentGroupId)
+                .collection("members")
+                .document(userId)
+            batch.deleteDocument(oldMemberRef)
+            
+            // 2. 새 그룹 생성
+            let newGroupRef = Firestore.firestore().collection("groups").document(newGroupId)
+            let groupDict: [String: Any] = [
+                "groupId": newGroupId,
+                "name": "\(userNickname)의 그룹",
+                "leaderId": userId,
+                "inviteCode": inviteCode,
+                "nameChangedAt": Timestamp(date: now),
+                "createdAt": Timestamp(date: now)
+            ]
+            batch.setData(groupDict, forDocument: newGroupRef)
+            
+            // 3. 새 그룹에 멤버 추가
+            let newMemberRef = Firestore.firestore()
+                .collection("groups")
+                .document(newGroupId)
+                .collection("members")
+                .document(userId)
+            let memberDict: [String: Any] = [
+                "userId": userId,
+                "nickname": userNickname,
+                "joinedAt": Timestamp(date: now),
+                "isLeader": true
+            ]
+            batch.setData(memberDict, forDocument: newMemberRef)
+            
+            // 4. 사용자 그룹 ID 업데이트
+            let userRef = Firestore.firestore().collection("users").document(userId)
+            batch.updateData(["groupId": newGroupId], forDocument: userRef)
+            
+            // 5. 새 초대 코드 생성
+            let inviteRef = Firestore.firestore().collection("invites").document(inviteCode)
+            let inviteDict: [String: Any] = [
+                "inviteCode": inviteCode,
+                "groupId": newGroupId,
+                "createdBy": userId,
+                "createdAt": Timestamp(date: now),
+                "expiredAt": NSNull() // 영구 초대 코드
+            ]
+            batch.setData(inviteDict, forDocument: inviteRef)
+            
+            // 6. 커밋
+            batch.commit { error in
+                if let error = error {
+                    observer.onError(RepositoryError.dataError("그룹 탈퇴 실패: \(error.localizedDescription)"))
+                } else {
+                    // 새로 생성된 사용자 정보 반환
+                    let newUser = User(
+                        userID: userId,
+                        nickname: userNickname,
+                        profileImageURL: nil,
+                        boards: [],
+                        groupID: newGroupId,
+                        groupName: "\(userNickname)의 그룹",
+                        isLeader: true,
+                        joinedGroupAt: now
+                    )
+                    observer.onNext(newUser)
+                    observer.onCompleted()
+                }
+            }
+            
+            return Disposables.create()
+        }
+    }
+    
+    /// 초대 코드 생성 헬퍼
+    private func generateInviteCode() -> String {
+        let uuid = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        return String(uuid.prefix(8)).uppercased()
     }
 }

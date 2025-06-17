@@ -56,6 +56,7 @@ protocol FirestoreManagerProtocol {
     func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]>
     func addSticker(_ sticker: StickerFirestore) -> Observable<Void>
     func createStickerFromMission(userId: String, groupId: String, missionTitle: String, assignedBy: String, stickerType: String) -> Observable<StickerFirestore>
+    func deleteUserStickers(userId: String) -> Observable<Void>
     func deleteGroupStickers(groupId: String) -> Observable<Void>
     
     // Invite 관련
