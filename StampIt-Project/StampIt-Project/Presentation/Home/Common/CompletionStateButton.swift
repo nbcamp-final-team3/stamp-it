@@ -16,6 +16,7 @@ final class CompletionStateButton: UIControl {
     private var status: MissionStatus {
         didSet {
             setStyles()
+            setIsEnabled()
         }
     }
 
@@ -68,7 +69,7 @@ final class CompletionStateButton: UIControl {
         titleLabel.textColor = textColor
     }
 
-    // MARK: - Set Styles
+    // MARK: - Set Hierarchy
 
     private func setHierarchy() {
         addSubview(containerStackView)
@@ -79,7 +80,7 @@ final class CompletionStateButton: UIControl {
         ].forEach { containerStackView.addArrangedSubview($0) }
     }
 
-    // MARK: - Set Styles
+    // MARK: - Set Constraints
 
     private func setConstraints() {
         containerStackView.snp.makeConstraints { make in
@@ -100,6 +101,11 @@ final class CompletionStateButton: UIControl {
 
     func updateStatus(to status: MissionStatus) {
         self.status = status
+    }
+
+    func setIsEnabled() {
+        isSelected = status == .completed
+        isEnabled = status == .assigned && status != .failed
     }
 }
 

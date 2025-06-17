@@ -199,9 +199,11 @@ final class AssignedMissionCell: UICollectionViewCell {
     // MARK: - Bind
 
     private func bind() {
-        statusButton.rx.controlEvent(.touchUpInside)
-            .bind(to: didTapStatusButton)
-            .disposed(by: disposeBag)
+        if statusButton.isEnabled || !statusButton.isSelected {
+            statusButton.rx.controlEvent(.touchUpInside)
+                .bind(to: didTapStatusButton)
+                .disposed(by: disposeBag)
+        }
     }
 
     // MARK: - Methods
