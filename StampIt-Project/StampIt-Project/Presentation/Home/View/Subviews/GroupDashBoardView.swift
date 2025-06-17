@@ -19,6 +19,7 @@ final class GroupDashboardView: UIView {
 
     let didTapMissionCompleteButton = PublishRelay<String>()
     let didTapMoreReceivedMissionButton = PublishRelay<Void>()
+    let didTapMoreSendedMissionButton = PublishRelay<Void>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
 
@@ -157,11 +158,16 @@ final class GroupDashboardView: UIView {
 
             case .sendedMission:
                 header.configure(title: "멤버 미션")
+
                 Observable
                     .combineLatest(username, groupName) { user, group in
                         "\(user)님이 \(group) 멤버들에게 전달한 미션이에요"
                     }
                     .bind(to: header.descriptionRxText)
+                    .disposed(by: header.disposeBag)
+
+                header.didTapMoreMissionButton
+                    .bind(to: didTapMoreSendedMissionButton)
                     .disposed(by: header.disposeBag)
             }
 

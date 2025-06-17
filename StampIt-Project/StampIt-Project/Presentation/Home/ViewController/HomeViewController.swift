@@ -85,6 +85,11 @@ final class HomeViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        homeView.didTapMoreSendedMissionButton
+            .map { HomeViewModel.Action.didTapMoreSendedMissions }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.user
             .asDriver()
             .drive(with: self) { owner, user in
@@ -119,6 +124,11 @@ final class HomeViewController: UIViewController {
                 owner.homeView.updateSnapshot(withItems: items, toSection: .sendedMission)
             }
             .disposed(by: disposeBag)
+
+        viewModel.state.isPushMemberMissionVC
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(onNext: pushMemberMissionVC)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods
@@ -147,5 +157,14 @@ final class HomeViewController: UIViewController {
             memberCache: viewModel.memberCache
         )
         navigationController?.pushViewController(myMissionVC, animated: true)
+    }
+
+    private func pushMemberMissionVC() {
+        guard let user = viewModel.state.user.value else { return }
+        let memberMissionVC = DIContainer.shared.makeMemberMissionViewController(
+            user: user,
+            memberCache: viewModel.memberCache
+        )
+        navigationController?.pushViewController(memberMissionVC, animated: true)
     }
 }
