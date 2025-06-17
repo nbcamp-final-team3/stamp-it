@@ -615,8 +615,7 @@ extension FirestoreManager {
         return Observable.create { observer in
             let listener = self.stickersCollection
                 .whereField("userId", isEqualTo: userId)
-                // TODO: month 로 보여줄때 적용
-                // .whereField("month", isEqualTo: month)
+                 .whereField("month", isEqualTo: month)
                 .order(by: "createdAt", descending: false)
                 .addSnapshotListener { querySnapshot, error in
                     if let error = error {

@@ -25,9 +25,8 @@ final class MyPageRepositoryImpl:
         )
     }
     
-    func fetchStickers(userId: String) -> Observable<[Sticker]> {
-        // TODO: month 로 보여줄때 적용
-        firestoreManager.fetchStickers(userId: userId, month: "")
+    func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[Sticker]> {
+        firestoreManager.fetchStickersByPin(userId: userId, pinNumber: pinNumber)
             .map { stickers in
                 stickers.map { $0.toDomainModel() }
             }

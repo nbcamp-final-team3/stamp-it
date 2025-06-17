@@ -61,15 +61,12 @@ final class MyPageViewModel: ViewModelProtocol {
         myPageUseCase.fetchUser()
             .subscribe(with: self) { owner, user in
                 self.state.user.accept(user)
-                owner.bindSticker()
                 owner.bindStickerSummaryData()
             }.disposed(by: disposeBag)
     }
     
-    private func bindSticker() {
-        guard let user = state.user.value else { return }
-        
-        myPageUseCase.fetchStickers(userId: user.userID)
+    private func fetchStickersByPin(userId: String, pinNumber: Int) {
+        myPageUseCase.fetchStickersByPin(userId: userId, pinNumber: pinNumber)
             .subscribe(
                 with: self,
                 onNext: { owner, stickers in
@@ -86,12 +83,20 @@ final class MyPageViewModel: ViewModelProtocol {
         guard let user = state.user.value else { return }
         
         myPageUseCase.fetchStickerCount(userId: user.userID)
-            .subscribe(with: self) { owner, collectedSticker in
+            .subscribe(with: self) { owner, sticker in
                 let totalSticker = StampBoardSection.defaultBoard.totalStamp
+                let collectedSticker = Int(sticker % totalSticker)
+                let completedBoard = Int(sticker / totalSticker)
+                
                 self.state.stickerSummary.accept((
-                    collectedSticker: Int(collectedSticker % totalSticker),
-                    completedBoard: Int(collectedSticker / totalSticker)
+                    collectedSticker: collectedSticker,
+                    completedBoard: completedBoard
                 ))
+                
+                owner.fetchStickersByPin(
+                    userId: user.userID,
+                    pinNumber: completedBoard + 1
+                )
             }.disposed(by: disposeBag)
     }
     
