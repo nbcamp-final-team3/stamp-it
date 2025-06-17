@@ -16,7 +16,6 @@ final class CompletionStateButton: UIControl {
     private var status: MissionStatus {
         didSet {
             setStyles()
-            setIsEnabled()
         }
     }
 
@@ -101,11 +100,6 @@ final class CompletionStateButton: UIControl {
 
     func updateStatus(to status: MissionStatus) {
         self.status = status
-    }
-
-    func setIsEnabled() {
-        isSelected = status == .completed
-        isEnabled = status == .assigned && status != .failed
     }
 }
 

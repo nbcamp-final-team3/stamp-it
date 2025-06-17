@@ -80,6 +80,7 @@ final class MyMissionView: UIView {
                 cell.configureAsReceived(with: mission)
 
                 cell.didTapStatusButton
+                    .filter { item.mission!.status == .assigned }
                     .bind(with: self) { owner, _ in
                         owner.didTapStatusButton.accept(item.mission!.missionID)
                     }
@@ -106,7 +107,7 @@ final class MyMissionView: UIView {
         let itemsToDelete = snapshot.itemIdentifiers(inSection: section)
         snapshot.deleteItems(itemsToDelete)
         snapshot.appendItems(items)
-        dataSource?.apply(snapshot)
+        dataSource?.apply(snapshot, animatingDifferences: false)
     }
 
     private func createLayout() -> UICollectionViewLayout {
