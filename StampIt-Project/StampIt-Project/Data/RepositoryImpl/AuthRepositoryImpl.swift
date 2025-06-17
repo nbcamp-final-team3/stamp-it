@@ -389,6 +389,17 @@ extension AuthRepository {
     }
     
     // MARK: - 그룹 탈퇴
+    /// 그룹 멤버 수 조회
+    func getGroupMemberCount(groupId: String) -> Observable<Int> {
+        return firestoreManager.fetchGroupMemberCount(groupId: groupId)
+            .catch { [weak self] error in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
+                return Observable.error(self.mapToRepositoryError(error))
+            }
+    }
+    
     /// 그룹 탈퇴 후 새로운 1인 그룹 생성
     func leaveGroup() -> Observable<User> {
         return getCurrentUser()

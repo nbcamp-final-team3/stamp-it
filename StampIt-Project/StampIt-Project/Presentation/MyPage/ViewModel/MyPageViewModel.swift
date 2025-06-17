@@ -147,15 +147,50 @@ final class MyPageViewModel: ViewModelProtocol {
         ))
     }
     
+    /// 그룹 탈퇴 확인 다이얼로그 표시 전 멤버 수 체크
     private func showLeaveGroupConfirmation() {
-        let groupName = state.user.value?.groupName ?? "그룹"
-        state.shouldShowConfirmAlert.accept((
-            "그룹 탈퇴",
-            "\(groupName)에서 탈퇴하고 새로운 그룹을 만드시겠습니까?",
-            { [weak self] in
-                self?.performLeaveGroup()
-            }
-        ))
+        checkGroupMemberCountBeforeLeaving()
+    }
+
+    /// 그룹 멤버 수 확인 후 탈퇴 가능 여부 판단
+    private func checkGroupMemberCountBeforeLeaving() {
+        guard let currentUser = state.user.value else {
+            state.alertMessage.accept("사용자 정보를 찾을 수 없습니다.")
+            return
+        }
+        
+        state.isLoading.accept(true)
+        
+        accountManageUseCase.getGroupMemberCount(groupId: currentUser.groupID)
+            .observe(on: MainScheduler.instance)
+            .subscribe(
+                onNext: { [weak self] memberCount in
+                    self?.state.isLoading.accept(false)
+                    self?.handleGroupMemberCount(memberCount: memberCount, groupName: currentUser.groupName)
+                },
+                onError: { [weak self] error in
+                    self?.state.isLoading.accept(false)
+                    self?.state.alertMessage.accept("그룹 정보를 확인할 수 없습니다.")
+                }
+            )
+            .disposed(by: disposeBag)
+    }
+
+    /// 그룹 멤버 수에 따른 처리
+    private func handleGroupMemberCount(memberCount: Int, groupName: String) {
+        if memberCount <= 1 {
+            // 본인만 있는 경우 탈퇴 불가
+            state.alertMessage.accept("혼자 있는 그룹에서는 탈퇴할 수 없습니다.\n계정 탈퇴를 원하시면 '서비스 탈퇴'를 이용해주세요.")
+        } else {
+            // 다른 멤버가 있는 경우 탈퇴 가능
+            state.shouldShowConfirmAlert.accept((
+                "그룹 탈퇴",
+                "\(groupName)에서 탈퇴하고 새로운 그룹을 만드시겠습니까?\n\n현재 그룹 멤버: \(memberCount)명",
+                { [weak self] in
+                    self?.performLeaveGroup()
+                }
+            ))
+        }
     }
     
     /// 로그아웃 실행

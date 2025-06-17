@@ -14,4 +14,5 @@ protocol AccountManageUseCaseProtocol {
     func deleteAccount() -> Observable<Void>
     func leaveGroup() -> Observable<User>
     func getCurrentUser() -> Observable<User?>
+    func getGroupMemberCount(groupId: String) -> Observable<Int>
 }

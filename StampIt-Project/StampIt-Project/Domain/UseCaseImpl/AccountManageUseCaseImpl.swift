@@ -67,6 +67,18 @@ final class AccountManageUseCase: AccountManageUseCaseProtocol {
             }
     }
     
+    /// 그룹 멤버 수 조회
+    func getGroupMemberCount(groupId: String) -> Observable<Int> {
+        return authRepository.getGroupMemberCount(groupId: groupId)
+            .do(onNext: { count in
+                print("✅ 그룹 멤버 수 조회 완료: \(count)명")
+            })
+            .catch { error in
+                print("❌ 그룹 멤버 수 조회 실패: \(error.localizedDescription)")
+                return Observable.error(self.mapToUseCaseError(error))
+            }
+    }
+    
     // MARK: - Private Methods
     
     /// Repository 에러를 UseCase 에러로 매핑
