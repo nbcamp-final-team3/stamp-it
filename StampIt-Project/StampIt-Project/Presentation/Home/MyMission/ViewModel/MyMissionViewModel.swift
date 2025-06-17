@@ -9,7 +9,7 @@ import Foundation
 import RxSwift
 import RxRelay
 
-final class MyMissionViewModel {
+final class MyMissionViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
     private let useCase: MyMissionUseCaseProtocol

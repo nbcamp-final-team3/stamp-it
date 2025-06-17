@@ -54,6 +54,10 @@ final class DIContainer {
         return MyMissionUseCaseImpl(homeRepository: homeRepository)
     }()
 
+    lazy var memberMissionUseCase: MemberMissionUseCaseProtocol = {
+        return MemberMissionUseCaseImpl(homeRepository: homeRepository)
+    }()
+
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -73,6 +77,10 @@ final class DIContainer {
 
     func makeMyMissionViewModel(user: User, memberCache: [String: User]) -> MyMissionViewModel {
         return MyMissionViewModel(user: user, memberCache: memberCache, useCase: myMissionUseCase)
+    }
+
+    func makeMemberMissionViewModel(user: User, memberCache: [String: User]) -> MemberMissionViewModel {
+        return MemberMissionViewModel(user: user, memberCache: memberCache, useCase: memberMissionUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)
@@ -99,6 +107,11 @@ final class DIContainer {
     func makeMyMissionViewController(user: User, memberCache: [String: User]) -> MyMissionViewController {
         let viewModel = makeMyMissionViewModel(user: user, memberCache: memberCache)
         return MyMissionViewController(viewModel: viewModel)
+    }
+
+    func makeMemberMissionViewController(user: User, memberCache: [String: User]) -> MemberMissionViewController {
+        let viewModel = makeMemberMissionViewModel(user: user, memberCache: memberCache)
+        return MemberMissionViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton

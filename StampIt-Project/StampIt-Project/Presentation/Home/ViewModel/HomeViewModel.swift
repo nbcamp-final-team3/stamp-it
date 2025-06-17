@@ -24,7 +24,7 @@ final class HomeViewModel: ViewModelProtocol {
         case didTapCompleteCancelButton
         case didTapMoreReceivedMissions
         case didSelectReceivedMember(memberID: String)
-        case didTapMoreSenededMissions
+        case didTapMoreSendedMissions
     }
 
     struct State {
@@ -38,7 +38,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isPushReceiveInvitationVC = PublishRelay<Void>()
         let isShowStickerReceived = PublishRelay<Void>()
         let isPushMyMissionVC = PublishRelay<Void>()
-        let isPushSendedMissionVC = PublishRelay<Void>()
+        let isPushMemberMissionVC = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -79,8 +79,8 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.state.isPushMyMissionVC.accept(())
                 case .didSelectReceivedMember(memberID: let id):
                     owner.updateSendedMissions(memberID: id)
-                case .didTapMoreSenededMissions:
-                    owner.state.isPushSendedMissionVC.accept(())
+                case .didTapMoreSendedMissions:
+                    owner.state.isPushMemberMissionVC.accept(())
                 }
             }
             .disposed(by: disposeBag)
