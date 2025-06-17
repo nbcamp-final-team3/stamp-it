@@ -53,7 +53,7 @@ final class AuthRepository: AuthRepositoryProtocol {
                 return Observable.error(repositoryError)
             }
     }
-
+    
     /// AuthDataResult를 LoginResult로 변환
     private func processAuthResult(_ authDataResult: AuthDataResult) -> Observable<LoginResult> {
         let firebaseUser = authDataResult.user
@@ -204,9 +204,10 @@ final class AuthRepository: AuthRepositoryProtocol {
     
     /// 신규 사용자, 그룹, 멤버를 트랜잭션으로 원자적 생성
     func createNewUserWithGroup(
-        user: UserFirestore,
-        group: GroupFirestore,
-        member: MemberFirestore
+        user: User,
+        group: Group,
+        member: Member,
+        invite: Invitation
     ) -> Observable<StampIt_Project.User> {
         return Observable.create { [weak self] observer in
             guard let _ = self else {
@@ -216,61 +217,77 @@ final class AuthRepository: AuthRepositoryProtocol {
             
             let batch = Firestore.firestore().batch()
             
+            // Domain → Infrastructure 변환
+            let userFirestore = user.toFirestoreModel()
+            let groupFirestore = group.toFirestoreModel(
+                name: "\(user.nickname)의 그룹",
+                inviteCode: invite.inviteCode
+            )
+            let memberFirestore = member.toFirestoreModel()
+            let inviteFirestore = invite.toFirestoreModel()
+            
             // 1. 유저
             let userDict: [String: Any] = [
-                "userId": user.userId,
-                "nickname": user.nickname,
-                "profileImage": user.profileImage as Any,
-                "groupId": user.groupId,
-                "nicknameChangedAt": user.nicknameChangedAt,
-                "createdAt": user.createdAt
+                "userId": userFirestore.userId,
+                "nickname": userFirestore.nickname,
+                "profileImage": userFirestore.profileImage as Any,
+                "groupId": userFirestore.groupId,
+                "nicknameChangedAt": userFirestore.nicknameChangedAt,
+                "createdAt": userFirestore.createdAt
             ]
-            let userRef = Firestore.firestore().collection("users").document(user.documentID)
+            let userRef = Firestore.firestore().collection("users").document(userFirestore.documentID)
             batch.setData(userDict, forDocument: userRef)
-
+            
             // 2. 그룹
             let groupDict: [String: Any] = [
-                "groupId": group.groupId,
-                "name": group.name,
-                "leaderId": group.leaderId,
-                "inviteCode": group.inviteCode,
-                "nameChangedAt": group.nameChangedAt,
-                "createdAt": group.createdAt
+                "groupId": groupFirestore.groupId,
+                "name": groupFirestore.name,
+                "leaderId": groupFirestore.leaderId,
+                "inviteCode": groupFirestore.inviteCode,
+                "nameChangedAt": groupFirestore.nameChangedAt,
+                "createdAt": groupFirestore.createdAt
             ]
-            let groupRef = Firestore.firestore().collection("groups").document(group.documentID)
+            let groupRef = Firestore.firestore().collection("groups").document(groupFirestore.documentID)
             batch.setData(groupDict, forDocument: groupRef)
-
+            
             // 3. 멤버
             let memberDict: [String: Any] = [
-                "userId": member.userId,
-                "nickname": member.nickname,
-                "joinedAt": member.joinedAt,
-                "isLeader": member.isLeader
+                "userId": memberFirestore.userId,
+                "nickname": memberFirestore.nickname,
+                "joinedAt": memberFirestore.joinedAt,
+                "isLeader": memberFirestore.isLeader
             ]
             let memberRef = Firestore.firestore()
                 .collection("groups")
-                .document(group.groupId)
+                .document(groupFirestore.groupId)
                 .collection("members")
-                .document(member.documentID)
+                .document(memberFirestore.documentID)
             batch.setData(memberDict, forDocument: memberRef)
+            
+            // 4. 초대 코드
+            let inviteDict: [String: Any] = [
+                "inviteCode": inviteFirestore.inviteCode,
+                "groupId": inviteFirestore.groupId,
+                "createdBy": inviteFirestore.createdBy,
+                "createdAt": inviteFirestore.createdAt,
+                "expiredAt": inviteFirestore.expiredAt as Any
+            ]
+            let inviteRef = Firestore.firestore().collection("invites").document(inviteFirestore.documentID)
+            batch.setData(inviteDict, forDocument: inviteRef)
             
             // 커밋
             batch.commit { error in
                 if let error = error {
                     observer.onError(RepositoryError.dataError("신규 사용자 생성 실패: \(error.localizedDescription)"))
                 } else {
-                    let completeUser = user.toDomainModel(
-                        groupName: group.name,
-                        isLeader: true
-                    )
-                    observer.onNext(completeUser)
+                    observer.onNext(user)
                     observer.onCompleted()
                 }
             }
             return Disposables.create()
         }
     }
-
+    
     
     // MARK: - Private Methods
     /// 다양한 에러 타입을 RepositoryError로 매핑

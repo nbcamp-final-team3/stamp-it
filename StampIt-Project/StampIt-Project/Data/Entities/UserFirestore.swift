@@ -54,3 +54,17 @@ extension UserFirestore {
         )
     }
 }
+
+// Domain → Infrastructure 변환 메서드
+extension User {
+    func toFirestoreModel() -> UserFirestore {
+        return UserFirestore(
+            userId: self.userID,
+            nickname: self.nickname,
+            profileImage: self.profileImageURL,
+            groupId: self.groupID,
+            nicknameChangedAt: Timestamp(date: Date()), // 현재 시간으로 설정
+            createdAt: Timestamp(date: self.joinedGroupAt)
+        )
+    }
+}
