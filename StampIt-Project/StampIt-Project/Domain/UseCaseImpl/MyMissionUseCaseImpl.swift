@@ -17,5 +17,8 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
 
     func fetchReceivedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
         homeRepository.fetchMissions(to: userID, by: nil, ofGroup: groupID)
+            .map { missions in
+                missions.sorted { $0.createDate > $1.createDate }
+            }
     }
 }
