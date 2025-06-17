@@ -178,9 +178,15 @@ final class MyPageViewModel: ViewModelProtocol {
 
     /// 그룹 멤버 수에 따른 처리
     private func handleGroupMemberCount(memberCount: Int, groupName: String) {
+        guard let currentUser = state.user.value else { return }
+
         if memberCount <= 1 {
-            // 본인만 있는 경우 탈퇴 불가
+            // 본인만 있는 경우: 탈퇴 불가
             state.alertMessage.accept("혼자 있는 그룹에서는 탈퇴할 수 없습니다.\n계정 탈퇴를 원하시면 '서비스 탈퇴'를 이용해주세요.")
+        }  else if currentUser.isLeader {
+            // 리더인 경우: 탈퇴 불가, 대안 제시 (추후 리더장 위임, 멤버 내보내기를 통해 구현)
+            state.alertMessage.accept("그룹장은 본인 그룹을 탈퇴할 수 없습니다. ")
+            //showLeaderCannotLeaveAlert(groupName: groupName)
         } else {
             // 다른 멤버가 있는 경우 탈퇴 가능
             state.shouldShowConfirmAlert.accept((
@@ -193,6 +199,24 @@ final class MyPageViewModel: ViewModelProtocol {
         }
     }
     
+    /// 리더 탈퇴 불가 안내 (향후 수정 예정)
+    /*
+    private func showLeaderCannotLeaveAlert(groupName: String) {
+        // showLeaderOptionsAlert() 호출로 변경 예정
+        
+        let message = """
+        그룹장은 직접 탈퇴할 수 없습니다.
+        
+        다음 중 하나를 선택해주세요:
+        1️⃣ 다른 멤버에게 그룹장 위임하기
+        2️⃣ 모든 멤버 내보내기 후 계정 탈퇴
+        3️⃣ 계정 탈퇴 (그룹 완전 삭제)
+        """
+        
+        state.alertMessage.accept(message)
+    }
+     */
+
     /// 로그아웃 실행
     private func performLogout() {
         state.isLoading.accept(true)
