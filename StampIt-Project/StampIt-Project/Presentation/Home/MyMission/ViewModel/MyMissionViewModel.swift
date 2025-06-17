@@ -90,15 +90,15 @@ final class MyMissionViewModel {
         // cancelMissionComplete() 호출 시 dispose되는 Observable
         Observable<Void>.just(())
             .delay(.seconds(4), scheduler: MainScheduler.instance)
-            .subscribe(with: self) { owner, _ in
-                let removedMission = owner.updateMissionCache(missionID: missionID)
+            .flatMap { [weak self] _ -> Observable<Void> in
+                guard let self else { return .empty() }
+                let removedMission = updateMissionCache(missionID: missionID)
                 guard let mission = removedMission,
-                      let user = owner.state.user.value else { return }
-                _ = owner.useCase
+                      let user = state.user.value else { return .empty() }
+                return useCase
                     .updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
-                    .subscribe()
-                    .disposed(by: owner.disposeBag)
             }
+            .subscribe()
             .disposed(by: pendingCommits)
     }
 
