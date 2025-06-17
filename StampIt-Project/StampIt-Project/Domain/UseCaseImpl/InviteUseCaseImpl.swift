@@ -75,12 +75,16 @@ final class InviteUseCaseImpl: InviteUseCase {
     /// 초대코드를 받아서 해당 그룹에 새 멤버를 추가하는 코드
     func acceptInvite(inviteCode: String) -> Observable<InviteFirestore> {
         return getCurrentUser()
-            .compactMap { $0 }
-            .flatMap { [weak self] user -> Observable<(User, GroupFirestore)> in
-                guard let self = self else { return .empty() }
-                return self.fetchGroupByInviteCode(inviteCode: inviteCode)
-                    .map { group in (user, group) }
-            }
+                .flatMap { [weak self] optionalUser -> Observable<(User, GroupFirestore)> in
+                    guard let self = self, let user = optionalUser else {
+                        return Observable.error(RepositoryError.userNotFound)
+                    }
+                    return self.fetchGroupByInviteCode(inviteCode: inviteCode)
+                        .map { group in (user, group) }
+                        .catch { error in
+                            return Observable.error(RepositoryError.noInviteCode)
+                        }
+                }
             .flatMap { [weak self] user, group -> Observable<(User, GroupFirestore, UserFirestore)> in
                 guard let self = self else { return .empty() }
                 return self.fetchUserOnce(userId: user.userID)
@@ -106,31 +110,23 @@ final class InviteUseCaseImpl: InviteUseCase {
                 // 멤버 카운트 제대로 불러오기
                 // 로그인한 유저의 기존 그룹 멤버 수 확인 -> 1명이면 삭제
                 return self.fetchGroupMemberCount(groupId: oldGroupId)
-                    .flatMap { oldGroupMemberCount -> Observable<InviteFirestore> in
+                    .flatMap { oldGroupMemberCount -> Observable<Void> in
                         if oldGroupMemberCount == 1 {
-
-                            return self.fetchGroupMemberCount(groupId: oldGroupId)
-                                .flatMap { oldGroupMemberCount -> Observable<InviteFirestore> in
-                                    let DeleteOrPass: Observable<Void>
-                                    if oldGroupMemberCount == 1 {
-                                        DeleteOrPass = self.deleteGroup(groupId: oldGroupId)
-                                    } else {
-                                        DeleteOrPass = .just(())
-                                    }
-                                    return DeleteOrPass
-                                        .flatMap {
-                                            return self.switchUserGroup(
-                                                userId: user.userID,
-                                                fromGroupId: oldGroupId,
-                                                toGroupId: group.groupId,
-                                                userNickname: user.nickname
-                                            )
-                                        }
-                                        .flatMap {
-                                            return self.fetchInvite(inviteCode: inviteCode)
-                                        }
-                                }
+                            return self.deleteGroup(groupId: oldGroupId)
+                        } else {
+                            return .just(())
                         }
+                    }
+                    .flatMap {
+                        self.switchUserGroup(
+                            userId: user.userID,
+                            fromGroupId: oldGroupId,
+                            toGroupId: group.groupId,
+                            userNickname: user.nickname
+                        )
+                    }
+                    .flatMap {
+                        self.fetchInvite(inviteCode: inviteCode)
                     }
             }
     }
@@ -153,6 +149,7 @@ final class InviteUseCaseImpl: InviteUseCase {
             .flatMap { userFirestore, groupFirestore -> Observable<String> in
                 let now = Timestamp(date: Date())
                 //firebase에서 조작해야 될 것 같은데 어떻게 생각하세요? 서버 요청으로 자동 삭제가 가능할까요?
+                // batch? firebase 에서 만들어진 시간 조회해서 하루넘어가면 disabled
                 let expired = Timestamp(date: Date().addingTimeInterval(60 * 60 * 24)) // 24시간 뒤
 
                 let invite = InviteFirestore(

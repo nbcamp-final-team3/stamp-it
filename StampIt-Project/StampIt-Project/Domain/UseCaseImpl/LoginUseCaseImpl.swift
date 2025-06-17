@@ -212,6 +212,12 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 return .uiFailed(message)
             case .unknownError:
                 return .unknownError
+            case .groupIsFull:
+                return .groupIsFull
+            case .onlyOneGroup:
+                return .onlyOneGroup
+            case .noInviteCode:
+                return .noInviteCode
             }
         } else {
             return .unknownError
