@@ -57,6 +57,10 @@ protocol FirestoreManagerProtocol {
     func createStickerFromMission(userId: String, groupId: String, missionTitle: String, assignedBy: String, stickerType: String) -> Observable<StickerFirestore>
     
     // Invite 관련
+    func fetchGroupInviteCode(groupId: String) -> Observable<String>
+    func fetchGroupByInviteCode(inviteCode: String) -> Observable<GroupFirestore>
+    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String) -> Observable<Void>
+    func fetchGroupMemberCount(groupId: String) -> Observable<Int>
     func fetchInvite(inviteCode: String) -> Observable<InviteFirestore>
     func createInvite(_ invite: InviteFirestore) -> Observable<Void>
     func deleteInvite(inviteCode: String) -> Observable<Void>
@@ -787,25 +791,25 @@ extension FirestoreManager {
     }
     
     /// 스티커 정보 업데이트 (타입 변경 등): 해당 코드는 추가 기능 구현을 위해 미리 만들어둠
-        func updateSticker(_ sticker: StickerFirestore) -> Observable<Void> {
-            return Observable.create { observer in
-                do {
-                    try self.stickersCollection.document(sticker.documentID)
-                        .setData(from: sticker, merge: true) { error in
-                            if let error = error {
-                                observer.onError(FirestoreError.updateFailed(error.localizedDescription))
-                            } else {
-                                observer.onNext(())
-                                observer.onCompleted()
-                            }
+    func updateSticker(_ sticker: StickerFirestore) -> Observable<Void> {
+        return Observable.create { observer in
+            do {
+                try self.stickersCollection.document(sticker.documentID)
+                    .setData(from: sticker, merge: true) { error in
+                        if let error = error {
+                            observer.onError(FirestoreError.updateFailed(error.localizedDescription))
+                        } else {
+                            observer.onNext(())
+                            observer.onCompleted()
                         }
-                } catch {
-                    observer.onError(FirestoreError.encodingFailed(error.localizedDescription))
-                }
-                
-                return Disposables.create()
+                    }
+            } catch {
+                observer.onError(FirestoreError.encodingFailed(error.localizedDescription))
             }
+            
+            return Disposables.create()
         }
+    }
     
     /// 미션 완료 시 자동 스티커 생성 (핀번호 자동 계산)
     func createStickerFromMission(
@@ -850,6 +854,106 @@ extension FirestoreManager {
 
 // MARK: - Invite Operations
 extension FirestoreManager {
+    
+    /// 그룹의 현재 초대 코드 조회 (그룹 설정용)
+    func fetchGroupInviteCode(groupId: String) -> Observable<String> {
+        return fetchGroup(groupId: groupId)
+            .map { group in
+                return group.inviteCode
+            }
+    }
+    
+    /// 초대 코드로 그룹 정보 조회 (초대 검증용)
+    func fetchGroupByInviteCode(inviteCode: String) -> Observable<GroupFirestore> {
+        return Observable.create { observer in
+            self.groupsCollection
+                .whereField("inviteCode", isEqualTo: inviteCode)
+                .limit(to: 1)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents,
+                          let document = documents.first else {
+                        observer.onError(FirestoreError.documentNotFound)
+                        return
+                    }
+                    
+                    do {
+                        let group = try document.data(as: GroupFirestore.self)
+                        observer.onNext(group)
+                        observer.onCompleted()
+                    } catch {
+                        observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
+                    }
+                }
+            
+            return Disposables.create()
+        }
+    }
+    
+    /// 사용자 그룹 변경 (트랜잭션)
+    func switchUserGroup(
+        userId: String,
+        fromGroupId: String,
+        toGroupId: String,
+        userNickname: String
+    ) -> Observable<Void> {
+        return Observable.create { observer in
+            let batch = Firestore.firestore().batch()
+            
+            // 1. 사용자 그룹 ID 업데이트
+            let userRef = self.usersCollection.document(userId)
+            batch.updateData(["groupId": toGroupId], forDocument: userRef)
+            
+            // 2. 기존 그룹에서 멤버 제거
+            let oldMemberRef = self.membersCollection(groupId: fromGroupId).document(userId)
+            batch.deleteDocument(oldMemberRef)
+            
+            // 3. 새 그룹에 멤버 추가
+            let newMemberRef = self.membersCollection(groupId: toGroupId).document(userId)
+            let memberData: [String: Any] = [
+                "userId": userId,
+                "nickname": userNickname,
+                "joinedAt": Timestamp(date: Date()),
+                "isLeader": false
+            ]
+            batch.setData(memberData, forDocument: newMemberRef)
+            
+            // 4. 커밋
+            batch.commit { error in
+                if let error = error {
+                    observer.onError(FirestoreError.updateFailed(error.localizedDescription))
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            
+            return Disposables.create()
+        }
+    }
+    
+    /// 그룹 멤버 수 조회 (가입 제한 확인용)
+    func fetchGroupMemberCount(groupId: String) -> Observable<Int> {
+        return Observable.create { observer in
+            self.membersCollection(groupId: groupId)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    let count = querySnapshot?.documents.count ?? 0
+                    observer.onNext(count)
+                    observer.onCompleted()
+                }
+            
+            return Disposables.create()
+        }
+    }
     
     /// 초대 코드로 초대 정보 조회 (일회성)
     func fetchInvite(inviteCode: String) -> Observable<InviteFirestore> {
