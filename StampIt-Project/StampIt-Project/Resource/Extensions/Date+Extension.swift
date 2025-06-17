@@ -16,4 +16,13 @@ extension Date {
 
         return formattedDate
     }
+
+    func toYearMonthString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+
+        let formattedDate = formatter.string(from: self)
+
+        return formattedDate
+    }
 }

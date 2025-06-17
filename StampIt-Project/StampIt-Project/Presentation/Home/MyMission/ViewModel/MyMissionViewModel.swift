@@ -31,13 +31,13 @@ final class MyMissionViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
-    private var memberCache: [String: User] = [:]
+    private var memberCache: [String: Member] = [:]
     private var receivedMissions = [Mission]()
     private var pendingCommits = DisposeBag()
 
     // MARK: - Init
 
-    init(user: User, memberCache: [String: User], useCase: MyMissionUseCaseProtocol) {
+    init(user: User, memberCache: [String: Member], useCase: MyMissionUseCaseProtocol) {
         self.useCase = useCase
         state.user.accept(user)
         self.memberCache = memberCache

@@ -21,11 +21,10 @@ final class HomeUseCase: HomeUseCaseProtocol {
         authRepository.getCurrentUser()
     }
 	
-    func fetchRanking(ofGroup groupID: String) -> Observable<[User]> {
+    func fetchRanking(ofGroup groupID: String) -> Observable<[Member]> {
         homeRepository.fetchGroupMembers(ofGroup: groupID)
-            .map { users in
-                // TODO: 멤버들이 가진 월별 스티커 수로 sort
-                return users
+            .map { members in
+                members.sorted { $0.monthSticker > $1.monthSticker }
             }
     }
 

@@ -95,7 +95,7 @@ final class MyPageViewModel: ViewModelProtocol {
             if index < stickers.count {
                 return stickers[index]
             } else {
-                return Sticker(stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date())
+                return Sticker(stickerID: "\(UUID())", userID: "", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date())
             }
         }
         

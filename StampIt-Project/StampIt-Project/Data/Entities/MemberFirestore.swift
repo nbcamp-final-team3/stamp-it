@@ -25,6 +25,8 @@ extension MemberFirestore {
         return Member(
             userID: self.userId,
             nickname: self.nickname,
+            profileImageURL: nil,
+            monthSticker: 0,
             joinedAt: self.joinedAt.dateValue(),
             isLeader: self.isLeader
         )

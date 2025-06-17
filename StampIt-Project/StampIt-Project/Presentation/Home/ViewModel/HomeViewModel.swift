@@ -46,7 +46,7 @@ final class HomeViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
-    var memberCache = [String: User]() // 멤버 정보 저장
+    var memberCache = [String: Member]() // 멤버 정보 저장
     private var receivedMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
     private var sendedMissions = [Mission]()
     private var pendingCommits = DisposeBag()
@@ -90,12 +90,12 @@ final class HomeViewModel: ViewModelProtocol {
     private func bindUser() {
         useCase.fetchCurrentUser()
             .compactMap { $0 }
-            .flatMap { [weak self] user -> Observable<([User], [Mission], [Mission])> in
+            .flatMap { [weak self] user -> Observable<([Member], [Mission], [Mission])> in
                 guard let self else { return .empty() }
                 state.user.accept(user)
                 let rankingObs = useCase.fetchRanking(ofGroup: user.groupID)
-                    .do(onNext: { users in
-                        self.memberCache = Dictionary(uniqueKeysWithValues: users.map { ($0.userID, $0) })
+                    .do(onNext: { members in
+                        self.memberCache = Dictionary(uniqueKeysWithValues: members.map { ($0.userID, $0) })
                     })
                 let receivedObs = useCase.fetchReceivedMissions(ofUser: user.userID, fromGroup: user.groupID)
                     .do(onNext: { receivedMissions in
@@ -108,10 +108,10 @@ final class HomeViewModel: ViewModelProtocol {
 
                 return Observable.zip(rankingObs, receivedObs, sendedObs)
             }
-            .subscribe(onNext: { [weak self] (users, received, sended) in
+            .subscribe(onNext: { [weak self] (member: [Member], received: [Mission], sended: [Mission]) in
                 guard let self else { return }
 
-                let memberItems = mapUsersToHomeItems(users)
+                let memberItems = mapMembersToHomeItems(member)
                 #if !DEBUG
                 state.isShowGroupOrganizationView.accept(users.count == 1)
                 #endif
@@ -208,24 +208,16 @@ final class HomeViewModel: ViewModelProtocol {
     }
 
     /// [User]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
-    private func mapUsersToHomeItems(_ users: [User]) -> [HomeItem] {
-        users.enumerated().map { index, user in
-            let stickerCount = getStickerCount(ofUser: user)
+    private func mapMembersToHomeItems(_ members: [Member]) -> [HomeItem] {
+        members.enumerated().map { index, member in
             let member = HomeMember(
-                memberID: user.userID,
-                nickname: user.nickname,
-                stickerCount: "\(stickerCount)개",
+                memberID: member.userID,
+                nickname: member.nickname,
+                stickerCount: "\(member.monthSticker)개",
                 rank: index + 1,
-                profileImageURL: user.profileImageURL
+                profileImageURL: member.profileImageURL
             )
             return HomeItem.member(member)
-        }
-    }
-
-    /// User가 가진 모든 스티커 수의 합 반환
-    private func getStickerCount(ofUser user: User) -> Int {
-        user.boards.reduce(0) { total, board in
-            total + board.stickers.count
         }
     }
 

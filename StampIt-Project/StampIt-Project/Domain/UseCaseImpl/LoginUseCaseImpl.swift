@@ -134,6 +134,8 @@ final class LoginUseCase: LoginUseCaseProtocol {
             let member = Member(
                 userID: authUser.uid,
                 nickname: randomNickname,
+                profileImageURL: authUser.photoURL,
+                monthSticker: 0, // 별도로 추가됨
                 joinedAt: now,
                 isLeader: true
             )

@@ -10,6 +10,8 @@ import Foundation
 struct Member {
     let userID: String
     let nickname: String
+    let profileImageURL: String?
+    let monthSticker: Int
     let joinedAt: Date
     let isLeader: Bool
 }
