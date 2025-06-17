@@ -15,14 +15,11 @@ protocol InviteRepository {
     // send 관련 메서드
     func createInvite(_ invite: InviteFirestore) -> Observable<Void>
     func fetchGroup(groupId: String) -> Observable<GroupFirestore>
-    func getCurrentUser() -> Observable<StampIt_Project.User?>
-    func sequenceCreateCode() -> Observable<String>
     // 공통 메서드
     func fetchUserOnce(userId: String) -> Observable<UserFirestore>
     // 06/17 추가된 메서드
     /// 초대코드로 그룹 정보 가져오기
     func fetchGroupByInviteCode(inviteCode: String) -> Observable<GroupFirestore>
-    // 메서드 구현부 에서는 가입 제한 확인 용인데 노션에서는 용도가 다름 물어보자
     /// 그룹의 멤버 수 확인
     func fetchGroupMemberCount(groupId: String) -> Observable<Int>
     // 초대받아서 성공 했을 경우에 가지고 있던 그룹 삭제 처리

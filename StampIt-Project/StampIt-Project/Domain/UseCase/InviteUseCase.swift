@@ -9,10 +9,8 @@ import Foundation
 import RxSwift
 
 protocol InviteUseCase {
-    //receive 관련 메서드
-    func addMember(groupId: String, member: MemberFirestore) -> Observable<Void>
-    //send 관련 메서드
-    // 아직 없음
-    // 공통 메서드
-    func getCurrentUser() -> Observable<StampIt_Project.User?>
+    /// 초대 코드 확인 메서드
+    func acceptInvite(inviteCode: String) -> Observable<InviteFirestore>
+    /// 초대코드 생성 메서드
+    func sequenceCreateCode() -> Observable<String>
 }

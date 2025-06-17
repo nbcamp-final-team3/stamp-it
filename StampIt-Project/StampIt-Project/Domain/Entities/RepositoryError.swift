@@ -17,7 +17,8 @@ enum RepositoryError: Error {
     case networkError(String)          // 네트워크 오류
     case uiError(String)              // UI 관련 오류
     case unknownError                  // 알 수 없는 오류
-    case groupIsFull                   // 그룹 정원이 가득 참
+    case groupIsFull                   // 그룹 정원이 가득 찬 오류
+    case onlyOneGroup                   //유저는 그룹을 하나만 가질 수 있음
 
 
     var localizedDescription: String {
@@ -38,6 +39,8 @@ enum RepositoryError: Error {
             return "알 수 없는 오류가 발생했습니다"
         case .groupIsFull:
             return "그룹 정원이 가득 찼습니다."
+        case .onlyOneGroup:
+            return "기존 그룹을 탈퇴해 주세요."
         }
     }
 }
