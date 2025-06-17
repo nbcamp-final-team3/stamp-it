@@ -197,7 +197,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         self.type = .received
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
-        nameTag.isHidden = !(mission.isNew ?? false)
+        newTag.isHidden = !(mission.isNew ?? false)
         nameTag.updateText(with: mission.assigner)
         dateTag.updateText(with: mission.dueDate)
         if mission.isOverdue { dateTag.updateTextColor(.gray200) }
