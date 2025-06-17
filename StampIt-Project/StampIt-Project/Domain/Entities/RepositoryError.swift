@@ -17,7 +17,9 @@ enum RepositoryError: Error {
     case networkError(String)          // 네트워크 오류
     case uiError(String)              // UI 관련 오류
     case unknownError                  // 알 수 없는 오류
-    
+    case groupIsFull                   // 그룹 정원이 가득 참
+
+
     var localizedDescription: String {
         switch self {
         case .authenticationFailed(let message):
@@ -34,6 +36,8 @@ enum RepositoryError: Error {
             return "화면 오류: \(message)"
         case .unknownError:
             return "알 수 없는 오류가 발생했습니다"
+        case .groupIsFull:
+            return "그룹 정원이 가득 찼습니다."
         }
     }
 }
