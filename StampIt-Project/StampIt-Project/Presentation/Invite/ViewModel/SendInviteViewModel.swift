@@ -24,14 +24,11 @@ final class SendInviteViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     let state = State()
-    private let useCase: SendInviteUseCase
-    private let repository: SendInviteRepository
+    private let useCase: InviteUseCase
 
     // MARK: - Init
-    init(sendInviteUseCase: SendInviteUseCase,
-         sendInviteRepository: SendInviteRepository) {
-        self.useCase = sendInviteUseCase
-        self.repository = sendInviteRepository
+    init(useCase: InviteUseCase) {
+        self.useCase = useCase
         bindActions()
     }
 
@@ -51,7 +48,7 @@ final class SendInviteViewModel: ViewModelProtocol {
     
     // MARK: - Private Methods
     private func copyInviteCode() {
-        repository.sequenceCreateCode()
+        useCase.sequenceCreateCode()
             .subscribe(onNext: { [weak self] code in
                 guard let self = self else { return }
                 self.state.inviteCode.accept(code)

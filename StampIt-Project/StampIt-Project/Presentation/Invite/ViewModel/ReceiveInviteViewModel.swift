@@ -32,15 +32,12 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     let state = State()
 
-    private let useCase: ReceiveInviteUseCase
-    private let repository: ReceiveInviteRepository
+    private let useCase: InviteUseCase
 
     // MARK: - Init
 
-    init(receiveInviteUseCase: ReceiveInviteUseCase,
-         receiveInviteRepository: ReceiveInviteRepository) {
-        self.useCase = receiveInviteUseCase
-        self.repository = receiveInviteRepository
+    init(useCase: InviteUseCase) {
+        self.useCase = useCase
         bindActions()
     }
 
@@ -68,7 +65,7 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     private func handleEnterButtonTapped() {
         let code = state.inviteCode.value
 
-        repository.fetchInvite(inviteCode: code)
+        useCase.acceptInvite(inviteCode: code)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] invite in
                 self?.state.showMessage.accept("초대 완료! 그룹 ID: \(invite.groupId)")
