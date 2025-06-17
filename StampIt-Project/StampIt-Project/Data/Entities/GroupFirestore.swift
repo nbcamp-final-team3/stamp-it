@@ -32,3 +32,16 @@ extension GroupFirestore {
         )
     }
 }
+
+extension Group {
+    func toFirestoreModel(name: String, inviteCode: String) -> GroupFirestore {
+        return GroupFirestore(
+            groupId: self.groupID,
+            name: name,
+            leaderId: self.leaderID,
+            inviteCode: inviteCode,
+            nameChangedAt: Timestamp(date: self.nameChangedAt),
+            createdAt: Timestamp(date: Date())
+        )
+    }
+}
