@@ -8,7 +8,7 @@
 import Foundation
 import RxSwift
 
-final class MemberMissionUseCase: MemberMissionUseCaseProtocol {
+final class MemberMissionUseCaseImpl: MemberMissionUseCaseProtocol {
     let homeRepository: HomeRepositoryProtocol
 
     init(homeRepository: HomeRepositoryProtocol) {

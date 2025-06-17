@@ -13,10 +13,6 @@ import RxRelay
 
 final class MemberMissionView: UIView {
 
-    // MARK: - Actions
-
-    let didTapStatusButton = PublishRelay<String>()
-
     // MARK: - Properties
 
     private let disposeBag = DisposeBag()
