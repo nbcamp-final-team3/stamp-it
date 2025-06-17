@@ -112,7 +112,9 @@ final class HomeViewModel: ViewModelProtocol {
                 guard let self else { return }
 
                 let memberItems = mapUsersToHomeItems(users)
-//                state.isShowGroupOrganizationView.accept(users.count == 1)
+                #if !DEBUG
+                state.isShowGroupOrganizationView.accept(users.count == 1)
+                #endif
                 state.rankedMembers.accept(memberItems)
 
                 let receivedItems = mapReceivedMissionsToHomeItems(received)
