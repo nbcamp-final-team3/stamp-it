@@ -140,6 +140,21 @@ final class LoginViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
     
+    /// 뷰컨트롤러 해제 전 정리
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // 로딩 상태 정리
+        loadingIndicator.stopAnimating()
+        loadingContainerView.isHidden = true
+        
+        // 버튼 상태 복원
+        appleLoginButton.isEnabled = true
+        googleLoginButton.isEnabled = true
+        appleLoginButton.alpha = 1.0
+        googleLoginButton.alpha = 1.0
+    }
+    
     // MARK: - Setup UI
     private func setupUI() {
         view.backgroundColor = .systemBackground
@@ -332,20 +347,52 @@ final class LoginViewController: UIViewController {
         }
     }
     
-    /// 로그인 성공 처리
+    /// 로그인 성공 처리 (타임아웃 추가)
     private func handleLoginSuccess(user: User, isNewUser: Bool, nextAction: LoginNextAction) {
+        // 사용자 정보 캐시에 먼저 저장
+        UserCache.shared.setCurrentUser(user)
+        
         // 성공 햅틱 피드백
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
         impactFeedback.impactOccurred()
         
-        // 다음 화면으로 이동 처리
-        switch nextAction {
-        case .navigateToMain:
-            navigateToHome(user: user)
-        case .showWelcomeMessage:
-            showWelcomeMessage(user: user)
+        // 타임아웃 설정 (10초 후 강제 이동)
+        let timeoutWorkItem = DispatchWorkItem { [weak self] in
+            self?.forceNavigateToHome(user: user)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: timeoutWorkItem)
+        
+        // 정상 전환 시도
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            timeoutWorkItem.cancel() // 타임아웃 취소
+            
+            switch nextAction {
+            case .navigateToMain:
+                self?.navigateToHome(user: user)
+            case .showWelcomeMessage:
+                self?.showWelcomeMessage(user: user)
+            }
         }
     }
+
+    /// 강제 홈 화면 이동 (타임아웃 시)
+    private func forceNavigateToHome(user: User) {
+        
+        // 간단한 방식으로 이동
+        let homeVC = DIContainer.shared.makeHomeViewController()
+        let navController = UINavigationController(rootViewController: homeVC)
+        
+        // 즉시 전환 (애니메이션 없음)
+        if let windowScene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+           let window = windowScene.windows.first {
+            
+            window.rootViewController = navController
+            window.makeKeyAndVisible()
+        }
+    }
+
     
     /// 홈 화면으로 이동
     private func navigateToHome(user: User) {
@@ -357,8 +404,11 @@ final class LoginViewController: UIViewController {
     
     /// 신규 사용자 환영 메시지 표시
     private func showWelcomeMessage(user: User) {
-        // TODO: 신규 사용자 환영 토스트 메시지로 변경 예정
-        print("✅ 신규 사용자 환영: \(user.nickname)")
+        // TODO: 홈 화면 이동 후 신규 사용자 환영 토스트 메시지로 출력(미구현)
+        let homeVC = DIContainer.shared.makeHomeViewController()
+        let navController = UINavigationController(rootViewController: homeVC)
+        
+        WindowTransitionManager.shared.changeRootViewController(to: navController)
     }
     
     /// 에러 알림 표시
