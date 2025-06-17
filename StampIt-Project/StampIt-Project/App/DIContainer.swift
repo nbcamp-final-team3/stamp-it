@@ -35,12 +35,8 @@ final class DIContainer {
     }()
 
 
-    private lazy var receiveInviteRepository: ReceiveInviteRepository = {
-        return ReceiveInviteRepositoryImpl(firestoreManager: firestoreManager)
-    }()
-
-    private lazy var sendInviteRepository: SendInviteRepository = {
-        return SendInviteRepositoryImpl(firestoreManager: firestoreManager)
+    private lazy var inviteRepository: InviteRepository = {
+        return InviteRepositoryImpl(firestoreManager: firestoreManager)
     }()
 
     // MARK: - Use Cases (Domain Layer)
@@ -59,17 +55,10 @@ final class DIContainer {
         )
     }()
 
-    private lazy var receiveInviteUseCase: ReceiveInviteUseCase = {
-        return ReceiveInviteUseCaseImpl(
+    private lazy var inviteUseCase: InviteUseCase = {
+        return InviteUseCaseImpl(
             authRepository: authRepository,
-            receiveInviteRepository: receiveInviteRepository
-        )
-    }()
-
-    private lazy var sendInviteUseCase: SendInviteUseCase = {
-        return SendInviteUseCaseImpl(
-            authRepository: authRepository,
-            sendInviteRepository: sendInviteRepository
+            inviteRepository: inviteRepository
         )
     }()
 
@@ -92,11 +81,11 @@ final class DIContainer {
     
 
     func makeReceiveInviteViewModel() -> ReceiveInviteViewModel {
-        return ReceiveInviteViewModel(receiveInviteUseCase: receiveInviteUseCase, receiveInviteRepository: receiveInviteRepository)
+        return ReceiveInviteViewModel(useCase: inviteUseCase)
     }
 
     func makeSendInviteViewModel() -> SendInviteViewModel {
-        return SendInviteViewModel(sendInviteUseCase: sendInviteUseCase, sendInviteRepository: sendInviteRepository)
+        return SendInviteViewModel(useCase: inviteUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)
