@@ -24,6 +24,12 @@ final class MyPageViewController: UIViewController {
     private let stampBoardView = StampBoardTab()
     private let profileView = ProfileTab()
     
+    // 로딩 인디케이터 추가
+    private let loadingIndicator = UIActivityIndicatorView(style: .large).then {
+        $0.hidesWhenStopped = true
+        $0.color = .red400
+    }
+    
     // MARK: - Initializer, Deinit, requiered
     
     init(viewModel: MyPageViewModel) {
@@ -75,6 +81,30 @@ final class MyPageViewController: UIViewController {
                 
                 self.updateUI(with: stickers)
             }.disposed(by: disposeBag)
+        
+        viewModel.state.user
+            .compactMap { $0 }
+            .bind(with: self) { owner, user in
+                owner.profileView.setUser(user)
+            }.disposed(by: disposeBag)
+        
+        viewModel.state.alertMessage
+            .bind(with: self) { owner, message in
+                owner.showAlert(title: "알림", message: message)
+            }.disposed(by: disposeBag)
+        
+        // 로그인 화면으로 이동
+        viewModel.state.shouldNavigateToLogin
+            .bind(with: self) { owner, _ in
+                owner.navigateToLogin()
+            }.disposed(by: disposeBag)
+        
+        // 확인 다이얼로그
+        viewModel.state.shouldShowConfirmAlert
+            .bind(with: self) { owner, alertData in
+                let (title, message, action) = alertData
+                owner.showConfirmAlert(title: title, message: message, confirmAction: action)
+            }.disposed(by: disposeBag)
     }
     
     // MARK: - Style Helper
@@ -92,6 +122,7 @@ final class MyPageViewController: UIViewController {
             tabButton,
             stampBoardView,
             profileView,
+            loadingIndicator,
         ]
             .forEach { view.addSubview($0) }
     }
@@ -111,6 +142,10 @@ final class MyPageViewController: UIViewController {
         profileView.snp.makeConstraints {
             $0.top.equalTo(tabButton.snp.bottom)
             $0.directionalHorizontalEdges.bottom.equalToSuperview()
+        }
+        
+        loadingIndicator.snp.makeConstraints {
+            $0.center.equalToSuperview()
         }
     }
     
@@ -164,5 +199,52 @@ final class MyPageViewController: UIViewController {
             stampBoardView.isHidden = true
             profileView.isHidden = false
         }
+    }
+    
+    /// 일반 알림 다이얼로그
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
+    }
+    
+    /// 확인/취소 다이얼로그
+    private func showConfirmAlert(title: String, message: String, confirmAction: @escaping () -> Void) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        alert.addAction(UIAlertAction(title: "확인", style: .destructive) { _ in
+            confirmAction()
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    /// 로그인 화면으로 이동
+    private func navigateToLogin() {
+        UserCache.shared.clearCache()
+        
+         // UserDefaults에서 로그인 관련 정보 삭제 (필요시)
+         UserDefaults.standard.removeObject(forKey: "userToken")
+         UserDefaults.standard.removeObject(forKey: "lastLoginDate")
+        
+        let loginViewModel = DIContainer.shared.makeLoginViewModel()
+        let loginVC = LoginViewController(viewModel: loginViewModel)
+        let navController = UINavigationController(rootViewController: loginVC)
+        
+        WindowTransitionManager.shared.changeRootViewController(to: navController)
+    }
+    
+    // 외부에서 쓸 수 있는 메서드로 액션 전달 (public/internal)
+    func leaveGroup() {
+        viewModel.action.accept(.leaveGroupButtonTapped)
+    }
+
+    func deleteAccount() {
+        viewModel.action.accept(.deleteAccountButtonTapped)
+    }
+    
+    func logOut() {
+        viewModel.action.accept(.logoutButtonTapped)
     }
 }

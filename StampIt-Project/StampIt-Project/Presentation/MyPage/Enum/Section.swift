@@ -14,7 +14,7 @@ enum MyPageProfileSection: CaseIterable {
         case .groupMember:
             return [.deleteMember, .inviteMember, .receiveInvite]
         case .groupService:
-            return [.leaveGroup, .leaveService]
+            return [.leaveGroup, .logout, .leaveService]
         }
     }
     
@@ -31,6 +31,7 @@ enum MyPageMenu: CaseIterable {
     case inviteMember
     case receiveInvite
     case leaveGroup
+    case logout
     case leaveService
     
     var title: String {
@@ -39,6 +40,7 @@ enum MyPageMenu: CaseIterable {
         case .inviteMember: return "초대 하기"
         case .receiveInvite: return "초대 받기"
         case .leaveGroup: return "그룹 탈퇴"
+        case .logout: return "로그아웃"
         case .leaveService: return "서비스 탈퇴"
         }
     }
@@ -48,7 +50,8 @@ enum MyPageMenu: CaseIterable {
         case .deleteMember: return ""
         case .inviteMember: return "그룹에 새로운 구성원 초대하기"
         case .receiveInvite: return "새로운 그룹에 초대받기"
-        case .leaveGroup: return "‘그룹명' 그룹에서 탈퇴하기"
+        case .leaveGroup: return "‘그룹명' 그룹에서 탈퇴하기" //TODO: 그룹명 부분 수정 필요할 것 같습니다
+        case .logout: return "현재 계정 로그아웃하기"
         case .leaveService: return "‘스탬프잇' 탈퇴하기"
         }
     }

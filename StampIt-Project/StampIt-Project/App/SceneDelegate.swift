@@ -29,7 +29,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let onboardingVC = DIContainer.shared.makeOnboardingViewController()
             nav = UINavigationController(rootViewController: onboardingVC)
         }
-        window?.rootViewController = nav
+        window?.rootViewController = DIContainer.shared.makeMyPageViewController()
         
         window?.makeKeyAndVisible()
     }
