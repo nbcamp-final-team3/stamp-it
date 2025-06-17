@@ -51,6 +51,11 @@ final class MyMissionViewController: UIViewController {
                 owner.myMissionView.updateSnapshot(withItems: items, toSection: .mission)
             }
             .disposed(by: disposeBag)
+
+        myMissionView.didTapStatusButton
+            .map { MyMissionViewModel.Action.didTapStatusButton(id: $0) }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
     }
 
 }

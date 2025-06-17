@@ -13,6 +13,10 @@ import RxRelay
 
 final class MyMissionView: UIView {
 
+    // MARK: - Actions
+
+    let didTapStatusButton = PublishRelay<String>()
+
     // MARK: - Properties
 
     private let disposeBag = DisposeBag()
@@ -74,6 +78,12 @@ final class MyMissionView: UIView {
                 ) as! AssignedMissionCell
 
                 cell.configureAsReceived(with: mission)
+
+                cell.didTapStatusButton
+                    .bind(with: self) { owner, _ in
+                        owner.didTapStatusButton.accept(item.mission!.missionID)
+                    }
+                    .disposed(by: cell.disposeBag)
 
                 return cell
             }
