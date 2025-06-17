@@ -52,6 +52,15 @@ final class DIContainer {
             mypageRepository: myPageRepository
         )
     }()
+
+    lazy var myMissionUseCase: MyMissionUseCaseProtocol = {
+        return MyMissionUseCaseImpl(homeRepository: homeRepository)
+    }()
+
+    lazy var memberMissionUseCase: MemberMissionUseCaseProtocol = {
+        return MemberMissionUseCaseImpl(homeRepository: homeRepository)
+    }()
+
     
     lazy var accountManageUseCase: AccountManageUseCaseProtocol = {
         return AccountManageUseCase(authRepository: authRepository)
@@ -76,7 +85,15 @@ final class DIContainer {
     func makeOnboardingViewModel() -> OnboardingViewModel {
         return OnboardingViewModel(totalPages: 3)
     }
-    
+
+    func makeMyMissionViewModel(user: User, memberCache: [String: User]) -> MyMissionViewModel {
+        return MyMissionViewModel(user: user, memberCache: memberCache, useCase: myMissionUseCase)
+    }
+
+    func makeMemberMissionViewModel(user: User, memberCache: [String: User]) -> MemberMissionViewModel {
+        return MemberMissionViewModel(user: user, memberCache: memberCache, useCase: memberMissionUseCase)
+    }
+
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
@@ -97,7 +114,17 @@ final class DIContainer {
         let viewModel = makeOnboardingViewModel()
         return OnboardingViewController(viewModel: viewModel)
     }
-    
+
+    func makeMyMissionViewController(user: User, memberCache: [String: User]) -> MyMissionViewController {
+        let viewModel = makeMyMissionViewModel(user: user, memberCache: memberCache)
+        return MyMissionViewController(viewModel: viewModel)
+    }
+
+    func makeMemberMissionViewController(user: User, memberCache: [String: User]) -> MemberMissionViewController {
+        let viewModel = makeMemberMissionViewModel(user: user, memberCache: memberCache)
+        return MemberMissionViewController(viewModel: viewModel)
+    }
+
     // MARK: - Singleton
     static let shared = DIContainer()
     private init() {}

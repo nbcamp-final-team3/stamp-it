@@ -8,8 +8,14 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class AssignedMissionCell: UICollectionViewCell {
+
+    // MARK: - Actions
+
+    let didTapStatusButton = PublishRelay<Void>()
 
     // MARK: - Properties
 
@@ -20,6 +26,7 @@ final class AssignedMissionCell: UICollectionViewCell {
             newTag.isHidden = type == .sended
         }
     }
+    var disposeBag = DisposeBag()
 
     // MARK: - UI Components
 
@@ -77,10 +84,20 @@ final class AssignedMissionCell: UICollectionViewCell {
         setStyles()
         setHierarchy()
         setConstraints()
+        bind()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+        setStyles()
+        setHierarchy()
+        setConstraints()
+        bind()
     }
 
     // MARK: - Set Styles
@@ -179,10 +196,18 @@ final class AssignedMissionCell: UICollectionViewCell {
         }
     }
 
+    // MARK: - Bind
+
+    private func bind() {
+        statusButton.rx.controlEvent(.touchUpInside)
+            .bind(to: didTapStatusButton)
+            .disposed(by: disposeBag)
+    }
+
     // MARK: - Methods
 
-    func configureAsSended(with mission: HomeSendedMission, type: MissionType) {
-        self.type = type
+    func configureAsSended(with mission: HomeSendedMission) {
+        self.type = .sended
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
         nameTag.updateText(with: mission.assignee)
@@ -191,6 +216,18 @@ final class AssignedMissionCell: UICollectionViewCell {
         daysLeftLabel.text = mission.daysLeft
         titleLabel.text = mission.title
         updateStatusView(for: mission.status)
+    }
+
+    func configureAsReceived(with mission: HomeReceivedMission) {
+        self.type = .received
+        imageContainerView.backgroundColor = mission.category.backgroundColor
+        categoryImageView.image = mission.category.image
+        newTag.isHidden = !(mission.isNew ?? false)
+        nameTag.updateText(with: mission.assigner)
+        dateTag.updateText(with: mission.dueDate)
+        if mission.isOverdue { dateTag.updateTextColor(.gray200) }
+        titleLabel.text = mission.title
+        statusButton.updateStatus(to: mission.status)
     }
 
     private func toggleViewOnType() {
