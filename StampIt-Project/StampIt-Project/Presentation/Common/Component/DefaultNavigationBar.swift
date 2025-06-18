@@ -17,7 +17,9 @@ final class DefaultNavigationBar: UIView {
     
     private let type: NavigationBarType
     
+    let backTapped = PublishRelay<Void>()
     let tabTapped = PublishRelay<TabType>()
+    
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
@@ -63,6 +65,10 @@ final class DefaultNavigationBar: UIView {
     }
     
     private func bind() {
+        backButton.rx.tap
+            .bind(to: backTapped)
+            .disposed(by: disposeBag)
+        
         tabButton1.rx.tap
             .map { .stampBoard }
             .bind(to: tabTapped)
