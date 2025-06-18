@@ -101,6 +101,8 @@ final class AccountManageUseCase: AccountManageUseCaseProtocol {
                 return .unknownError
             case .permissionDenied(let message):
                 return .authenticationFailed(message)
+            default:
+                return .unknownError
             }
         } else {
             return .unknownError

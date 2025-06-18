@@ -10,7 +10,6 @@ import UIKit
 import Then
 import SnapKit
 import RxSwift
-import Toast
 
 final class SendInviteViewController: UIViewController {
 
