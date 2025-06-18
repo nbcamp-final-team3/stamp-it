@@ -137,42 +137,42 @@ final class InviteUseCaseImpl: InviteUseCase {
     /// 초대 코드를 생성하는 코드
     func sequenceCreateCode() -> Observable<String> {
         return getCurrentUser()
-            .flatMap { user -> Observable<User> in
-                guard let user = user else {
+            .flatMap { optionalUser -> Observable<User> in
+                guard let user = optionalUser else {
                     return Observable.error(RepositoryError.userNotFound)
                 }
                 return self.fetchUserOnce(userId: user.userID)
             }
             .flatMap { user -> Observable<Group> in
-                        return self.fetchGroup(groupId: user.groupID)
-                    }
-                    .map { group in
-                        return group.inviteCode
-                    }
-        
+                return self.fetchGroup(groupId: user.groupID)
+            }
+            .map { group in
+                return group.inviteCode
+            }
 
-//            .flatMap { user -> Observable<(User, Group)> in
-//                return self.fetchGroup(groupId: user.groupID)
-//                    .map { group in
-//                        (user, group)
-//                    }
-//            }
-//        // 현재 초대장 생성하는 식 말고 createNewUserWithGroup를 사용해서 만들어진 유저의 invite를 가져오도록
-//            .flatMap { user, group -> Observable<String> in
-//                let now = Date()
-//                let expired = Calendar.current.date(byAdding: .minute, value: 20, to: now)!
-//
-//                let invite = Invitation(
-//                    groupID: group.groupID,
-//                    createdBy: user.userID,
-//                    expiredAt: expired,
-//                    inviteCode: group.inviteCode,
-//                    createdAt: now
-//                )
-//
-//                return self.createInvite(invite)
-//                    .map { invite.inviteCode }
-            
+
+        //            .flatMap { user -> Observable<(User, Group)> in
+        //                return self.fetchGroup(groupId: user.groupID)
+        //                    .map { group in
+        //                        (user, group)
+        //                    }
+        //            }
+        //        // 현재 초대장 생성하는 식 말고 createNewUserWithGroup를 사용해서 만들어진 유저의 invite를 가져오도록
+        //            .flatMap { user, group -> Observable<String> in
+        //                let now = Date()
+        //                let expired = Calendar.current.date(byAdding: .minute, value: 20, to: now)!
+        //
+        //                let invite = Invitation(
+        //                    groupID: group.groupID,
+        //                    createdBy: user.userID,
+        //                    expiredAt: expired,
+        //                    inviteCode: group.inviteCode,
+        //                    createdAt: now
+        //                )
+        //
+        //                return self.createInvite(invite)
+        //                    .map { invite.inviteCode }
+
     }
 }
 
