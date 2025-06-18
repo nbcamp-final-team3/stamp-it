@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum TabType {
+enum TabType: String {
     case stampBoard
     case profile
     
