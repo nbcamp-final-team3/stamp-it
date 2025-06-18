@@ -129,8 +129,8 @@ final class MyPageViewModel: ViewModelProtocol {
     // MARK: - 계정 관리 메서드 추가
     private func showLogoutConfirmation() {
         state.shouldShowConfirmAlert.accept((
-            "로그아웃",
-            "정말 로그아웃 하시겠습니까?",
+            "정말 로그아웃 하시겠어요?",
+            "현재까지의 모든 데이터는\n재로그인할 때까지 안전하게 보관돼요.",
             { [weak self] in
                 self?.performLogout()
             }
@@ -139,8 +139,8 @@ final class MyPageViewModel: ViewModelProtocol {
     
     private func showDeleteAccountConfirmation() {
         state.shouldShowConfirmAlert.accept((
-            "계정 탈퇴",
-            "계정을 탈퇴하면 모든 데이터가 삭제됩니다.\n정말 탈퇴하시겠습니까?",
+            "'스탬프잇'을 탈퇴하시겠어요?'",
+            "계정을 탈퇴하면 그룹도 자동으로 탈퇴돼요.\n재가입은 언제나 환영이에요!",
             { [weak self] in
                 self?.performDeleteAccount()
             }
@@ -185,13 +185,13 @@ final class MyPageViewModel: ViewModelProtocol {
             state.alertMessage.accept("혼자 있는 그룹에서는 탈퇴할 수 없습니다.\n계정 탈퇴를 원하시면 '서비스 탈퇴'를 이용해주세요.")
         }  else if currentUser.isLeader {
             // 리더인 경우: 탈퇴 불가, 대안 제시 (추후 리더장 위임, 멤버 내보내기를 통해 구현)
-            state.alertMessage.accept("그룹장은 본인 그룹을 탈퇴할 수 없습니다. ")
+            state.alertMessage.accept("그룹 리더는 본인 그룹을 탈퇴할 수 없습니다. ")
             //showLeaderCannotLeaveAlert(groupName: groupName)
         } else {
             // 다른 멤버가 있는 경우 탈퇴 가능
             state.shouldShowConfirmAlert.accept((
-                "그룹 탈퇴",
-                "\(groupName)에서 탈퇴하고 새로운 그룹을 만드시겠습니까?\n\n현재 그룹 멤버: \(memberCount)명",
+                "'\(groupName)' 그룹에서 탈퇴하시겠어요?",
+                "탈퇴 후 복구는 불가능해요",
                 { [weak self] in
                     self?.performLeaveGroup()
                 }
@@ -269,7 +269,7 @@ final class MyPageViewModel: ViewModelProtocol {
                     self?.state.isLoading.accept(false)
                     self?.state.user.accept(updatedUser)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        self?.state.alertMessage.accept("기존 그룹 탈퇴 후 새로운 그룹 '\(updatedUser.groupName)'이 생성되었습니다.")
+                        self?.state.alertMessage.accept("기존 그룹 탈퇴가 완료되었습니다.")
                     }
                 },
                 onError: { [weak self] error in

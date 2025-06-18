@@ -50,7 +50,7 @@ enum MyPageMenu: CaseIterable {
         case .deleteMember: return ""
         case .inviteMember: return "그룹에 새로운 구성원 초대하기"
         case .receiveInvite: return "새로운 그룹에 초대받기"
-        case .leaveGroup: return "‘그룹명' 그룹에서 탈퇴하기" //TODO: 그룹명 부분 수정 필요할 것 같습니다
+        case .leaveGroup: return "현재 그룹에서 탈퇴하기"
         case .logout: return "현재 계정 로그아웃하기"
         case .leaveService: return "‘스탬프잇' 탈퇴하기"
         }
