@@ -13,8 +13,10 @@ final class MissionRepositoryImpl: MissionRepository {
     private let firestoreManager: FirestoreManagerProtocol
     private let authRepository: AuthRepositoryProtocol
     
-    init(firestoreManager: FirestoreManagerProtocol,
-         authRepository: AuthRepositoryProtocol) {
+    init(
+        firestoreManager: FirestoreManagerProtocol,
+        authRepository: AuthRepositoryProtocol
+    ) {
         self.firestoreManager = firestoreManager
         self.authRepository = authRepository
     }

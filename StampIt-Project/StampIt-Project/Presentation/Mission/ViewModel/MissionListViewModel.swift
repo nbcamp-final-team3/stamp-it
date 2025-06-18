@@ -32,7 +32,7 @@ final class MissionListViewModel: ViewModelProtocol {
     private let missionUseCaseImpl: MissionUseCase
     private var _missions: [SampleMission] = [] // 샘플 미션 JSON 원본 데이터
     
-    init(missionUseCaseImpl: MissionUseCase = MissionUseCaseImpl()) {
+    init(missionUseCaseImpl: MissionUseCase) {
         self.missionUseCaseImpl = missionUseCaseImpl
         
         bind()

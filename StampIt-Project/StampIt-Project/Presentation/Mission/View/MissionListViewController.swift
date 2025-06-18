@@ -38,7 +38,7 @@ final class MissionListViewController: UIViewController {
     
     private var dataSource: UICollectionViewDiffableDataSource<MissionListViewModel.Section, MissionListViewModel.Item>?
     
-    init(viewModel: MissionListViewModel = .init()) {
+    init(viewModel: MissionListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -193,7 +193,7 @@ final class MissionListViewController: UIViewController {
     
     // 미션 할당 화면으로 이동
     private func pushAssignMissionViewController(mission: SampleMission) {
-        let viewModel = AssignMissionViewModel(mission: mission)
+        let viewModel = AssignMissionViewModel(mission: mission, missionUseCaseImpl: DIContainer.shared.missionUseCase)
         let viewController = AssignMissionViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)
     }

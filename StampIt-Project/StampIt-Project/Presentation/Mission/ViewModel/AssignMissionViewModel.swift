@@ -33,7 +33,10 @@ final class AssignMissionViewModel: ViewModelProtocol {
     private let missionUseCaseImpl: MissionUseCase
     private var user: User?
     
-    init(mission: SampleMission, missionUseCaseImpl: MissionUseCase = MissionUseCaseImpl()) {
+    init(
+        mission: SampleMission,
+        missionUseCaseImpl: MissionUseCase
+    ) {
         self.mission = mission
         self.missionUseCaseImpl = missionUseCaseImpl
         
