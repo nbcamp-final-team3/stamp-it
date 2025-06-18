@@ -211,7 +211,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
         nameTag.updateText(with: mission.assignee)
-        dateTag.updateText(with: mission.dueDate)
+        dateTag.updateText(with: "~" + mission.dueDate)
         if mission.isOverdue { dateTag.updateTextColor(.gray200) }
         daysLeftLabel.text = mission.daysLeft
         titleLabel.text = mission.title
@@ -224,7 +224,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         categoryImageView.image = mission.category.image
         newTag.isHidden = !(mission.isNew ?? false)
         nameTag.updateText(with: mission.assigner)
-        dateTag.updateText(with: mission.dueDate)
+        dateTag.updateText(with: "~" + mission.dueDate)
         if mission.isOverdue { dateTag.updateTextColor(.gray200) }
         titleLabel.text = mission.title
         statusButton.updateStatus(to: mission.status)
@@ -238,11 +238,10 @@ final class AssignedMissionCell: UICollectionViewCell {
     private func updateStatusView(for status: MissionStatus) {
         statusLabel.isHidden = status == .assigned
         statusLabel.text = status.text
-        statusLabel.textColor = status == .completed ? .blue400 : .gray400
+        statusLabel.textColor = status == .completed ? .red400 : .gray400
 
-        statusImage.image = status == .completed ? .checkBlue : .xGray400
+        statusImage.image = status == .completed ? .checkRed : .xGray400
         statusImage.isHidden = status == .assigned
-        statusImage.tintColor = status == .completed ? .blue400 : .gray400
     }
 }
 
