@@ -150,8 +150,8 @@ final class DefaultNavigationBar: UIView {
         case .titleWithBackButton(let title):
             titleLabel.text = title
             
-        case .logoWithItem(let logo, let item):
-            logoImageView.image = UIImage(named: logo ?? Navigation.appLogo)
+        case .logoWithItem:
+            logoImageView.image = UIImage(named: Navigation.appLogo)
             
         case .segmentedControlTabs(let tab1, let tab2):
             tabButton1.setTitle(tab1, for: .normal)
@@ -167,7 +167,7 @@ extension DefaultNavigationBar {
     enum NavigationBarType {
         case plainTitle(title: String)
         case titleWithBackButton(title: String)
-        case logoWithItem(logo: String?, item: String?)
+        case logoWithItem
         case segmentedControlTabs(tab1: String, tab2: String)
     }
 }
