@@ -30,8 +30,12 @@ final class DIContainer {
         return HomeRepository(manager: firestoreManager)
     }()
 
-    private lazy var myPageRepository: MyPageRepository = {
+    lazy var myPageRepository: MyPageRepository = {
         return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+    }()
+    
+    lazy var missionRepository: MissionRepository = {
+        return MissionRepositoryImpl(firestoreManager: firestoreManager, authRepository: authRepository)
     }()
 
     // MARK: - Use Cases (Domain Layer)
@@ -43,7 +47,7 @@ final class DIContainer {
         return HomeUseCase(authRepository: authRepository, homeRepository: homeRepository)
     }()
 
-    private lazy var myPageUseCase: MyPageUseCase = {
+    lazy var myPageUseCase: MyPageUseCase = {
         return MyPageUseCaseImpl(
             authRepository: authRepository,
             mypageRepository: myPageRepository
@@ -58,6 +62,10 @@ final class DIContainer {
         return MemberMissionUseCaseImpl(homeRepository: homeRepository)
     }()
 
+    lazy var missionUseCase: MissionUseCase = {
+        return MissionUseCaseImpl(missionRepositoryImpl: missionRepository)
+    }()
+
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -67,7 +75,7 @@ final class DIContainer {
         return HomeViewModel(useCase: homeUseCase)
     }
 
-    private func makeMyPageViewModel() -> MyPageViewModel {
+    func makeMyPageViewModel() -> MyPageViewModel {
         return MyPageViewModel(myPageUseCase: myPageUseCase)
     }
 
@@ -81,6 +89,10 @@ final class DIContainer {
 
     func makeMemberMissionViewModel(user: User, memberCache: [String: User]) -> MemberMissionViewModel {
         return MemberMissionViewModel(user: user, memberCache: memberCache, useCase: memberMissionUseCase)
+    }
+    
+    func makeMissionListViewModel() -> MissionListViewModel {
+        return MissionListViewModel(missionUseCaseImpl: missionUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)
@@ -112,6 +124,11 @@ final class DIContainer {
     func makeMemberMissionViewController(user: User, memberCache: [String: User]) -> MemberMissionViewController {
         let viewModel = makeMemberMissionViewModel(user: user, memberCache: memberCache)
         return MemberMissionViewController(viewModel: viewModel)
+    }
+    
+    func makeMissionListViewController() -> MissionListViewController {
+        let viewModel = makeMissionListViewModel()
+        return MissionListViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton
