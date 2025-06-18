@@ -47,9 +47,8 @@ final class ToastView: UIView {
     }
 
     // MARK: - Init
-    init(message: String = "", withCancelButton show: Bool = false) { // TODO: 버튼 타이틀도 지정할 수 있게 변경하기
+    init(withCancelButton show: Bool = false) { // TODO: 버튼 타이틀도 지정할 수 있게 변경하기
         super.init(frame: .zero)
-        messageLabel.text = message
         cancelButton.isHidden = !show
         setupView()
         setupLayout()
@@ -95,8 +94,9 @@ final class ToastView: UIView {
     }
 
     // MARK: - Show Toast
-    func show(in view: UIView, duration: TimeInterval = 2.0) {
+    func show(in view: UIView, duration: TimeInterval = 2.0, message: String) {
         //이미 띄어진 경우 방지
+        messageLabel.text = message
         if self.superview != nil { return }
         view.addSubview(self)
         self.alpha = 0

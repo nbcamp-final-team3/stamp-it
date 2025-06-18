@@ -20,7 +20,7 @@ final class HomeViewModel: ViewModelProtocol {
         case viewWillAppear
         case didTapGroupOrganizationButton
         case didReceiveInvitationType(InvitationType)
-        case didTapMissonCompleteButton(String)
+        case didTapMissonCompleteButton(HomeItem)
         case didTapCompleteCancelButton
         case didTapMoreReceivedMissions
         case didSelectReceivedMember(memberID: String)
@@ -36,6 +36,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
+        let completedMissionTitle = BehaviorRelay<String>(value: "")
         let isShowStickerReceived = PublishRelay<Bool>()
         let isPushMyMissionVC = PublishRelay<Void>()
         let isPushMemberMissionVC = PublishRelay<Void>()
@@ -71,8 +72,10 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.handleSelectIvitation()
                 case .didReceiveInvitationType(let type):
                     owner.handleInvitation(type: type)
-                case .didTapMissonCompleteButton(let id):
-                    owner.handleMissionCompleteButtonTapped(missionID: id)
+                case .didTapMissonCompleteButton(let item):
+                    let mission = item.received!.missionID
+                    owner.handleMissionCompleteButtonTapped(missionID: mission)
+                    owner.state.completedMissionTitle.accept(item.received!.title)
                 case .didTapCompleteCancelButton:
                     owner.cancelMissionComplete()
                 case .didTapMoreReceivedMissions:

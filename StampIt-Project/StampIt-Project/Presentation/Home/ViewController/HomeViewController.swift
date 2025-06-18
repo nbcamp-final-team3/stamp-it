@@ -21,7 +21,7 @@ final class HomeViewController: UIViewController {
     // MARK: - UI Components
 
     private let homeView = HomeView()
-    private let toastView = ToastView(message: "테스트", withCancelButton: true)
+    private let toastView = ToastView(withCancelButton: true)
 
     // MARK: - Life Cycles
 
@@ -139,16 +139,22 @@ final class HomeViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
-        viewModel.state.isShowStickerReceived
-            .asDriver(onErrorDriveWith: .empty())
-            .drive(with: self) { owner, isShow in
-                if isShow {
-                    owner.toastView.show(in: owner.homeView, duration: 4)
-                } else {
-                    owner.toastView.dismiss(duration: 0)
-                }
+        Observable.combineLatest(
+            viewModel.state.isShowStickerReceived,
+            viewModel.state.completedMissionTitle
+        )
+        .asDriver(onErrorDriveWith: .empty())
+        .drive { [weak self] show, missionTitle in
+            guard let self else { return }
+            if show {
+                let message = "'\(missionTitle.truncatedTo10)' 미션을 완료했어요!"
+                toastView.show(in: homeView, duration: 4, message: message)
+            } else {
+                toastView.dismiss(duration: 0)
             }
-            .disposed(by: disposeBag)
+        }
+        .disposed(by: disposeBag)
+
     }
 
     // MARK: - Methods

@@ -13,4 +13,8 @@ extension String {
         let hashed = SHA256.hash(data: inputData)
         return hashed.compactMap { String(format: "%02x", $0) }.joined()
     }
+
+    var truncatedTo10: String {
+        self.prefix(10) + "..."
+    }
 }
