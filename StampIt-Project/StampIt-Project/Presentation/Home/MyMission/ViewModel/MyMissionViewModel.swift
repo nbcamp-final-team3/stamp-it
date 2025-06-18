@@ -81,15 +81,9 @@ final class MyMissionViewModel: ViewModelProtocol {
     func handleMissionCompleteButtonTapped(missionID: String) {
         updateMissionItem(missionID: missionID)
 
-        #if DEBUG
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            self.cancelMissionComplete()
-        }
-        #endif
-
         // cancelMissionComplete() 호출 시 dispose되는 Observable
         Observable<Void>.just(())
-            .delay(.seconds(4), scheduler: MainScheduler.instance)
+            .delay(.seconds(3), scheduler: MainScheduler.instance)
             .flatMap { [weak self] _ -> Observable<Mission> in
                 guard let self else { return .empty() }
                 let removedMission = updateMissionCache(missionID: missionID)
