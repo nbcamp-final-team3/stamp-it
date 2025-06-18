@@ -19,13 +19,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let hasOnboarded = UserDefaults.standard.bool(forKey: "hasOnboarded")
         let nav: UINavigationController
-
+        
         if hasOnboarded {
-            // 온보딩 완료 → 로그인 화면으로
-            let loginVC = DIContainer.shared.makeLoginViewController()
-            nav = UINavigationController(rootViewController: loginVC)
+            // 온보딩 끝났으면 → LaunchViewController(분기 전용)로 이동
+            let launchVC = LaunchViewController()
+            nav = UINavigationController(rootViewController: launchVC)
         } else {
-            // 온보딩 필요 → 온보딩 화면으로
+            // 온보딩 필요 → 온보딩 화면
             let onboardingVC = DIContainer.shared.makeOnboardingViewController()
             nav = UINavigationController(rootViewController: onboardingVC)
         }

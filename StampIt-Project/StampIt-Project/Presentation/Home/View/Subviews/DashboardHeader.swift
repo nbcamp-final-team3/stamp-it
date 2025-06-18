@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 import Then
 import RxSwift
+import RxCocoa
 
 final class DashboardHeader: UICollectionReusableView {
 
@@ -18,6 +19,7 @@ final class DashboardHeader: UICollectionReusableView {
     var descriptionRxText: Binder<String?> {
         descriptionLabel.rx.text
     }
+    let didTapMoreMissionButton = PublishRelay<Void>()
     var disposeBag = DisposeBag()
 
     // MARK: - UI Components
@@ -66,6 +68,7 @@ final class DashboardHeader: UICollectionReusableView {
         setStyles()
         setHierarchy()
         setConstraints()
+        bind()
     }
 
     required init?(coder: NSCoder) {
@@ -78,6 +81,7 @@ final class DashboardHeader: UICollectionReusableView {
         setStyles()
         setHierarchy()
         setConstraints()
+        bind()
     }
 
     // MARK: - Set Styles
@@ -118,6 +122,14 @@ final class DashboardHeader: UICollectionReusableView {
             make.centerY.equalTo(titleLabel)
             make.trailing.equalToSuperview()
         }
+    }
+
+    // MARK: - Bind
+
+    func bind() {
+        moreButton.rx.tap
+            .bind(to: didTapMoreMissionButton)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods

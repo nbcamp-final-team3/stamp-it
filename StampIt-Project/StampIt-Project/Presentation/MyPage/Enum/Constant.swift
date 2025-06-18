@@ -58,15 +58,20 @@ enum MyPage {
         static let completed: String = "완성한 스탬프판"
         static let unit: String = "개"
         static let slash: String = "/"
-        
-        // TODO: 로그인 연결시 삭제
-        // TODO: bindSticker() 내부에서 -> Sticker.maxStickers 변경
-        // TODO: Sticker 필드 maxStickers 확인
-        static let totalStamp: String = "30"
-        static let totalStampNumber: Int = 30
-        static let column: Int = 5
         static let fontSizeSmall: CGFloat = 14
         static let fontSizeMedium: CGFloat = 16
         static let vStackSpacing: CGFloat = 6
     }
+}
+
+enum Navigation {
+    static let fontSize: CGFloat = 24
+    static let height: Double = 68
+    static let spacing: CGFloat = 12
+    static let leading: CGFloat = 16
+    static let backButton: String = "backButton"
+    static let backButtonSize: CGFloat = 24
+    static let appLogo: String = "AppLogo"
+    static let appLogoWidth: CGFloat = 125
+    static let appLogoHeight: CGFloat = 42
 }

@@ -13,7 +13,7 @@ final class MissionListCell: UITableViewCell {
     static let reuseIdentifier = "MissionListCell"
     
     private let label = UILabel().then {
-        $0.font = .pretendard(size: 14, weight: .regular)
+        $0.font = .pretendard(size: 16, weight: .regular)
         $0.numberOfLines = 0
     }
     
