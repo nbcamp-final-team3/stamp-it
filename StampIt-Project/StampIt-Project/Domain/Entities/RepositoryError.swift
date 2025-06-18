@@ -17,6 +17,7 @@ enum RepositoryError: Error {
     case networkError(String)          // 네트워크 오류
     case uiError(String)              // UI 관련 오류
     case unknownError                  // 알 수 없는 오류
+    case permissionDenied(String)       // 권한 거부
     
     var localizedDescription: String {
         switch self {
@@ -34,6 +35,8 @@ enum RepositoryError: Error {
             return "화면 오류: \(message)"
         case .unknownError:
             return "알 수 없는 오류가 발생했습니다"
+        case .permissionDenied(let message):
+            return "권한 오류: \(message)"
         }
     }
 }

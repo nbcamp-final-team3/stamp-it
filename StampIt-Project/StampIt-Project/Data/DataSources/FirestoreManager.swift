@@ -56,7 +56,8 @@ protocol FirestoreManagerProtocol {
     func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]>
     func addSticker(_ sticker: StickerFirestore) -> Observable<Void>
     func createStickerFromMission(userId: String, groupId: String, missionTitle: String, assignedBy: String, stickerType: String) -> Observable<StickerFirestore>
-    func deleteUserStickers(userId: String) -> Observable<Void>
+    func deleteUserStickers(userId: String, groupId: String) -> Observable<Void> //그룹탈퇴
+    func deleteUserStickers(userId: String) -> Observable<Void>     //유저탈퇴
     func deleteGroupStickers(groupId: String) -> Observable<Void>
     
     // Invite 관련
@@ -955,6 +956,42 @@ extension FirestoreManager {
                 observer.onError(FirestoreError.encodingFailed(error.localizedDescription))
             }
             
+            return Disposables.create()
+        }
+    }
+    
+    /// 특정 그룹에서 사용자 스티커 삭제 (그룹 탈퇴용)
+    func deleteUserStickers(userId: String, groupId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.stickersCollection
+                .whereField("userId", isEqualTo: userId)
+                .whereField("groupId", isEqualTo: groupId)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext(())
+                        observer.onCompleted()
+                        return
+                    }
+                    
+                    let batch = Firestore.firestore().batch()
+                    documents.forEach { document in
+                        batch.deleteDocument(document.reference)
+                    }
+                    
+                    batch.commit { error in
+                        if let error = error {
+                            observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        } else {
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
+                }
             return Disposables.create()
         }
     }
