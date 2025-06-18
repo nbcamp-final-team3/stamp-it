@@ -11,5 +11,6 @@ struct Group {
     let groupID: String
     let members: [Member]
     let leaderID: String
+    let inviteCode: String
     let nameChangedAt: Date
 }

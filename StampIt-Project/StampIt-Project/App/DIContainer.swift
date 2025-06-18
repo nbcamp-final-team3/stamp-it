@@ -26,12 +26,17 @@ final class DIContainer {
         )
     }()
 
+    private lazy var myPageRepository: MyPageRepository = {
+        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+    }()
+
     lazy var homeRepository: HomeRepositoryProtocol = {
         return HomeRepository(manager: firestoreManager)
     }()
 
-    private lazy var myPageRepository: MyPageRepository = {
-        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+
+    private lazy var inviteRepository: InviteRepository = {
+        return InviteRepositoryImpl(firestoreManager: firestoreManager)
     }()
 
     // MARK: - Use Cases (Domain Layer)
@@ -58,6 +63,14 @@ final class DIContainer {
         return MemberMissionUseCaseImpl(homeRepository: homeRepository)
     }()
 
+
+    private lazy var inviteUseCase: InviteUseCase = {
+        return InviteUseCaseImpl(
+            authRepository: authRepository,
+            inviteRepository: inviteRepository
+        )
+    }()
+
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -81,6 +94,16 @@ final class DIContainer {
 
     func makeMemberMissionViewModel(user: User, memberCache: [String: User]) -> MemberMissionViewModel {
         return MemberMissionViewModel(user: user, memberCache: memberCache, useCase: memberMissionUseCase)
+    }
+
+    
+
+    func makeReceiveInviteViewModel() -> ReceiveInviteViewModel {
+        return ReceiveInviteViewModel(useCase: inviteUseCase)
+    }
+
+    func makeSendInviteViewModel() -> SendInviteViewModel {
+        return SendInviteViewModel(useCase: inviteUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)
@@ -112,6 +135,18 @@ final class DIContainer {
     func makeMemberMissionViewController(user: User, memberCache: [String: User]) -> MemberMissionViewController {
         let viewModel = makeMemberMissionViewModel(user: user, memberCache: memberCache)
         return MemberMissionViewController(viewModel: viewModel)
+    }
+
+    
+
+    func makeReceiveInviteViewController() -> ReceiveInviteViewController {
+        let viewModel = makeReceiveInviteViewModel()
+        return ReceiveInviteViewController(viewModel: viewModel)
+    }
+
+    func makeSendInviteViewController() -> SendInviteViewController {
+        let viewModel = makeSendInviteViewModel()
+        return SendInviteViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton
