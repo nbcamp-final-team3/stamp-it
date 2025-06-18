@@ -60,8 +60,10 @@ final class ProfileImageCell: UICollectionViewCell {
     private func updateCell() {
         if isSelected {
             contentView.layer.borderColor = UIColor.red400.cgColor
+            imageView.backgroundColor = .white
         } else {
             contentView.layer.borderColor = UIColor.gray200.cgColor
+            imageView.backgroundColor = .gray25
         }
     }
 }
