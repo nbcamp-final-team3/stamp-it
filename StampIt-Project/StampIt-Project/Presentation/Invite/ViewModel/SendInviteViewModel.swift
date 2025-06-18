@@ -54,7 +54,15 @@ final class SendInviteViewModel: ViewModelProtocol {
                 self.state.inviteCode.accept(code)
                 self.state.showMessage.accept("초대 코드가 복사되었습니다")
             }, onError: { [weak self] error in
-                self?.state.showMessage.accept("초대 코드 생성에 실패했습니다.")
+                let message: String
+
+                if let repoError = error as? RepositoryError {
+                    message = repoError.localizedDescription
+                } else {
+                    message = "알 수 없는 오류가 발생했습니다."
+                }
+
+                self?.state.showMessage.accept(message)
             })
             .disposed(by: disposeBag)
     }
