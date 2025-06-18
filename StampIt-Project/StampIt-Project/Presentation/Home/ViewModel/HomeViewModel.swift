@@ -8,7 +8,6 @@
 import Foundation
 import RxSwift
 import RxRelay
-import UIKit
 
 final class HomeViewModel: ViewModelProtocol {
     // MARK: - Dependency
@@ -25,7 +24,7 @@ final class HomeViewModel: ViewModelProtocol {
         case didTapCompleteCancelButton
         case didTapMoreReceivedMissions
         case didSelectReceivedMember(memberID: String)
-        case didTapMoreSenededMissions
+        case didTapMoreSendedMissions
     }
 
     struct State {
@@ -38,8 +37,8 @@ final class HomeViewModel: ViewModelProtocol {
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
         let isShowStickerReceived = PublishRelay<Void>()
-        let isPushReceivedMissionVC = PublishRelay<Void>()
-        let isPushSendedMissionVC = PublishRelay<Void>()
+        let isPushMyMissionVC = PublishRelay<Void>()
+        let isPushMemberMissionVC = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -47,7 +46,7 @@ final class HomeViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
-    private var memberCache = [String: User]() // 멤버 정보 저장
+    var memberCache = [String: User]() // 멤버 정보 저장
     private var receivedMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
     private var sendedMissions = [Mission]()
     private var pendingCommits = DisposeBag()
@@ -77,11 +76,11 @@ final class HomeViewModel: ViewModelProtocol {
                 case .didTapCompleteCancelButton:
                     owner.cancelMissionComplete()
                 case .didTapMoreReceivedMissions:
-                    owner.state.isPushReceivedMissionVC.accept(())
+                    owner.state.isPushMyMissionVC.accept(())
                 case .didSelectReceivedMember(memberID: let id):
                     owner.updateSendedMissions(memberID: id)
-                case .didTapMoreSenededMissions:
-                    owner.state.isPushSendedMissionVC.accept(())
+                case .didTapMoreSendedMissions:
+                    owner.state.isPushMemberMissionVC.accept(())
                 }
             }
             .disposed(by: disposeBag)
@@ -110,16 +109,18 @@ final class HomeViewModel: ViewModelProtocol {
                 return Observable.zip(rankingObs, receivedObs, sendedObs)
             }
             .subscribe(onNext: { [weak self] (users, received, sended) in
-                guard let self = self else { return }
+                guard let self else { return }
 
-                let memberItems = self.mapUsersToHomeItems(users)
+                let memberItems = mapUsersToHomeItems(users)
+                #if !DEBUG
                 state.isShowGroupOrganizationView.accept(users.count == 1)
+                #endif
                 state.rankedMembers.accept(memberItems)
 
-                let receivedItems = self.mapReceivedMissionsToHomeItems(received)
+                let receivedItems = mapReceivedMissionsToHomeItems(received)
                 state.receivedMissions.accept(receivedItems)
 
-                let sendedMissionsForDisplay = self.mapSendedMissionsToHomeItems(Array(sended.prefix(4)))
+                let sendedMissionsForDisplay = mapSendedMissionsToHomeItems(Array(sended.prefix(4)))
                 state.sendedMissionsForDisplay.accept(sendedMissionsForDisplay)
             })
             .disposed(by: disposeBag)
@@ -157,18 +158,25 @@ final class HomeViewModel: ViewModelProtocol {
     func handleMissionCompleteButtonTapped(missionID: String) {
         removeMissionItem(missionID: missionID)
 
+        #if DEBUG
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.cancelMissionComplete()
+        }
+        #endif
+
         // cancelMissionComplete() 호출 시 dispose되는 Observable
         Observable<Void>.just(())
             .delay(.seconds(4), scheduler: MainScheduler.instance)
-            .subscribe(with: self) { owner, _ in
-                let removedMission = owner.removeMissionCache(missionID: missionID)
+            .flatMap { [weak self] _ -> Observable<Void> in
+                guard let self else { return .empty() }
+                let removedMission = removeMissionCache(missionID: missionID)
+
                 guard let mission = removedMission,
-                      let user = owner.state.user.value else { return }
-                _ = owner.useCase
-                    .updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
-                    .subscribe()
-                    .disposed(by: owner.disposeBag)
+                      let user = state.user.value else { return .empty() }
+
+                return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
+            .subscribe()
             .disposed(by: pendingCommits)
     }
 
@@ -231,7 +239,9 @@ final class HomeViewModel: ViewModelProtocol {
                 category: mission.category,
                 dueDate: mission.dueDate.toMonthDayString(),
                 assigner: assigner,
-                isNew: nil
+                isNew: nil,
+                isOverdue: formatOverdueAndDays(from: mission.dueDate).isOverdue,
+                status: mission.status
             )
             return HomeItem.received(homeMission)
         }

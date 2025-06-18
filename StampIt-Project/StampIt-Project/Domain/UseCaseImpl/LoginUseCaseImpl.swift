@@ -112,36 +112,47 @@ final class LoginUseCase: LoginUseCaseProtocol {
             print("   - 그룹 ID: \(groupId)")
             print("   - 초대코드: \(inviteCode)")
             
-            let userFirestore = UserFirestore(
-                userId: authUser.uid,
+            // ✅ Domain 모델 생성
+            let user = User(
+                userID: authUser.uid,
                 nickname: randomNickname,
-                profileImage: authUser.photoURL,
-                groupId: groupId,
-                nicknameChangedAt: Timestamp(date: now),
-                createdAt: Timestamp(date: now)
+                profileImageURL: authUser.photoURL,
+                boards: [],
+                groupID: groupId,
+                groupName: "\(randomNickname)의 그룹",
+                isLeader: true,
+                joinedGroupAt: now
             )
             
-            let groupFirestore = GroupFirestore(
-                groupId: groupId,
-                name: "\(randomNickname)의 그룹",
-                leaderId: authUser.uid,
+            let group = Group(
+                groupID: groupId,
+                members: [], // 멤버는 별도로 추가됨
+                leaderID: authUser.uid,
                 inviteCode: inviteCode,
-                nameChangedAt: Timestamp(date: now),
-                createdAt: Timestamp(date: now) 
+                nameChangedAt: now
             )
             
-            let memberFirestore = MemberFirestore(
-                userId: authUser.uid,
+            let member = Member(
+                userID: authUser.uid,
                 nickname: randomNickname,
-                joinedAt: Timestamp(date: now),
+                joinedAt: now,
                 isLeader: true
+            )
+            
+            let invitation = Invitation(
+                groupID: groupId,
+                createdBy: authUser.uid,
+                expiredAt: Date.distantFuture, // 영구 초대 코드
+                inviteCode: inviteCode,
+                createdAt: now
             )
             
             // 3. 트랜잭션으로 원자적 생성
             self.authRepository.createNewUserWithGroup(
-                user: userFirestore,
-                group: groupFirestore,
-                member: memberFirestore
+                user: user,
+                group: group,
+                member: member,
+                invite: invitation
             )
             .subscribe(
                 onNext: { completeUser in
@@ -200,8 +211,20 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 return .networkFailed(message)
             case .uiError(let message):
                 return .uiFailed(message)
+            case .permissionDenied(let message):
+                return .authenticationFailed(message)
             case .unknownError:
                 return .unknownError
+            case .groupIsFull:
+                return .groupIsFull
+            case .onlyOneGroup:
+                return .onlyOneGroup
+            case .noInviteCode:
+                return .noInviteCode
+            case .expiredInviteCode:
+                return .expiredInviteCode
+            case .alreadyInGroup:
+                return .alreadyInGroup
             }
         } else {
             return .unknownError

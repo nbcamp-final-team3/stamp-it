@@ -6,12 +6,11 @@
 //
 
 import Foundation
-
-import Foundation
 import RxSwift
-import RxRelay
+import RxCocoa
 
 /// 그룹 초대 코드 입력 화면 viewModel
+/// 그룹 참여 실패 했을 때 토스트 메세지로 실패 여부 알림
 final class ReceiveInviteViewModel: ViewModelProtocol {
 
     // MARK: - Action & State
@@ -24,6 +23,7 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     struct State {
         let inviteCode = BehaviorRelay<String>(value: "")
         let isEnterButtonEnabled = BehaviorRelay<Bool>(value: false)
+        let showMessage = PublishRelay<String>()
     }
 
     // MARK: - Properties
@@ -32,24 +32,53 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     let state = State()
 
+    private let useCase: InviteUseCase
+
     // MARK: - Init
-    init() {
+
+    init(useCase: InviteUseCase) {
+        self.useCase = useCase
         bindActions()
     }
+
+
 
     // MARK: - Bind
 
     private func bindActions() {
         action
             .subscribe(onNext: { [weak self] action in
+                guard let self = self else { return }
+
                 switch action {
                 case .codeChanged(let code):
-                    self?.state.inviteCode.accept(code)
-                    self?.state.isEnterButtonEnabled.accept(!code.isEmpty)
+                    self.state.inviteCode.accept(code)
+                    self.state.isEnterButtonEnabled.accept(!code.isEmpty)
+
                 case .enterButtonTapped:
-                    // 미완 입장 처리 로직 필요
-                    print("입장하기 버튼 눌림. 코드: \(self?.state.inviteCode.value ?? "")")
+                    self.handleEnterButtonTapped()
                 }
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func handleEnterButtonTapped() {
+        let code = state.inviteCode.value
+
+        useCase.acceptInvite(inviteCode: code)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] invite in
+                self?.state.showMessage.accept("초대 완료!")
+            }, onError: { [weak self] error in
+                let message: String
+
+                if let repoError = error as? RepositoryError {
+                    message = repoError.localizedDescription
+                } else {
+                    message = "알 수 없는 오류가 발생했습니다."
+                }
+
+                self?.state.showMessage.accept(message)
             })
             .disposed(by: disposeBag)
     }
