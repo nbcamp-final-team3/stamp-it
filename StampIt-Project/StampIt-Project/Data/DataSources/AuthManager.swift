@@ -21,6 +21,11 @@ protocol AuthManagerProtocol {
     func deleteAccount() -> Observable<Void>
     func getCurrentUser() -> FirebaseAuth.User?
     func observeAuthState() -> Observable<FirebaseAuth.User?>
+    
+    // 유저탈퇴
+    func revokeGoogleAccess() -> Observable<Void>
+    func revokeAppleAccess() -> Observable<Void>
+    func deleteAccountWithSocialRevoke() -> Observable<Void>
 }
 
 // MARK: - AuthManager Implementation
@@ -43,7 +48,6 @@ final class AuthManager: NSObject,AuthManagerProtocol {
         guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
               let plist = NSDictionary(contentsOfFile: path),
               let clientId = plist["CLIENT_ID"] as? String else {
-            print("❌ GoogleService-Info.plist not found or CLIENT_ID missing")
             return
         }
         
@@ -193,7 +197,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
         }
     }
     
-    // MARK: - Apple Sign-In Helper Methods (✅ 추가)
+    // MARK: - Apple Sign-In Helper Methods
     /// 랜덤 Nonce 문자열 생성 (보안용)
     private func randomNonceString(length: Int = 32) -> String {
         precondition(length > 0)
@@ -227,7 +231,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
     }
 }
 
-// MARK: - Apple Sign-In Delegates (준비, 구조 변경 될 수 있음)
+// MARK: - Apple Sign-In Delegates
 extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     
     /// Apple Sign-In 화면을 표시할 윈도우를 반환
@@ -247,19 +251,16 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
             
             // 1. 필수 데이터 검증
             guard let nonce = currentNonce else {
-                print("❌ Invalid state: A login callback was received, but no login request was sent.")
                 appleSignInObserver?(.failure(AuthError.appleSignInFailed))
                 return
             }
             
             guard let appleIDToken = appleIDCredential.identityToken else {
-                print("❌ Unable to fetch identity token")
                 appleSignInObserver?(.failure(AuthError.tokenRetrievalFailed))
                 return
             }
             
             guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                print("❌ Unable to serialize token string from data: \(appleIDToken.debugDescription)")
                 appleSignInObserver?(.failure(AuthError.tokenRetrievalFailed))
                 return
             }
@@ -273,8 +274,7 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
             
             // 3. Firebase 로그인 수행
             Auth.auth().signIn(with: credential) { [weak self] authResult, error in
-                if let error = error {
-                    print("❌ Firebase Apple Sign-In Error: \(error.localizedDescription)")
+                if error != nil {
                     self?.appleSignInObserver?(.failure(AuthError.firebaseSignInFailed))
                     return
                 }
@@ -296,7 +296,6 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
     
     /// Apple Sign-In 인증 실패 시 호출되는 델리게이트 메서드
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        print("❌ Apple Sign-In Error: \(error.localizedDescription)")
         
         if let authError = error as? ASAuthorizationError {
             switch authError.code {
@@ -312,5 +311,89 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
         // 정리
         appleSignInObserver = nil
         currentNonce = nil
+    }
+}
+
+extension AuthManager {
+    
+    // MARK: - Google 액세스 토큰 취소
+    func revokeGoogleAccess() -> Observable<Void> {
+        return Observable.create { observer in
+            guard GIDSignIn.sharedInstance.currentUser != nil else {
+                // Google 로그인이 아닌 경우 성공 처리
+                observer.onNext(())
+                observer.onCompleted()
+                return Disposables.create()
+            }
+            
+            GIDSignIn.sharedInstance.disconnect { error in
+                if let error = error {
+                    print("⚠️ Google 연결 해제 실패: \(error.localizedDescription)")
+                    // 에러가 있어도 계속 진행 (Firebase 계정 삭제는 수행)
+                    observer.onNext(())
+                    observer.onCompleted()
+                } else {
+                    print("✅ Google 연결 해제 성공")
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            
+            return Disposables.create()
+        }
+    }
+    
+    // MARK: - Apple 계정 연결 해제 (iOS 13.0+)
+    func revokeAppleAccess() -> Observable<Void> {
+        return Observable.create { observer in
+            // Apple의 경우 직접적인 토큰 취소 API가 제한적
+            // Firebase 계정 삭제만으로도 충분함
+            print("Apple 계정 연결 해제는 Firebase 계정 삭제로 처리됩니다")
+            observer.onNext(())
+            observer.onCompleted()
+            return Disposables.create()
+        }
+    }
+    
+    // MARK: - 소셜 로그인 취소 + Firebase 계정 삭제
+    func deleteAccountWithSocialRevoke() -> Observable<Void> {
+        return Observable.create { [weak self] observer in
+            guard let self = self,
+                  let currentUser = Auth.auth().currentUser else {
+                observer.onError(AuthError.userNotFound)
+                return Disposables.create()
+            }
+            
+            // 1. 소셜 로그인 제공자 확인
+            let providerId = currentUser.providerData.first?.providerID
+            
+            let revokeObservable: Observable<Void>
+            switch providerId {
+            case "google.com":
+                revokeObservable = self.revokeGoogleAccess()
+            case "apple.com":
+                revokeObservable = self.revokeAppleAccess()
+            default:
+                revokeObservable = Observable.just(()) // 기타 제공자
+            }
+            
+            // 2. 소셜 로그인 취소 → Firebase 계정 삭제
+            revokeObservable
+                .flatMap { _ -> Observable<Void> in
+                    return self.deleteAccount()
+                }
+                .subscribe(
+                    onNext: {
+                        observer.onNext(())
+                        observer.onCompleted()
+                    },
+                    onError: { error in
+                        observer.onError(error)
+                    }
+                )
+                .disposed(by: self.disposeBag)
+            
+            return Disposables.create()
+        }
     }
 }

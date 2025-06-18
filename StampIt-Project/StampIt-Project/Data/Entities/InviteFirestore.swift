@@ -18,6 +18,8 @@ struct InviteFirestore: Codable {
     var documentID: String {
         return inviteCode
     }
+
+    
 }
 
 

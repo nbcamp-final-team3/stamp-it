@@ -5,6 +5,9 @@
 //  Created by iOS study on 6/10/25.
 //
 
+import UIKit
+import Foundation
+
 // MARK: - 의존성 주입 컨테이너
 // TODO: DIContainer 합치기 전에 사용하실 분들은 아래에 추가하시면 되고, 나중에 합칠때 전체 수정될 예정이니 참고 바랍니다.
 final class DIContainer {
@@ -26,12 +29,17 @@ final class DIContainer {
         )
     }()
 
+    private lazy var myPageRepository: MyPageRepository = {
+        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+    }()
+
     lazy var homeRepository: HomeRepositoryProtocol = {
         return HomeRepository(manager: firestoreManager)
     }()
 
-    private lazy var myPageRepository: MyPageRepository = {
-        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+
+    private lazy var inviteRepository: InviteRepository = {
+        return InviteRepositoryImpl(firestoreManager: firestoreManager)
     }()
 
     // MARK: - Use Cases (Domain Layer)
@@ -58,6 +66,19 @@ final class DIContainer {
         return MemberMissionUseCaseImpl(homeRepository: homeRepository)
     }()
 
+
+    private lazy var inviteUseCase: InviteUseCase = {
+        return InviteUseCaseImpl(
+            authRepository: authRepository,
+            inviteRepository: inviteRepository
+        )
+    }()
+
+    
+    lazy var accountManageUseCase: AccountManageUseCaseProtocol = {
+        return AccountManageUseCase(authRepository: authRepository)
+    }()
+    
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -68,7 +89,10 @@ final class DIContainer {
     }
 
     private func makeMyPageViewModel() -> MyPageViewModel {
-        return MyPageViewModel(myPageUseCase: myPageUseCase)
+        return MyPageViewModel(
+            myPageUseCase: myPageUseCase,
+            accountManageUseCase: accountManageUseCase
+        )
     }
 
     func makeOnboardingViewModel() -> OnboardingViewModel {
@@ -81,6 +105,16 @@ final class DIContainer {
 
     func makeMemberMissionViewModel(user: User, memberCache: [String: Member]) -> MemberMissionViewModel {
         return MemberMissionViewModel(user: user, memberCache: memberCache, useCase: memberMissionUseCase)
+    }
+
+    
+
+    func makeReceiveInviteViewModel() -> ReceiveInviteViewModel {
+        return ReceiveInviteViewModel(useCase: inviteUseCase)
+    }
+
+    func makeSendInviteViewModel() -> SendInviteViewModel {
+        return SendInviteViewModel(useCase: inviteUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)
@@ -112,6 +146,18 @@ final class DIContainer {
     func makeMemberMissionViewController(user: User, memberCache: [String: Member]) -> MemberMissionViewController {
         let viewModel = makeMemberMissionViewModel(user: user, memberCache: memberCache)
         return MemberMissionViewController(viewModel: viewModel)
+    }
+
+    
+
+    func makeReceiveInviteViewController() -> ReceiveInviteViewController {
+        let viewModel = makeReceiveInviteViewModel()
+        return ReceiveInviteViewController(viewModel: viewModel)
+    }
+
+    func makeSendInviteViewController() -> SendInviteViewController {
+        let viewModel = makeSendInviteViewModel()
+        return SendInviteViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton

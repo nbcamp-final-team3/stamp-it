@@ -28,6 +28,7 @@ extension GroupFirestore {
             groupID: self.groupId,
             members: members,
             leaderID: self.leaderId,
+            inviteCode: self.inviteCode,
             nameChangedAt: self.nameChangedAt.dateValue()
         )
     }

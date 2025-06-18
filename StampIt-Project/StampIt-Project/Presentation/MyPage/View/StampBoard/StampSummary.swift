@@ -29,7 +29,6 @@ final class StampSummary: UIView {
     
     /// 내가 모은 스탬프 - 현재 개수
     private let currentStampLabel = UILabel().then {
-        $0.text = "0"
         $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .bold)
         $0.textColor = .gray800
     }
@@ -43,7 +42,6 @@ final class StampSummary: UIView {
     
     /// 내가 모은 스탬프 - 30
     private let totalStampLabel = UILabel().then {
-        $0.text = MyPage.StampBoard.totalStamp
         $0.font = .pretendard(size: MyPage.StampBoard.fontSizeSmall, weight: .regular)
         $0.textColor = .gray800
     }
@@ -70,7 +68,6 @@ final class StampSummary: UIView {
     
     /// 완성한 스탬프 판 - N개
     private let totalBoardLabel = UILabel().then {
-        $0.text = "0\(MyPage.StampBoard.unit)"
         $0.font = .pretendard(size: MyPage.StampBoard.fontSizeMedium, weight: .bold)
         $0.textColor = .gray800
     }
@@ -174,10 +171,9 @@ final class StampSummary: UIView {
     
     // MARK: Bind
     
-    private func configureItem(with sticker: Sticker) {
-        // TODO: 로그인 연결시 sticker 데이터로 바인딩
-        currentStampLabel.text = "" // 내가 모은 스탬프 - 현재 개수
-        totalStampLabel.text = MyPage.StampBoard.totalStamp
-        totalBoardLabel.text = "" // 완성한 스탬프 판 - N개
+    func configureItem(currentSticker: String, totalSticker: String, totalBoard: String) {
+        currentStampLabel.text = currentSticker
+        totalStampLabel.text = totalSticker
+        totalBoardLabel.text = totalBoard
     }
 }
