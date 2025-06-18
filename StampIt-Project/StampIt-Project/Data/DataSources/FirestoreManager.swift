@@ -54,7 +54,7 @@ protocol FirestoreManagerProtocol {
     func fetchGroupStickers(groupId: String, month: String) -> Observable<[StickerFirestore]>
     func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]>
     func addSticker(_ sticker: StickerFirestore) -> Observable<Void>
-    func createStickerFromMission(userId: String, groupId: String, missionTitle: String, assignedBy: String, stickerType: String) -> Observable<StickerFirestore>
+    func createStickerFromMission(userId: String, groupId: String, missionTitle: String, maxStickers: Int, stickerType: String) -> Observable<StickerFirestore>
     
     // Invite 관련
     func fetchInvite(inviteCode: String) -> Observable<InviteFirestore>
@@ -615,7 +615,7 @@ extension FirestoreManager {
         return Observable.create { observer in
             let listener = self.stickersCollection
                 .whereField("userId", isEqualTo: userId)
-                .whereField("month", isEqualTo: month)
+                 .whereField("month", isEqualTo: month)
                 .order(by: "createdAt", descending: false)
                 .addSnapshotListener { querySnapshot, error in
                     if let error = error {
@@ -812,7 +812,7 @@ extension FirestoreManager {
         userId: String,
         groupId: String,
         missionTitle: String,
-        assignedBy: String,
+        maxStickers: Int,
         stickerType: String = "일반"
     ) -> Observable<StickerFirestore> {
         return fetchStickerCount(userId: userId)
@@ -839,7 +839,7 @@ extension FirestoreManager {
                     pinNumber: pinNumber,
                     createdAt: Timestamp(date: now),
                     missionTitle: missionTitle,
-                    assignedBy: assignedBy
+                    maxStickers: maxStickers
                 )
                 
                 return self.addSticker(sticker)

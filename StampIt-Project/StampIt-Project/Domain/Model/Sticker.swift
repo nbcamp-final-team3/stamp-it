@@ -14,6 +14,8 @@ struct Sticker: Hashable {
     let imageURL: String
     let type: StickerType
     let createdAt: Date
+    let maxStickers: Int
+    let pinNumber: Int
 }
 
 enum StickerType: String, Hashable {
