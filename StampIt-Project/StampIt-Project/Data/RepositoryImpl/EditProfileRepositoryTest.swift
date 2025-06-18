@@ -16,6 +16,7 @@ final class EditProfileRepositoryTest: EditProfileRepository {
         self.firestoreManager = firestoreManager
     }
     
+    // 닉네임 업데이트
     func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void> {
         print("Firestore nickname update success: \(userId), \(nickname), \(changedAt)")
         return Observable.create { observer in
@@ -25,6 +26,7 @@ final class EditProfileRepositoryTest: EditProfileRepository {
         }
     }
     
+    // 그룹명 업데이트
     func updateGroupName(groupId: String, groupName: String, changedAt: Date) -> Observable<Void> {
         print("Firestore group name update success: \(groupId), \(groupName), \(changedAt)")
         return Observable.create { observer in
@@ -34,6 +36,7 @@ final class EditProfileRepositoryTest: EditProfileRepository {
         }
     }
     
+    // 프로필 이미지 업데이트
     func updateProfileImage(userId: String, imageName: String) -> Observable<Void> {
         print("Firestore profile image update success: \(userId), \(imageName)")
         return Observable.create { observer in

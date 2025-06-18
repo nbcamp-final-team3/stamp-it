@@ -14,14 +14,13 @@ final class EditProfileViewModel: ViewModelProtocol {
         case onAppear
         case nicknameChanged(String)
         case groupNameChanged(String)
-        case profileImageChanged(IndexPath) // indexPath 최선인가요?????????????????
-        // case profileImageChanged(String)
+        case profileImageChanged(IndexPath)
         case didTapEditButton
     }
     
     struct State {
         var user = BehaviorRelay<User?>(value: nil)
-        var isEditButtonEnabled = BehaviorRelay<Bool>(value: false)
+        var isUserDataChanged = BehaviorRelay<Bool>(value: false)
     }
     
     var action = PublishRelay<Action>()
@@ -31,35 +30,13 @@ final class EditProfileViewModel: ViewModelProtocol {
     
     private let editProfileUseCaseImpl: EditProfileUseCase
     
-    // private let _user: User
+    // 유저 정보(닉네임, 그룹명, 이미지)를 바꿀 때 임시 저장
     private var newNickname: String?
     private var newGroupName: String?
     private var newProfileImageName: String?
     
-//    private var isUserDataChanged: Bool {
-//        newNickname == state.user.value?.nickname || newGroupName == state.user.value?.groupName || newProfileImageName == state.user.value?.profileImageURL
-//    }
-    
-//    private var isUserDataChanged: Bool {
-//        newNickname != state.user.value?.nickname ||
-//        newGroupName != state.user.value?.groupName ||
-//        newProfileImageName != state.user.value?.profileImageURL
-//    }
-    
-//    private func isUserDataChanged() -> Bool {
-//        newNickname != state.user.value?.nickname ||
-//        newGroupName != state.user.value?.groupName ||
-//        newProfileImageName != state.user.value?.profileImageURL
-//    }
-    
-//    private var isUserDataChanged: Bool {
-//        guard let user = state.user.value else { return false }
-//        print("newNickname: \(newNickname), newGroupName: \(newGroupName), newProfileImageName: \(newProfileImageName)")
-//        return newNickname != user.nickname ||
-//               newGroupName != user.groupName ||
-//               newProfileImageName != user.profileImageURL
-//    }
-
+    // 유저 정보 중 하나라도 바뀌면 true
+    // 임시 저장 변수(예: newNickname)가 nil이면 아직 바꾸려 시도하지 않은 것이므로 기존 정보와 동일하다고 가정
     private var isUserDataChanged: Bool {
         guard let user = state.user.value else { return false }
         return (newNickname ?? user.nickname) != user.nickname ||
@@ -68,7 +45,6 @@ final class EditProfileViewModel: ViewModelProtocol {
     }
     
     init(user: User, editProfileUseCaseImpl: EditProfileUseCase = EditProfileUseCaseImpl()) {
-        // self._user = user
         state.user.accept(user)
         self.editProfileUseCaseImpl = editProfileUseCaseImpl
         
@@ -87,74 +63,40 @@ final class EditProfileViewModel: ViewModelProtocol {
                 switch action {
                 case .onAppear:
                     print("on appear")
-                    // state.user.accept(_user)
                 case .nicknameChanged(let nickname):
                     print("nickname is changed: \(nickname)")
                     newNickname = nickname
-                    
-//                    if nickname != state.user.value?.nickname {
-//                        newNickname = nickname
-//                        state.isEditButtonEnabled.accept(true)
-//                    } else {
-//                        state.isEditButtonEnabled.accept(false)
-//                    }
-                    
-                    if isUserDataChanged {
-                        state.isEditButtonEnabled.accept(true)
-                    } else {
-                        state.isEditButtonEnabled.accept(false)
-                    }
-                    
+                    state.isUserDataChanged.accept(isUserDataChanged)
                 case .groupNameChanged(let groupName):
                     print("group name is changed: \(groupName)")
                     newGroupName = groupName
-                    
-//                    if groupName != state.user.value?.groupName {
-//                        newGroupName = groupName
-//                        state.isEditButtonEnabled.accept(true)
-//                    } else {
-//                        state.isEditButtonEnabled.accept(false)
-//                    }
-                    
-                    if isUserDataChanged {
-                        state.isEditButtonEnabled.accept(true)
-                    } else {
-                        state.isEditButtonEnabled.accept(false)
-                    }
+                    state.isUserDataChanged.accept(isUserDataChanged)
                 case .profileImageChanged(let indexPath):
-                    // print("profile image is changed: \(indexPath)")
+                    print("profile image is changed: \(indexPath)")
                     newProfileImageName = "profileImage\(indexPath.item + 1)"
-                    
-                    if isUserDataChanged {
-                        state.isEditButtonEnabled.accept(true)
-                    } else {
-                        state.isEditButtonEnabled.accept(false)
-                    }
-                    
-                    
-                    
-                    print("profile image is changed: \(newProfileImageName)")
-                    
-                    
-                    
-                    
-                    
+                    state.isUserDataChanged.accept(isUserDataChanged)
                 case .didTapEditButton:
                     print("did tap edit button.")
-                    updateNickname()
-                    updateGroupName()
-                    updateProfileImage()
+                    updateUserData()
                 }
             }
             .disposed(by: disposeBag)
     }
     
+    // 유저 데이터 업데이트
+    private func updateUserData() {
+        updateNickname()
+        updateGroupName()
+        updateProfileImage()
+    }
+    
+    // 닉네임 업데이트
     private func updateNickname() {
         guard let newNickname, newNickname != state.user.value?.nickname else { return }
         
         guard let userID = state.user.value?.userID else { return }
-        print("nickname: \(newNickname)")
         let changedAt = Date()
+        
         editProfileUseCaseImpl.updateUserNickname(userId: userID, nickname: newNickname, changedAt: changedAt)
             .subscribe {
                 print("nickname update success: \(newNickname)")
@@ -164,12 +106,13 @@ final class EditProfileViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
     
+    // 그룹명 업데이트
     private func updateGroupName() {
         guard let newGroupName, newGroupName != state.user.value?.groupName else { return }
         
         guard let groupID = state.user.value?.groupID else { return }
-        print("group name: \(newGroupName)")
         let changedAt = Date()
+        
         editProfileUseCaseImpl.updateGroupName(groupId: groupID, name: newGroupName, changedAt: changedAt)
             .subscribe {
                 print("group name update success: \(newGroupName)")
@@ -179,14 +122,15 @@ final class EditProfileViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
     
+    // 프로필 이미지 업데이트
     private func updateProfileImage() {
         guard let newProfileImageName, newProfileImageName != state.user.value?.profileImageURL else { return }
         
         guard let userID = state.user.value?.userID else { return }
-        print("Imagename: \(newProfileImageName)")
+        
         editProfileUseCaseImpl.updateProfileImage(userId: userID, imageName: newProfileImageName)
             .subscribe {
-                print("image update success: \(newProfileImageName)")
+                print("profile image update success: \(newProfileImageName)")
             } onError: { error in
                 print(error)
             }

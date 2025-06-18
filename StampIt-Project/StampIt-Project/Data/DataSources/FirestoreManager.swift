@@ -269,6 +269,7 @@ extension FirestoreManager {
         }
     }
     
+    /// 프로필 이미지 업데이트
     func updateProfileImage(userId: String, imageName: String) -> Observable<Void> {
         return Observable.create { observer in
             self.usersCollection.document(userId).updateData([

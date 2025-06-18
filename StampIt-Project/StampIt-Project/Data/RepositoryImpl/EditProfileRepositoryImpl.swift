@@ -15,6 +15,7 @@ final class EditProfileRepositoryImpl: EditProfileRepository {
         self.firestoreManager = firestoreManager
     }
     
+    // 닉네임 업데이트
     func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void> {
         firestoreManager.updateUserNickname(
             userId: userId,
@@ -23,6 +24,7 @@ final class EditProfileRepositoryImpl: EditProfileRepository {
         )
     }
     
+    // 그룹명 업데이트
     func updateGroupName(groupId: String, groupName: String, changedAt: Date) -> Observable<Void> {
         firestoreManager.updateGroupName(
             groupId: groupId,
@@ -31,6 +33,7 @@ final class EditProfileRepositoryImpl: EditProfileRepository {
         )
     }
     
+    // 프로필 이미지 업데이트
     func updateProfileImage(userId: String, imageName: String) -> Observable<Void> {
         firestoreManager.updateProfileImage(
             userId: userId,

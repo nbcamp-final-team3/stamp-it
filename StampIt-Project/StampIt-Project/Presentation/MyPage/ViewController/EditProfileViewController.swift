@@ -7,6 +7,7 @@
 
 import UIKit
 import RxSwift
+import RxCocoa
 import SnapKit
 import Then
 
@@ -34,6 +35,7 @@ final class EditProfileViewController: UIViewController {
         $0.clipsToBounds = true
         $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.borderWidth = 1
+        $0.clearButtonMode = .whileEditing
         
         // placeholder 관련
         $0.placeholder = "닉네임"
@@ -42,6 +44,7 @@ final class EditProfileViewController: UIViewController {
         $0.leftViewMode = .always
     }
     
+    // nicknameLabel + nicknameTextField
     private let nicknameStackView = UIStackView().then {
         $0.axis = .vertical
         $0.alignment = .leading
@@ -57,11 +60,11 @@ final class EditProfileViewController: UIViewController {
     private let groupNameTextField = UITextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
         $0.textColor = .gray300
-        // $0.backgroundColor = .gray25
         $0.layer.cornerRadius = 16
         $0.clipsToBounds = true
         $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.borderWidth = 1
+        $0.clearButtonMode = .whileEditing
         
         // placeholder 관련
         $0.placeholder = "그룹명"
@@ -70,30 +73,28 @@ final class EditProfileViewController: UIViewController {
         $0.leftViewMode = .always
     }
     
-    private let alertMessageLabel = UILabel().then {
-        $0.text = "그룹명 변경은 그룹장의 권한이에요."
-        $0.font = .pretendard(size: 12, weight: .regular)
-        $0.textColor = .gray300
-        $0.isHidden = false
-    }
-    
+    // groupNameLabel + groupNameTextField
     private let groupNameStackView = UIStackView().then {
         $0.axis = .vertical
         $0.alignment = .leading
         $0.spacing = 4
     }
     
-    private let editButton = DefaultButton(type: .modify).then {
-        $0.addTarget(self, action: #selector(editButtonTapped), for: .touchUpInside)
-        $0.isEnabled = false
+    private let alertMessageLabel = UILabel().then {
+        $0.text = "그룹명 변경은 그룹장의 권한이에요."
+        $0.font = .pretendard(size: 12, weight: .regular)
+        $0.textColor = .gray300
     }
+    
+    private let editButton = DefaultButton(type: .modify)
     
     private let viewModel: EditProfileViewModel
     private let disposeBag = DisposeBag()
     
+    // 프로필 이미지 에셋
+    private let profileImages = ["profileImage1", "profileImage2", "profileImage3", "profileImage4", "profileImage5", "profileImage6", "profileImage7", "profileImage8"]
+    
     private var dataSource: UICollectionViewDiffableDataSource<Section, Item>?
-    private var isLeader = false
-    private var profileImage: String?
     
     init(viewModel: EditProfileViewModel) {
         self.viewModel = viewModel
@@ -116,17 +117,16 @@ final class EditProfileViewController: UIViewController {
         makeConstraints()
         
         setNavigationBar()
+        setButtonAction()
         
         configureDataSource()
         updateSnapshot()
         
         bind()
         
-        setCollectionViewCell()
+        setupSelectedProfileImage()
         
         viewModel.action.accept(.onAppear)
-        
-        // setCollectionViewCell()
     }
     
     private func prepareSubviews() {
@@ -203,6 +203,10 @@ final class EditProfileViewController: UIViewController {
         navigationItem.backButtonTitle = ""
     }
     
+    private func setButtonAction() {
+        editButton.addTarget(self, action: #selector(editButtonTapped), for: .touchUpInside)
+    }
+    
     private func bind() {
         // 닉네임 텍스트필드와 그룹 텍스트필드에 유저 정보 반영
         viewModel.state.user
@@ -212,66 +216,58 @@ final class EditProfileViewController: UIViewController {
                 
                 nicknameTextField.text = user.nickname
                 groupNameTextField.text = user.groupName
-                isLeader = user.isLeader
-                if !isLeader {
-                    groupNameTextField.isEnabled = false
-                    groupNameTextField.backgroundColor = .gray25
-                    alertMessageLabel.isHidden = false
-                } else {
-                    groupNameTextField.isEnabled = true
-                    groupNameTextField.backgroundColor = .white
-                    alertMessageLabel.isHidden = true
-                }
             }
             .disposed(by: disposeBag)
         
+        // 유저가 그룹장이 아니면 그룹 텍스트필드 비활성화
+        viewModel.state.user
+            .map { $0?.isLeader }
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] isLeader in
+                guard let self, let isLeader else { return }
+                
+                isTextFieldEnabled(isLeader: isLeader)
+            }
+            .disposed(by: disposeBag)
+        
+        // 닉네임 변경 추적
         nicknameTextField.rx.text
             .orEmpty
             .asDriver(onErrorDriveWith: .empty())
             .distinctUntilChanged()
             .skip(1)
             .drive { [weak self] in
-                guard let self else { return }
-                viewModel.action.accept(.nicknameChanged($0))
+                self?.viewModel.action.accept(.nicknameChanged($0))
             }
             .disposed(by: disposeBag)
         
+        // 그룹명 변경 추적
         groupNameTextField.rx.text
             .orEmpty
             .asDriver(onErrorDriveWith: .empty())
             .distinctUntilChanged()
             .skip(1)
             .drive { [weak self] in
-                guard let self else { return }
-                viewModel.action.accept(.groupNameChanged($0))
+                self?.viewModel.action.accept(.groupNameChanged($0))
             }
             .disposed(by: disposeBag)
         
-//        collectionView.rx.modelSelected(String.self)
-//            .asDriver(onErrorDriveWith: .empty())
-//            .distinctUntilChanged()
-//            .drive { [weak self] in
-//                self?.viewModel.action.accept(.profileImageChanged($0))
-//            }
-//            .disposed(by: disposeBag)
-        
+        // 프로필 이미지 변경 추적
         collectionView.rx.itemSelected
             .asDriver(onErrorDriveWith: .empty())
             .distinctUntilChanged()
             .drive { [weak self] in
-                guard let self else { return }
-                
-                viewModel.action.accept(.profileImageChanged($0))
-                // editButton.isEnabled = true
+                self?.viewModel.action.accept(.profileImageChanged($0))
             }
             .disposed(by: disposeBag)
         
-        viewModel.state.isEditButtonEnabled
+        // 3개의 유저 데이터(닉네임, 그룹명, 이미지) 중 하나라도 변경사항이 있는지 추적
+        viewModel.state.isUserDataChanged
             .asDriver(onErrorDriveWith: .empty())
-            .drive { [weak self] isEnabled in
+            .drive { [weak self] isChanged in
                 guard let self else { return }
                 
-                if isEnabled {
+                if isChanged {
                     editButton.isEnabled = true
                 } else {
                     editButton.isEnabled = false
@@ -303,8 +299,8 @@ final class EditProfileViewController: UIViewController {
             switch item {
             case .image:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProfileImageCell.reuseIdentifier, for: indexPath) as! ProfileImageCell
-                // cell.configure(with: UIImage(systemName: "add.circle"))
-                cell.configure(with: UIImage(named: "profileImage\(indexPath.item + 1)"))
+                let image = UIImage(named: "profileImage\(indexPath.item + 1)")
+                cell.configure(with: image)
                 return cell
             }
         }
@@ -315,18 +311,8 @@ final class EditProfileViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.image])
         
-//        var images: [UIImage] = []
-//        for index in 0..<8 {
-//            let image = UIImage(named: "profileImage\(index + 1)")
-//            if let image {
-//                images.append(image)
-//            }
-//        }
-        
-        let images = ["profileImage1", "profileImage2", "profileImage3", "profileImage4", "profileImage5", "profileImage6", "profileImage7", "profileImage8"]
-        
         var items: [Item] = []
-        images.forEach {
+        profileImages.forEach {
             items.append(.image($0))
         }
         
@@ -335,24 +321,32 @@ final class EditProfileViewController: UIViewController {
         dataSource?.apply(snapshot)
     }
     
-    private func setCollectionViewCell() {
-        // 일단 첫번째 셀을 selected cell로 설정
-//        let defaultSelection = IndexPath(item: 0, section: 0)
-//        collectionView.selectItem(at: defaultSelection, animated: false, scrollPosition: [])
-        
+    // 기존 프로필 이미지를 선택된 상태(isSelected)로 설정
+    private func setupSelectedProfileImage() {
         let profileImage = viewModel.state.user.value?.profileImageURL
-        print(profileImage)
-        let images = ["profileImage1", "profileImage2", "profileImage3", "profileImage4", "profileImage5", "profileImage6", "profileImage7", "profileImage8"]
-
-        if let profileImage, images.contains(profileImage) {
-            print("\(profileImage)")
-            let index = images.firstIndex(of: profileImage)!
-            let defaultSelection = IndexPath(item: index, section: 0)
-            collectionView.selectItem(at: defaultSelection, animated: false, scrollPosition: [])
+        
+        // 기존 프로필 이미지가 존재하면, 해당 이미지를 선택된 상태(isSelected)로 설정
+        if let profileImage, profileImages.contains(profileImage) {
+            let index = profileImages.firstIndex(of: profileImage)!
+            let selectedImage = IndexPath(item: index, section: 0)
+            collectionView.selectItem(at: selectedImage, animated: false, scrollPosition: [])
         } else {
-            print("ddddddd")
+            // 기존 프로필 이미지가 없으면, 첫번째 이미지를 선택된 상태(isSelected)로 설정
             let defaultSelection = IndexPath(item: 0, section: 0)
             collectionView.selectItem(at: defaultSelection, animated: false, scrollPosition: [])
+        }
+    }
+    
+    // 그룹 텍스트필드 활성화 헬퍼 메서드
+    private func isTextFieldEnabled(isLeader: Bool) {
+        if !isLeader {
+            groupNameTextField.isEnabled = false
+            groupNameTextField.backgroundColor = .gray25
+            alertMessageLabel.isHidden = false
+        } else {
+            groupNameTextField.isEnabled = true
+            groupNameTextField.backgroundColor = .white
+            alertMessageLabel.isHidden = true
         }
     }
     
@@ -363,7 +357,7 @@ final class EditProfileViewController: UIViewController {
     
     // 수정하기 버튼 누르면 원래 화면으로 복귀
     private func dismiss() {
-        // navigationController?.popViewController(animated: true)
+        navigationController?.popViewController(animated: true)
         print("dismiss")
     }
 }
@@ -375,7 +369,6 @@ extension EditProfileViewController {
     }
     
     enum Item: Hashable {
-        // case image(UIImage)
         case image(String)
     }
 }

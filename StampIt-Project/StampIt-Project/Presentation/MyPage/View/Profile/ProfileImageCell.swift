@@ -39,7 +39,7 @@ final class ProfileImageCell: UICollectionViewCell {
     private func prepareSubview() {
         contentView.addSubview(imageView)
         
-        contentView.layer.cornerRadius = 30
+        contentView.layer.cornerRadius = 30 // 셀 모양 원형임(60 * 60)
         contentView.layer.masksToBounds = true
         contentView.layer.borderWidth = 1
         contentView.layer.borderColor = UIColor.gray200.cgColor
