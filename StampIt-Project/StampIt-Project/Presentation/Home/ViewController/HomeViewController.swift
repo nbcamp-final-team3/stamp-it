@@ -145,7 +145,7 @@ final class HomeViewController: UIViewController {
                 if isShow {
                     owner.toastView.show(in: owner.homeView, duration: 4)
                 } else {
-
+                    owner.toastView.dismiss(duration: 0)
                 }
             }
             .disposed(by: disposeBag)

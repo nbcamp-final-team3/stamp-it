@@ -110,10 +110,13 @@ final class ToastView: UIView {
         UIView.animate(
           withDuration: 0.3,
           delay: 0,
-          animations: { self.alpha = 1 },
-          completion: nil
+          animations: { self.alpha = 1 }
         )
 
+        dismiss(duration: duration)
+    }
+
+    func dismiss(duration: TimeInterval) {
         // 버튼 탭 이벤트 처리를 위해 main 스레드에서 실행
         DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
             UIView.animate(
