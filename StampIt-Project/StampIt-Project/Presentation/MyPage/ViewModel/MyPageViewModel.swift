@@ -46,7 +46,10 @@ final class MyPageViewModel: ViewModelProtocol {
     
     // MARK: - Initializer, Deinit, requiered
     
-    init(myPageUseCase: MyPageUseCase, accountManageUseCase: AccountManageUseCaseProtocol) {
+    init(
+        myPageUseCase: MyPageUseCase, 
+        accountManageUseCase: AccountManageUseCaseProtocol
+    ) {
         self.myPageUseCase = myPageUseCase
         self.accountManageUseCase = accountManageUseCase
         bindAction()
