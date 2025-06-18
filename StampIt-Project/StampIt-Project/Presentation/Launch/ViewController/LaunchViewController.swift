@@ -11,12 +11,21 @@ import RxSwift
 
 final class LaunchViewController: UIViewController {
     private let disposeBag = DisposeBag()
-    private let loginUseCase = DIContainer.shared.loginUseCase
+    private let container: DIContainer
     
     // 1. 로딩 인디케이터 추가
     private let loadingIndicator = UIActivityIndicatorView(style: .large).then {
         $0.color = UIColor(named: "red400")
         $0.hidesWhenStopped = true
+    }
+    
+    init(container: DIContainer) {
+        self.container = container
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     override func viewDidLoad() {
@@ -53,7 +62,7 @@ final class LaunchViewController: UIViewController {
         }
         
         // 4. 네트워크 조회 시 최소 딜레이 보장
-        loginUseCase.checkLaunchState()
+        container.loginUseCase.checkLaunchState()
             .delay(.milliseconds(500), scheduler: MainScheduler.instance) // 최소 로딩 시간
             .observe(on: MainScheduler.instance)
             .subscribe(
@@ -82,15 +91,8 @@ final class LaunchViewController: UIViewController {
     }
     
     private func showHome() {
-        // 5. 뷰컨트롤러 미리 생성 및 로드
-        let homeVC = DIContainer.shared.makeHomeViewController()
-        let navController = UINavigationController(rootViewController: homeVC)
-        
-        // 뷰 강제 로드 (검은 화면 방지)
-        navController.loadViewIfNeeded()
-        homeVC.loadViewIfNeeded()
-        
-        changeRoot(navController)
+        let tabBar = MainTabBarController(container: container)
+        changeRoot(tabBar)
     }
 
     private func showLogin() {
