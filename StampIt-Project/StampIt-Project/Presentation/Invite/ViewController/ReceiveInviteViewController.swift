@@ -47,6 +47,9 @@ final class ReceiveInviteViewController: UIViewController {
         $0.font = .pretendard(size: 16, weight: .semibold)
         $0.textColor = .gray300
         $0.numberOfLines = 1
+        $0.setContentHuggingPriority(.required, for: .horizontal)
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+
     }
 
     private let textField = UITextField().then {
@@ -109,10 +112,6 @@ final class ReceiveInviteViewController: UIViewController {
             $0.height.equalTo(72)
         }
 
-        floatingLabel.snp.makeConstraints {
-            $0.width.equalTo(100)
-        }
-
         stackView.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.leading.trailing.equalToSuperview().inset(12)
@@ -142,6 +141,16 @@ final class ReceiveInviteViewController: UIViewController {
         viewModel.state.isEnterButtonEnabled
             .bind(to: enterButton.rx.isEnabled)
             .disposed(by: disposeBag)
+
+        viewModel.state.showMessage
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] message in
+                guard let self = self else { return }
+                let toastView = CustomToastView(message: message)
+
+                toastView.show(in: self.view)
+            })
+            .disposed(by: disposeBag)
     }
 }
 
@@ -158,8 +167,6 @@ extension ReceiveInviteViewController: UITextFieldDelegate {
             self.textFieldContainer.layer.borderColor = UIColor.gray800.cgColor
             self.textFieldContainer.backgroundColor = .clear
             self.textFieldContainer.layer.borderWidth = 1.5
-
-
         }
     }
 

@@ -7,7 +7,6 @@
 
 import Foundation
 import RxSwift
-import FirebaseCore
 
 final class InviteUseCaseImpl: InviteUseCase {
 
@@ -25,35 +24,32 @@ final class InviteUseCaseImpl: InviteUseCase {
         authRepository.getCurrentUser()
     }
 
-    func fetchUserOnce(userId: String) -> Observable<UserFirestore> {
+    func fetchUserOnce(userId: String) -> Observable<User> {
         inviteRepository.fetchUserOnce(userId: userId)
     }
 
     // receive 관련 메서드
-    func addMember(groupId: String, member: MemberFirestore) -> Observable<Void> {
-        authRepository.addMember(groupId: groupId, member: member)
-    }
-
-    func updateUser(_ user: UserFirestore) -> Observable<Void> {
-        inviteRepository.updateUser(user)
+    func addMember(groupId: String, member: Member) -> Observable<Void> {
+        let toDomain = member.toFirestoreModel()
+        return authRepository.addMember(groupId: groupId, member: toDomain)
     }
 
     // send 관련 메서드
-    func fetchGroup(groupId: String) -> Observable<GroupFirestore> {
+    func fetchGroup(groupId: String) -> Observable<Group> {
         inviteRepository.fetchGroup(groupId: groupId)
     }
 
-    func createInvite(_ invite: InviteFirestore) -> Observable<Void> {
+    func createInvite(_ invite: Invitation) -> Observable<Void> {
         inviteRepository.createInvite(invite)
     }
 
-    func fetchInvite(inviteCode: String) -> Observable<InviteFirestore> {
+    func fetchInvite(inviteCode: String) -> Observable<Invitation> {
         inviteRepository.fetchInvite(inviteCode: inviteCode)
     }
 
     // 6/ 17 추가 메서드
     /// 초대코드로 그룹 정보 가져오기
-    func fetchGroupByInviteCode(inviteCode: String) -> Observable<GroupFirestore> {
+    func fetchGroupByInviteCode(inviteCode: String) -> Observable<Group> {
         inviteRepository.fetchGroupByInviteCode(inviteCode: inviteCode)
     }
 
@@ -73,42 +69,50 @@ final class InviteUseCaseImpl: InviteUseCase {
     }
 
     /// 초대코드를 받아서 해당 그룹에 새 멤버를 추가하는 코드
-    func acceptInvite(inviteCode: String) -> Observable<InviteFirestore> {
+    func acceptInvite(inviteCode: String) -> Observable<Invitation> {
+        //본인이 db에 추가가 됐는지 확인
         return getCurrentUser()
-                .flatMap { [weak self] optionalUser -> Observable<(User, GroupFirestore)> in
-                    guard let self = self, let user = optionalUser else {
-                        return Observable.error(RepositoryError.userNotFound)
-                    }
-                    return self.fetchGroupByInviteCode(inviteCode: inviteCode)
-                        .map { group in (user, group) }
-                        .catch { error in
-                            return Observable.error(RepositoryError.noInviteCode)
-                        }
+            .flatMap { [weak self] optionalUser -> Observable<(User, Invitation)> in
+                guard let self = self, let user = optionalUser else {
+                    return Observable.error(RepositoryError.userNotFound)
                 }
-            .flatMap { [weak self] user, group -> Observable<(User, GroupFirestore, UserFirestore)> in
+                return self.fetchInvite(inviteCode: inviteCode)
+                    .map { invite in
+                        if invite.expiredAt < Date() {
+                            throw RepositoryError.expiredInviteCode
+                        }
+                        if invite.groupID == user.groupID {
+                            throw RepositoryError.alreadyInGroup
+                        }
+                        return (user, invite)
+                    }
+            }
+            .flatMap { [weak self] user, invite -> Observable<(User, Group)> in
+                guard let self = self else { return .empty() }
+
+                return self.fetchGroupByInviteCode(inviteCode: inviteCode)
+                    .map { group in (user, group) }
+            }
+            .flatMap { [weak self] user, group -> Observable<(User, Group, User)> in
                 guard let self = self else { return .empty() }
                 return self.fetchUserOnce(userId: user.userID)
-                    .map { userFirestore in (user, group, userFirestore) }
+                    .map { user in (user, group, user) }
             }
-            .flatMap { [weak self] user, group, userFirestore -> Observable<(User, GroupFirestore, UserFirestore, Int)> in
+            .flatMap { [weak self] user, group, fetchUser -> Observable<(User, Group, User, Int)> in
                 guard let self = self else { return .empty() }
-                return self.fetchGroupMemberCount(groupId: group.groupId)
-                    .map { count in (user, group, userFirestore, count) }
+                return self.fetchGroupMemberCount(groupId: group.groupID)
+                    .map { count in (user, group, fetchUser, count) }
             }
-            .flatMap { [weak self] user, group, userFirestore, memberCount -> Observable<InviteFirestore> in
+            .flatMap { [weak self] user, group, fetchUser, memberCount -> Observable<Invitation> in
                 guard let self = self else { return .empty() }
 
-                // 10명 이상일 시 에러
-                guard memberCount <= 10 else {
-                    return Observable.error(RepositoryError.groupIsFull)
+                guard memberCount < 10 else {
+                    return .error(RepositoryError.groupIsFull)
                 }
 
-                let oldGroupId = userFirestore.groupId
+                let oldGroupId = fetchUser.groupID
+                let newGroupId = group.groupID
 
-
-                // 유저가 1인 그룹에 속해 있다면 삭제
-                // 멤버 카운트 제대로 불러오기
-                // 로그인한 유저의 기존 그룹 멤버 수 확인 -> 1명이면 삭제
                 return self.fetchGroupMemberCount(groupId: oldGroupId)
                     .flatMap { oldGroupMemberCount -> Observable<Void> in
                         if oldGroupMemberCount == 1 {
@@ -121,7 +125,7 @@ final class InviteUseCaseImpl: InviteUseCase {
                         self.switchUserGroup(
                             userId: user.userID,
                             fromGroupId: oldGroupId,
-                            toGroupId: group.groupId,
+                            toGroupId: newGroupId,
                             userNickname: user.nickname
                         )
                     }
@@ -130,34 +134,31 @@ final class InviteUseCaseImpl: InviteUseCase {
                     }
             }
     }
-
     /// 초대 코드를 생성하는 코드
     func sequenceCreateCode() -> Observable<String> {
         return getCurrentUser()
-            .flatMap { user -> Observable<UserFirestore> in
+            .flatMap { user -> Observable<User> in
                 guard let user = user else {
-                    return Observable.error(FirestoreError.createFailed("사용자 정보 없음"))
+                    return Observable.error(RepositoryError.userNotFound)
                 }
                 return self.fetchUserOnce(userId: user.userID)
             }
-            .flatMap { userFirestore -> Observable<(UserFirestore, GroupFirestore)> in
-                return self.fetchGroup(groupId: userFirestore.groupId)
+            .flatMap { user -> Observable<(User, Group)> in
+                return self.fetchGroup(groupId: user.groupID)
                     .map { group in
-                        (userFirestore, group)
+                        (user, group)
                     }
             }
-            .flatMap { userFirestore, groupFirestore -> Observable<String> in
-                let now = Timestamp(date: Date())
-                //firebase에서 조작해야 될 것 같은데 어떻게 생각하세요? 서버 요청으로 자동 삭제가 가능할까요?
-                // batch? firebase 에서 만들어진 시간 조회해서 하루넘어가면 disabled
-                let expired = Timestamp(date: Date().addingTimeInterval(60 * 60 * 24)) // 24시간 뒤
+            .flatMap { user, group -> Observable<String> in
+                let now = Date()
+                let expired = Calendar.current.date(byAdding: .minute, value: 20, to: now)!
 
-                let invite = InviteFirestore(
-                    inviteCode: groupFirestore.inviteCode,
-                    groupId: userFirestore.groupId,
-                    createdBy: userFirestore.userId,
-                    createdAt: now,
-                    expiredAt: expired
+                let invite = Invitation(
+                    groupID: group.groupID,
+                    createdBy: user.userID,
+                    expiredAt: expired,
+                    inviteCode: group.inviteCode,
+                    createdAt: now
                 )
 
                 return self.createInvite(invite)

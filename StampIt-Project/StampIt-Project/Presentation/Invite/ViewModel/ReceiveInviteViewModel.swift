@@ -68,9 +68,17 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
         useCase.acceptInvite(inviteCode: code)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] invite in
-                self?.state.showMessage.accept("초대 완료! 그룹 ID: \(invite.groupId)")
+                self?.state.showMessage.accept("초대 완료!")
             }, onError: { [weak self] error in
-                self?.state.showMessage.accept("초대 실패: \(error.localizedDescription)")
+                let message: String
+
+                if let repoError = error as? RepositoryError {
+                    message = repoError.localizedDescription
+                } else {
+                    message = "알 수 없는 오류가 발생했습니다."
+                }
+
+                self?.state.showMessage.accept(message)
             })
             .disposed(by: disposeBag)
     }

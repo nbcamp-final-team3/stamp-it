@@ -79,7 +79,7 @@ final class SendInviteViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .FFFFFF
         setupLayout()
         bindViewModel()
     }
@@ -129,14 +129,15 @@ final class SendInviteViewController: UIViewController {
 
 
         viewModel.state.showMessage
+            .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] message in
-                /// toast 색상설정을 위한 변수
-                var style = ToastStyle()
-                style.backgroundColor = .toastGray
+                guard let self = self else { return }
 
-                self?.view.makeToast(message, duration: 1.5, position: .bottom, image: nil, style: style
-                , completion: nil)
-            }).disposed(by: disposeBag)
+                let toastView = CustomToastView(message: message)
+                toastView.show(in: self.view)
+            })
+            .disposed(by: disposeBag)
+
 
         copyButton.rx.tap
             .map{SendInviteViewModel.Action.copyButtonTapped }

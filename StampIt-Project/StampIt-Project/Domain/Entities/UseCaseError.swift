@@ -22,6 +22,8 @@ enum UseCaseError: Error {
     case groupIsFull                   // 그룹 정원이 가득 찬 오류
     case onlyOneGroup                   //유저는 그룹을 하나만 가질 수 있음
     case noInviteCode                   //초대 코드가 없는 오류
+    case expiredInviteCode              //초대 만료 오류
+    case alreadyInGroup                 //이미 그룹에 있는 경우
 
     var localizedDescription: String {
         switch self {
@@ -49,6 +51,10 @@ enum UseCaseError: Error {
             return "기존 그룹을 탈퇴해 주세요."
         case .noInviteCode:
             return "초대 코드를 확인 할 수 없습니다."
+        case .expiredInviteCode:
+            return "초대 코드가 만료됐습니다."
+        case .alreadyInGroup:
+            return "이미 그룹에 존재합니다."
         }
     }
     
@@ -79,6 +85,10 @@ enum UseCaseError: Error {
             return "기존 그룹을 탈퇴해 주세요."
         case .noInviteCode:
             return "초대 코드를 확인 할 수 없습니다."
+        case .expiredInviteCode:
+            return "초대 코드가 만료됐습니다."
+        case .alreadyInGroup:
+            return "이미 그룹에 존재합니다."
         }
     }
 }

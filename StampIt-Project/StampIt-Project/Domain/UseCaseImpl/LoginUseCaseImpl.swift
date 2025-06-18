@@ -128,6 +128,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 groupID: groupId,
                 members: [], // 멤버는 별도로 추가됨
                 leaderID: authUser.uid,
+                inviteCode: inviteCode,
                 nameChangedAt: now
             )
             
@@ -218,6 +219,10 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 return .onlyOneGroup
             case .noInviteCode:
                 return .noInviteCode
+            case .expiredInviteCode:
+                return .expiredInviteCode
+            case .alreadyInGroup:
+                return .alreadyInGroup
             }
         } else {
             return .unknownError
