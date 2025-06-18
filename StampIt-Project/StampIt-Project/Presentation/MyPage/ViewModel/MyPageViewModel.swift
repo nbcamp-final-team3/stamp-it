@@ -138,13 +138,25 @@ final class MyPageViewModel: ViewModelProtocol {
     }
     
     private func showDeleteAccountConfirmation() {
-        state.shouldShowConfirmAlert.accept((
-            "'스탬프잇'을 탈퇴하시겠어요?'",
-            "계정을 탈퇴하면 그룹도 자동으로 탈퇴돼요.\n재가입은 언제나 환영이에요!",
-            { [weak self] in
-                self?.performDeleteAccount()
-            }
-        ))
+        guard let currentUser = state.user.value else { return }
+        
+        if currentUser.isLeader {
+            state.shouldShowConfirmAlert.accept((
+                "'스탬프잇'을 탈퇴하시겠어요?",
+                "리더님이 탈퇴하면 가장 오래된 멤버가\n자동으로 새 리더가 됩니다.",
+                { [weak self] in
+                    self?.performDeleteAccount()
+                }
+            ))
+        } else {
+            state.shouldShowConfirmAlert.accept((
+                "'스탬프잇'을 탈퇴하시겠어요?",
+                "계정을 탈퇴하면 그룹도 자동으로 탈퇴돼요.\n재가입은 언제나 환영이에요!",
+                { [weak self] in
+                    self?.performDeleteAccount()
+                }
+            ))
+        }
     }
     
     /// 그룹 탈퇴 확인 다이얼로그 표시 전 멤버 수 체크
@@ -176,18 +188,23 @@ final class MyPageViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
 
-    /// 그룹 멤버 수에 따른 처리
+    /// 그룹 멤버 수에 따른 처리 (그룹탈퇴)
     private func handleGroupMemberCount(memberCount: Int, groupName: String) {
         guard let currentUser = state.user.value else { return }
 
         if memberCount <= 1 {
             // 본인만 있는 경우: 탈퇴 불가
             state.alertMessage.accept("혼자 있는 그룹에서는 탈퇴할 수 없습니다.\n계정 탈퇴를 원하시면 '서비스 탈퇴'를 이용해주세요.")
-        }  else if currentUser.isLeader {
-            // 리더인 경우: 탈퇴 불가, 대안 제시 (추후 리더장 위임, 멤버 내보내기를 통해 구현)
-            state.alertMessage.accept("그룹 리더는 본인 그룹을 탈퇴할 수 없습니다. ")
-            //showLeaderCannotLeaveAlert(groupName: groupName)
-        } else {
+        }else if currentUser.isLeader {
+                // 리더도 탈퇴 가능하되, 자동 위임 안내
+                state.shouldShowConfirmAlert.accept((
+                    "리더 권한을 위임하고 탈퇴하시겠어요?",
+                    "가장 오래된 멤버가 새 리더가 되며,\n탈퇴 후 복구는 불가능합니다.",
+                    { [weak self] in
+                        self?.performLeaderLeaveGroup()
+                    }
+                ))
+            } else {
             // 다른 멤버가 있는 경우 탈퇴 가능
             state.shouldShowConfirmAlert.accept((
                 "'\(groupName)' 그룹에서 탈퇴하시겠어요?",
@@ -275,6 +292,28 @@ final class MyPageViewModel: ViewModelProtocol {
                 onError: { [weak self] error in
                     self?.state.isLoading.accept(false)
                     self?.state.alertMessage.accept("그룹 탈퇴에 실패했습니다.")
+                }
+            )
+            .disposed(by: disposeBag)
+    }
+    
+    /// 리더 그룹 탈퇴 실행 (자동 위임 포함)
+    private func performLeaderLeaveGroup() {
+        state.isLoading.accept(true)
+        
+        accountManageUseCase.leaveGroup()
+            .observe(on: MainScheduler.instance)
+            .subscribe(
+                onNext: { [weak self] updatedUser in
+                    self?.state.isLoading.accept(false)
+                    self?.state.user.accept(updatedUser)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        self?.state.alertMessage.accept("리더 권한이 위임되고 그룹 탈퇴가 완료되었습니다.")
+                    }
+                },
+                onError: { [weak self] error in
+                    self?.state.isLoading.accept(false)
+                    self?.state.alertMessage.accept("리더 위임 및 그룹 탈퇴에 실패했습니다.")
                 }
             )
             .disposed(by: disposeBag)

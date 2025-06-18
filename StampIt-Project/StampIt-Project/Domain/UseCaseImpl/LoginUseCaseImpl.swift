@@ -210,6 +210,8 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 return .networkFailed(message)
             case .uiError(let message):
                 return .uiFailed(message)
+            case .permissionDenied(let message):
+                return .authenticationFailed(message)
             case .unknownError:
                 return .unknownError
             }

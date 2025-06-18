@@ -38,6 +38,7 @@ protocol FirestoreManagerProtocol {
     func addMember(groupId: String, member: MemberFirestore) -> Observable<Void>
     func removeMember(groupId: String, userId: String) -> Observable<Void>
     func updateMemberLeaderStatus(groupId: String, userId: String, isLeader: Bool) -> Observable<Void>
+    func fetchOldestMember(groupId: String, excludeUserId: String) -> Observable<MemberFirestore> // TODO: 리더 위임 이후 삭제 예정
     
     // Mission 관련
     func fetchMissions(groupId: String) -> Observable<[MissionFirestore]>
@@ -547,6 +548,38 @@ extension FirestoreManager {
             return Disposables.create()
         }
     }
+    
+    /// 가장 오래된 멤버 조회 (특정 유저 제외)
+       func fetchOldestMember(groupId: String, excludeUserId: String) -> Observable<MemberFirestore> {
+           return Observable.create { observer in
+               self.membersCollection(groupId: groupId)
+                   .whereField("userId", isNotEqualTo: excludeUserId)
+                   .order(by: "joinedAt", descending: false)
+                   .limit(to: 1)
+                   .getDocuments { querySnapshot, error in
+                       if let error = error {
+                           observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                           return
+                       }
+                       
+                       guard let documents = querySnapshot?.documents,
+                             let document = documents.first else {
+                           observer.onError(FirestoreError.documentNotFound)
+                           return
+                       }
+                       
+                       do {
+                           let member = try document.data(as: MemberFirestore.self)
+                           observer.onNext(member)
+                           observer.onCompleted()
+                       } catch {
+                           observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
+                       }
+                   }
+               
+               return Disposables.create()
+           }
+       }
 }
 
 // MARK: - Mission Operations

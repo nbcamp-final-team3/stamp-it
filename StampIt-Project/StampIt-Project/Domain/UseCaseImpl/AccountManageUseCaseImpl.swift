@@ -99,6 +99,8 @@ final class AccountManageUseCase: AccountManageUseCaseProtocol {
                 return .uiFailed(message)
             case .unknownError:
                 return .unknownError
+            case .permissionDenied(let message):
+                return .authenticationFailed(message)
             }
         } else {
             return .unknownError
