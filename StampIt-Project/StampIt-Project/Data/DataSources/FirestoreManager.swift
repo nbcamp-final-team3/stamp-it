@@ -23,6 +23,8 @@ protocol FirestoreManagerProtocol {
     func updateUser(_ user: UserFirestore) -> Observable<Void>
     func deleteUser(userId: String) -> Observable<Void>
     func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void>
+    func updateProfileImage(userId: String, imageName: String) -> Observable<Void>
+    func updateUserGroupId(userId: String, newGroupId: String) -> Observable<Void>
     
     // Group 관련
     func fetchGroup(groupId: String) -> Observable<GroupFirestore>
@@ -30,22 +32,23 @@ protocol FirestoreManagerProtocol {
     func updateGroup(_ group: GroupFirestore) -> Observable<Void>
     func deleteGroup(groupId: String) -> Observable<Void>
     func updateGroupName(groupId: String, name: String, changedAt: Date) -> Observable<Void>
+    func updateGroupLeader(groupId: String, newLeaderId: String) -> Observable<Void>
     
     // Member 관련
     func fetchMembers(groupId: String) -> Observable<[MemberFirestore]>
     func addMember(groupId: String, member: MemberFirestore) -> Observable<Void>
     func removeMember(groupId: String, userId: String) -> Observable<Void>
+    func updateMemberLeaderStatus(groupId: String, userId: String, isLeader: Bool) -> Observable<Void>
+    func fetchOldestMember(groupId: String, excludeUserId: String) -> Observable<MemberFirestore> // TODO: 리더 위임 이후 삭제 예정
     
     // Mission 관련
     func fetchMissions(groupId: String) -> Observable<[MissionFirestore]>
-    func fetchMissions(
-        to assigneeId: String?,
-        by assignerId: String?,
-        ofGroup groupId: String
-    ) -> Observable<[MissionFirestore]>
+    func fetchMissions(to assigneeId: String?,by assignerId: String?,ofGroup groupId: String) -> Observable<[MissionFirestore]>
     func createMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
     func updateMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
     func deleteMission(groupId: String, missionId: String) -> Observable<Void>
+    func deleteUserMissions(userId: String, groupId: String) -> Observable<Void>
+    func deleteGroupMissions(groupId: String) -> Observable<Void>
     
     // Sticker 관련
     func fetchStickers(userId: String, month: String) -> Observable<[StickerFirestore]>
@@ -54,7 +57,10 @@ protocol FirestoreManagerProtocol {
     func fetchGroupStickers(groupId: String, month: String) -> Observable<[StickerFirestore]>
     func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]>
     func addSticker(_ sticker: StickerFirestore) -> Observable<Void>
-    func createStickerFromMission(userId: String, groupId: String, missionTitle: String, assignedBy: String, stickerType: String) -> Observable<StickerFirestore>
+    func createStickerFromMission(userId: String, groupId: String, missionTitle: String, maxStickers: Int, stickerType: String) -> Observable<StickerFirestore>
+    func deleteUserStickers(userId: String, groupId: String) -> Observable<Void> //그룹탈퇴
+    func deleteUserStickers(userId: String) -> Observable<Void>     //유저탈퇴
+    func deleteGroupStickers(groupId: String) -> Observable<Void>
     
     // Invite 관련
     func fetchGroupInviteCode(groupId: String) -> Observable<String>
@@ -64,6 +70,8 @@ protocol FirestoreManagerProtocol {
     func fetchInvite(inviteCode: String) -> Observable<InviteFirestore>
     func createInvite(_ invite: InviteFirestore) -> Observable<Void>
     func deleteInvite(inviteCode: String) -> Observable<Void>
+    func deleteUserInvites(userId: String) -> Observable<Void>
+    func deleteGroupInvites(groupId: String) -> Observable<Void>
     
     // AppMission 관련
     func fetchAppMissions() -> Observable<[AppMissionFirestore]>
@@ -104,7 +112,7 @@ final class FirestoreManager: FirestoreManagerProtocol {
     private func missionsCollection(groupId: String) -> CollectionReference {
         return groupsCollection.document(groupId).collection("missions")
     }
-
+    
     // MARK: - Init
     // ✅ Singleton 제거, 일반 init으로 변경
     init() {}
@@ -238,7 +246,7 @@ extension FirestoreManager {
         }
     }
     
-    /// 사용자 삭제 (연관 데이터도 함께 삭제)
+    /// 사용자 삭제 (사용자 문서 삭제 (사용자 탈퇴에 사용))
     func deleteUser(userId: String) -> Observable<Void> {
         return Observable.create { observer in
             let userRef = self.usersCollection.document(userId)
@@ -263,6 +271,41 @@ extension FirestoreManager {
             ]) { error in
                 if let error = error {
                     observer.onError(error)
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
+    }
+    
+    /// 프로필 이미지 업데이트
+    func updateProfileImage(userId: String, imageName: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.usersCollection.document(userId).updateData([
+                "profileImage": imageName
+            ]) { error in
+                if let error = error {
+                    observer.onError(error)
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
+    }
+
+    /// 사용자의 groupId 업데이트
+    func updateUserGroupId(userId: String, newGroupId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.usersCollection.document(userId).updateData([
+                "groupId": newGroupId
+            ]) { error in
+                if let error = error {
+                    observer.onError(FirestoreError.updateFailed(error.localizedDescription))
+
                 } else {
                     observer.onNext(())
                     observer.onCompleted()
@@ -354,7 +397,7 @@ extension FirestoreManager {
             let membersRef = groupRef.collection("members")
             let missionsRef = groupRef.collection("missions")
             let stickersQuery = self.stickersCollection.whereField("groupId", isEqualTo: groupId)
-
+            
             // 1. 멤버 컬렉션 삭제
             membersRef.getDocuments { membersSnapshot, error in
                 if let error = error {
@@ -409,6 +452,23 @@ extension FirestoreManager {
             ]) { error in
                 if let error = error {
                     observer.onError(error)
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
+    }
+    
+    /// 그룹 리더 변경 (그룹탈퇴, 리더위임)
+    func updateGroupLeader(groupId: String, newLeaderId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.groupsCollection.document(groupId).updateData([
+                "leaderId": newLeaderId
+            ]) { error in
+                if let error = error {
+                    observer.onError(FirestoreError.updateFailed(error.localizedDescription))
                 } else {
                     observer.onNext(())
                     observer.onCompleted()
@@ -474,7 +534,7 @@ extension FirestoreManager {
         }
     }
     
-    /// 그룹에서 멤버 제거
+    /// 그룹에서 멤버 제거(내보내기, 그룹 탈퇴)
     func removeMember(groupId: String, userId: String) -> Observable<Void> {
         return Observable.create { observer in
             self.membersCollection(groupId: groupId).document(userId)
@@ -490,6 +550,55 @@ extension FirestoreManager {
             return Disposables.create()
         }
     }
+    
+    /// 멤버 리더 상태 업데이트 (그룹 탈퇴 시 사용)
+    func updateMemberLeaderStatus(groupId: String, userId: String, isLeader: Bool) -> Observable<Void> {
+        return Observable.create { observer in
+            self.membersCollection(groupId: groupId).document(userId).updateData([
+                "isLeader": isLeader
+            ]) { error in
+                if let error = error {
+                    observer.onError(FirestoreError.updateFailed(error.localizedDescription))
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
+    }
+    
+    /// 가장 오래된 멤버 조회 (특정 유저 제외)
+       func fetchOldestMember(groupId: String, excludeUserId: String) -> Observable<MemberFirestore> {
+           return Observable.create { observer in
+               self.membersCollection(groupId: groupId)
+                   .whereField("userId", isNotEqualTo: excludeUserId)
+                   .order(by: "joinedAt", descending: false)
+                   .limit(to: 1)
+                   .getDocuments { querySnapshot, error in
+                       if let error = error {
+                           observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
+                           return
+                       }
+                       
+                       guard let documents = querySnapshot?.documents,
+                             let document = documents.first else {
+                           observer.onError(FirestoreError.documentNotFound)
+                           return
+                       }
+                       
+                       do {
+                           let member = try document.data(as: MemberFirestore.self)
+                           observer.onNext(member)
+                           observer.onCompleted()
+                       } catch {
+                           observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
+                       }
+                   }
+               
+               return Disposables.create()
+           }
+       }
 }
 
 // MARK: - Mission Operations
@@ -525,13 +634,13 @@ extension FirestoreManager {
             }
         }
     }
-
+    
     /// 할당된 미션 목록 조회
     func fetchMissions(to assigneeId: String?, by assignerId: String?, ofGroup groupId: String) -> Observable<[MissionFirestore]> {
         return Observable.create { observer in
             let field = assigneeId != nil ? "assignedTo" : "assignedBy"
             let id = assigneeId ?? assignerId ?? ""
-
+            
             let listener = self.missionsCollection(groupId: groupId)
                 .whereField(field, isEqualTo: id)
                 .addSnapshotListener { querySnapshot, error in
@@ -539,12 +648,12 @@ extension FirestoreManager {
                         observer.onError(FirestoreError.fetchFailed(error.localizedDescription))
                         return
                     }
-
+                    
                     guard let documents = querySnapshot?.documents else {
                         observer.onNext([])
                         return
                     }
-
+                    
                     do {
                         let missions = try documents.compactMap { document -> MissionFirestore? in
                             return try document.data(as: MissionFirestore.self)
@@ -554,13 +663,13 @@ extension FirestoreManager {
                         observer.onError(FirestoreError.decodingFailed(error.localizedDescription))
                     }
                 }
-
+            
             return Disposables.create {
                 listener.remove()
             }
         }
     }
-
+    
     /// 새 미션 생성
     func createMission(groupId: String, mission: MissionFirestore) -> Observable<Void> {
         return Observable.create { observer in
@@ -619,6 +728,88 @@ extension FirestoreManager {
             return Disposables.create()
         }
     }
+    
+    /// 특정 사용자 관련 미션 삭제 (유저 탈퇴 시 사용)
+    func deleteUserMissions(userId: String, groupId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            let missionsRef = self.missionsCollection(groupId: groupId)
+            
+            // 사용자가 할당받은 미션과 할당한 미션 모두 삭제
+            missionsRef
+                .whereField("assignedTo", isEqualTo: userId)
+                .getDocuments { querySnapshot1, error1 in
+                    if let error1 = error1 {
+                        observer.onError(FirestoreError.deleteFailed(error1.localizedDescription))
+                        return
+                    }
+                    
+                    missionsRef
+                        .whereField("assignedBy", isEqualTo: userId)
+                        .getDocuments { querySnapshot2, error2 in
+                            if let error2 = error2 {
+                                observer.onError(FirestoreError.deleteFailed(error2.localizedDescription))
+                                return
+                            }
+                            
+                            let batch = Firestore.firestore().batch()
+                            
+                            // 할당받은 미션 삭제
+                            querySnapshot1?.documents.forEach { document in
+                                batch.deleteDocument(document.reference)
+                            }
+                            
+                            // 할당한 미션 삭제
+                            querySnapshot2?.documents.forEach { document in
+                                batch.deleteDocument(document.reference)
+                            }
+                            
+                            batch.commit { error in
+                                if let error = error {
+                                    observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                                } else {
+                                    observer.onNext(())
+                                    observer.onCompleted()
+                                }
+                            }
+                        }
+                }
+            return Disposables.create()
+        }
+    }
+    
+    /// 특정 그룹의 모든 미션 삭제 (유저 탈퇴 시 사용)
+    func deleteGroupMissions(groupId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.missionsCollection(groupId: groupId)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext(())
+                        observer.onCompleted()
+                        return
+                    }
+                    
+                    let batch = Firestore.firestore().batch()
+                    documents.forEach { document in
+                        batch.deleteDocument(document.reference)
+                    }
+                    
+                    batch.commit { error in
+                        if let error = error {
+                            observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        } else {
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
+                }
+            return Disposables.create()
+        }
+    }
 }
 
 // MARK: - Sticker Operations
@@ -629,7 +820,7 @@ extension FirestoreManager {
         return Observable.create { observer in
             let listener = self.stickersCollection
                 .whereField("userId", isEqualTo: userId)
-                .whereField("month", isEqualTo: month)
+                 .whereField("month", isEqualTo: month)
                 .order(by: "createdAt", descending: false)
                 .addSnapshotListener { querySnapshot, error in
                     if let error = error {
@@ -821,12 +1012,118 @@ extension FirestoreManager {
         }
     }
     
+    /// 특정 그룹에서 사용자 스티커 삭제 (그룹 탈퇴용)
+    func deleteUserStickers(userId: String, groupId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.stickersCollection
+                .whereField("userId", isEqualTo: userId)
+                .whereField("groupId", isEqualTo: groupId)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext(())
+                        observer.onCompleted()
+                        return
+                    }
+                    
+                    let batch = Firestore.firestore().batch()
+                    documents.forEach { document in
+                        batch.deleteDocument(document.reference)
+                    }
+                    
+                    batch.commit { error in
+                        if let error = error {
+                            observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        } else {
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
+                }
+            return Disposables.create()
+        }
+    }
+    
+    /// 특정 사용자의 모든 스티커 삭제 (유저 탈퇴 시 사용)
+    func deleteUserStickers(userId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.stickersCollection
+                .whereField("userId", isEqualTo: userId)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext(())
+                        observer.onCompleted()
+                        return
+                    }
+                    
+                    let batch = Firestore.firestore().batch()
+                    documents.forEach { document in
+                        batch.deleteDocument(document.reference)
+                    }
+                    
+                    batch.commit { error in
+                        if let error = error {
+                            observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        } else {
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
+                }
+            return Disposables.create()
+        }
+    }
+    
+    /// 특정 그룹의 모든 스티커 삭제 (유저 탈퇴 시 사용)
+    func deleteGroupStickers(groupId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.stickersCollection
+                .whereField("groupId", isEqualTo: groupId)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext(())
+                        observer.onCompleted()
+                        return
+                    }
+                    
+                    let batch = Firestore.firestore().batch()
+                    documents.forEach { document in
+                        batch.deleteDocument(document.reference)
+                    }
+                    
+                    batch.commit { error in
+                        if let error = error {
+                            observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        } else {
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
+                }
+            return Disposables.create()
+        }
+    }
+    
     /// 미션 완료 시 자동 스티커 생성 (핀번호 자동 계산)
     func createStickerFromMission(
         userId: String,
         groupId: String,
         missionTitle: String,
-        assignedBy: String,
+        maxStickers: Int,
         stickerType: String = "일반"
     ) -> Observable<StickerFirestore> {
         return fetchStickerCount(userId: userId)
@@ -853,7 +1150,7 @@ extension FirestoreManager {
                     pinNumber: pinNumber,
                     createdAt: Timestamp(date: now),
                     missionTitle: missionTitle,
-                    assignedBy: assignedBy
+                    maxStickers: maxStickers
                 )
                 
                 return self.addSticker(sticker)
@@ -1027,6 +1324,76 @@ extension FirestoreManager {
                     }
                 }
             
+            return Disposables.create()
+        }
+    }
+    
+    /// 특정 사용자가 생성한 초대 코드 삭제 (유저 탈퇴 시 사용)
+    func deleteUserInvites(userId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.invitesCollection
+                .whereField("createdBy", isEqualTo: userId)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext(())
+                        observer.onCompleted()
+                        return
+                    }
+                    
+                    let batch = Firestore.firestore().batch()
+                    documents.forEach { document in
+                        batch.deleteDocument(document.reference)
+                    }
+                    
+                    batch.commit { error in
+                        if let error = error {
+                            observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        } else {
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
+                }
+            return Disposables.create()
+        }
+    }
+    
+    /// 특정 그룹의 초대 코드 삭제 (유저 탈퇴 시 사용)
+    func deleteGroupInvites(groupId: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.invitesCollection
+                .whereField("groupId", isEqualTo: groupId)
+                .getDocuments { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let documents = querySnapshot?.documents else {
+                        observer.onNext(())
+                        observer.onCompleted()
+                        return
+                    }
+                    
+                    let batch = Firestore.firestore().batch()
+                    documents.forEach { document in
+                        batch.deleteDocument(document.reference)
+                    }
+                    
+                    batch.commit { error in
+                        if let error = error {
+                            observer.onError(FirestoreError.deleteFailed(error.localizedDescription))
+                        } else {
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
+                }
             return Disposables.create()
         }
     }

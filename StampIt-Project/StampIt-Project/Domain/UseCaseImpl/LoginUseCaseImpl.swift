@@ -128,6 +128,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 groupID: groupId,
                 members: [], // 멤버는 별도로 추가됨
                 leaderID: authUser.uid,
+                inviteCode: inviteCode,
                 nameChangedAt: now
             )
             
@@ -210,8 +211,20 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 return .networkFailed(message)
             case .uiError(let message):
                 return .uiFailed(message)
+            case .permissionDenied(let message):
+                return .authenticationFailed(message)
             case .unknownError:
                 return .unknownError
+            case .groupIsFull:
+                return .groupIsFull
+            case .onlyOneGroup:
+                return .onlyOneGroup
+            case .noInviteCode:
+                return .noInviteCode
+            case .expiredInviteCode:
+                return .expiredInviteCode
+            case .alreadyInGroup:
+                return .alreadyInGroup
             }
         } else {
             return .unknownError

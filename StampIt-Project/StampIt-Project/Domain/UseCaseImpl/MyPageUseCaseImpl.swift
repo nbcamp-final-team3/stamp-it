@@ -29,7 +29,11 @@ final class MyPageUseCaseImpl: MyPageUseCase {
         mypageRepository.updateUserNickname(userId: userId, nickname: nickname, changedAt: changedAt)
     }
     
-    func fetchStickers(userId: String) -> Observable<[Sticker]> {
-        mypageRepository.fetchStickers(userId: userId)
+    func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[Sticker]> {
+        mypageRepository.fetchStickersByPin(userId: userId, pinNumber: pinNumber)
+    }
+    
+    func fetchStickerCount(userId: String) -> Observable<Int> {
+        mypageRepository.fetchStickerCount(userId: userId)
     }
 }
