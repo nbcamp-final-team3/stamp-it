@@ -24,12 +24,6 @@ final class MyPageViewController: UIViewController {
     private let stampBoardView = StampBoardTab()
     private let profileView = ProfileTab()
     
-    // 로딩 인디케이터 추가
-    private let loadingIndicator = UIActivityIndicatorView(style: .large).then {
-        $0.hidesWhenStopped = true
-        $0.color = .red400
-    }
-    
     // MARK: - Initializer, Deinit, requiered
     
     init(viewModel: MyPageViewModel) {
@@ -121,8 +115,7 @@ final class MyPageViewController: UIViewController {
         [
             tabButton,
             stampBoardView,
-            profileView,
-            loadingIndicator,
+            profileView
         ]
             .forEach { view.addSubview($0) }
     }
@@ -142,10 +135,6 @@ final class MyPageViewController: UIViewController {
         profileView.snp.makeConstraints {
             $0.top.equalTo(tabButton.snp.bottom)
             $0.directionalHorizontalEdges.bottom.equalToSuperview()
-        }
-        
-        loadingIndicator.snp.makeConstraints {
-            $0.center.equalToSuperview()
         }
     }
     
