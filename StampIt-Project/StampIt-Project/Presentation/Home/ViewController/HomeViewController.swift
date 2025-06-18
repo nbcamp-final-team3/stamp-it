@@ -154,7 +154,6 @@ final class HomeViewController: UIViewController {
             }
         }
         .disposed(by: disposeBag)
-
     }
 
     // MARK: - Methods

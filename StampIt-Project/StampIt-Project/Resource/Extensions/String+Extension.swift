@@ -15,6 +15,6 @@ extension String {
     }
 
     var truncatedTo10: String {
-        self.prefix(10) + "..."
+        return self.count > 9 ? self.prefix(10) + "..." : self
     }
 }

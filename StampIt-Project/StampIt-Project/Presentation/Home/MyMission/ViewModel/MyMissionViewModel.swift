@@ -18,12 +18,15 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     enum Action {
         case viewDidLoad
-        case didTapStatusButton(id: String)
+        case didTapStatusButton(MyMissionItem)
+        case didTapCompleteCancelButton
     }
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
         let missions = BehaviorRelay<[MyMissionItem]>(value: [])
+        let completedMissionTitle = BehaviorRelay<String>(value: "")
+        let isShowStickerReceived = PublishRelay<Bool>()
     }
 
     // MARK: - Properties
@@ -52,8 +55,12 @@ final class MyMissionViewModel: ViewModelProtocol {
                 switch action {
                 case .viewDidLoad:
                     owner.fetchMissions()
-                case .didTapStatusButton(let id):
-                    owner.handleMissionCompleteButtonTapped(missionID: id)
+                case .didTapStatusButton(let item):
+                    let missionID = item.mission!.missionID
+                    owner.handleMissionCompleteButtonTapped(missionID: missionID)
+                    owner.state.completedMissionTitle.accept(item.mission!.title)
+                case .didTapCompleteCancelButton:
+                    owner.cancelMissionComplete()
                 }
             }
             .disposed(by: disposeBag)
@@ -80,14 +87,15 @@ final class MyMissionViewModel: ViewModelProtocol {
     /// 4초간 대기 후 캐시 업데이트 및 API 호출
     func handleMissionCompleteButtonTapped(missionID: String) {
         updateMissionItem(missionID: missionID)
+        state.isShowStickerReceived.accept(true)
 
         // cancelMissionComplete() 호출 시 dispose되는 Observable
         Observable<Void>.just(())
             .delay(.seconds(3), scheduler: MainScheduler.instance)
             .flatMap { [weak self] _ -> Observable<Mission> in
                 guard let self else { return .empty() }
-                let removedMission = updateMissionCache(missionID: missionID)
-                guard let mission = removedMission,
+                let missionToUpdate = updateMissionCache(missionID: missionID)
+                guard let mission = missionToUpdate,
                       let user = state.user.value else { return .empty() }
                 return useCase
                     .updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
@@ -174,6 +182,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         pendingCommits = DisposeBag()
         let cachedMissions = mapMissionsToMyMissionItems(receivedMissions)
         state.missions.accept(cachedMissions)
+        state.isShowStickerReceived.accept(false)
     }
 
     private func isNew(createDate: Date) -> Bool {

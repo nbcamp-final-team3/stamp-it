@@ -73,8 +73,8 @@ final class HomeViewModel: ViewModelProtocol {
                 case .didReceiveInvitationType(let type):
                     owner.handleInvitation(type: type)
                 case .didTapMissonCompleteButton(let item):
-                    let mission = item.received!.missionID
-                    owner.handleMissionCompleteButtonTapped(missionID: mission)
+                    let missionID = item.received!.missionID
+                    owner.handleMissionCompleteButtonTapped(missionID: missionID)
                     owner.state.completedMissionTitle.accept(item.received!.title)
                 case .didTapCompleteCancelButton:
                     owner.cancelMissionComplete()

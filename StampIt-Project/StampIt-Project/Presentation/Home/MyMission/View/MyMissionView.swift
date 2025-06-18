@@ -15,7 +15,7 @@ final class MyMissionView: UIView {
 
     // MARK: - Actions
 
-    let didTapStatusButton = PublishRelay<String>()
+    let didTapStatusButton = PublishRelay<MyMissionItem>()
 
     // MARK: - Properties
 
@@ -82,7 +82,7 @@ final class MyMissionView: UIView {
                 cell.didTapStatusButton
                     .filter { item.mission!.status == .assigned }
                     .bind(with: self) { owner, _ in
-                        owner.didTapStatusButton.accept(item.mission!.missionID)
+                        owner.didTapStatusButton.accept(item)
                     }
                     .disposed(by: cell.disposeBag)
 
