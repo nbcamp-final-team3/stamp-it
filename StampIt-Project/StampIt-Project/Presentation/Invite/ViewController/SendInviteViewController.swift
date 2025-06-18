@@ -10,7 +10,6 @@ import UIKit
 import Then
 import SnapKit
 import RxSwift
-import Toast
 
 final class SendInviteViewController: UIViewController {
 
@@ -133,7 +132,7 @@ final class SendInviteViewController: UIViewController {
             .subscribe(onNext: { [weak self] message in
                 guard let self = self else { return }
 
-                let toastView = CustomToastView(message: message)
+                let toastView = ToastView(message: message)
                 toastView.show(in: self.view)
             })
             .disposed(by: disposeBag)
