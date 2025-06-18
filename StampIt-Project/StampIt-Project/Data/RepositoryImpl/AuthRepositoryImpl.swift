@@ -377,6 +377,7 @@ extension AuthRepository {
     }
 }
 
+
 // MARK: - 계정 관리 기능 확장
 extension AuthRepository {
     
@@ -402,7 +403,7 @@ extension AuthRepository {
                     return Observable.error(RepositoryError.unknownError)
                 }
                 
-                if user.isLeader {
+                if user.isLeader == true {
                     // 리더인 경우: 자동 리더 위임 후 탈퇴
                     return self.deleteLeaderAccount(userId: user.userID, groupId: user.groupID)
                 } else {
@@ -477,6 +478,7 @@ extension AuthRepository {
                 .map { _ in () }
                 // 중요하지 않은 데이터 정리 실패는 무시하되 로깅은 수행
                 return Observable.just(())
+            }
     }
     
     // MARK: - 그룹 탈퇴
@@ -626,7 +628,7 @@ extension AuthRepository {
             return Disposables.create()
         }
     }
-
+    
     /// 메인 트랜잭션 실행 (배치 작업)
     private func executeMainTransaction(
         userId: String,
@@ -721,7 +723,7 @@ extension AuthRepository {
             }
         }
     }
-
+    
     /// 사용자 데이터 정리_탈퇴하는 그룹의 미션 (재시도 로직 포함)
     private func cleanupUserDataWithRetry(
         userId: String,
@@ -735,7 +737,7 @@ extension AuthRepository {
                 return Observable.error(GroupExitError.dataCleanupFailed(error.localizedDescription))
             }
     }
-
+    
     /// 롤백 시도 (베스트 에포트)_초대 코드는 복잡성을 피하기 위해 생략하고 정리 스케줄러에서 처리
     private func attemptRollback(
         userId: String,
@@ -778,7 +780,7 @@ extension AuthRepository {
             }
         }
     }
-
+    
     /// 그룹 탈퇴 전용 에러 매핑
     private func mapGroupExitError(_ error: Error) -> RepositoryError {
         if let groupExitError = error as? GroupExitError {
