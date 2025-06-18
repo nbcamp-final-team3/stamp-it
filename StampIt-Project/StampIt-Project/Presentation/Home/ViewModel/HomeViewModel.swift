@@ -173,7 +173,6 @@ final class HomeViewModel: ViewModelProtocol {
                       let user = state.user.value else { return .empty() }
 
                 return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
-                    .map { mission }
             }
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self, let user = state.user.value else { return .empty() }

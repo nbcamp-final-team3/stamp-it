@@ -54,7 +54,7 @@ final class HomeRepository: HomeRepositoryProtocol {
             .map { $0.map { $0.toDomainModel() } }
     }
     
-    func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Void> {
+    func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission> {
         let updated = MissionFirestore(
             missionId: mission.missionID,
             title: mission.title,
@@ -70,6 +70,7 @@ final class HomeRepository: HomeRepositoryProtocol {
         )
 
         return manager.updateMission(groupId: groupID, mission: updated)
+            .map { $0.toDomainModel() }
     }
 
     func createSticker(

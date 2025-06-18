@@ -44,7 +44,7 @@ protocol FirestoreManagerProtocol {
         ofGroup groupId: String
     ) -> Observable<[MissionFirestore]>
     func createMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
-    func updateMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
+    func updateMission(groupId: String, mission: MissionFirestore) -> Observable<MissionFirestore>
     func deleteMission(groupId: String, missionId: String) -> Observable<Void>
     
     // Sticker 관련
@@ -54,7 +54,7 @@ protocol FirestoreManagerProtocol {
     func fetchGroupStickers(groupId: String, month: String) -> Observable<[StickerFirestore]>
     func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]>
     func addSticker(_ sticker: StickerFirestore) -> Observable<Void>
-    func createStickerFromMission(userId: String, groupId: String, missionTitle: String, assignedBy: String, stickerType: String) -> Observable<StickerFirestore>
+    func createStickerFromMission(userId: String, groupId: String, missionTitle: String, assignedBy: String, stickerType: String) -> Observable<Void>
     
     // Invite 관련
     func fetchGroupInviteCode(groupId: String) -> Observable<String>
@@ -583,7 +583,7 @@ extension FirestoreManager {
     }
     
     /// 미션 정보 업데이트
-    func updateMission(groupId: String, mission: MissionFirestore) -> Observable<Void> {
+    func updateMission(groupId: String, mission: MissionFirestore) -> Observable<MissionFirestore> {
         return Observable.create { observer in
             do {
                 try self.missionsCollection(groupId: groupId).document(mission.documentID)
@@ -591,7 +591,7 @@ extension FirestoreManager {
                         if let error = error {
                             observer.onError(FirestoreError.updateFailed(error.localizedDescription))
                         } else {
-                            observer.onNext(())
+                            observer.onNext(mission)
                             observer.onCompleted()
                         }
                     }
@@ -828,9 +828,9 @@ extension FirestoreManager {
         missionTitle: String,
         assignedBy: String,
         stickerType: String = "일반"
-    ) -> Observable<StickerFirestore> {
+    ) -> Observable<Void> {
         return fetchStickerCount(userId: userId)
-            .flatMap { [weak self] currentCount -> Observable<StickerFirestore> in
+            .flatMap { [weak self] currentCount -> Observable<Void> in
                 guard let self = self else {
                     return Observable.error(FirestoreError.unknownError)
                 }
@@ -853,11 +853,10 @@ extension FirestoreManager {
                     pinNumber: pinNumber,
                     createdAt: Timestamp(date: now),
                     missionTitle: missionTitle,
-                    assignedBy: assignedBy
+                    maxStickers: 30,
                 )
                 
                 return self.addSticker(sticker)
-                    .map { _ in sticker }
             }
     }
 }

@@ -97,9 +97,7 @@ final class MyMissionViewModel: ViewModelProtocol {
                 let missionToUpdate = updateMissionCache(missionID: missionID)
                 guard let mission = missionToUpdate,
                       let user = state.user.value else { return .empty() }
-                return useCase
-                    .updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
-                    .map { mission }
+                return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self, let user = state.user.value else { return .empty() }
