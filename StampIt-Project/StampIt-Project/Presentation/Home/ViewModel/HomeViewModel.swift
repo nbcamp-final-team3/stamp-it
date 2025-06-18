@@ -154,7 +154,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// 미션 완료 바인딩
     ///
     /// 미션 완료 API를 호출하고,
-    /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 제거
+    /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 제거, 스티커 생성
     func handleMissionCompleteButtonTapped(missionID: String) {
         removeMissionItem(missionID: missionID)
 
@@ -167,7 +167,7 @@ final class HomeViewModel: ViewModelProtocol {
         // cancelMissionComplete() 호출 시 dispose되는 Observable
         Observable<Void>.just(())
             .delay(.seconds(4), scheduler: MainScheduler.instance)
-            .flatMap { [weak self] _ -> Observable<Void> in
+            .flatMap { [weak self] _ -> Observable<Mission> in
                 guard let self else { return .empty() }
                 let removedMission = removeMissionCache(missionID: missionID)
 
@@ -175,6 +175,18 @@ final class HomeViewModel: ViewModelProtocol {
                       let user = state.user.value else { return .empty() }
 
                 return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
+                    .map { mission }
+            }
+            .flatMap { [weak self] mission -> Observable<Void> in
+                guard let self, let user = state.user.value else { return .empty() }
+
+                return useCase.createSticker(
+                    userId: user.userID,
+                    groupId: user.groupID,
+                    missionTitle: mission.title,
+                    assignedBy: mission.assignedBy,
+                    stickerType: "일반", // TODO: 스티커 타입 결정 로직 추가
+                )
             }
             .subscribe()
             .disposed(by: pendingCommits)

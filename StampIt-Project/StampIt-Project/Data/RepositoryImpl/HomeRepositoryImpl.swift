@@ -71,4 +71,20 @@ final class HomeRepository: HomeRepositoryProtocol {
 
         return manager.updateMission(groupId: groupID, mission: updated)
     }
+
+    func createSticker(
+        userId: String,
+        groupId: String,
+        missionTitle: String,
+        assignedBy: String,
+        stickerType: String
+    ) -> Observable<Void> {
+        manager.createStickerFromMission(
+            userId: userId,
+            groupId: groupId,
+            missionTitle: missionTitle,
+            assignedBy: assignedBy,
+            stickerType: stickerType,
+        )
+    }
 }

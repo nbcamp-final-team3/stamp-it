@@ -21,4 +21,11 @@ protocol HomeRepositoryProtocol {
         ofGroup groupID: String,
         to status: MissionStatus
     ) -> Observable<Void>
+    func createSticker(
+        userId: String,
+        groupId: String,
+        missionTitle: String,
+        assignedBy: String,
+        stickerType: String
+    ) -> Observable<Void>
 }
