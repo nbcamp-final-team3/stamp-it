@@ -19,6 +19,13 @@ enum RepositoryError: Error {
     case unknownError                  // 알 수 없는 오류
     case permissionDenied(String)       // 권한 거부
     
+    case groupIsFull                   // 그룹 정원이 가득 찬 오류
+    case onlyOneGroup                   //유저는 그룹을 하나만 가질 수 있음
+    case noInviteCode                   //초대 코드가 없는 오류
+    case expiredInviteCode              //만료 코드 오류
+    case alreadyInGroup                 //이미 그룹에 있는 경우
+
+
     var localizedDescription: String {
         switch self {
         case .authenticationFailed(let message):
@@ -37,6 +44,16 @@ enum RepositoryError: Error {
             return "알 수 없는 오류가 발생했습니다"
         case .permissionDenied(let message):
             return "권한 오류: \(message)"
+        case .groupIsFull:
+            return "그룹 정원이 가득 찼습니다."
+        case .onlyOneGroup:
+            return "기존 그룹을 탈퇴해 주세요."
+        case .noInviteCode:
+            return "초대 코드를 확인 할 수 없습니다."
+        case .expiredInviteCode:
+            return "만료된 코드입니다."
+        case .alreadyInGroup:
+            return "이미 그룹에 존재합니다."
         }
     }
 }

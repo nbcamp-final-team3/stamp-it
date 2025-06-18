@@ -24,7 +24,7 @@ final class AssignMissionViewController: UIViewController {
     
     // 멤버 선택 버튼
     private lazy var memberSelectionButton = UIButton().then {
-        $0.configuration = configureButton(title: "멤버 선택하기")
+        $0.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray800)
         $0.addTarget(self, action: #selector(dropdown), for: .touchUpInside)
     }
     
@@ -146,7 +146,7 @@ final class AssignMissionViewController: UIViewController {
         }
         
         memberSelectionButton.snp.makeConstraints {
-            $0.width.equalTo(dueDatePicker.snp.width)
+            $0.width.equalTo(140)
         }
         
         dropdownView.snp.makeConstraints {
@@ -187,7 +187,7 @@ final class AssignMissionViewController: UIViewController {
             .drive { [weak self] member in
                 guard let self, let member else { return }
                 
-                memberSelectionButton.configuration = configureButton(title: member.nickname) // 버튼에 선택한 멤버 이름 표시
+                memberSelectionButton.configuration = configureButton(title: member.nickname, titleColor: .gray800) // 버튼에 선택한 멤버 이름 표시
                 assignButton.isEnabled = true // 미션 전달하기 버튼 활성화
                 dropdownView.isHidden = true
                 isDropdown = false
@@ -215,7 +215,7 @@ final class AssignMissionViewController: UIViewController {
     }
     
     // 멤버 선택 버튼 configuration 설정
-    private func configureButton(title: String) -> UIButton.Configuration {
+    private func configureButton(title: String, titleColor: UIColor) -> UIButton.Configuration {
         var configuration = UIButton.Configuration.filled()
         configuration.baseBackgroundColor = .gray25
         configuration.baseForegroundColor = .gray800
@@ -224,7 +224,7 @@ final class AssignMissionViewController: UIViewController {
         
         // 폰트 및 폰트 색상 설정
         let font = UIFont.pretendard(size: 16, weight: .regular)
-        let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.gray800]
+        let attributes: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: titleColor]
         let attributedTitle = NSAttributedString(string: configuration.title ?? "", attributes: attributes)
         configuration.attributedTitle = AttributedString(attributedTitle)
         
@@ -251,7 +251,22 @@ final class AssignMissionViewController: UIViewController {
     // 멤버 선택 버튼을 누르면 드랍다운으로 멤버 리스트를 보여줌. 다시 누르면 닫음.
     @objc private func dropdown() {
         isDropdown.toggle()
-        dropdownView.isHidden = !isDropdown
+        
+        if isDropdown {
+            memberSelectionButton.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray200)
+            dropdownView.alpha = 0
+            dropdownView.isHidden = false
+            UIView.animate(withDuration: 0.25) { [weak self] in
+                self?.dropdownView.alpha = 1
+            }
+        } else {
+            memberSelectionButton.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray800)
+            UIView.animate(withDuration: 0.25) { [weak self] in
+                self?.dropdownView.alpha = 0
+            } completion: { [weak self] _ in
+                self?.dropdownView.isHidden = true
+            }
+        }
     }
     
     // 전달하기 버튼 누르면 원래 화면으로 복귀
