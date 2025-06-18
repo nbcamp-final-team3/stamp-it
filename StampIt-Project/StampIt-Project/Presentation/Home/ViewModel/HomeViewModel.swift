@@ -106,7 +106,7 @@ final class HomeViewModel: ViewModelProtocol {
                         self.sendedMissions = sendedMissions
                     })
 
-                return Observable.zip(rankingObs, receivedObs, sendedObs)
+                return Observable.combineLatest(rankingObs, receivedObs, sendedObs)
             }
             .subscribe(onNext: { [weak self] (member: [Member], received: [Mission], sended: [Mission]) in
                 guard let self else { return }

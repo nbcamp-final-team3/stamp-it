@@ -18,7 +18,7 @@ final class HomeRepository: HomeRepositoryProtocol {
 
     func fetchGroupMembers(ofGroup groupID: String) -> Observable<[Member]> {
         let thisMonth = Date().toYearMonthString()
-        return Observable.zip(
+        return Observable.combineLatest(
             manager.fetchMembers(groupId: groupID)
                 .map { $0.map { $0.toDomainModel() } },
             manager.fetchGroupStickers(groupId: groupID, month: thisMonth)
