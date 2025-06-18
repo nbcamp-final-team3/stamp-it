@@ -25,4 +25,20 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
     func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Void> {
         homeRepository.updateMissionStatus(for: mission, ofGroup: groupID, to: status)
     }
+
+    func createSticker(
+        userId: String,
+        groupId: String,
+        missionTitle: String,
+        assignedBy: String,
+        stickerType: String
+    ) -> Observable<Void> {
+        homeRepository.createSticker(
+            userId: userId,
+            groupId: groupId,
+            missionTitle: missionTitle,
+            assignedBy: assignedBy,
+            stickerType: stickerType,
+        )
+    }
 }
