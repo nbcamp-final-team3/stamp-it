@@ -264,7 +264,7 @@ final class HomeViewModel: ViewModelProtocol {
                 assignee: assignee,
                 status: mission.status,
                 isOverdue: isOverdue,
-                daysLeft: daysLeft,
+                daysLeft: daysLeft
             )
             return HomeItem.sended(homeMission)
         }
