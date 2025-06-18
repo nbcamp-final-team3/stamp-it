@@ -78,7 +78,7 @@ final class MyPageViewModel: ViewModelProtocol {
     private func bindUser() {
         myPageUseCase.fetchUser()
             .subscribe(with: self) { owner, user in
-                self.state.user.accept(user)
+                owner.state.user.accept(user)
                 owner.bindStickerSummaryData()
             }.disposed(by: disposeBag)
     }
@@ -88,11 +88,13 @@ final class MyPageViewModel: ViewModelProtocol {
             .subscribe(
                 with: self,
                 onNext: { owner, stickers in
-                    self.state.stickers.accept(
-                        self.makeZigzagOrder(from: stickers, columns: StampBoardSection.defaultBoard.column)
+                    owner.state.stickers.accept(
+                        owner.makeZigzagOrder(from: stickers, columns: StampBoardSection.defaultBoard.column)
                     )
                 }, onError: { owner, error in
-                    print("BIND ERROR: \(error.localizedDescription)")
+                    owner.state.stickers.accept(
+                        owner.makeZigzagOrder(from: [], columns: StampBoardSection.defaultBoard.column)
+                    )
                 }
             ).disposed(by: disposeBag)
     }
@@ -106,7 +108,7 @@ final class MyPageViewModel: ViewModelProtocol {
                 let collectedSticker = Int(sticker % totalSticker)
                 let completedBoard = Int(sticker / totalSticker)
                 
-                self.state.stickerSummary.accept((
+                owner.state.stickerSummary.accept((
                     collectedSticker: collectedSticker,
                     completedBoard: completedBoard
                 ))
@@ -120,13 +122,19 @@ final class MyPageViewModel: ViewModelProtocol {
     
     private func makeZigzagOrder(from stickers: [Sticker], columns: Int) -> [Sticker] {
         let totalStickerCount = StampBoardSection.defaultBoard.totalStamp
-        let totalStickers: [Sticker] = (0..<totalStickerCount).map { index in
-            if index < stickers.count {
-                return stickers[index]
-            } else {
-                return Sticker(stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1)
+        let totalStickers: [Sticker] = {
+            (0..<totalStickerCount).map { index in
+                if stickers.count == .zero {
+                    return Sticker(stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1)
+                } else {
+                    if index < stickers.count {
+                        return stickers[index]
+                    } else {
+                        return Sticker(stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1)
+                    }
+                }
             }
-        }
+        }()
         
         let rows = stride(from: 0, to: totalStickers.count, by: columns)
             .map {
