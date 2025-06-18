@@ -16,7 +16,6 @@ final class MyPageViewController: UIViewController {
     
     private var viewModel: MyPageViewModel
     private let disposeBag = DisposeBag()
-    private var stampBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
     
     // MARK: - UI Components
 
@@ -79,10 +78,12 @@ final class MyPageViewController: UIViewController {
         
         viewModel.state.stickers
             .bind(with: self) { owner, stickers in
-                
-                print("BIND STICKER: \n\(stickers)")
-                
-                self.updateUI(with: stickers)
+                owner.updateUI(with: stickers)
+            }.disposed(by: disposeBag)
+        
+        viewModel.state.stickerSummary
+            .bind(with: self) { owner, summary in
+                owner.stampBoardView.stickerSummary.accept(summary)
             }.disposed(by: disposeBag)
         
         viewModel.state.user
@@ -156,23 +157,6 @@ final class MyPageViewController: UIViewController {
     // MARK: - DataSource Helper
     
     private func setDataSource() {
-        stampBoardDataSource = UICollectionViewDiffableDataSource(
-            collectionView: stampBoardView.getStampBoardView(),
-            cellProvider: { collectionView, indexPath, itemIdentifier in
-                let cell = collectionView.dequeueReusableCell(
-                    withReuseIdentifier: StampCell.identifier,
-                    for: indexPath
-                ) as! StampCell
-                
-                let backgroundBoard = StampBoardSection.defaultBoard.type.flatMap { $0 }
-                if backgroundBoard.indices.contains(indexPath.item) {
-                    cell.configureDashedLine(with: backgroundBoard[indexPath.item])
-                }
-                cell.configureStamp(with: itemIdentifier)
-                return cell
-            })
-        stampBoardView.setCollectionViewDataSource(stampBoardDataSource)
-
         profileView.tableView.dataSource = self
     }
 
@@ -182,7 +166,7 @@ final class MyPageViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.defaultBoard])
         snapshot.appendItems(stickers, toSection: .defaultBoard)
-        stampBoardDataSource.apply(snapshot, animatingDifferences: false)
+        stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
     }
     
     // MARK: - Methods

@@ -76,6 +76,18 @@ enum MyPageStampBoardSection: Hashable {
             ]
         }
     }
+    
+    var column: Int {
+        switch self {
+        case .defaultBoard: return 5
+        }
+    }
+    
+    var totalStamp: Int {
+        switch self {
+        case .defaultBoard: return 30
+        }
+    }
 }
 
 /// Dashed Line 기준
