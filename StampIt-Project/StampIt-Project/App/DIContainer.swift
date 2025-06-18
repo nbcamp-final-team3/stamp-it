@@ -29,18 +29,15 @@ final class DIContainer {
         )
     }()
 
-    private lazy var myPageRepository: MyPageRepository = {
-        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
-    }()
-
     lazy var homeRepository: HomeRepositoryProtocol = {
         return HomeRepository(manager: firestoreManager)
     }()
 
     lazy var myPageRepository: MyPageRepository = {
         return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+    }()
 
-    private lazy var inviteRepository: InviteRepository = {
+    lazy var inviteRepository: InviteRepository = {
         return InviteRepositoryImpl(firestoreManager: firestoreManager)
     }()
     
@@ -76,15 +73,13 @@ final class DIContainer {
         return MissionUseCaseImpl(missionRepositoryImpl: missionRepository)
     }()
 
-
-    private lazy var inviteUseCase: InviteUseCase = {
+    lazy var inviteUseCase: InviteUseCase = {
         return InviteUseCaseImpl(
             authRepository: authRepository,
             inviteRepository: inviteRepository
         )
     }()
 
-    
     lazy var accountManageUseCase: AccountManageUseCaseProtocol = {
         return AccountManageUseCase(authRepository: authRepository)
     }()
@@ -98,7 +93,7 @@ final class DIContainer {
         return HomeViewModel(useCase: homeUseCase)
     }
 
-    private func makeMyPageViewModel() -> MyPageViewModel {
+    func makeMyPageViewModel() -> MyPageViewModel {
         return MyPageViewModel(
             myPageUseCase: myPageUseCase,
             accountManageUseCase: accountManageUseCase
@@ -121,8 +116,6 @@ final class DIContainer {
         return MissionListViewModel(missionUseCaseImpl: missionUseCase)
     }
 
-    
-
     func makeReceiveInviteViewModel() -> ReceiveInviteViewModel {
         return ReceiveInviteViewModel(useCase: inviteUseCase)
     }
@@ -134,7 +127,7 @@ final class DIContainer {
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
-        return LoginViewController(viewModel: viewModel)
+        return LoginViewController(viewModel: viewModel, container: self)
     }
 
     func makeHomeViewController() -> HomeViewController {
@@ -144,7 +137,7 @@ final class DIContainer {
 
     func makeMyPageViewController() -> MyPageViewController {
         let viewModel = makeMyPageViewModel()
-        return MyPageViewController(viewModel: viewModel)
+        return MyPageViewController(viewModel: viewModel, container: self)
     }
     
     func makeOnboardingViewController() -> OnboardingViewController {
@@ -166,8 +159,6 @@ final class DIContainer {
         let viewModel = makeMissionListViewModel()
         return MissionListViewController(viewModel: viewModel)
     }
-
-    
 
     func makeReceiveInviteViewController() -> ReceiveInviteViewController {
         let viewModel = makeReceiveInviteViewModel()
