@@ -476,8 +476,10 @@ extension AuthRepository {
                     self.firestoreManager.deleteUserInvites(userId: userId)
                 )
                 .map { _ in () }
-                // 중요하지 않은 데이터 정리 실패는 무시하되 로깅은 수행
-                return Observable.just(())
+                .catch { _ in
+                    // 중요하지 않은 데이터 정리 실패는 무시
+                    return Observable.just(())
+                }
             }
     }
     

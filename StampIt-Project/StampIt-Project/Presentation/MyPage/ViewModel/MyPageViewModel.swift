@@ -255,21 +255,53 @@ final class MyPageViewModel: ViewModelProtocol {
     
     /// 계정 탈퇴 실행
     private func performDeleteAccount() {
+        guard let currentUser = state.user.value else {
+            state.alertMessage.accept("사용자 정보를 불러올 수 없습니다.")
+            return
+        }
+        
         state.isLoading.accept(true)
         
+        // 🔥 그룹 멤버 수 확인 후 바로 분기 처리
+        accountManageUseCase.getGroupMemberCount(groupId: currentUser.groupID)
+            .observe(on: MainScheduler.instance)
+            .subscribe(
+                onNext: { [weak self] memberCount in
+                    if memberCount == 1 {
+                        // 1인 그룹 → 바로 삭제
+                        self?.executeDeleteAccount()
+                    } else if currentUser.isLeader {
+                        // 리더 + 다인 그룹 → 자동 리더 위임 후 삭제
+                        self?.executeDeleteAccount()
+                    } else {
+                        // 일반 멤버 + 다인 그룹 → 바로 삭제
+                        self?.executeDeleteAccount()
+                    }
+                },
+                onError: { [weak self] error in
+                    // 멤버 수 조회 실패 시 1인으로 처리해서 바로 삭제
+                    self?.executeDeleteAccount()
+                }
+            )
+            .disposed(by: disposeBag)
+    }
+
+    // 실제 삭제 실행
+    private func executeDeleteAccount() {
         accountManageUseCase.deleteAccount()
             .observe(on: MainScheduler.instance)
             .subscribe(
                 onNext: { [weak self] in
-                    self?.state.isLoading.accept(false)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        self?.state.alertMessage.accept("계정이 완전히 삭제되었습니다.")
-                    }
                     self?.handleDeleteAccountSuccess()
                 },
                 onError: { [weak self] error in
                     self?.state.isLoading.accept(false)
-                    self?.state.alertMessage.accept("계정 탈퇴에 실패했습니다.")
+                    if let repoError = error as? RepositoryError,
+                       case .userNotFound = repoError {
+                        self?.handleDeleteAccountSuccess()
+                    } else {
+                        self?.state.alertMessage.accept("계정 탈퇴에 실패했습니다.")
+                    }
                 }
             )
             .disposed(by: disposeBag)
