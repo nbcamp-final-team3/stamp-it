@@ -47,6 +47,15 @@ final class MyPageViewController: UIViewController {
         bind()
     }
     
+    // 화면이 나타날 때마다 데이터 새로고침
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // 캐시 무효화 후 데이터 새로고침
+        UserCache.shared.clearCache()
+        viewModel.action.accept(.viewDidLoad)
+    }
+    
     // MARK: - Bind
     
     private func bind() {
@@ -75,6 +84,30 @@ final class MyPageViewController: UIViewController {
                 
                 self.updateUI(with: stickers)
             }.disposed(by: disposeBag)
+        
+        viewModel.state.user
+            .compactMap { $0 }
+            .bind(with: self) { owner, user in
+                owner.profileView.setUser(user)
+            }.disposed(by: disposeBag)
+        
+        viewModel.state.alertMessage
+            .bind(with: self) { owner, message in
+                owner.showAlert(title: "알림", message: message)
+            }.disposed(by: disposeBag)
+        
+        // 로그인 화면으로 이동
+        viewModel.state.shouldNavigateToLogin
+            .bind(with: self) { owner, _ in
+                owner.navigateToLogin()
+            }.disposed(by: disposeBag)
+        
+        // 확인 다이얼로그
+        viewModel.state.shouldShowConfirmAlert
+            .bind(with: self) { owner, alertData in
+                let (title, message, action) = alertData
+                owner.showConfirmAlert(title: title, message: message, confirmAction: action)
+            }.disposed(by: disposeBag)
     }
     
     // MARK: - Style Helper
@@ -91,7 +124,7 @@ final class MyPageViewController: UIViewController {
         [
             tabButton,
             stampBoardView,
-            profileView,
+            profileView
         ]
             .forEach { view.addSubview($0) }
     }
@@ -164,5 +197,66 @@ final class MyPageViewController: UIViewController {
             stampBoardView.isHidden = true
             profileView.isHidden = false
         }
+    }
+    
+    /// 일반 알림 다이얼로그
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
+    }
+    
+    /// 확인/취소 다이얼로그
+    private func showConfirmAlert(title: String, message: String, confirmAction: @escaping () -> Void) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        alert.addAction(UIAlertAction(title: "확인", style: .destructive) { _ in
+            confirmAction()
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    /// TODO: 리더 전용 메뉴 표시 (향후 기능 완성 후 활성화)
+     /*
+    private func showLeaderOptionsAlert() {
+        let alert = UIAlertController(title: "그룹장 옵션", message: "그룹을 떠나려면 먼저 다음 작업을 수행해주세요:", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "그룹장 위임하기", style: .default) { _ in // TODO: 리더 위임 화면으로 이동
+        })
+        alert.addAction(UIAlertAction(title: "멤버 관리하기", style: .default) { _ in // TODO: 멤버 관리 화면으로 이동
+        })
+        alert.addAction(UIAlertAction(title: "계정 탈퇴 (그룹 삭제)", style: .destructive) { _ in self.deleteAccount() })
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        present(alert, animated: true)
+    }
+    */
+    
+    /// 로그인 화면으로 이동
+    private func navigateToLogin() {
+        UserCache.shared.clearCache()
+        
+         // UserDefaults에서 로그인 관련 정보 삭제 (필요시)
+         UserDefaults.standard.removeObject(forKey: "userToken")
+         UserDefaults.standard.removeObject(forKey: "lastLoginDate")
+        
+        let loginViewModel = DIContainer.shared.makeLoginViewModel()
+        let loginVC = LoginViewController(viewModel: loginViewModel)
+        let navController = UINavigationController(rootViewController: loginVC)
+        
+        WindowTransitionManager.shared.changeRootViewController(to: navController)
+    }
+    
+    // 외부에서 쓸 수 있는 메서드로 액션 전달 (public/internal)
+    func leaveGroup() {
+        viewModel.action.accept(.leaveGroupButtonTapped)
+    }
+
+    func deleteAccount() {
+        viewModel.action.accept(.deleteAccountButtonTapped)
+    }
+    
+    func logOut() {
+        viewModel.action.accept(.logoutButtonTapped)
     }
 }

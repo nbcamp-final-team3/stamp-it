@@ -17,6 +17,8 @@ enum RepositoryError: Error {
     case networkError(String)          // 네트워크 오류
     case uiError(String)              // UI 관련 오류
     case unknownError                  // 알 수 없는 오류
+    case permissionDenied(String)       // 권한 거부
+    
     case groupIsFull                   // 그룹 정원이 가득 찬 오류
     case onlyOneGroup                   //유저는 그룹을 하나만 가질 수 있음
     case noInviteCode                   //초대 코드가 없는 오류
@@ -40,6 +42,8 @@ enum RepositoryError: Error {
             return "화면 오류: \(message)"
         case .unknownError:
             return "알 수 없는 오류가 발생했습니다"
+        case .permissionDenied(let message):
+            return "권한 오류: \(message)"
         case .groupIsFull:
             return "그룹 정원이 가득 찼습니다."
         case .onlyOneGroup:

@@ -5,6 +5,7 @@
 //  Created by iOS study on 6/11/25.
 //
 
+import Foundation
 import RxSwift
 
 // MARK: - LoginUseCase Protocol
