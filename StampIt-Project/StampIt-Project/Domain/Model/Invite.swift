@@ -11,4 +11,9 @@ struct Invitation {
     let groupID: String
     let createdBy: String
     let expiredAt: Date
+    
+    //추가
+    let inviteCode: String     
+    let createdAt: Date
+
 }

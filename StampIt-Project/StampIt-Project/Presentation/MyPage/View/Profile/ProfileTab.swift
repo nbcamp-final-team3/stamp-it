@@ -65,9 +65,9 @@ final class ProfileTab: UIView {
             ProfileHeader.self,
             forHeaderFooterViewReuseIdentifier: ProfileHeader.identifier
         )
-        $0.allowsSelection = false
+        $0.allowsSelection = true
         $0.separatorStyle = .none
-        $0.isScrollEnabled = false
+        $0.isScrollEnabled = true
     }
     
     // MARK: - Initializer, Deinit, requiered

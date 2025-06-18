@@ -23,7 +23,6 @@
 		783A885D2DF1506C0095BF4E /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 783A885C2DF1506C0095BF4E /* FirebaseStorage */; };
 		783A8A132DF599670095BF4E /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 783A8A122DF599670095BF4E /* GoogleSignIn */; };
 		783A8A152DF599670095BF4E /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 783A8A142DF599670095BF4E /* GoogleSignInSwift */; };
-		787754A02DF5D36F0035D1B4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7877549F2DF5D36F0035D1B4 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,7 +46,6 @@
 		783A87142DF02CA80095BF4E /* StampIt-Project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "StampIt-Project.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		783A872D2DF02CA90095BF4E /* StampIt-ProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StampIt-ProjectTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		783A87372DF02CA90095BF4E /* StampIt-ProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StampIt-ProjectUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		7877549F2DF5D36F0035D1B4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -129,7 +127,6 @@
 				783A87302DF02CA90095BF4E /* StampIt-ProjectTests */,
 				783A873A2DF02CA90095BF4E /* StampIt-ProjectUITests */,
 				783A87152DF02CA80095BF4E /* Products */,
-				7877549F2DF5D36F0035D1B4 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -288,7 +285,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				787754A02DF5D36F0035D1B4 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
