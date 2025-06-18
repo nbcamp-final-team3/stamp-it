@@ -36,7 +36,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
-        let isShowStickerReceived = PublishRelay<Void>()
+        let isShowStickerReceived = PublishRelay<Bool>()
         let isPushMyMissionVC = PublishRelay<Void>()
         let isPushMemberMissionVC = PublishRelay<Void>()
     }
@@ -157,12 +157,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 제거, 스티커 생성
     func handleMissionCompleteButtonTapped(missionID: String) {
         removeMissionItem(missionID: missionID)
-
-        #if DEBUG
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            self.cancelMissionComplete()
-        }
-        #endif
+        state.isShowStickerReceived.accept(true)
 
         // cancelMissionComplete() 호출 시 dispose되는 Observable
         Observable<Void>.just(())
@@ -210,6 +205,7 @@ final class HomeViewModel: ViewModelProtocol {
         pendingCommits = DisposeBag()
         let cachedMissions = mapReceivedMissionsToHomeItems(receivedMissions)
         state.receivedMissions.accept(cachedMissions)
+        state.isShowStickerReceived.accept(false)
     }
 
     // MARK: - Methods

@@ -21,6 +21,7 @@ final class HomeViewController: UIViewController {
     // MARK: - UI Components
 
     private let homeView = HomeView()
+    private let toastView = ToastView(message: "테스트", withCancelButton: true)
 
     // MARK: - Life Cycles
 
@@ -51,6 +52,7 @@ final class HomeViewController: UIViewController {
     private func bind() {
         bindGroupOrganizationView()
         bindDashboardView()
+        bindToastView()
     }
 
     private func bindGroupOrganizationView() {
@@ -128,6 +130,24 @@ final class HomeViewController: UIViewController {
         viewModel.state.isPushMemberMissionVC
             .asDriver(onErrorDriveWith: .empty())
             .drive(onNext: pushMemberMissionVC)
+            .disposed(by: disposeBag)
+    }
+
+    private func bindToastView() {
+        toastView.didTapCancelButton
+            .map { HomeViewModel.Action.didTapCompleteCancelButton }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
+        viewModel.state.isShowStickerReceived
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, isShow in
+                if isShow {
+                    owner.toastView.show(in: owner.homeView, duration: 4)
+                } else {
+
+                }
+            }
             .disposed(by: disposeBag)
     }
 
