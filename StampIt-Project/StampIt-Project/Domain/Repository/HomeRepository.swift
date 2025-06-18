@@ -29,7 +29,8 @@ protocol HomeRepositoryProtocol {
         userId: String,
         groupId: String,
         missionTitle: String,
+        maxSticker: Int,
+        stickerType: String,
         assignedBy: String,
-        stickerType: String
     ) -> Observable<Void>
 }
