@@ -167,6 +167,20 @@ final class DefaultNavigationBar: UIView {
             tabButton2.setTitleColor(.neutralGray300, for: .normal)
         }
     }
+    
+    // MARK: - Methods
+    
+    func updateTabTitleColor(selected: TabType) {
+        switch selected {
+        case .stampBoard:
+            tabButton1.setTitleColor(.neutralGray900, for: .normal)
+            tabButton2.setTitleColor(.neutralGray300, for: .normal)
+            
+        case .profile:
+            tabButton1.setTitleColor(.neutralGray300, for: .normal)
+            tabButton2.setTitleColor(.neutralGray900, for: .normal)
+        }
+    }
 }
 
 extension DefaultNavigationBar {
