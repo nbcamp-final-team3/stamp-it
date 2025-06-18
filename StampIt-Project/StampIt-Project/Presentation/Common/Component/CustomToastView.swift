@@ -12,7 +12,7 @@ import Then
 final class ToastView: UIView {
 
     private let iconImageView = UIImageView().then {
-        $0.image = UIImage(named: "CheckCircle12")
+        $0.image = UIImage(named: "CheckCircleColored")
         $0.tintColor = UIColor(.red400)
     }
 
@@ -61,6 +61,8 @@ final class ToastView: UIView {
 
     // MARK: - Show Toast
     func show(in view: UIView, duration: TimeInterval = 2.0) {
+        //이미 띄어진 경우 방지
+        if self.superview != nil { return }
         view.addSubview(self)
         self.alpha = 0
 
