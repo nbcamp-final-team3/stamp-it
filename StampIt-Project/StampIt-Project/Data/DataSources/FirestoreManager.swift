@@ -23,6 +23,7 @@ protocol FirestoreManagerProtocol {
     func updateUser(_ user: UserFirestore) -> Observable<Void>
     func deleteUser(userId: String) -> Observable<Void>
     func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void>
+    func updateProfileImage(userId: String, imageName: String) -> Observable<Void>
     
     // Group 관련
     func fetchGroup(groupId: String) -> Observable<GroupFirestore>
@@ -256,6 +257,22 @@ extension FirestoreManager {
             self.usersCollection.document(userId).updateData([
                 "nickname": nickname,
                 "nicknameChangedAt": Timestamp(date: changedAt)
+            ]) { error in
+                if let error = error {
+                    observer.onError(error)
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
+    }
+    
+    func updateProfileImage(userId: String, imageName: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.usersCollection.document(userId).updateData([
+                "profileImage": imageName
             ]) { error in
                 if let error = error {
                     observer.onError(error)
