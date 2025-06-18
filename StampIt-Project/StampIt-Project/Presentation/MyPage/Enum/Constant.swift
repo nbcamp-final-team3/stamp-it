@@ -63,3 +63,15 @@ enum MyPage {
         static let vStackSpacing: CGFloat = 6
     }
 }
+
+enum Navigation {
+    static let fontSize: CGFloat = 24
+    static let height: Double = 68
+    static let spacing: CGFloat = 12
+    static let leading: CGFloat = 16
+    static let backButton: String = "backButton"
+    static let backButtonSize: CGFloat = 24
+    static let appLogo: String = "AppLogo"
+    static let appLogoWidth: CGFloat = 125
+    static let appLogoHeight: CGFloat = 42
+}
