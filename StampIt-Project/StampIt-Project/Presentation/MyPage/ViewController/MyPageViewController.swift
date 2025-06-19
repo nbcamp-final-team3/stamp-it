@@ -59,9 +59,6 @@ final class MyPageViewController: UIViewController {
     // 화면이 나타날 때마다 데이터 새로고침
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        // 캐시 무효화 후 데이터 새로고침
-        UserCache.shared.clearCache()
         viewModel.action.accept(.viewDidLoad)
     }
     
