@@ -107,7 +107,7 @@ extension DefaultButton {
         var font: UIFont {
             switch self {
             case .groupOrganization:
-                    .pretendard(size: 16, weight: .bold)
+                    .pretendard(size: 16, weight: .semibold)
             default:
                     .pretendard(size: 18, weight: .semibold)
             }
@@ -115,7 +115,7 @@ extension DefaultButton {
 
         var radius: CGFloat {
             switch self {
-            case .groupOrganization: 8
+            case .groupOrganization: 10
             default: 12
             }
         }
@@ -123,7 +123,7 @@ extension DefaultButton {
         var contentInsets: NSDirectionalEdgeInsets {
             switch self {
             case .groupOrganization:
-                    .init(top: 6, leading: 16, bottom: 6, trailing: 16)
+                    .init(top: 12.5, leading: 80, bottom: 12.5, trailing: 80)
             default:
                     .init(top: 16, leading: 20, bottom: 16, trailing: 20)
             }
