@@ -44,7 +44,7 @@ final class EditProfileViewModel: ViewModelProtocol {
                (newProfileImageName ?? user.profileImageURL) != user.profileImageURL
     }
     
-    init(user: User, editProfileUseCaseImpl: EditProfileUseCase = EditProfileUseCaseImpl()) {
+    init(user: User, editProfileUseCaseImpl: EditProfileUseCase) {
         state.user.accept(user)
         self.editProfileUseCaseImpl = editProfileUseCaseImpl
         
@@ -94,10 +94,10 @@ final class EditProfileViewModel: ViewModelProtocol {
     private func updateNickname() {
         guard let newNickname, newNickname != state.user.value?.nickname else { return }
         
-        guard let userID = state.user.value?.userID else { return }
+        guard let user = state.user.value else { return }
         let changedAt = Date()
         
-        editProfileUseCaseImpl.updateUserNickname(userId: userID, nickname: newNickname, changedAt: changedAt)
+        editProfileUseCaseImpl.updateUserNickname(userId: user.userID, groupId: user.groupID, nickname: newNickname, changedAt: changedAt)
             .subscribe {
                 print("nickname update success: \(newNickname)")
             } onError: { error in
@@ -126,9 +126,9 @@ final class EditProfileViewModel: ViewModelProtocol {
     private func updateProfileImage() {
         guard let newProfileImageName, newProfileImageName != state.user.value?.profileImageURL else { return }
         
-        guard let userID = state.user.value?.userID else { return }
+        guard let user = state.user.value else { return }
         
-        editProfileUseCaseImpl.updateProfileImage(userId: userID, imageName: newProfileImageName)
+        editProfileUseCaseImpl.updateProfileImage(userId: user.userID, groupId: user.groupID, imageName: newProfileImageName)
             .subscribe {
                 print("profile image update success: \(newProfileImageName)")
             } onError: { error in

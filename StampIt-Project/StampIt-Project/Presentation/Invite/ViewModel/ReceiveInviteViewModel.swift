@@ -23,7 +23,8 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     struct State {
         let inviteCode = BehaviorRelay<String>(value: "")
         let isEnterButtonEnabled = BehaviorRelay<Bool>(value: false)
-        let showMessage = PublishRelay<String>()
+        let showMessage = PublishRelay<(ToastType, String)>()
+        let didCompleteInvite = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -68,17 +69,23 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
         useCase.acceptInvite(inviteCode: code)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] invite in
-                self?.state.showMessage.accept("초대 완료!")
+                self?.state.showMessage.accept((.success, "초대 완료!"))
+                // MAKR: - 초대 완료가 됐을때 VC에 발행
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    self?.state.didCompleteInvite.accept(())
+                }
             }, onError: { [weak self] error in
+                print("[DEBUG] error:", error)
+                print("[DEBUG] error type:", type(of: error))
                 let message: String
 
                 if let repoError = error as? RepositoryError {
                     message = repoError.localizedDescription
                 } else {
-                    message = "알 수 없는 오류가 발생했습니다."
+                    message = "코드를 재확인 해주세요."
                 }
 
-                self?.state.showMessage.accept(message)
+                self?.state.showMessage.accept((.failure, message))
             })
             .disposed(by: disposeBag)
     }

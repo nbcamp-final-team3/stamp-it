@@ -11,13 +11,13 @@ import RxSwift
 struct EditProfileUseCaseImpl: EditProfileUseCase {
     private let editProfileRepositoryImpl: EditProfileRepository
     
-    init(editProfileRepositoryImpl: EditProfileRepository = EditProfileRepositoryImpl()) {
+    init(editProfileRepositoryImpl: EditProfileRepository) {
         self.editProfileRepositoryImpl = editProfileRepositoryImpl
     }
     
     // 닉네임 업데이트
-    func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> RxSwift.Observable<Void> {
-        editProfileRepositoryImpl.updateUserNickname(userId: userId, nickname: nickname, changedAt: changedAt)
+    func updateUserNickname(userId: String, groupId: String, nickname: String, changedAt: Date) -> RxSwift.Observable<Void> {
+        editProfileRepositoryImpl.updateUserNickname(userId: userId, groupId: groupId, nickname: nickname, changedAt: changedAt)
     }
     
     // 그룹명 업데이트
@@ -26,7 +26,7 @@ struct EditProfileUseCaseImpl: EditProfileUseCase {
     }
     
     // 프로필 이미지 업데이트
-    func updateProfileImage(userId: String, imageName: String) -> Observable<Void> {
-        editProfileRepositoryImpl.updateProfileImage(userId: userId, imageName: imageName)
+    func updateProfileImage(userId: String, groupId: String, imageName: String) -> Observable<Void> {
+        editProfileRepositoryImpl.updateProfileImage(userId: userId, groupId: groupId, imageName: imageName)
     }
 }

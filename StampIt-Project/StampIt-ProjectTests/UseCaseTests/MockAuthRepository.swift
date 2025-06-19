@@ -104,7 +104,7 @@ final class MockAuthRepository: AuthRepositoryProtocol {
         let completeUser = User(
             userID: user.userId,
             nickname: user.nickname,
-            profileImageURL: user.profileImage,
+            profileImage: user.profileImage,
             boards: [],                   
             groupID: user.groupId,
             groupName: group.name,
@@ -129,7 +129,7 @@ final class MockAuthRepository: AuthRepositoryProtocol {
         return User(
             userID: "test-user-id",
             nickname: "테스트 사용자",
-            profileImageURL: "https://example.com/profile.jpg",
+            profileImage: "https://example.com/profile.jpg",
             boards: [],
             groupID: "test-group-id",
             groupName: "테스트 그룹",

@@ -9,6 +9,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
+
 final class SendInviteViewModel: ViewModelProtocol {
     // MARK: - Action & State
     enum Action {
@@ -16,8 +17,10 @@ final class SendInviteViewModel: ViewModelProtocol {
     }
 
     struct State {
-        let inviteCode = BehaviorRelay<String>(value: "복사 버튼을 클릭해주세요.")
-        let showMessage = PublishRelay<String>()
+        let inviteCode = BehaviorRelay<String>(value: "")
+        let showMessage = PublishRelay<(ToastType, String)>()
+        let copyToClipboard = PublishRelay<String>()
+
     }
 
     // MARK: - Properties
@@ -30,6 +33,7 @@ final class SendInviteViewModel: ViewModelProtocol {
     init(useCase: InviteUseCase) {
         self.useCase = useCase
         bindActions()
+        showInviteCode()
     }
 
     // MARK: - Bind
@@ -37,7 +41,7 @@ final class SendInviteViewModel: ViewModelProtocol {
         action
             .subscribe(onNext: { [weak self] action in
                 guard let self = self else { return }
-                
+
                 switch action {
                 case .copyButtonTapped:
                     self.copyInviteCode()
@@ -45,24 +49,44 @@ final class SendInviteViewModel: ViewModelProtocol {
             })
             .disposed(by: disposeBag)
     }
-    
+
     // MARK: - Private Methods
+    // 복사버튼을 눌렀을때 show 메세지와 UIPasteboard에 복사되는 메서드
     private func copyInviteCode() {
-        useCase.sequenceCreateCode()
+        useCase.getInviteCode()
             .subscribe(onNext: { [weak self] code in
                 guard let self = self else { return }
-                self.state.inviteCode.accept(code)
-                self.state.showMessage.accept("초대 코드가 복사되었습니다")
+                self.state.copyToClipboard.accept(code)
+                self.state.showMessage.accept((.success, "초대 코드가 복사되었습니다"))
             }, onError: { [weak self] error in
                 let message: String
 
                 if let repoError = error as? RepositoryError {
                     message = repoError.localizedDescription
                 } else {
-                    message = "알 수 없는 오류가 발생했습니다."
+                    message = "오류가 발생했습니다."
                 }
 
-                self?.state.showMessage.accept(message)
+                self?.state.showMessage.accept((.failure, message))
+            })
+            .disposed(by: disposeBag)
+    }
+
+    // 화면에 접속했을 때 초대 코드를 보여주는 메서드
+    private func showInviteCode() {
+        useCase.getInviteCode()
+            .subscribe(onNext: { [weak self] code in
+                self?.state.inviteCode.accept(code)
+            }, onError: { [weak self] error in
+                let message: String
+
+                if let repoError = error as? RepositoryError {
+                    message = repoError.localizedDescription
+                } else {
+                    message = "초대 코드를 불러오지 못했습니다."
+                }
+
+                self?.state.showMessage.accept((.failure, message))
             })
             .disposed(by: disposeBag)
     }

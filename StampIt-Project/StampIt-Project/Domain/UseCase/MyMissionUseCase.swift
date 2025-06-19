@@ -17,6 +17,6 @@ protocol MyMissionUseCaseProtocol {
         missionTitle: String,
         maxSticker: Int,
         stickerType: String,
-        assignedBy: String,
+        assignedBy: String
     ) -> Observable<Void>
 }

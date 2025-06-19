@@ -719,7 +719,7 @@ extension AuthRepository {
                     return User(
                         userID: userId,
                         nickname: userNickname,
-                        profileImageURL: profileImageURL ?? "profileImage1",
+                        profileImage: profileImageURL ?? "profileImage1",
                         boards: [],
                         groupID: newGroupId,
                         groupName: "\(userNickname)의 그룹",
@@ -732,7 +732,7 @@ extension AuthRepository {
                     return Observable.just(User(
                         userID: userId,
                         nickname: userNickname,
-                        profileImageURL: profileImageURL ?? "profileImage1",
+                        profileImage: profileImageURL ?? "profileImage1",
                         boards: [],
                         groupID: newGroupId,
                         groupName: "\(userNickname)의 그룹",

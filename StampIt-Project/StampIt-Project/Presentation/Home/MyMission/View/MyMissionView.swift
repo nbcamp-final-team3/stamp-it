@@ -34,6 +34,12 @@ final class MyMissionView: UIView {
         )
     }
 
+    private let noResultsView = NoResultsView().then {
+        $0.configureContent(title: "아직 부여된 미션이 없어요")
+        $0.updateContainerTopInset(217)
+        $0.isHidden = true
+    }
+
     // MARK: - Init
 
     override init(frame: CGRect) {
@@ -54,6 +60,7 @@ final class MyMissionView: UIView {
     private func setHierarchy() {
         [
             collectionView,
+            noResultsView,
         ].forEach { addSubview($0) }
     }
 
@@ -63,6 +70,10 @@ final class MyMissionView: UIView {
         collectionView.snp.makeConstraints { make in
             make.top.equalTo(safeAreaLayoutGuide)
             make.directionalHorizontalEdges.bottom.equalToSuperview()
+        }
+
+        noResultsView.snp.makeConstraints { make in
+            make.edges.equalTo(collectionView)
         }
     }
 
@@ -108,6 +119,7 @@ final class MyMissionView: UIView {
         snapshot.deleteItems(itemsToDelete)
         snapshot.appendItems(items)
         dataSource?.apply(snapshot, animatingDifferences: false)
+        noResultsView.isHidden = !items.isEmpty
     }
 
     private func createLayout() -> UICollectionViewLayout {

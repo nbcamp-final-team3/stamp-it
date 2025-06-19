@@ -41,10 +41,10 @@ final class MissionRepositoryTest: MissionRepository {
         print("groupID into fetchMembers(): \(groupID)")
         return Observable.create { observer in
             let dummyMembers: [Member] = [
-                Member(userID: "12345", nickname: "유진", profileImageURL: nil, monthSticker: 0, joinedAt: Date(), isLeader: true),
-                Member(userID: "67890", nickname: "엄마", profileImageURL: nil, monthSticker: 0, joinedAt: Date(), isLeader: false),
-                Member(userID: "112233", nickname: "파덜", profileImageURL: nil, monthSticker: 0, joinedAt: Date(), isLeader: false),
-                Member(userID: "112433", nickname: "삼동이", profileImageURL: nil, monthSticker: 0, joinedAt: Date(), isLeader: false),
+                Member(userID: "12345", nickname: "유진", profileImage: nil, monthSticker: 0, joinedAt: Date(), isLeader: true),
+                Member(userID: "67890", nickname: "엄마", profileImage: nil, monthSticker: 0, joinedAt: Date(), isLeader: false),
+                Member(userID: "112233", nickname: "파덜", profileImage: nil, monthSticker: 0, joinedAt: Date(), isLeader: false),
+                Member(userID: "112433", nickname: "삼동이", profileImage: nil, monthSticker: 0, joinedAt: Date(), isLeader: false),
             ]
             observer.onNext(dummyMembers)
             observer.onCompleted()
@@ -55,7 +55,7 @@ final class MissionRepositoryTest: MissionRepository {
     // 유저 더미 데이터 반환
     func getCurrentUser() -> Observable<User?> {
         return Observable.create { observer in
-            let user = User(userID: "dummyUserID", nickname: "dummyNickname", profileImageURL: "www.dummyURL.com", boards: [], groupID: "dummyGroupID", groupName: "dummyGroupName", isLeader: false, joinedGroupAt: Date())
+            let user = User(userID: "dummyUserID", nickname: "dummyNickname", profileImage: "www.dummyURL.com", boards: [], groupID: "dummyGroupID", groupName: "dummyGroupName", isLeader: false, joinedGroupAt: Date())
             
             observer.onNext(user)
             observer.onCompleted()

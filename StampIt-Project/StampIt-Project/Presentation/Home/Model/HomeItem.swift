@@ -62,7 +62,7 @@ struct HomeMember: Hashable {
     let nickname: String
     let stickerCount: String
     let rank: Int
-    let profileImageURL: String?
+    let profileImage: String?
 }
 
 struct HomeReceivedMission: Hashable {

@@ -53,6 +53,7 @@ final class MyPageViewController: UIViewController {
         setLayout()
         setDelegate()
         setDataSource()
+        setAction()
         bind()
     }
     
@@ -172,6 +173,19 @@ final class MyPageViewController: UIViewController {
         snapshot.appendSections([.defaultBoard])
         snapshot.appendItems(stickers, toSection: .defaultBoard)
         stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
+    }
+    
+    // MARK: - Button Action Helper
+    
+    private func setAction() {
+        profileView.setButtonAction(target: self, action: #selector(tappedEditButton))
+    }
+    
+    @objc private func tappedEditButton() {
+        let user = viewModel.state.user.value
+        guard let user else { return }
+        let viewController = container.makeEditProfileViewController(user: user)
+        navigationController?.pushViewController(viewController, animated: true)
     }
     
     // MARK: - Methods

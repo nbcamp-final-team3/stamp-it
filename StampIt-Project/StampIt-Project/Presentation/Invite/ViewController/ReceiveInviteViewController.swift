@@ -29,6 +29,8 @@ final class ReceiveInviteViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "초대받기"))
+
     private let imageView = UIImageView().then {
         $0.image = UIImage(named: "MascotCharacterGroup")
         $0.contentMode = .scaleAspectFit
@@ -84,6 +86,17 @@ final class ReceiveInviteViewController: UIViewController {
         setupLayout()
         bindViewModel()
         textField.delegate = self
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.tabBarController?.tabBar.isHidden = true
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.tabBarController?.tabBar.isHidden = false
     }
 
     private func setupLayout() {
@@ -92,11 +105,16 @@ final class ReceiveInviteViewController: UIViewController {
         [floatingLabel, textField]
             .forEach { stackView.addArrangedSubview($0) }
 
-        [imageView, helpLabel, enterButton]
+        [navigationBar, imageView, helpLabel, enterButton]
             .forEach { view.addSubview($0) }
 
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+
         imageView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(140)
+            $0.top.equalTo(navigationBar.snp.bottom).offset(140)
             $0.centerX.equalToSuperview()
             $0.height.equalTo(100)
         }
@@ -142,14 +160,35 @@ final class ReceiveInviteViewController: UIViewController {
             .bind(to: enterButton.rx.isEnabled)
             .disposed(by: disposeBag)
 
+        navigationBar.backTapped
+            .bind(with: self) { owner, _ in
+                owner.navigationController?.popViewController(animated: true)
+            }.disposed(by: disposeBag)
+
         viewModel.state.showMessage
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] message in
+            .subscribe(onNext: { [weak self] (type, message) in
                 guard let self = self else { return }
                 let toastView = ToastView()
 
-                toastView.show(in: self.view, message: message)
+                toastView.show(in: self.view, message: message, type: type)
             })
+            .disposed(by: disposeBag)
+
+        viewModel.state.didCompleteInvite
+            .bind(with: self) { owner, _ in
+                let container = DIContainer.shared
+
+                // 홈 탭으로 전환
+                let tabBarController = MainTabBarController(container: container)
+                tabBarController.selectedIndex = 0
+
+                WindowTransitionManager.shared.changeRootViewController(to: tabBarController, duration: 0.15)
+                // 현재 navigation stack에서 pop
+                owner.navigationController?.popToRootViewController(animated: true)
+                //스택에 쌓인 루트 뷰를 안보여주고 없애는 법
+
+            }
             .disposed(by: disposeBag)
     }
 }

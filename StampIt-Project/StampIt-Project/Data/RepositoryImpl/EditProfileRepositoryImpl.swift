@@ -11,17 +11,26 @@ import RxSwift
 final class EditProfileRepositoryImpl: EditProfileRepository {
     private let firestoreManager: FirestoreManagerProtocol
     
-    init(firestoreManager: FirestoreManagerProtocol = FirestoreManager()) {
+    init(firestoreManager: FirestoreManagerProtocol) {
         self.firestoreManager = firestoreManager
     }
     
     // 닉네임 업데이트
-    func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void> {
-        firestoreManager.updateUserNickname(
+    func updateUserNickname(userId: String, groupId: String, nickname: String, changedAt: Date) -> Observable<Void> {
+        let updateUser = firestoreManager.updateUserNickname(
             userId: userId,
             nickname: nickname,
             changedAt: changedAt
         )
+
+        let updateMember = firestoreManager.updateMember(
+            groupId: groupId,
+            userId: userId,
+            query: ["nickname": nickname]
+        )
+
+        return Observable.zip(updateUser, updateMember)
+            .map { _ in () }
     }
     
     // 그룹명 업데이트
@@ -34,10 +43,19 @@ final class EditProfileRepositoryImpl: EditProfileRepository {
     }
     
     // 프로필 이미지 업데이트
-    func updateProfileImage(userId: String, imageName: String) -> Observable<Void> {
-        firestoreManager.updateProfileImage(
+    func updateProfileImage(userId: String, groupId: String, imageName: String) -> Observable<Void> {
+        let updateUser = firestoreManager.updateProfileImage(
             userId: userId,
             imageName: imageName
         )
+
+        let updateMember = firestoreManager.updateMember(
+            groupId: groupId,
+            userId: userId,
+            query: ["profileImage": imageName]
+        )
+
+        return Observable.zip(updateUser, updateMember)
+            .map { _ in () }
     }
 }

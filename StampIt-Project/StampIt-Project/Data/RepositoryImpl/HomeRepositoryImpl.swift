@@ -31,7 +31,7 @@ final class HomeRepository: HomeRepositoryProtocol {
                 return Member(
                     userID: member.userID,
                     nickname: member.nickname,
-                    profileImageURL: member.profileImageURL,
+                    profileImage: member.profileImage,
                     monthSticker: count,
                     joinedAt: member.joinedAt,
                     isLeader: member.isLeader
@@ -79,7 +79,7 @@ final class HomeRepository: HomeRepositoryProtocol {
         missionTitle: String,
         maxSticker: Int,
         stickerType: String,
-        assignedBy: String,
+        assignedBy: String
     ) -> Observable<Void> {
         manager.createStickerFromMission(
             userId: userId,
@@ -87,7 +87,7 @@ final class HomeRepository: HomeRepositoryProtocol {
             missionTitle: missionTitle,
             maxStickers: maxSticker,
             stickerType: stickerType,
-            assignedBy: assignedBy,
+            assignedBy: assignedBy
         )
     }
 }

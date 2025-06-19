@@ -29,6 +29,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
     
     var disposeBag = DisposeBag()
     
+    var onSuccess: (() -> Void)? // 새로운 미션이 생성되어 파이어베이스까지 저장 완료되었을 때 호출
+    
     private let mission: SampleMission
     private let missionUseCaseImpl: MissionUseCase
     private var user: User?
@@ -66,8 +68,9 @@ final class AssignMissionViewModel: ViewModelProtocol {
                 case .didTapAssignButton:
                     print("did tap assign button")
                     createMission()
-                        .subscribe {
+                        .subscribe { [weak self] in
                             print("mission created.")
+                            self?.onSuccess?()
                         } onError: { error in
                             print(error)
                         }
@@ -97,7 +100,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
         
         missionUseCaseImpl.fetchMembers(ofGroup: user.groupID)
             .subscribe { [weak self] members in
-                self?.state.members.accept(members)
+                let filteredMembers = members.filter { $0.nickname != user.nickname }
+                self?.state.members.accept(filteredMembers)
             } onError: { error in
                 print(error)
             }
@@ -106,17 +110,17 @@ final class AssignMissionViewModel: ViewModelProtocol {
     
     // 미션 정보 저장
     private func createMission() -> Observable<Void> {
-        let nickname = state.selectedMember.value.map { $0.nickname }
+        let member = state.selectedMember.value
         let dueDate = state.dueDate.value
-        guard let nickname, let user else {
-            return Observable.error(NSError(domain: "user data or member data is nil.", code: 0, userInfo: nil))
+        guard let member, let user else {
+            return Observable.error(NSError(domain: "user data is nil.", code: 0, userInfo: nil))
         }
         
         let mission = Mission(
             missionID: mission.missionId,
             title: mission.title,
-            assignedTo: nickname,
-            assignedBy: user.nickname,
+            assignedTo: member.userID,
+            assignedBy: user.userID,
             createDate: Date(),
             dueDate: dueDate,
             status: MissionStatus.assigned,

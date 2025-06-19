@@ -407,9 +407,13 @@ final class LoginViewController: UIViewController {
     
     /// 신규 사용자 환영 메시지 표시
     private func showWelcomeMessage(user: User) {
-        // TODO: 홈 화면 이동 후 신규 사용자 환영 토스트 메시지로 출력(미구현)
         let tabBar = MainTabBarController(container: container)
         WindowTransitionManager.shared.changeRootViewController(to: tabBar)
+        
+        // 환영 토스트 띄우기
+        let toastView = ToastView()
+        toastView.show(in: view, duration: 3, message: "\(user.nickname)님, 환영합니다!", type: .success)
+        return
     }
     
     /// 에러 알림 표시
