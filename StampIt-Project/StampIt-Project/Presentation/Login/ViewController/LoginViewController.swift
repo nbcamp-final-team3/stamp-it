@@ -303,7 +303,6 @@ final class LoginViewController: UIViewController {
             .compactMap { $0 }
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] (user, isNewUser, nextAction) in
-                UserCache.shared.clearCache()
                 UserCache.shared.setCurrentUser(user)
                 self?.handleLoginSuccess(user: user, isNewUser: isNewUser, nextAction: nextAction)
             })
@@ -408,9 +407,26 @@ final class LoginViewController: UIViewController {
     
     /// 신규 사용자 환영 메시지 표시
     private func showWelcomeMessage(user: User) {
-        // TODO: 홈 화면 이동 후 신규 사용자 환영 토스트 메시지로 출력(미구현)
         let tabBar = MainTabBarController(container: container)
         WindowTransitionManager.shared.changeRootViewController(to: tabBar)
+        
+        // 2. 새로운 루트 뷰에서 토스트 표시 (0.5초 후)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // 현재 활성화된 윈도우의 루트 뷰에서 토스트 표시
+            if let windowScene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let rootView = window.rootViewController?.view {
+                
+                let toastView = ToastView()
+                toastView.show(
+                    in: rootView,
+                    duration: 3,
+                    message: "신규 유저 \(user.nickname)님, 환영합니다!",
+                    type: .success
+                )
+            }
+        }
     }
     
     /// 에러 알림 표시

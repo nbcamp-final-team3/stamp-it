@@ -40,7 +40,7 @@ final class LoginUseCaseTests: XCTestCase {
         let existingUser = User(
             userID: "existing-user-123",
             nickname: "기존 사용자",
-            profileImageURL: "https://example.com/profile.jpg",
+            profileImage: "https://example.com/profile.jpg",
             boards: [],                    
             groupID: "existing-group-456",
             groupName: "기존 그룹",
@@ -88,7 +88,7 @@ final class LoginUseCaseTests: XCTestCase {
         let newUser = User(
             userID: "new-user-789",
             nickname: "신규 사용자",
-            profileImageURL: nil,
+            profileImage: nil,
             boards: [],
             groupID: "",
             groupName: "",
@@ -200,7 +200,7 @@ final class LoginUseCaseTests: XCTestCase {
         let loggedInUser = User(
             userID: "logged-user-123",
             nickname: "로그인된 사용자",
-            profileImageURL: nil,
+            profileImage: nil,
             boards: [],
             groupID: "user-group-456",
             groupName: "사용자 그룹",

@@ -52,7 +52,6 @@ final class AuthManager: NSObject,AuthManagerProtocol {
         }
         
         GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
-        print("✅ Google Sign-In configured successfully")
     }
     
     // MARK: - Google Sign-In
@@ -164,7 +163,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
                 observer.onError(AuthError.userNotFound)
                 return Disposables.create()
             }
-            
+                        
             user.delete { error in
                 if error != nil {
                     observer.onError(AuthError.accountDeletionFailed)
@@ -177,6 +176,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
             return Disposables.create()
         }
     }
+
     
     // MARK: - User State Methods
     /// 현재 Firebase 인증된 사용자를 반환
@@ -265,7 +265,7 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
                 return
             }
             
-            // 2. Firebase 인증 자격 증명 생성 (✅ 수정된 부분)
+            // 2. Firebase 인증 자격 증명 생성
             let credential = OAuthProvider.appleCredential(
                 withIDToken: idTokenString,
                 rawNonce: nonce,
@@ -284,7 +284,6 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
                     return
                 }
                 
-                print("✅ Apple Sign-In 성공: \(authResult.user.uid)")
                 self?.appleSignInObserver?(.success(authResult))
                 
                 // 정리
@@ -327,13 +326,11 @@ extension AuthManager {
             }
             
             GIDSignIn.sharedInstance.disconnect { error in
-                if let error = error {
-                    print("⚠️ Google 연결 해제 실패: \(error.localizedDescription)")
+                if error != nil {
                     // 에러가 있어도 계속 진행 (Firebase 계정 삭제는 수행)
                     observer.onNext(())
                     observer.onCompleted()
                 } else {
-                    print("✅ Google 연결 해제 성공")
                     observer.onNext(())
                     observer.onCompleted()
                 }
@@ -348,7 +345,6 @@ extension AuthManager {
         return Observable.create { observer in
             // Apple의 경우 직접적인 토큰 취소 API가 제한적
             // Firebase 계정 삭제만으로도 충분함
-            print("Apple 계정 연결 해제는 Firebase 계정 삭제로 처리됩니다")
             observer.onNext(())
             observer.onCompleted()
             return Disposables.create()

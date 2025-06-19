@@ -105,18 +105,11 @@ final class LoginUseCase: LoginUseCaseProtocol {
             let now = Date()
             let inviteCode = self.generateInviteCode()
             
-            // TODO: 디버깅용 로그, 삭제 예정
-            print("🆕 신규 사용자 그룹 생성 시작")
-            print("   - 사용자 ID: \(authUser.uid)")
-            print("   - 닉네임: \(randomNickname)")
-            print("   - 그룹 ID: \(groupId)")
-            print("   - 초대코드: \(inviteCode)")
-            
             // ✅ Domain 모델 생성
             let user = User(
                 userID: authUser.uid,
                 nickname: randomNickname,
-                profileImageURL: authUser.photoURL,
+                profileImage: "profileImage1",
                 boards: [],
                 groupID: groupId,
                 groupName: "\(randomNickname)의 그룹",
@@ -135,7 +128,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
             let member = Member(
                 userID: authUser.uid,
                 nickname: randomNickname,
-                profileImage: authUser.photoURL,
+                profileImage: "profileImage1",
                 monthSticker: 0, // 별도로 추가됨
                 joinedAt: now,
                 isLeader: true

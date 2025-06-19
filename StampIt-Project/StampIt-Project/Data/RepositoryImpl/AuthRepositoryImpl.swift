@@ -255,7 +255,8 @@ final class AuthRepository: AuthRepositoryProtocol {
                 "userId": memberFirestore.userId,
                 "nickname": memberFirestore.nickname,
                 "joinedAt": memberFirestore.joinedAt,
-                "isLeader": memberFirestore.isLeader
+                "isLeader": memberFirestore.isLeader,
+                "profileImage": "profileImage1"
             ]
             let memberRef = Firestore.firestore()
                 .collection("groups")
@@ -394,7 +395,12 @@ extension AuthRepository {
     }
     
     // MARK: - 계정 탈퇴
-    /// 계정 탈퇴 (소셜 로그인 연결 해제 + Firestore 데이터 완전 삭제)
+    /// 애플 providerID 체크
+    private func getCurrentProviderID() -> String? {
+        return authManager.getCurrentUser()?.providerData.first?.providerID
+    }
+    
+    /// 계정 완전 삭제 (Firestore → Auth 순서, 재시도 10회)
     func deleteAccount() -> Observable<Void> {
         return getCurrentUser()
             .compactMap { $0 }
@@ -402,86 +408,229 @@ extension AuthRepository {
                 guard let self = self else {
                     return Observable.error(RepositoryError.unknownError)
                 }
-                
-                if user.isLeader == true {
-                    // 리더인 경우: 자동 리더 위임 후 탈퇴
-                    return self.deleteLeaderAccount(userId: user.userID, groupId: user.groupID)
+                let providerID = self.getCurrentProviderID()
+                if providerID == "apple.com" {
+                    // 애플: 10회까지만 시도 후, 실패 시 재인증 필요
+                    return self.deleteFirestoreDataUntilSuccess(user: user)
+                        .flatMap { _ in
+                            self.deleteAuthAccountWithLimitedRetry(maxRetry: 10)
+                        }
                 } else {
-                    // 일반 멤버인 경우: 기존 로직
-                    return self.deleteAllUserData(userId: user.userID)
+                    // 구글 등: 기존 무한 재시도
+                    return self.deleteFirestoreDataUntilSuccess(user: user)
+                        .flatMap { _ in
+                            self.deleteAuthAccountUntilSuccess()
+                        }
                 }
-            }
-            .flatMap { [weak self] _ -> Observable<Void> in
-                guard let self = self else {
-                    return Observable.error(RepositoryError.unknownError)
-                }
-                return self.authManager.deleteAccountWithSocialRevoke()
             }
     }
     
-    /// 리더 계정 탈퇴 처리
-    private func deleteLeaderAccount(userId: String, groupId: String) -> Observable<Void> {
-        return firestoreManager.fetchOldestMember(groupId: groupId, excludeUserId: userId)
-            .flatMap { [weak self] newLeader -> Observable<Void> in
-                guard self != nil else {
-                    return Observable.error(RepositoryError.unknownError)
-                }
-                
-                return Observable.create { observer in
-                    let batch = Firestore.firestore().batch()
-                    
-                    // 1. 그룹 리더 변경
-                    let groupRef = Firestore.firestore().collection("groups").document(groupId)
-                    batch.updateData(["leaderId": newLeader.userId], forDocument: groupRef)
-                    
-                    // 2. 새 리더 멤버 상태 변경
-                    let newLeaderRef = Firestore.firestore()
-                        .collection("groups")
-                        .document(groupId)
-                        .collection("members")
-                        .document(newLeader.userId)
-                    batch.updateData(["isLeader": true], forDocument: newLeaderRef)
-                    
-                    // 3. 기존 리더 멤버 삭제
-                    let oldMemberRef = Firestore.firestore()
-                        .collection("groups")
-                        .document(groupId)
-                        .collection("members")
-                        .document(userId)
-                    batch.deleteDocument(oldMemberRef)
-                    
-                    // 4. 사용자 문서 삭제
-                    let userRef = Firestore.firestore().collection("users").document(userId)
-                    batch.deleteDocument(userRef)
-                    
-                    batch.commit { error in
-                        if let error = error {
-                            observer.onError(RepositoryError.dataError("리더 위임 실패: \(error.localizedDescription)"))
-                        } else {
+    private func deleteAuthAccountWithLimitedRetry(maxRetry: Int) -> Observable<Void> {
+        return Observable.create { [weak self] observer in
+            guard let self = self else {
+                observer.onError(RepositoryError.unknownError)
+                return Disposables.create()
+            }
+            var retryCount = 0
+            func attemptDelete() {
+                self.authManager.deleteAccount()
+                    .subscribe(
+                        onNext: {
                             observer.onNext(())
                             observer.onCompleted()
+                        },
+                        onError: { error in
+                            retryCount += 1
+                            if retryCount >= maxRetry {
+                                // 10회 초과 시 재인증 필요 에러 반환
+                                observer.onError(RepositoryError.authenticationFailed("애플 계정은 보안상 재인증이 필요합니다. 다시 로그인 후 탈퇴해주세요."))
+                            } else {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                    attemptDelete()
+                                }
+                            }
                         }
-                    }
-                    
+                    )
+                    .disposed(by: self.disposeBag)
+            }
+            attemptDelete()
+            return Disposables.create()
+        }
+    }
+
+        
+        // MARK: - Firestore 데이터 완전 삭제 (무한 재시도)
+        private func deleteFirestoreDataUntilSuccess(user: User) -> Observable<Void> {
+            return Observable.create { [weak self] observer in
+                guard let self = self else {
+                    observer.onError(RepositoryError.unknownError)
                     return Disposables.create()
                 }
+                
+                func attemptDelete() {
+                    self.deleteFirestoreDataByUserType(user: user)
+                        .subscribe(
+                            onNext: {
+                                observer.onNext(())
+                                observer.onCompleted()
+                            },
+                            onError: { error in
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                    attemptDelete()
+                                }
+                            }
+                        )
+                        .disposed(by: self.disposeBag)
+                }
+                
+                attemptDelete()
+                return Disposables.create()
             }
-            .flatMap { [weak self] _ -> Observable<Void> in
-                // 개인 데이터 정리
+        }
+        
+        // MARK: - 사용자 타입별 Firestore 데이터 삭제
+        private func deleteFirestoreDataByUserType(user: User) -> Observable<Void> {
+            let userId = user.userID
+            let groupId = user.groupID
+            let isLeader = user.isLeader
+            
+            if isLeader {
+                // 리더인 경우: 그룹 멤버 수 확인 후 분기
+                return firestoreManager.fetchGroupMemberCount(groupId: groupId)
+                    .flatMap { [weak self] memberCount -> Observable<Void> in
+                        guard let self = self else {
+                            return Observable.error(RepositoryError.unknownError)
+                        }
+                        
+                        if memberCount == 1 {
+                            // 1인 그룹: 그룹 전체 삭제
+                            return self.deleteSingleUserGroup(userId: userId, groupId: groupId)
+                        } else {
+                            // 다인 그룹: 리더 위임 후 탈퇴
+                            return self.deleteLeaderWithTransfer(userId: userId, groupId: groupId)
+                        }
+                    }
+                    .catch { [weak self] _ in
+                        // 멤버 수 조회 실패 시 1인 그룹으로 처리
+                        guard let self = self else {
+                            return Observable.error(RepositoryError.unknownError)
+                        }
+                        return self.deleteSingleUserGroup(userId: userId, groupId: groupId)
+                    }
+            } else {
+                // 일반 멤버: 개인 데이터만 삭제
+                return deleteRegularMember(userId: userId, groupId: groupId)
+            }
+        }
+        
+        // MARK: - 1인 그룹 완전 삭제
+        private func deleteSingleUserGroup(userId: String, groupId: String) -> Observable<Void> {
+            return Observable.create { [weak self] observer in
+                guard let self = self else {
+                    observer.onError(RepositoryError.unknownError)
+                    return Disposables.create()
+                }
+                                
+                // 모든 데이터 한 번에 삭제
+                Observable.zip(
+                    self.firestoreManager.deleteGroup(groupId: groupId),
+                    self.firestoreManager.deleteUser(userId: userId),
+                    self.firestoreManager.deleteUserStickers(userId: userId),
+                    self.firestoreManager.deleteUserInvites(userId: userId),
+                    self.firestoreManager.deleteGroupMissions(groupId: groupId),
+                    self.firestoreManager.deleteGroupStickers(groupId: groupId),
+                    self.firestoreManager.deleteGroupInvites(groupId: groupId)
+                )
+                .subscribe(
+                    onNext: { _ in
+                        observer.onNext(())
+                        observer.onCompleted()
+                    },
+                    onError: { error in
+                        observer.onError(RepositoryError.dataError("1인 그룹 삭제 실패: \(error.localizedDescription)"))
+                    }
+                )
+                .disposed(by: self.disposeBag)
+                
+                return Disposables.create()
+            }
+        }
+        
+        // MARK: - 리더 위임 후 탈퇴
+    // MARK: - 리더 위임 후 탈퇴 (디버깅 로그 추가)
+    private func deleteLeaderWithTransfer(userId: String, groupId: String) -> Observable<Void> {
+        return firestoreManager.fetchOldestMember(groupId: groupId, excludeUserId: userId)
+            .do(onNext: { member in
+                print("새 리더 후보 발견: \(member.nickname) (\(member.userId))")
+            })
+            .flatMap { [weak self] newLeader -> Observable<Void> in
                 guard let self = self else {
                     return Observable.error(RepositoryError.unknownError)
                 }
+                
+                // 리더 위임 + 개인 데이터 삭제
                 return Observable.zip(
-                    self.firestoreManager.deleteUserMissions(userId: userId, groupId: groupId),
-                    self.firestoreManager.deleteUserInvites(userId: userId)
+                    self.firestoreManager.updateGroupLeader(groupId: groupId, newLeaderId: newLeader.userId),
+                    self.firestoreManager.updateMemberLeaderStatus(groupId: groupId, userId: newLeader.userId, isLeader: true),
+                    self.firestoreManager.removeMember(groupId: groupId, userId: userId),
+                    self.firestoreManager.deleteUser(userId: userId),
+                    self.firestoreManager.deleteUserStickers(userId: userId),
+                    self.firestoreManager.deleteUserInvites(userId: userId),
+                    self.firestoreManager.deleteUserMissions(userId: userId, groupId: groupId)
                 )
+                .do(onNext: { _ in
+                    print("리더 위임 및 계정 탈퇴 완료: \(newLeader.nickname)이 새 리더")
+                })
                 .map { _ in () }
-                .catch { _ in
-                    // 중요하지 않은 데이터 정리 실패는 무시
-                    return Observable.just(())
-                }
+            }
+            .catch { error in
+                print("리더 위임 실패: \(error)")
+                return Observable.error(RepositoryError.dataError("리더 위임 실패: \(error.localizedDescription)"))
             }
     }
+
+        
+        // MARK: - 일반 멤버 삭제
+        private func deleteRegularMember(userId: String, groupId: String) -> Observable<Void> {
+            
+            return Observable.zip(
+                firestoreManager.removeMember(groupId: groupId, userId: userId),
+                firestoreManager.deleteUser(userId: userId),
+                firestoreManager.deleteUserStickers(userId: userId),
+                firestoreManager.deleteUserInvites(userId: userId),
+                firestoreManager.deleteUserMissions(userId: userId, groupId: groupId)
+            )
+            .map { _ in () }
+        }
+        
+        // MARK: - Firebase Auth 계정 삭제 (무한 재시도)
+        private func deleteAuthAccountUntilSuccess() -> Observable<Void> {
+            return Observable.create { [weak self] observer in
+                guard let self = self else {
+                    observer.onError(RepositoryError.unknownError)
+                    return Disposables.create()
+                }
+                
+                func attemptAuthDelete() {
+                    self.authManager.deleteAccount()
+                        .subscribe(
+                            onNext: {
+                                observer.onNext(())
+                                observer.onCompleted()
+                            },
+                            onError: { error in
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                    attemptAuthDelete()
+                                }
+                            }
+                        )
+                        .disposed(by: self.disposeBag)
+                }
+                
+                attemptAuthDelete()
+                return Disposables.create()
+            }
+        }
     
     // MARK: - 그룹 탈퇴
     /// 그룹 멤버 수 조회
@@ -496,6 +645,7 @@ extension AuthRepository {
     }
     
     /// 그룹 탈퇴 후 새로운 1인 그룹 생성
+    // MARK: - 그룹 탈퇴 (리더 위임 포함, 명시적/간소화)
     func leaveGroup() -> Observable<User> {
         return getCurrentUser()
             .compactMap { $0 }
@@ -504,11 +654,49 @@ extension AuthRepository {
                     return Observable.error(RepositoryError.unknownError)
                 }
                 
-                return self.leaveGroupAndCreateNew(
-                    userId: currentUser.userID,
-                    currentGroupId: currentUser.groupID,
-                    userNickname: currentUser.nickname
-                )
+                if currentUser.isLeader {
+                    // 리더일 때
+                    return self.firestoreManager.fetchGroupMemberCount(groupId: currentUser.groupID)
+                        .flatMap { [weak self] memberCount -> Observable<User> in
+                            guard let self = self else {
+                                return Observable.error(RepositoryError.unknownError)
+                            }
+                            if memberCount <= 1 {
+                                // 1인 그룹이면 탈퇴 불가 안내
+                                return Observable.error(
+                                    RepositoryError.dataError("혼자 있는 그룹에서는 탈퇴할 수 없습니다. 서비스 탈퇴를 이용해주세요.")
+                                )
+                            } else {
+                                // 다인 그룹이면 리더 위임 후 탈퇴
+                                return self.firestoreManager.fetchOldestMember(groupId: currentUser.groupID, excludeUserId: currentUser.userID)
+                                    .flatMap { newLeader in
+                                        Observable.zip(
+                                            // 그룹 리더 아이디 변경
+                                            self.firestoreManager.updateGroupLeader(groupId: currentUser.groupID, newLeaderId: newLeader.userId),
+                                            // 새 리더 멤버 문서 isLeader true로
+                                            self.firestoreManager.updateMemberLeaderStatus(groupId: currentUser.groupID, userId: newLeader.userId, isLeader: true)
+                                        )
+                                        .flatMap { _ in
+                                            // 리더 위임 후 본인 탈퇴 + 새 그룹 생성
+                                            self.leaveGroupAndCreateNew(
+                                                userId: currentUser.userID,
+                                                currentGroupId: currentUser.groupID,
+                                                userNickname: currentUser.nickname,
+                                                profileImageURL: currentUser.profileImage ?? "profileImage1"
+                                            )
+                                        }
+                                    }
+                            }
+                        }
+                } else {
+                    // 일반 멤버는 바로 탈퇴 + 새 그룹 생성
+                    return self.leaveGroupAndCreateNew(
+                        userId: currentUser.userID,
+                        currentGroupId: currentUser.groupID,
+                        userNickname: currentUser.nickname,
+                        profileImageURL: currentUser.profileImage ?? "profileImage1"
+                    )
+                }
             }
             .catch { [weak self] error in
                 guard let self = self else {
@@ -517,6 +705,7 @@ extension AuthRepository {
                 return Observable.error(self.mapToRepositoryError(error))
             }
     }
+
     
     // MARK: - Private Methods
     /// 사용자 관련 모든 Firestore 데이터 삭제 (계정 탈퇴용)
@@ -546,7 +735,8 @@ extension AuthRepository {
     private func leaveGroupAndCreateNew(
         userId: String,
         currentGroupId: String,
-        userNickname: String
+        userNickname: String,
+        profileImageURL: String?
     ) -> Observable<User> {
         return Observable.create { [weak self] observer in
             guard let self = self else {
@@ -565,7 +755,8 @@ extension AuthRepository {
                 newGroupId: newGroupId,
                 userNickname: userNickname,
                 inviteCode: inviteCode,
-                now: now
+                now: now,
+                profileImageURL: profileImageURL ?? "profileImage1"
             )
             .flatMap { _ -> Observable<User> in
                 // 2. 데이터 정리 (재시도 로직 포함)
@@ -578,7 +769,7 @@ extension AuthRepository {
                     return User(
                         userID: userId,
                         nickname: userNickname,
-                        profileImageURL: nil,
+                        profileImage: profileImageURL ?? "profileImage1",
                         boards: [],
                         groupID: newGroupId,
                         groupName: "\(userNickname)의 그룹",
@@ -591,7 +782,7 @@ extension AuthRepository {
                     return Observable.just(User(
                         userID: userId,
                         nickname: userNickname,
-                        profileImageURL: nil,
+                        profileImage: profileImageURL ?? "profileImage1",
                         boards: [],
                         groupID: newGroupId,
                         groupName: "\(userNickname)의 그룹",
@@ -638,7 +829,8 @@ extension AuthRepository {
         newGroupId: String,
         userNickname: String,
         inviteCode: String,
-        now: Date
+        now: Date,
+        profileImageURL: String
     ) -> Observable<Void> {
         return Observable.create { observer in
             let batch = Firestore.firestore().batch()
@@ -673,6 +865,7 @@ extension AuthRepository {
                 "userId": userId,
                 "nickname": userNickname,
                 "joinedAt": Timestamp(date: now),
+                "profileImage": profileImageURL,
                 "isLeader": true
             ]
             batch.setData(memberDict, forDocument: newMemberRef)

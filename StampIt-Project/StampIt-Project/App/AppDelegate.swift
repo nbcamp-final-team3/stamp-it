@@ -38,7 +38,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             if let error = error {
                 print("❌ Firestore 네트워크 활성화 실패: \(error.localizedDescription)")
             } else {
-                print("✅ Firestore 네트워크 연결 성공")
             }
         }
     }
@@ -48,7 +47,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // 환경 변수 방식 시도
         if let clientId = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String {
             GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
-            print("✅ Google Sign-In 설정 완료 (환경 변수)")
             return
         }
         
@@ -56,12 +54,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
               let plist = NSDictionary(contentsOfFile: path),
               let clientId = plist["CLIENT_ID"] as? String else {
-            print("⚠️ Google Sign-In 설정 실패: CLIENT_ID를 찾을 수 없습니다")
             return
         }
         
         GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
-        print("✅ Google Sign-In 설정 완료 (plist)")
     }
     
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {

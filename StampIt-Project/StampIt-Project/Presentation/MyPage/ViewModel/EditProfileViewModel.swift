@@ -41,7 +41,7 @@ final class EditProfileViewModel: ViewModelProtocol {
         guard let user = state.user.value else { return false }
         return (newNickname ?? user.nickname) != user.nickname ||
                (newGroupName ?? user.groupName) != user.groupName ||
-               (newProfileImageName ?? user.profileImageURL) != user.profileImageURL
+               (newProfileImageName ?? user.profileImage) != user.profileImage
     }
     
     init(user: User, editProfileUseCaseImpl: EditProfileUseCase) {
@@ -124,7 +124,7 @@ final class EditProfileViewModel: ViewModelProtocol {
     
     // 프로필 이미지 업데이트
     private func updateProfileImage() {
-        guard let newProfileImageName, newProfileImageName != state.user.value?.profileImageURL else { return }
+        guard let newProfileImageName, newProfileImageName != state.user.value?.profileImage else { return }
         
         guard let user = state.user.value else { return }
         

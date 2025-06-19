@@ -13,7 +13,7 @@ struct TestFixtures {
     static let newUser = User(
         userID: "new-user-123",
         nickname: "신규 사용자",
-        profileImageURL: "https://example.com/new-profile.jpg",
+        profileImage: "https://example.com/new-profile.jpg",
         boards: [],
         groupID: "",                       
         groupName: "",
@@ -24,7 +24,7 @@ struct TestFixtures {
     static let existingUser = User(
         userID: "existing-user-456",
         nickname: "기존 사용자",
-        profileImageURL: "https://example.com/existing-profile.jpg",
+        profileImage: "https://example.com/existing-profile.jpg",
         boards: [],
         groupID: "existing-group-789",
         groupName: "기존 그룹",

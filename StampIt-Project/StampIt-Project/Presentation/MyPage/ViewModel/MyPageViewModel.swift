@@ -35,6 +35,7 @@ final class MyPageViewModel: ViewModelProtocol {
         let alertMessage = PublishRelay<String>()
         let shouldNavigateToLogin = PublishRelay<Void>()
         let shouldShowConfirmAlert = PublishRelay<(String, String, () -> Void)>() // (title, message, action)
+        let toastMessage = PublishRelay<String>()
     }
     
     // MARK: - Properties
@@ -77,6 +78,7 @@ final class MyPageViewModel: ViewModelProtocol {
     
     private func bindUser() {
         myPageUseCase.fetchUser()
+            .observe(on: MainScheduler.instance)
             .subscribe(with: self) { owner, user in
                 owner.state.user.accept(user)
                 owner.bindStickerSummaryData()
@@ -159,25 +161,13 @@ final class MyPageViewModel: ViewModelProtocol {
     }
     
     private func showDeleteAccountConfirmation() {
-        guard let currentUser = state.user.value else { return }
-        
-        if currentUser.isLeader {
-            state.shouldShowConfirmAlert.accept((
-                "'스탬프잇'을 탈퇴하시겠어요?",
-                "리더님이 탈퇴하면 가장 오래된 멤버가\n자동으로 새 리더가 됩니다.",
-                { [weak self] in
-                    self?.performDeleteAccount()
-                }
-            ))
-        } else {
-            state.shouldShowConfirmAlert.accept((
-                "'스탬프잇'을 탈퇴하시겠어요?",
-                "계정을 탈퇴하면 그룹도 자동으로 탈퇴돼요.\n재가입은 언제나 환영이에요!",
-                { [weak self] in
-                    self?.performDeleteAccount()
-                }
-            ))
-        }
+        state.shouldShowConfirmAlert.accept((
+            "'스탬프잇'을 탈퇴하시겠어요?",
+            "계정과 모든 데이터가 완전히 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.",
+            { [weak self] in
+                self?.performDeleteAccount()
+            }
+        ))
     }
     
     /// 그룹 탈퇴 확인 다이얼로그 표시 전 멤버 수 체크
@@ -276,39 +266,8 @@ final class MyPageViewModel: ViewModelProtocol {
     
     /// 계정 탈퇴 실행
     private func performDeleteAccount() {
-        guard let currentUser = state.user.value else {
-            state.alertMessage.accept("사용자 정보를 불러올 수 없습니다.")
-            return
-        }
-        
         state.isLoading.accept(true)
         
-        // 🔥 그룹 멤버 수 확인 후 바로 분기 처리
-        accountManageUseCase.getGroupMemberCount(groupId: currentUser.groupID)
-            .observe(on: MainScheduler.instance)
-            .subscribe(
-                onNext: { [weak self] memberCount in
-                    if memberCount == 1 {
-                        // 1인 그룹 → 바로 삭제
-                        self?.executeDeleteAccount()
-                    } else if currentUser.isLeader {
-                        // 리더 + 다인 그룹 → 자동 리더 위임 후 삭제
-                        self?.executeDeleteAccount()
-                    } else {
-                        // 일반 멤버 + 다인 그룹 → 바로 삭제
-                        self?.executeDeleteAccount()
-                    }
-                },
-                onError: { [weak self] error in
-                    // 멤버 수 조회 실패 시 1인으로 처리해서 바로 삭제
-                    self?.executeDeleteAccount()
-                }
-            )
-            .disposed(by: disposeBag)
-    }
-
-    // 실제 삭제 실행
-    private func executeDeleteAccount() {
         accountManageUseCase.deleteAccount()
             .observe(on: MainScheduler.instance)
             .subscribe(
@@ -317,12 +276,7 @@ final class MyPageViewModel: ViewModelProtocol {
                 },
                 onError: { [weak self] error in
                     self?.state.isLoading.accept(false)
-                    if let repoError = error as? RepositoryError,
-                       case .userNotFound = repoError {
-                        self?.handleDeleteAccountSuccess()
-                    } else {
-                        self?.state.alertMessage.accept("계정 탈퇴에 실패했습니다.")
-                    }
+                    self?.state.alertMessage.accept("계정 탈퇴 중입니다. 잠시만 기다려주세요.")
                 }
             )
             .disposed(by: disposeBag)
@@ -338,9 +292,7 @@ final class MyPageViewModel: ViewModelProtocol {
                 onNext: { [weak self] updatedUser in
                     self?.state.isLoading.accept(false)
                     self?.state.user.accept(updatedUser)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        self?.state.alertMessage.accept("기존 그룹 탈퇴가 완료되었습니다.")
-                    }
+                    self?.state.toastMessage.accept("그룹에서 성공적으로 탈퇴했어요.")
                 },
                 onError: { [weak self] error in
                     self?.state.isLoading.accept(false)
@@ -377,16 +329,8 @@ final class MyPageViewModel: ViewModelProtocol {
     /// 로그아웃 성공 처리
     private func handleLogoutSuccess() {
         UserCache.shared.clearCache()
+        state.toastMessage.accept("로그아웃 되었습니다.")
         state.shouldNavigateToLogin.accept(())
-        
-        // TODO: UserDefaults에서 로그인 관련 정보 삭제 (미래 기능 대비: 생체 인증 등)
-        // UserDefaults.standard.removeObject(forKey: "userToken")
-        // UserDefaults.standard.removeObject(forKey: "lastLoginDate")
-        // UserDefaults.standard.removeObject(forKey: "autoLoginEnabled")
-        // UserDefaults.standard.removeObject(forKey: "biometricLoginEnabled")
-        // UserDefaults.standard.synchronize()
-
-        print("🔄 로그아웃 완료 - 사용자 데이터 삭제 및 로그인 화면 이동")
     }
     
     /// 계정 탈퇴 성공 처리
@@ -397,8 +341,7 @@ final class MyPageViewModel: ViewModelProtocol {
         UserDefaults.standard.removeObject(forKey: "userToken")
         UserDefaults.standard.removeObject(forKey: "lastLoginDate")
         UserDefaults.standard.synchronize()
-        
+        state.toastMessage.accept("계정이 성공적으로 삭제되었습니다.")
         state.shouldNavigateToLogin.accept(())
-        print("🗑️ 계정 탈퇴 완료 - 모든 사용자 데이터 삭제 및 로그인 화면 이동")
     }
 }

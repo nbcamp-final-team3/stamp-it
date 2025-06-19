@@ -28,7 +28,7 @@ extension UserFirestore {
         return StampIt_Project.User(
             userID: self.userId,
             nickname: self.nickname,
-            profileImageURL: self.profileImage,
+            profileImage: self.profileImage,
             boards: [],  // 별도 로직에서 처리
             groupID: self.groupId,
             groupName: "", // 별도 조회 필요
@@ -45,7 +45,7 @@ extension UserFirestore {
         return StampIt_Project.User(
             userID: self.userId,
             nickname: self.nickname,
-            profileImageURL: self.profileImage,
+            profileImage: self.profileImage,
             boards: [],
             groupID: self.groupId,
             groupName: groupName,
@@ -61,7 +61,7 @@ extension User {
         return UserFirestore(
             userId: self.userID,
             nickname: self.nickname,
-            profileImage: self.profileImageURL,
+            profileImage: self.profileImage,
             groupId: self.groupID,
             nicknameChangedAt: Timestamp(date: Date()), // 현재 시간으로 설정
             createdAt: Timestamp(date: self.joinedGroupAt)

@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		783429D62DF965A0007081C3 /* RxTest in Frameworks */ = {isa = PBXBuildFile; productRef = 783429D52DF965A0007081C3 /* RxTest */; };
-		783A874D2DF02CE40095BF4E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 783A874C2DF02CE40095BF4E /* Kingfisher */; };
 		783A87502DF02CEE0095BF4E /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 783A874F2DF02CEE0095BF4E /* Then */; };
 		783A87532DF02CFA0095BF4E /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 783A87522DF02CFA0095BF4E /* SnapKit */; };
 		783A87562DF02D100095BF4E /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 783A87552DF02D100095BF4E /* RxCocoa */; };
@@ -93,7 +92,6 @@
 				783A87582DF02D100095BF4E /* RxRelay in Frameworks */,
 				783A88532DF1506C0095BF4E /* FirebaseDatabase in Frameworks */,
 				783A87532DF02CFA0095BF4E /* SnapKit in Frameworks */,
-				783A874D2DF02CE40095BF4E /* Kingfisher in Frameworks */,
 				783A87562DF02D100095BF4E /* RxCocoa in Frameworks */,
 				783A885D2DF1506C0095BF4E /* FirebaseStorage in Frameworks */,
 				783A87502DF02CEE0095BF4E /* Then in Frameworks */,
@@ -160,7 +158,6 @@
 			);
 			name = "StampIt-Project";
 			packageProductDependencies = (
-				783A874C2DF02CE40095BF4E /* Kingfisher */,
 				783A874F2DF02CEE0095BF4E /* Then */,
 				783A87522DF02CFA0095BF4E /* SnapKit */,
 				783A87552DF02D100095BF4E /* RxCocoa */,
@@ -260,7 +257,6 @@
 			mainGroup = 783A870B2DF02CA80095BF4E;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				783A874B2DF02CE40095BF4E /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				783A874E2DF02CEE0095BF4E /* XCRemoteSwiftPackageReference "Then" */,
 				783A87512DF02CFA0095BF4E /* XCRemoteSwiftPackageReference "SnapKit" */,
 				783A87542DF02D100095BF4E /* XCRemoteSwiftPackageReference "RxSwift" */,
@@ -348,11 +344,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "StampIt-Project/StampIt-Project.entitlements";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 373K7546A3;
+				DEVELOPMENT_TEAM = 373K7546A3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";
@@ -369,8 +363,6 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.by.Family-Stamp-It-Project";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = FamilyStampItProfile;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -386,11 +378,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "StampIt-Project/StampIt-Project.entitlements";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 373K7546A3;
+				DEVELOPMENT_TEAM = 373K7546A3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "스탬프잇";
@@ -407,8 +397,6 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.by.Family-Stamp-It-Project";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = FamilyStampItProfile;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -653,14 +641,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		783A874B2DF02CE40095BF4E /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.3.2;
-			};
-		};
 		783A874E2DF02CEE0095BF4E /* XCRemoteSwiftPackageReference "Then" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/devxoul/Then.git";
@@ -716,11 +696,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 783A87542DF02D100095BF4E /* XCRemoteSwiftPackageReference "RxSwift" */;
 			productName = RxTest;
-		};
-		783A874C2DF02CE40095BF4E /* Kingfisher */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 783A874B2DF02CE40095BF4E /* XCRemoteSwiftPackageReference "Kingfisher" */;
-			productName = Kingfisher;
 		};
 		783A874F2DF02CEE0095BF4E /* Then */ = {
 			isa = XCSwiftPackageProductDependency;

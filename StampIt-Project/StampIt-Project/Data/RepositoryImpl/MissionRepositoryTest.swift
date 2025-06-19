@@ -55,7 +55,7 @@ final class MissionRepositoryTest: MissionRepository {
     // 유저 더미 데이터 반환
     func getCurrentUser() -> Observable<User?> {
         return Observable.create { observer in
-            let user = User(userID: "dummyUserID", nickname: "dummyNickname", profileImageURL: "www.dummyURL.com", boards: [], groupID: "dummyGroupID", groupName: "dummyGroupName", isLeader: false, joinedGroupAt: Date())
+            let user = User(userID: "dummyUserID", nickname: "dummyNickname", profileImage: "www.dummyURL.com", boards: [], groupID: "dummyGroupID", groupName: "dummyGroupName", isLeader: false, joinedGroupAt: Date())
             
             observer.onNext(user)
             observer.onCompleted()

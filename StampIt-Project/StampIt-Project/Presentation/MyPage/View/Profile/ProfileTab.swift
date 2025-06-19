@@ -8,7 +8,6 @@
 import UIKit
 import Then
 import SnapKit
-import Kingfisher
 
 final class ProfileTab: UIView {
     
@@ -22,9 +21,11 @@ final class ProfileTab: UIView {
     }
     
     private let profileImageView = UIImageView().then {
-        $0.contentMode = .scaleAspectFill
+        $0.contentMode = .center
         $0.clipsToBounds = true
-        $0.backgroundColor = .neutralGray300
+        $0.backgroundColor = .white
+        $0.layer.borderWidth = 1
+        $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.cornerRadius = MyPage.User.profileImageSize / 2
     }
     
@@ -138,9 +139,9 @@ final class ProfileTab: UIView {
     // MARK: - Methods
     
     func setUser(_ user: User) {
-        guard let urlString = user.profileImageURL,
-              let url = URL(string: urlString) else { return }
-        profileImageView.kf.setImage(with: url)
+        let imageName = user.profileImage ?? "profileImage1"
+        profileImageView.image = UIImage(named: imageName) ?? .profileImage1
+
         groupLable.text = user.groupName
         userLabel.text = user.nickname
     }

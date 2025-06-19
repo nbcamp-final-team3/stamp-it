@@ -10,7 +10,7 @@ import Foundation
 struct User {
     let userID: String
     let nickname: String
-    let profileImageURL: String?
+    let profileImage: String?
     let boards: [StickerBoard]
     let groupID: String
     let groupName: String
