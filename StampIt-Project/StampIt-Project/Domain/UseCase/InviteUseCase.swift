@@ -12,5 +12,5 @@ protocol InviteUseCase {
     /// 초대 코드 확인 메서드
     func acceptInvite(inviteCode: String) -> Observable<Invitation>
     /// 초대코드 생성 메서드
-    func sequenceCreateCode() -> Observable<String>
+    func getInviteCode() -> Observable<String>
 }
