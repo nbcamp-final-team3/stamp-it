@@ -29,7 +29,7 @@ final class ReceiveInviteViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "초대하기"))
+    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "초대받기"))
 
     private let imageView = UIImageView().then {
         $0.image = UIImage(named: "MascotCharacterGroup")
@@ -167,35 +167,19 @@ final class ReceiveInviteViewController: UIViewController {
 
         viewModel.state.didCompleteInvite
             .bind(with: self) { owner, _ in
-                guard let tabBarController = owner.tabBarController else { return }
+                let container = DIContainer.shared
 
                 // 홈 탭으로 전환
-                tabBarController.selectedIndex = TabItem.home.index
+                let tabBarController = MainTabBarController(container: container)
+                tabBarController.selectedIndex = 0
 
+                WindowTransitionManager.shared.changeRootViewController(to: tabBarController, duration: 0.15)
                 // 현재 navigation stack에서 pop
                 owner.navigationController?.popToRootViewController(animated: true)
+                //스택에 쌓인 루트 뷰를 안보여주고 없애는 법
+
             }
             .disposed(by: disposeBag)
-
-        // 탭바 코디네이터를 쓰게 된다면 이렇게
-        /*
-         viewModel.state.didCompleteInvite
-             .bind(with: self) { owner, _ in
-                 // 1. 탭바 Coordinator를 가져온다 (DI or 싱글톤)
-                 guard let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate,
-                       let tabBarCoordinator = sceneDelegate.appCoordinator?.tabBarCoordinator else {
-                     return
-                 }
-
-                 // 2. 홈 탭으로 전환
-                 tabBarCoordinator.switchTo(.home)
-
-                 // 3. 탭바를 루트로 교체 (네비 스택 제거)
-                 sceneDelegate.window?.rootViewController = tabBarCoordinator.tabBarController
-             }
-             .disposed(by: disposeBag)
-
-         */
     }
 }
 
