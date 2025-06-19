@@ -35,6 +35,8 @@ final class MissionListViewController: UIViewController {
     
     private let headerView = HeaderView()
     
+    private let toastView = ToastView()
+    
     private let viewModel: MissionListViewModel
     private let disposeBag = DisposeBag()
     
@@ -66,12 +68,6 @@ final class MissionListViewController: UIViewController {
         
         // 미션 샘플 데이터 로드
         viewModel.action.accept(.onAppear)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        setNavigationBar() // 미션 할당 화면으로 이동 후 복귀 시 내비게이션 라지 타이틀 유지를 위해 필요
     }
     
     private func prepareSubviews() {
@@ -194,6 +190,10 @@ final class MissionListViewController: UIViewController {
     // 미션 할당 화면으로 이동
     private func pushAssignMissionViewController(mission: SampleMission) {
         let viewModel = AssignMissionViewModel(mission: mission, missionUseCaseImpl: DIContainer.shared.missionUseCase)
+        viewModel.onSuccess = { [weak self] in
+            guard let self else { return }
+            toastView.show(in: view, duration: 3, message: "미션이 전달되었어요")
+        }
         let viewController = AssignMissionViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)
     }

@@ -29,6 +29,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
     
     var disposeBag = DisposeBag()
     
+    var onSuccess: (() -> Void)? // 새로운 미션이 생성되어 파이어베이스까지 저장 완료되었을 때 호출
+    
     private let mission: SampleMission
     private let missionUseCaseImpl: MissionUseCase
     private var user: User?
@@ -66,8 +68,9 @@ final class AssignMissionViewModel: ViewModelProtocol {
                 case .didTapAssignButton:
                     print("did tap assign button")
                     createMission()
-                        .subscribe {
+                        .subscribe { [weak self] in
                             print("mission created.")
+                            self?.onSuccess?()
                         } onError: { error in
                             print(error)
                         }
