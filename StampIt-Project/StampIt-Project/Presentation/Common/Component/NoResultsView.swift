@@ -54,8 +54,8 @@ final class NoResultsView: UIView {
         config.attributedTitle = styled
 
         // color
-        config.baseBackgroundColor = .red400
-        config.baseForegroundColor = .white
+        config.baseBackgroundColor = .red50
+        config.baseForegroundColor = .red400
 
         config.contentInsets = .init(top: 8, leading: 12, bottom: 8, trailing: 12)
 
