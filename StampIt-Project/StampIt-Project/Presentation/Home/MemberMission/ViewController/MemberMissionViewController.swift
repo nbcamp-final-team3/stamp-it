@@ -41,8 +41,8 @@ final class MemberMissionViewController: UIViewController {
     }
 
     override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         tabBarController?.tabBar.isHidden = false
-        navigationController?.popViewController(animated: false)
     }
 
     // MARK: - Set Styles
@@ -108,6 +108,7 @@ final class MemberMissionViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
                 NavigationManager.shared.switchTab(to: 1, in: owner.tabBarController!)
+                owner.navigationController?.popViewController(animated: false)
             }
             .disposed(by: disposeBag)
     }
