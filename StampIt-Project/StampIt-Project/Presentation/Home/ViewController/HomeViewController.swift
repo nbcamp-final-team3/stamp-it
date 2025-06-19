@@ -103,6 +103,22 @@ final class HomeViewController: UIViewController {
                 owner.showSelectInvitationVC()
             }
             .disposed(by: disposeBag)
+
+        viewModel.state.isPushSendInvitationVC
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, _ in
+                let sendInviteVC = DIContainer.shared.makeSendInviteViewController()
+                owner.navigationController?.pushViewController(sendInviteVC, animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.isPushReceiveInvitationVC
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, _ in
+                let receiveInviteVC = DIContainer.shared.makeReceiveInviteViewController()
+                owner.navigationController?.pushViewController(receiveInviteVC, animated: true)
+            }
+            .disposed(by: disposeBag)
     }
 
     private func bindDashboardView() {
