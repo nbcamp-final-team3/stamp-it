@@ -31,7 +31,20 @@ final class MainTabBarController: UITabBarController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setStyle()
         setupTabs()
+    }
+    
+    // MARK: - Style Helper
+    
+    private func setStyle() {
+        // 상단 경계선
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
+        appearance.shadowColor = .lightGray
+        tabBar.standardAppearance = appearance
+        tabBar.scrollEdgeAppearance = appearance
     }
     
     // MARK: - Methods
