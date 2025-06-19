@@ -11,7 +11,7 @@ import RxSwift
 struct EditProfileUseCaseImpl: EditProfileUseCase {
     private let editProfileRepositoryImpl: EditProfileRepository
     
-    init(editProfileRepositoryImpl: EditProfileRepository = EditProfileRepositoryImpl()) {
+    init(editProfileRepositoryImpl: EditProfileRepository) {
         self.editProfileRepositoryImpl = editProfileRepositoryImpl
     }
     

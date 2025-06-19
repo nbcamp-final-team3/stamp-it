@@ -44,7 +44,7 @@ final class EditProfileViewModel: ViewModelProtocol {
                (newProfileImageName ?? user.profileImageURL) != user.profileImageURL
     }
     
-    init(user: User, editProfileUseCaseImpl: EditProfileUseCase = EditProfileUseCaseImpl()) {
+    init(user: User, editProfileUseCaseImpl: EditProfileUseCase) {
         state.user.accept(user)
         self.editProfileUseCaseImpl = editProfileUseCaseImpl
         

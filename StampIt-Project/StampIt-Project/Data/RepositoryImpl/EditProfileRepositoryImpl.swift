@@ -10,8 +10,8 @@ import RxSwift
 
 final class EditProfileRepositoryImpl: EditProfileRepository {
     private let firestoreManager: FirestoreManagerProtocol
-
-    init(firestoreManager: FirestoreManagerProtocol = FirestoreManager()) {
+    
+    init(firestoreManager: FirestoreManagerProtocol) {
         self.firestoreManager = firestoreManager
     }
     
