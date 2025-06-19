@@ -20,6 +20,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         case viewDidLoad
         case didTapStatusButton(MyMissionItem)
         case didTapCompleteCancelButton
+        case didTapBackButton
     }
 
     struct State {
@@ -27,6 +28,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         let missions = BehaviorRelay<[MyMissionItem]>(value: [])
         let completedMissionTitle = BehaviorRelay<String>(value: "")
         let isShowStickerReceived = PublishRelay<Bool>()
+        let isPopVC = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -61,6 +63,8 @@ final class MyMissionViewModel: ViewModelProtocol {
                     owner.state.completedMissionTitle.accept(item.mission!.title)
                 case .didTapCompleteCancelButton:
                     owner.cancelMissionComplete()
+                case .didTapBackButton:
+                    owner.state.isPopVC.accept(())
                 }
             }
             .disposed(by: disposeBag)
