@@ -18,6 +18,7 @@ final class StampBoard: UIView {
         collectionViewLayout: createCompositionalLayout()
     ).then {
         $0.register(StampCell.self, forCellWithReuseIdentifier: StampCell.identifier)
+        $0.backgroundColor = .red50
         $0.isScrollEnabled = false
     }
     
