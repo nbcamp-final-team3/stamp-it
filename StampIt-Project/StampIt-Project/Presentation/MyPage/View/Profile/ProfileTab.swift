@@ -138,8 +138,6 @@ final class ProfileTab: UIView {
     // MARK: - Methods
     
     func setUser(_ user: User) {
-        print("🔍 ProfileTab setUser 호출: \(user.nickname)")
-
         let imageName = user.profileImageURL ?? "profileImage1"
         profileImageView.image = UIImage(named: imageName) ?? .profileImage1
 

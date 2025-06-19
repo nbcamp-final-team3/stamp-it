@@ -395,26 +395,69 @@ extension AuthRepository {
     }
     
     // MARK: - 계정 탈퇴
-    /// 계정 완전 삭제 (Firestore → Auth 순서, 무한 재시도)
-        func deleteAccount() -> Observable<Void> {
-            return getCurrentUser()
-                .compactMap { $0 }
-                .flatMap { [weak self] user -> Observable<Void> in
-                    guard let self = self else {
-                        return Observable.error(RepositoryError.unknownError)
-                    }
-                                        
-                    // 1단계: Firestore 데이터 완전 삭제 (무한 재시도)
-                    return self.deleteFirestoreDataUntilSuccess(user: user)
-                        .flatMap { _ -> Observable<Void> in
-                            // 2단계: Firebase Auth 계정 삭제 (무한 재시도)
-                            return self.deleteAuthAccountUntilSuccess()
-                        }
-                        .do(onNext: {
-                            print("✅ 계정 완전 삭제 성공")
-                        })
+    /// 애플 providerID 체크
+    private func getCurrentProviderID() -> String? {
+        return authManager.getCurrentUser()?.providerData.first?.providerID
+    }
+    
+    /// 계정 완전 삭제 (Firestore → Auth 순서, 재시도 10회)
+    func deleteAccount() -> Observable<Void> {
+        return getCurrentUser()
+            .compactMap { $0 }
+            .flatMap { [weak self] user -> Observable<Void> in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
                 }
+                let providerID = self.getCurrentProviderID()
+                if providerID == "apple.com" {
+                    // 애플: 10회까지만 시도 후, 실패 시 재인증 필요
+                    return self.deleteFirestoreDataUntilSuccess(user: user)
+                        .flatMap { _ in
+                            self.deleteAuthAccountWithLimitedRetry(maxRetry: 10)
+                        }
+                } else {
+                    // 구글 등: 기존 무한 재시도
+                    return self.deleteFirestoreDataUntilSuccess(user: user)
+                        .flatMap { _ in
+                            self.deleteAuthAccountUntilSuccess()
+                        }
+                }
+            }
+    }
+    
+    private func deleteAuthAccountWithLimitedRetry(maxRetry: Int) -> Observable<Void> {
+        return Observable.create { [weak self] observer in
+            guard let self = self else {
+                observer.onError(RepositoryError.unknownError)
+                return Disposables.create()
+            }
+            var retryCount = 0
+            func attemptDelete() {
+                self.authManager.deleteAccount()
+                    .subscribe(
+                        onNext: {
+                            observer.onNext(())
+                            observer.onCompleted()
+                        },
+                        onError: { error in
+                            retryCount += 1
+                            if retryCount >= maxRetry {
+                                // 10회 초과 시 재인증 필요 에러 반환
+                                observer.onError(RepositoryError.authenticationFailed("애플 계정은 보안상 재인증이 필요합니다. 다시 로그인 후 탈퇴해주세요."))
+                            } else {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                    attemptDelete()
+                                }
+                            }
+                        }
+                    )
+                    .disposed(by: self.disposeBag)
+            }
+            attemptDelete()
+            return Disposables.create()
         }
+    }
+
         
         // MARK: - Firestore 데이터 완전 삭제 (무한 재시도)
         private func deleteFirestoreDataUntilSuccess(user: User) -> Observable<Void> {
