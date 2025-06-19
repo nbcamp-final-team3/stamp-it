@@ -78,6 +78,8 @@ final class AssignMissionViewController: UIViewController {
         $0.isEnabled = false
     }
     
+    private let toastView = ToastView()
+    
     private let viewModel: AssignMissionViewModel
     private let disposeBag = DisposeBag()
     
@@ -264,6 +266,11 @@ final class AssignMissionViewController: UIViewController {
     
     // 멤버 선택 버튼을 누르면 드랍다운으로 멤버 리스트를 보여줌. 다시 누르면 닫음.
     @objc private func dropdown() {
+        if viewModel.state.members.value.isEmpty {
+            toastView.show(in: view, duration: 3, message: "미션을 줄 멤버가 없습니다")
+            return
+        }
+        
         isDropdown.toggle()
         
         if isDropdown {

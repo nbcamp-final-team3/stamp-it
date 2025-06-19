@@ -1,0 +1,122 @@
+[
+  {
+    "missionId": "health_001",
+    "title": "함께 실내 스트레칭 10분 하기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "health_002",
+    "title": "서로 돌아가며 마사지 해주기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "health_003",
+    "title": "공원이나 동네 한 바퀴 산책하기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "health_004",
+    "title": "건강한 식단으로 한 끼 요리하고 함께 먹기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "health_005",
+    "title": "운동 영상 보며 따라 하기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "health_006",
+    "title": "수분 섭취 체크하고 목표량 채우기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "health_007",
+    "title": "집안일 하며 30분 이상 몸 움직이기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "health_008",
+    "title": "걷기 목표 설정하고 같이 달성해보기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "health_009",
+    "title": "하루 건강 실천 항목 정하고 서로 점검해주기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "health_010",
+    "title": "간단한 명상이나 호흡 운동 함께 해보기",
+    "missionType": "앱제공",
+    "category": "건강운동"
+  },
+  {
+    "missionId": "study_001",
+    "title": "책 한 권 읽고 감상 나누기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  },
+  {
+    "missionId": "study_002",
+    "title": "각자 읽은 책 소개하기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  },
+  {
+    "missionId": "study_003",
+    "title": "30분 독서 시간 함께 갖기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  },
+  {
+    "missionId": "study_004",
+    "title": "공부 계획표 함께 세우고 공유하기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  },
+  {
+    "missionId": "study_005",
+    "title": "좋은 문장 필사하고 눈에 잘 보이게 붙여두기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  },
+  {
+    "missionId": "study_006",
+    "title": "교양 영상 하나 보고 느낀 점 이야기 나누기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  },
+  {
+    "missionId": "study_007",
+    "title": "공부 공간 정리하고 분위기 바꾸기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  },
+  {
+    "missionId": "study_008",
+    "title": "퀴즈나 단어 맞히기 게임 즐기기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  },
+  {
+    "missionId": "study_009",
+    "title": "서로에게 새로 배운 지식 설명해주기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  },
+  {
+    "missionId": "study_010",
+    "title": "하나의 주제로 각자 글 써서 함께 읽기",
+    "missionType": "앱제공",
+    "category": "독서학습"
+  }
+]
