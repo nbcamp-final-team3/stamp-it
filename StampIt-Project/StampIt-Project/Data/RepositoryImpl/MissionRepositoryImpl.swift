@@ -29,7 +29,8 @@ final class MissionRepositoryImpl: MissionRepository {
             do {
                 let houses: [SampleMission] = try load("house+category.json")
                 let families: [SampleMission] = try load("family+category.json")
-                single(.success(houses + families))
+                let healthAndLearning: [SampleMission] = try load("health+learning+category.json")
+                single(.success(houses + families + healthAndLearning))
             } catch {
                 single(.failure(error))
             }
