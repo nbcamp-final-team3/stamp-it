@@ -37,6 +37,7 @@ protocol FirestoreManagerProtocol {
     // Member 관련
     func fetchMembers(groupId: String) -> Observable<[MemberFirestore]>
     func addMember(groupId: String, member: MemberFirestore) -> Observable<Void>
+    func updateMember(groupId: String, userId: String, query: [String: String]) -> Observable<Void>
     func removeMember(groupId: String, userId: String) -> Observable<Void>
     func updateMemberLeaderStatus(groupId: String, userId: String, isLeader: Bool) -> Observable<Void>
     func fetchOldestMember(groupId: String, excludeUserId: String) -> Observable<MemberFirestore> // TODO: 리더 위임 이후 삭제 예정
@@ -533,7 +534,22 @@ extension FirestoreManager {
             return Disposables.create()
         }
     }
-    
+
+    /// 멤버 정보 업데이트
+    func updateMember(groupId: String, userId: String, query: [String: String]) -> Observable<Void> {
+        return Observable.create { observer in
+            self.membersCollection(groupId: groupId).document(userId).updateData(query) { error in
+                if let error = error {
+                    observer.onError(error)
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
+    }
+
     /// 그룹에서 멤버 제거(내보내기, 그룹 탈퇴)
     func removeMember(groupId: String, userId: String) -> Observable<Void> {
         return Observable.create { observer in
@@ -1124,8 +1140,8 @@ extension FirestoreManager {
         groupId: String,
         missionTitle: String,
         maxStickers: Int,
-        stickerType: String = "일반",
-        assignedBy: String
+        stickerType: String,
+        assignedBy: String,
     ) -> Observable<Void> {
         return fetchStickerCount(userId: userId)
             .flatMap { [weak self] currentCount -> Observable<Void> in

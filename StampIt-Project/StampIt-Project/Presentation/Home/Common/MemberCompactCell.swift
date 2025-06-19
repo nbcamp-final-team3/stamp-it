@@ -140,8 +140,7 @@ final class MemberCompactCell: UICollectionViewCell {
 
     func configureCell(with member: HomeMember, type: CellType) {
         self.type = type
-        // TODO: member에 저장된 이미지로 변경하기
-        profileImageView.image = .mascotRed
+        setProfileImage(imageName: member.profileImage)
         nameLabel.text = member.nickname
         stickerCountLabel.text = member.stickerCount
         handleRank(rank: member.rank)
@@ -161,6 +160,10 @@ final class MemberCompactCell: UICollectionViewCell {
         imageContainerView.layer.borderWidth = borderWidth
         imageContainerView.layer.opacity = opacity
         nameLabel.textColor = nameTextColor
+    }
+
+    private func setProfileImage(imageName: String?) {
+        profileImageView.image = UIImage(named: imageName ?? "mascotRed") ?? .mascotRed
     }
 }
 

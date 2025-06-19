@@ -31,8 +31,11 @@ final class MissionListViewController: UIViewController {
         $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
     }
     
-    private let noResultsView = NoResultsView()
-    
+    private let noResultsView = NoResultsView().then {
+        $0.configureContent(title: "검색 결과가 없어요", description: "다른 검색어로 검색해보세요")
+        $0.updateContainerTopInset(105)
+    }
+
     private let headerView = HeaderView()
     
     private let toastView = ToastView()

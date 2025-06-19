@@ -10,7 +10,7 @@ import Foundation
 struct Member {
     let userID: String
     let nickname: String
-    let profileImageURL: String?
+    let profileImage: String?
     let monthSticker: Int
     let joinedAt: Date
     let isLeader: Bool

@@ -15,6 +15,7 @@ final class MemberMissionView: UIView {
 
     // MARK: - Properties
 
+    let didTapSendMissionButton = PublishRelay<Void>()
     private let disposeBag = DisposeBag()
     private var dataSource: UICollectionViewDiffableDataSource<MemberMissionSection, MemberMissionItem>?
 
@@ -28,6 +29,12 @@ final class MemberMissionView: UIView {
             AssignedMissionCell.self,
             forCellWithReuseIdentifier: AssignedMissionCell.identifier
         )
+    }
+    
+    private let noResultsView = NoResultsView().then {
+        $0.configureContent(title: "아직 전달한 미션이 없어요", withButton: true)
+        $0.updateContainerTopInset(217)
+        $0.isHidden = true
     }
 
     // MARK: - Init
@@ -50,6 +57,7 @@ final class MemberMissionView: UIView {
     private func setHierarchy() {
         [
             collectionView,
+            noResultsView,
         ].forEach { addSubview($0) }
     }
 
@@ -59,6 +67,10 @@ final class MemberMissionView: UIView {
         collectionView.snp.makeConstraints { make in
             make.top.equalTo(safeAreaLayoutGuide)
             make.directionalHorizontalEdges.bottom.equalToSuperview()
+        }
+
+        noResultsView.snp.makeConstraints { make in
+            make.edges.equalTo(collectionView)
         }
     }
 
@@ -87,16 +99,23 @@ final class MemberMissionView: UIView {
     // MARK: - Bind
 
     private func bind() {
+        noResultsView.didTapSendMissionButton
+            .bind(to: didTapSendMissionButton)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods
 
     func updateSnapshot(withItems items: [MemberMissionItem], toSection section: MemberMissionSection) {
+        #if DEBUG
+        let items = [MemberMissionItem]()
+        #endif
         guard var snapshot = dataSource?.snapshot() else { return }
         let itemsToDelete = snapshot.itemIdentifiers(inSection: section)
         snapshot.deleteItems(itemsToDelete)
         snapshot.appendItems(items)
         dataSource?.apply(snapshot, animatingDifferences: false)
+        noResultsView.isHidden = !items.isEmpty
     }
 
     private func createLayout() -> UICollectionViewLayout {

@@ -15,8 +15,8 @@ protocol EditProfileRepository {
     ///   - nickname: 새로운 닉네임
     ///   - changedAt: 닉네임 변경 시기
     /// - Returns: Observable(Void)
-    func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void>
-    
+    func updateUserNickname(userId: String, groupId: String, nickname: String, changedAt: Date) -> Observable<Void>
+
     /// 그룹명 업데이트: 그룹장만 가능(User 정보 중 isLeader == true)
     /// - Parameters:
     ///   - groupId: 그룹 ID 정보
@@ -30,5 +30,5 @@ protocol EditProfileRepository {
     ///   - userId: 유저 ID 정보
     ///   - imageName: 새로운 이미지 에셋 이름
     /// - Returns: Observable(Void)
-    func updateProfileImage(userId: String, imageName: String) -> Observable<Void>
+    func updateProfileImage(userId: String, groupId: String, imageName: String) -> Observable<Void>
 }

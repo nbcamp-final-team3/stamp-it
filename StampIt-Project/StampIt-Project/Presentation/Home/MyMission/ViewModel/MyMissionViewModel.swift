@@ -20,6 +20,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         case viewDidLoad
         case didTapStatusButton(MyMissionItem)
         case didTapCompleteCancelButton
+        case didTapBackButton
     }
 
     struct State {
@@ -27,6 +28,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         let missions = BehaviorRelay<[MyMissionItem]>(value: [])
         let completedMissionTitle = BehaviorRelay<String>(value: "")
         let isShowStickerReceived = PublishRelay<Bool>()
+        let isPopVC = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -61,6 +63,8 @@ final class MyMissionViewModel: ViewModelProtocol {
                     owner.state.completedMissionTitle.accept(item.mission!.title)
                 case .didTapCompleteCancelButton:
                     owner.cancelMissionComplete()
+                case .didTapBackButton:
+                    owner.state.isPopVC.accept(())
                 }
             }
             .disposed(by: disposeBag)
@@ -107,8 +111,8 @@ final class MyMissionViewModel: ViewModelProtocol {
                     groupId: user.groupID,
                     missionTitle: mission.title,
                     maxSticker: 30, // TODO: pin 번호 계산용
-                    stickerType: "일반", // TODO: 스티커 타입 결정 로직 추가
-                    assignedBy: mission.assignedBy
+                    stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
+                    assignedBy: mission.assignedBy,
                 )
             }
             .subscribe()

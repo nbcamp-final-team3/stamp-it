@@ -36,10 +36,10 @@ final class GroupOrganizationView: UIView {
 
     private let contentLabel = UILabel().then {
         $0.setTextWithLineHeight(
-            text: "현재 그룹 구성원이 없어요!\n미션을 클리어할 수 있도록 그룹을 구성해보세요",
-            lineHeight: 21
+            text: "현재 그룹 구성원이 없어요\n미션을 클리어할 수 있도록 그룹을 구성해보세요!",
+            lineHeight: 24
         )
-        $0.font = .pretendard(size: 14, weight: .medium)
+        $0.font = .pretendard(size: 16, weight: .medium)
         $0.textColor = ._1_E_1_E_1_E
         $0.numberOfLines = 2
         $0.textAlignment = .center
@@ -94,7 +94,7 @@ final class GroupOrganizationView: UIView {
         groupButton.snp.makeConstraints { make in
             make.top.equalTo(contentLabel.snp.bottom).offset(16)
             make.centerX.equalToSuperview()
-            make.height.equalTo(36)
+            make.height.equalTo(44)
             make.bottom.equalToSuperview().inset(28)
         }
     }

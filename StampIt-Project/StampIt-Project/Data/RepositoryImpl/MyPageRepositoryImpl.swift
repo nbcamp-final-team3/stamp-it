@@ -8,21 +8,12 @@
 import Foundation
 import RxSwift
 
-final class MyPageRepositoryImpl:
-    MyPageRepository {
-    
+final class MyPageRepositoryImpl: MyPageRepository {
+
     private var firestoreManager: FirestoreManagerProtocol
     
     init(firestoreManager: FirestoreManagerProtocol) {
         self.firestoreManager = firestoreManager
-    }
-    
-    func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void> {
-        firestoreManager.updateUserNickname(
-            userId: userId,
-            nickname: nickname,
-            changedAt: changedAt
-        )
     }
     
     func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[Sticker]> {

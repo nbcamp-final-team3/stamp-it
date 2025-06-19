@@ -31,7 +31,7 @@ final class HomeView: UIView {
     }
 
     private let groupDashboardView = GroupDashboardView().then {
-        $0.isHidden = false
+        $0.isHidden = true
     }
 
     // MARK: - Init
@@ -61,7 +61,7 @@ final class HomeView: UIView {
 
     private func setConstraints() {
         groupOrganizationView.snp.makeConstraints { make in
-            make.top.equalTo(safeAreaLayoutGuide).inset(16)
+            make.top.equalTo(safeAreaLayoutGuide)
             make.directionalHorizontalEdges.bottom.equalToSuperview()
         }
 

@@ -9,7 +9,6 @@ import Foundation
 import RxSwift
 
 protocol MyPageRepository {
-    func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void>
     func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[Sticker]>
     func fetchStickerCount(userId: String) -> Observable<Int>
 }

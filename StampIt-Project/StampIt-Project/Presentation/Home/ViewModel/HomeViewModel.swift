@@ -111,6 +111,9 @@ final class HomeViewModel: ViewModelProtocol {
           }
           .subscribe(onNext: { [weak self] members in
               guard let self = self else { return }
+
+              state.isShowGroupOrganizationView.accept(members.count == 1)
+
               self.memberCache = Dictionary(
                 uniqueKeysWithValues: members.map { ($0.userID, $0) }
               )
@@ -211,8 +214,8 @@ final class HomeViewModel: ViewModelProtocol {
                     groupId: user.groupID,
                     missionTitle: mission.title,
                     maxSticker: 30, // TODO: pin 번호 계산용
-                    stickerType: "일반", // TODO: 스티커 타입 결정 로직 추가
-                    assignedBy: mission.assignedBy
+                    stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
+                    assignedBy: mission.assignedBy,
                 )
             }
             .subscribe()
@@ -255,7 +258,7 @@ final class HomeViewModel: ViewModelProtocol {
                 nickname: member.nickname,
                 stickerCount: "\(member.monthSticker)개",
                 rank: index + 1,
-                profileImageURL: member.profileImageURL
+                profileImage: member.profileImage
             )
             return HomeItem.member(member)
         }
