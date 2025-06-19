@@ -26,6 +26,7 @@ final class AssignMissionViewController: UIViewController {
     
     // 멤버 선택 버튼
     private lazy var memberSelectionButton = UIButton().then {
+        $0.titleLabel?.numberOfLines = 1
         $0.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray800)
         $0.addTarget(self, action: #selector(dropdown), for: .touchUpInside)
     }
@@ -233,6 +234,7 @@ final class AssignMissionViewController: UIViewController {
         configuration.baseForegroundColor = .gray800
         configuration.cornerStyle = .medium
         configuration.title = title
+        configuration.titleLineBreakMode = .byTruncatingTail
         
         // 폰트 및 폰트 색상 설정
         let font = UIFont.pretendard(size: 16, weight: .regular)

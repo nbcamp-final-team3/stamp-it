@@ -23,6 +23,8 @@ final class MissionListCell: UITableViewCell {
         contentView.addSubview(label)
         
         setConstraints()
+        
+        selectionStyle = .none
     }
     
     required init?(coder: NSCoder) {
