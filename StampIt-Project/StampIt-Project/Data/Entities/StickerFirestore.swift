@@ -34,7 +34,7 @@ extension StickerFirestore {
             title: self.missionTitle,
             description: self.missionTitle, // 현재는 동일
             imageURL: "",
-            type: StickerType(rawValue: self.type) ?? .stampGray,
+            type: StickerType(rawValue: self.type) ?? .stampRed,
             createdAt: self.createdAt.dateValue(),
             maxStickers: self.maxStickers,
             pinNumber: self.pinNumber,
