@@ -195,7 +195,7 @@ final class MissionListViewController: UIViewController {
         let viewModel = AssignMissionViewModel(mission: mission, missionUseCaseImpl: DIContainer.shared.missionUseCase)
         viewModel.onSuccess = { [weak self] in
             guard let self else { return }
-            toastView.show(in: view, duration: 3, message: "미션이 전달되었어요")
+            toastView.show(in: view, duration: 3, message: "미션이 전달되었어요", type: .success)
         }
         let viewController = AssignMissionViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)

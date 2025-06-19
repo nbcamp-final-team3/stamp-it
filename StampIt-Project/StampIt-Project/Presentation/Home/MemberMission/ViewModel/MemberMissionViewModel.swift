@@ -78,43 +78,20 @@ final class MemberMissionViewModel: ViewModelProtocol {
 
     private func mapMissionsToMemberMissionItems(_ missions: [Mission]) -> [MemberMissionItem] {
         missions.map { mission in
-            let assigner = memberCache[mission.assignedBy]?.nickname ?? mission.assignedBy
+            let assignee = memberCache[mission.assignedTo]?.nickname ?? mission.assignedTo
             let (isOverdue, daysLeft) = formatOverdueAndDays(from: mission.dueDate)
             let missionItem = HomeSendedMission(
                 missionID: mission.missionID,
                 title: mission.title,
                 category: mission.category,
                 dueDate: mission.dueDate.toMonthDayString(),
-                assignee: assigner,
+                assignee: assignee,
                 status: mission.status,
                 isOverdue: isOverdue,
                 daysLeft: daysLeft
             )
             return MemberMissionItem.mission(missionItem)
         }
-    }
-
-    /// UI에서 미션 업데이트
-    private func updateMissionItem(missionID: String) {
-        let items = state.missions.value
-        let updated = items.map { item in
-            let mission = item.mission!
-            if mission.missionID == missionID {
-                let updated = HomeSendedMission(
-                    missionID: mission.missionID,
-                    title: mission.title,
-                    category: mission.category,
-                    dueDate: mission.dueDate,
-                    assignee: mission.assignee,
-                    status: .completed,
-                    isOverdue: mission.isOverdue,
-                    daysLeft: mission.daysLeft
-                )
-                return MemberMissionItem.mission(updated)
-            }
-            return item
-        }
-        state.missions.accept(updated)
     }
 
     private func isNew(createDate: Date) -> Bool {
