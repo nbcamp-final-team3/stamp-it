@@ -402,9 +402,7 @@ extension AuthRepository {
                     guard let self = self else {
                         return Observable.error(RepositoryError.unknownError)
                     }
-                    
-                    print("🔥 계정 완전 삭제 시작: \(user.userID)")
-                    
+                                        
                     // 1단계: Firestore 데이터 완전 삭제 (무한 재시도)
                     return self.deleteFirestoreDataUntilSuccess(user: user)
                         .flatMap { _ -> Observable<Void> in
@@ -429,12 +427,10 @@ extension AuthRepository {
                     self.deleteFirestoreDataByUserType(user: user)
                         .subscribe(
                             onNext: {
-                                print("✅ Firestore 데이터 삭제 성공")
                                 observer.onNext(())
                                 observer.onCompleted()
                             },
                             onError: { error in
-                                print("⚠️ Firestore 데이터 삭제 실패, 2초 후 재시도: \(error)")
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                                     attemptDelete()
                                 }
@@ -490,9 +486,7 @@ extension AuthRepository {
                     observer.onError(RepositoryError.unknownError)
                     return Disposables.create()
                 }
-                
-                print("🔥 1인 그룹 완전 삭제: \(groupId)")
-                
+                                
                 // 모든 데이터 한 번에 삭제
                 Observable.zip(
                     self.firestoreManager.deleteGroup(groupId: groupId),
@@ -505,7 +499,6 @@ extension AuthRepository {
                 )
                 .subscribe(
                     onNext: { _ in
-                        print("✅ 1인 그룹 완전 삭제 성공")
                         observer.onNext(())
                         observer.onCompleted()
                     },
@@ -526,9 +519,7 @@ extension AuthRepository {
                     guard let self = self else {
                         return Observable.error(RepositoryError.unknownError)
                     }
-                    
-                    print("🔥 리더 위임 후 탈퇴: \(userId) → \(newLeader.userId)")
-                    
+                                        
                     // 리더 위임 + 개인 데이터 삭제
                     return Observable.zip(
                         self.firestoreManager.updateGroupLeader(groupId: groupId, newLeaderId: newLeader.userId),
@@ -545,7 +536,6 @@ extension AuthRepository {
         
         // MARK: - 일반 멤버 삭제
         private func deleteRegularMember(userId: String, groupId: String) -> Observable<Void> {
-            print("🔥 일반 멤버 데이터 삭제: \(userId)")
             
             return Observable.zip(
                 firestoreManager.removeMember(groupId: groupId, userId: userId),
@@ -569,12 +559,10 @@ extension AuthRepository {
                     self.authManager.deleteAccount()
                         .subscribe(
                             onNext: {
-                                print("✅ Firebase Auth 삭제 성공")
                                 observer.onNext(())
                                 observer.onCompleted()
                             },
                             onError: { error in
-                                print("⚠️ Firebase Auth 삭제 실패, 2초 후 재시도: \(error)")
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                                     attemptAuthDelete()
                                 }

@@ -76,11 +76,9 @@ final class MyPageViewModel: ViewModelProtocol {
     }
     
     private func bindUser() {
-        print("🔍 사용자 정보 조회 시작")
         myPageUseCase.fetchUser()
             .observe(on: MainScheduler.instance)
             .subscribe(with: self) { owner, user in
-                print("🔍 사용자 정보 받음: \(user?.nickname ?? "nil")")
                 owner.state.user.accept(user)
                 owner.bindStickerSummaryData()
             }.disposed(by: disposeBag)
@@ -340,8 +338,6 @@ final class MyPageViewModel: ViewModelProtocol {
         // UserDefaults.standard.removeObject(forKey: "autoLoginEnabled")
         // UserDefaults.standard.removeObject(forKey: "biometricLoginEnabled")
         // UserDefaults.standard.synchronize()
-
-        print("🔄 로그아웃 완료 - 사용자 데이터 삭제 및 로그인 화면 이동")
     }
     
     /// 계정 탈퇴 성공 처리
@@ -354,6 +350,5 @@ final class MyPageViewModel: ViewModelProtocol {
         UserDefaults.standard.synchronize()
         
         state.shouldNavigateToLogin.accept(())
-        print("🗑️ 계정 탈퇴 완료 - 모든 사용자 데이터 삭제 및 로그인 화면 이동")
     }
 }
