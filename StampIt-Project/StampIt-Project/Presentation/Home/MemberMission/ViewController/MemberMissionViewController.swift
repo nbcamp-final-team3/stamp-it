@@ -40,6 +40,11 @@ final class MemberMissionViewController: UIViewController {
         bind()
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        tabBarController?.tabBar.isHidden = false
+        navigationController?.popViewController(animated: false)
+    }
+
     // MARK: - Set Styles
 
     private func setStyles() {
@@ -80,6 +85,11 @@ final class MemberMissionViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        memberMissionView.didTapSendMissionButton
+            .map { MemberMissionViewModel.Action.didTapSendMission }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.missions
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
@@ -91,6 +101,13 @@ final class MemberMissionViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
                 owner.navigationController?.popViewController(animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.isMoveToMissionTap
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                NavigationManager.shared.switchTab(to: 1, in: owner.tabBarController!)
             }
             .disposed(by: disposeBag)
     }

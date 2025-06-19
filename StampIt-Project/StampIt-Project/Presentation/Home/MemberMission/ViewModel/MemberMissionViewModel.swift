@@ -19,12 +19,14 @@ final class MemberMissionViewModel: ViewModelProtocol {
     enum Action {
         case viewDidLoad
         case didTapBackButton
+        case didTapSendMission
     }
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
         let missions = BehaviorRelay<[MemberMissionItem]>(value: [])
         let isPopVC = PublishRelay<Void>()
+        let isMoveToMissionTap = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -51,6 +53,8 @@ final class MemberMissionViewModel: ViewModelProtocol {
                 switch action {
                 case .viewDidLoad:
                     owner.fetchMissions()
+                case .didTapSendMission:
+                    owner.state.isMoveToMissionTap.accept(())
                 case .didTapBackButton:
                     owner.state.isPopVC.accept(())
                 }

@@ -15,6 +15,7 @@ final class MemberMissionView: UIView {
 
     // MARK: - Properties
 
+    let didTapSendMissionButton = PublishRelay<Void>()
     private let disposeBag = DisposeBag()
     private var dataSource: UICollectionViewDiffableDataSource<MemberMissionSection, MemberMissionItem>?
 
@@ -98,6 +99,9 @@ final class MemberMissionView: UIView {
     // MARK: - Bind
 
     private func bind() {
+        noResultsView.didTapSendMissionButton
+            .bind(to: didTapSendMissionButton)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods
