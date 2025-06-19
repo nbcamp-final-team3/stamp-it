@@ -26,6 +26,6 @@ protocol InviteRepository {
     /// 그룹 삭제
     func deleteGroup(groupId: String) -> Observable<Void>
     
-    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String) -> Observable<Void>
+    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String, profileImage: String) -> Observable<Void>
 
 }

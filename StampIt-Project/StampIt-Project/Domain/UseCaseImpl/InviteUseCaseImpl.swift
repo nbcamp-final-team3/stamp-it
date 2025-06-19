@@ -64,8 +64,8 @@ final class InviteUseCaseImpl: InviteUseCase {
         inviteRepository.deleteGroup(groupId: groupId)
     }
 
-    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String) -> Observable<Void> {
-        inviteRepository.switchUserGroup(userId: userId, fromGroupId: fromGroupId, toGroupId: toGroupId, userNickname: userNickname)
+    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String, profileImage: String) -> Observable<Void> {
+        inviteRepository.switchUserGroup(userId: userId, fromGroupId: fromGroupId, toGroupId: toGroupId, userNickname: userNickname, profileImage: profileImage)
     }
 
     /// 초대코드를 받아서 해당 그룹에 새 멤버를 추가하는 코드
@@ -91,17 +91,32 @@ final class InviteUseCaseImpl: InviteUseCase {
                 guard let self = self else { return .empty() }
 
                 return self.fetchGroupByInviteCode(inviteCode: inviteCode)
+                    .do(onNext: { _ in
+                        print("[Step 1] fetchGroupByInviteCode 성공")
+                    }, onError: { error in
+                        print("[Step 1] fetchGroupByInviteCode 실패:", error)
+                    })
                     .map { group in (user, group) }
             }
             .flatMap { [weak self] user, group -> Observable<(User, Group, User)> in
                 guard let self = self else { return .empty() }
                 return self.fetchUserOnce(userId: user.userID)
+                    .do(onNext: { _ in
+                        print("[Step 2] fetchUserOnce 성공")
+                    }, onError: { error in
+                        print("[Step 2] fetchUserOnce 실패:", error)
+                    })
                     .map { user in (user, group, user) }
             }
             .flatMap { [weak self] user, group, fetchUser -> Observable<(User, Group, User, Int)> in
                 guard let self = self else { return .empty() }
                 return self.fetchGroupMemberCount(groupId: group.groupID)
-                    .map { count in (user, group, fetchUser, count) }
+                        .do(onNext: { count in
+                            print("[Step 3] fetchGroupMemberCount 성공: \(count)명")
+                        }, onError: { error in
+                            print("[Step 3] fetchGroupMemberCount 실패:", error)
+                        })
+                        .map { count in (user, group, fetchUser, count) }
             }
             .flatMap { [weak self] user, group, fetchUser, memberCount -> Observable<Invitation> in
                 guard let self = self else { return .empty() }
@@ -126,7 +141,8 @@ final class InviteUseCaseImpl: InviteUseCase {
                             userId: user.userID,
                             fromGroupId: oldGroupId,
                             toGroupId: newGroupId,
-                            userNickname: user.nickname
+                            userNickname: user.nickname,
+                            profileImage: user.profileImageURL ?? "profileImage1"
                         )
                     }
                     .flatMap {

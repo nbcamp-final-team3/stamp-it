@@ -65,7 +65,7 @@ protocol FirestoreManagerProtocol {
     // Invite 관련
     func fetchGroupInviteCode(groupId: String) -> Observable<String>
     func fetchGroupByInviteCode(inviteCode: String) -> Observable<GroupFirestore>
-    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String) -> Observable<Void>
+    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String, profileImage: String) -> Observable<Void>
     func fetchGroupMemberCount(groupId: String) -> Observable<Int>
     func fetchInvite(inviteCode: String) -> Observable<InviteFirestore>
     func createInvite(_ invite: InviteFirestore) -> Observable<Void>
@@ -79,7 +79,7 @@ protocol FirestoreManagerProtocol {
 
 // MARK: - FirestoreManager Implementation
 final class FirestoreManager: FirestoreManagerProtocol {
-    
+
     // MARK: - Properties
     private let db = Firestore.firestore()
     private let disposeBag = DisposeBag()
@@ -1207,15 +1207,21 @@ extension FirestoreManager {
         userId: String,
         fromGroupId: String,
         toGroupId: String,
-        userNickname: String
+        userNickname: String,
+        profileImage: String
     ) -> Observable<Void> {
         return Observable.create { observer in
             let batch = Firestore.firestore().batch()
-            
+
+            //이미지 넣는 방향으로 수정
+            let safeProfileImage = profileImage.isEmpty ? "profileImage1" : profileImage
+
             // 1. 사용자 그룹 ID 업데이트
             let userRef = self.usersCollection.document(userId)
-            batch.updateData(["groupId": toGroupId], forDocument: userRef)
-            
+            batch.updateData(["groupId": toGroupId,
+                              "nickname": userNickname,
+                              "profileImage": safeProfileImage], forDocument: userRef)
+
             // 2. 기존 그룹에서 멤버 제거
             let oldMemberRef = self.membersCollection(groupId: fromGroupId).document(userId)
             batch.deleteDocument(oldMemberRef)
@@ -1226,7 +1232,9 @@ extension FirestoreManager {
                 "userId": userId,
                 "nickname": userNickname,
                 "joinedAt": Timestamp(date: Date()),
-                "isLeader": false
+                "isLeader": false,
+                "profileImage": safeProfileImage
+
             ]
             batch.setData(memberData, forDocument: newMemberRef)
             

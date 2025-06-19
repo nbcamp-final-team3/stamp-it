@@ -75,7 +75,11 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
                     self?.state.didCompleteInvite.accept(())
                 }
             }, onError: { [weak self] error in
+                print("[DEBUG] error:", error)
+                print("[DEBUG] error type:", type(of: error))
                 let message: String
+
+                
 
                 if let repoError = error as? RepositoryError {
                     message = repoError.localizedDescription
