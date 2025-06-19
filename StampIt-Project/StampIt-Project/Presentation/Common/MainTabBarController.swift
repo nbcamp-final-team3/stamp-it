@@ -41,7 +41,7 @@ final class MainTabBarController: UITabBarController {
         // 상단 경계선
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .clear
+        appearance.backgroundColor = .white
         appearance.shadowColor = .lightGray
         tabBar.standardAppearance = appearance
         tabBar.scrollEdgeAppearance = appearance
