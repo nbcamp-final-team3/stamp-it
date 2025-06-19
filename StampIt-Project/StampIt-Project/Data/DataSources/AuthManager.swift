@@ -165,10 +165,14 @@ final class AuthManager: NSObject,AuthManagerProtocol {
                 return Disposables.create()
             }
             
+            print("🔥 Firebase Auth 계정 삭제 시도: \(user.uid)")
+            
             user.delete { error in
-                if error != nil {
+                if let error = error {
+                    print("❌ Firebase Auth 삭제 실패: \(error.localizedDescription)")
                     observer.onError(AuthError.accountDeletionFailed)
                 } else {
+                    print("✅ Firebase Auth 계정 삭제 성공")
                     observer.onNext(())
                     observer.onCompleted()
                 }
@@ -177,6 +181,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
             return Disposables.create()
         }
     }
+
     
     // MARK: - User State Methods
     /// 현재 Firebase 인증된 사용자를 반환
