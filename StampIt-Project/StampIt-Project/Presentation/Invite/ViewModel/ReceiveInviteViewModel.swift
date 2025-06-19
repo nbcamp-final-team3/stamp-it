@@ -24,6 +24,7 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
         let inviteCode = BehaviorRelay<String>(value: "")
         let isEnterButtonEnabled = BehaviorRelay<Bool>(value: false)
         let showMessage = PublishRelay<String>()
+        let didCompleteInvite = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -69,13 +70,17 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] invite in
                 self?.state.showMessage.accept("초대 완료!")
+                // MAKR: - 초대 완료가 됐을때 VC에 발행
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    self?.state.didCompleteInvite.accept(())
+                }
             }, onError: { [weak self] error in
                 let message: String
 
                 if let repoError = error as? RepositoryError {
                     message = repoError.localizedDescription
                 } else {
-                    message = "알 수 없는 오류가 발생했습니다."
+                    message = "코드를 재확인 해주세요."
                 }
 
                 self?.state.showMessage.accept(message)

@@ -29,6 +29,8 @@ final class ReceiveInviteViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "초대하기"))
+
     private let imageView = UIImageView().then {
         $0.image = UIImage(named: "MascotCharacterGroup")
         $0.contentMode = .scaleAspectFit
@@ -84,6 +86,7 @@ final class ReceiveInviteViewController: UIViewController {
         setupLayout()
         bindViewModel()
         textField.delegate = self
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
 
     private func setupLayout() {
@@ -92,11 +95,16 @@ final class ReceiveInviteViewController: UIViewController {
         [floatingLabel, textField]
             .forEach { stackView.addArrangedSubview($0) }
 
-        [imageView, helpLabel, enterButton]
+        [navigationBar, imageView, helpLabel, enterButton]
             .forEach { view.addSubview($0) }
 
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+
         imageView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(140)
+            $0.top.equalTo(navigationBar.snp.bottom).offset(140)
             $0.centerX.equalToSuperview()
             $0.height.equalTo(100)
         }
@@ -142,6 +150,11 @@ final class ReceiveInviteViewController: UIViewController {
             .bind(to: enterButton.rx.isEnabled)
             .disposed(by: disposeBag)
 
+        navigationBar.backTapped
+            .bind(with: self) { owner, _ in
+                owner.navigationController?.popViewController(animated: true)
+            }.disposed(by: disposeBag)
+
         viewModel.state.showMessage
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] message in
@@ -151,6 +164,38 @@ final class ReceiveInviteViewController: UIViewController {
                 toastView.show(in: self.view, message: message)
             })
             .disposed(by: disposeBag)
+
+        viewModel.state.didCompleteInvite
+            .bind(with: self) { owner, _ in
+                guard let tabBarController = owner.tabBarController else { return }
+
+                // 홈 탭으로 전환
+                tabBarController.selectedIndex = TabItem.home.index
+
+                // 현재 navigation stack에서 pop
+                owner.navigationController?.popToRootViewController(animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        // 탭바 코디네이터를 쓰게 된다면 이렇게
+        /*
+         viewModel.state.didCompleteInvite
+             .bind(with: self) { owner, _ in
+                 // 1. 탭바 Coordinator를 가져온다 (DI or 싱글톤)
+                 guard let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate,
+                       let tabBarCoordinator = sceneDelegate.appCoordinator?.tabBarCoordinator else {
+                     return
+                 }
+
+                 // 2. 홈 탭으로 전환
+                 tabBarCoordinator.switchTo(.home)
+
+                 // 3. 탭바를 루트로 교체 (네비 스택 제거)
+                 sceneDelegate.window?.rootViewController = tabBarCoordinator.tabBarController
+             }
+             .disposed(by: disposeBag)
+
+         */
     }
 }
 
