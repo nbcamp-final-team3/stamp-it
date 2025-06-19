@@ -12,7 +12,7 @@ extension MyPageViewController: UITableViewDelegate {
         let section = MyPageProfileSection.allCases[section]
         switch section {
         case .groupMember:
-            return MyPage.TableView.headerHeightLow
+            return MyPage.TableView.headerHeightHigh
         case .groupService:
             return MyPage.TableView.headerHeightHigh
         }
@@ -41,10 +41,10 @@ extension MyPageViewController: UITableViewDelegate {
         let menu = section.menus[indexPath.row]
         
         switch menu {
-        case .deleteMember:
+        /*case .deleteMember:
             // TODO: 멤버 삭제 기능 구현 후 추가
             print("멤버 삭제하기 탭")
-            
+         */
         case .inviteMember:
             // TODO: 멤버 초대 기능 구현 후 추가
             let vc = DIContainer.shared.makeSendInviteViewController()
@@ -86,11 +86,11 @@ extension MyPageViewController: UITableViewDataSource {
         let section = MyPageProfileSection.allCases[indexPath.section]
         let menu = section.menus[indexPath.item]
         
-        if section == .groupMember {
-            if indexPath.item == .zero {
-                cell.setLayoutForOnlyTitle()
-            }
-        }
+//        if section == .groupMember {
+//            if indexPath.item == .zero {
+//                cell.setLayoutForOnlyTitle()
+//            }
+//        }
         
         cell.configureLabels(title: menu.title, description: menu.subtitle)
         return cell
