@@ -45,7 +45,7 @@ protocol FirestoreManagerProtocol {
     func fetchMissions(groupId: String) -> Observable<[MissionFirestore]>
     func fetchMissions(to assigneeId: String?,by assignerId: String?,ofGroup groupId: String) -> Observable<[MissionFirestore]>
     func createMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
-    func updateMission(groupId: String, mission: MissionFirestore) -> Observable<Void>
+    func updateMission(groupId: String, mission: MissionFirestore) -> Observable<MissionFirestore>
     func deleteMission(groupId: String, missionId: String) -> Observable<Void>
     func deleteUserMissions(userId: String, groupId: String) -> Observable<Void>
     func deleteGroupMissions(groupId: String) -> Observable<Void>
@@ -57,7 +57,7 @@ protocol FirestoreManagerProtocol {
     func fetchGroupStickers(groupId: String, month: String) -> Observable<[StickerFirestore]>
     func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]>
     func addSticker(_ sticker: StickerFirestore) -> Observable<Void>
-    func createStickerFromMission(userId: String, groupId: String, missionTitle: String, maxStickers: Int, stickerType: String) -> Observable<StickerFirestore>
+    func createStickerFromMission(userId: String, groupId: String, missionTitle: String, maxStickers: Int, stickerType: String, assignedBy: String) -> Observable<Void>
     func deleteUserStickers(userId: String, groupId: String) -> Observable<Void> //그룹탈퇴
     func deleteUserStickers(userId: String) -> Observable<Void>     //유저탈퇴
     func deleteGroupStickers(groupId: String) -> Observable<Void>
@@ -692,7 +692,7 @@ extension FirestoreManager {
     }
     
     /// 미션 정보 업데이트
-    func updateMission(groupId: String, mission: MissionFirestore) -> Observable<Void> {
+    func updateMission(groupId: String, mission: MissionFirestore) -> Observable<MissionFirestore> {
         return Observable.create { observer in
             do {
                 try self.missionsCollection(groupId: groupId).document(mission.documentID)
@@ -700,7 +700,7 @@ extension FirestoreManager {
                         if let error = error {
                             observer.onError(FirestoreError.updateFailed(error.localizedDescription))
                         } else {
-                            observer.onNext(())
+                            observer.onNext(mission)
                             observer.onCompleted()
                         }
                     }
@@ -1124,10 +1124,11 @@ extension FirestoreManager {
         groupId: String,
         missionTitle: String,
         maxStickers: Int,
-        stickerType: String = "일반"
-    ) -> Observable<StickerFirestore> {
+        stickerType: String = "일반",
+        assignedBy: String,
+    ) -> Observable<Void> {
         return fetchStickerCount(userId: userId)
-            .flatMap { [weak self] currentCount -> Observable<StickerFirestore> in
+            .flatMap { [weak self] currentCount -> Observable<Void> in
                 guard let self = self else {
                     return Observable.error(FirestoreError.unknownError)
                 }
@@ -1150,11 +1151,11 @@ extension FirestoreManager {
                     pinNumber: pinNumber,
                     createdAt: Timestamp(date: now),
                     missionTitle: missionTitle,
-                    maxStickers: maxStickers
+                    maxStickers: maxStickers,
+                    assignedBy: assignedBy,
                 )
                 
                 return self.addSticker(sticker)
-                    .map { _ in sticker }
             }
     }
 }

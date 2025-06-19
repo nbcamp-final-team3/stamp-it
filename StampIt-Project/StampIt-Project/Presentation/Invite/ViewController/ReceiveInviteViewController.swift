@@ -146,9 +146,9 @@ final class ReceiveInviteViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] message in
                 guard let self = self else { return }
-                let toastView = ToastView(message: message)
+                let toastView = ToastView()
 
-                toastView.show(in: self.view)
+                toastView.show(in: self.view, message: message)
             })
             .disposed(by: disposeBag)
     }

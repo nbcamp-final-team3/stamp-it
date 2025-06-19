@@ -30,11 +30,11 @@ final class MemberMissionViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
-    private var memberCache: [String: User] = [:]
+    private var memberCache: [String: Member] = [:]
 
     // MARK: - Init
 
-    init(user: User, memberCache: [String: User], useCase: MemberMissionUseCaseProtocol) {
+    init(user: User, memberCache: [String: Member], useCase: MemberMissionUseCaseProtocol) {
         self.useCase = useCase
         state.user.accept(user)
         self.memberCache = memberCache

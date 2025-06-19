@@ -17,7 +17,7 @@ final class GroupDashboardView: UIView {
 
     // MARK: - Action & States
 
-    let didTapMissionCompleteButton = PublishRelay<String>()
+    let didTapMissionCompleteButton = PublishRelay<HomeItem>()
     let didTapMoreReceivedMissionButton = PublishRelay<Void>()
     let didTapMoreSendedMissionButton = PublishRelay<Void>()
     let username = BehaviorRelay<String>(value: "유저")
@@ -99,7 +99,7 @@ final class GroupDashboardView: UIView {
 
                 cell.didTapMissionCompleteButton
                     .bind(with: self, onNext: { owner, _ in
-                        owner.didTapMissionCompleteButton.accept(item.received!.missionID)
+                        owner.didTapMissionCompleteButton.accept(item)
                     })
                     .disposed(by: cell.disposeBag)
 

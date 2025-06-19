@@ -41,10 +41,10 @@ final class MissionRepositoryTest: MissionRepository {
         print("groupID into fetchMembers(): \(groupID)")
         return Observable.create { observer in
             let dummyMembers: [Member] = [
-                Member(userID: "12345", nickname: "유진", joinedAt: Date(), isLeader: true),
-                Member(userID: "67890", nickname: "엄마", joinedAt: Date(), isLeader: false),
-                Member(userID: "112233", nickname: "파덜", joinedAt: Date(), isLeader: false),
-                Member(userID: "112433", nickname: "삼동이", joinedAt: Date(), isLeader: false),
+                Member(userID: "12345", nickname: "유진", profileImageURL: nil, monthSticker: 0, joinedAt: Date(), isLeader: true),
+                Member(userID: "67890", nickname: "엄마", profileImageURL: nil, monthSticker: 0, joinedAt: Date(), isLeader: false),
+                Member(userID: "112233", nickname: "파덜", profileImageURL: nil, monthSticker: 0, joinedAt: Date(), isLeader: false),
+                Member(userID: "112433", nickname: "삼동이", profileImageURL: nil, monthSticker: 0, joinedAt: Date(), isLeader: false),
             ]
             observer.onNext(dummyMembers)
             observer.onCompleted()

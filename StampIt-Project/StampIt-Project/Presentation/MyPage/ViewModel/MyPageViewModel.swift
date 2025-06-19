@@ -125,12 +125,12 @@ final class MyPageViewModel: ViewModelProtocol {
         let totalStickers: [Sticker] = {
             (0..<totalStickerCount).map { index in
                 if stickers.count == .zero {
-                    return Sticker(stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1)
+                    return Sticker(userID: "", stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1, assignedBy: "")
                 } else {
                     if index < stickers.count {
                         return stickers[index]
                     } else {
-                        return Sticker(stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1)
+                        return Sticker(userID: "", stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1, assignedBy: "")
                     }
                 }
             }
