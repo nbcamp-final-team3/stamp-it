@@ -85,7 +85,7 @@ final class SendInviteViewController: UIViewController {
         bindViewModel()
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.tabBarController?.tabBar.isHidden = true
@@ -151,11 +151,11 @@ final class SendInviteViewController: UIViewController {
 
         viewModel.state.showMessage
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] message in
+            .subscribe(onNext: { [weak self] (type, message) in
                 guard let self = self else { return }
 
                 let toastView = ToastView()
-                toastView.show(in: self.view, message: message)
+                toastView.show(in: self.view, message: message, type: type)
             })
             .disposed(by: disposeBag)
 

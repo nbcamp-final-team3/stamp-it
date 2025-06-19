@@ -18,7 +18,7 @@ final class SendInviteViewModel: ViewModelProtocol {
 
     struct State {
         let inviteCode = BehaviorRelay<String>(value: "")
-        let showMessage = PublishRelay<String>()
+        let showMessage = PublishRelay<(ToastType, String)>()
         let copyToClipboard = PublishRelay<String>()
 
     }
@@ -57,7 +57,7 @@ final class SendInviteViewModel: ViewModelProtocol {
             .subscribe(onNext: { [weak self] code in
                 guard let self = self else { return }
                 self.state.copyToClipboard.accept(code)
-                self.state.showMessage.accept("초대 코드가 복사되었습니다")
+                self.state.showMessage.accept((.success, "초대 코드가 복사되었습니다"))
             }, onError: { [weak self] error in
                 let message: String
 
@@ -67,7 +67,7 @@ final class SendInviteViewModel: ViewModelProtocol {
                     message = "오류가 발생했습니다."
                 }
 
-                self?.state.showMessage.accept(message)
+                self?.state.showMessage.accept((.failure, message))
             })
             .disposed(by: disposeBag)
     }
@@ -86,7 +86,7 @@ final class SendInviteViewModel: ViewModelProtocol {
                     message = "초대 코드를 불러오지 못했습니다."
                 }
 
-                self?.state.showMessage.accept(message)
+                self?.state.showMessage.accept((.failure, message))
             })
             .disposed(by: disposeBag)
     }
