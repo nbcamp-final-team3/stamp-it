@@ -35,6 +35,7 @@ final class MyPageViewModel: ViewModelProtocol {
         let alertMessage = PublishRelay<String>()
         let shouldNavigateToLogin = PublishRelay<Void>()
         let shouldShowConfirmAlert = PublishRelay<(String, String, () -> Void)>() // (title, message, action)
+        let toastMessage = PublishRelay<String>()
     }
     
     // MARK: - Properties
@@ -291,9 +292,7 @@ final class MyPageViewModel: ViewModelProtocol {
                 onNext: { [weak self] updatedUser in
                     self?.state.isLoading.accept(false)
                     self?.state.user.accept(updatedUser)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        self?.state.alertMessage.accept("기존 그룹 탈퇴가 완료되었습니다.")
-                    }
+                    self?.state.toastMessage.accept("그룹에서 성공적으로 탈퇴했어요.")
                 },
                 onError: { [weak self] error in
                     self?.state.isLoading.accept(false)
@@ -330,14 +329,8 @@ final class MyPageViewModel: ViewModelProtocol {
     /// 로그아웃 성공 처리
     private func handleLogoutSuccess() {
         UserCache.shared.clearCache()
+        state.toastMessage.accept("로그아웃 되었습니다.")
         state.shouldNavigateToLogin.accept(())
-        
-        // TODO: UserDefaults에서 로그인 관련 정보 삭제 (미래 기능 대비: 생체 인증 등)
-        // UserDefaults.standard.removeObject(forKey: "userToken")
-        // UserDefaults.standard.removeObject(forKey: "lastLoginDate")
-        // UserDefaults.standard.removeObject(forKey: "autoLoginEnabled")
-        // UserDefaults.standard.removeObject(forKey: "biometricLoginEnabled")
-        // UserDefaults.standard.synchronize()
     }
     
     /// 계정 탈퇴 성공 처리
@@ -348,7 +341,7 @@ final class MyPageViewModel: ViewModelProtocol {
         UserDefaults.standard.removeObject(forKey: "userToken")
         UserDefaults.standard.removeObject(forKey: "lastLoginDate")
         UserDefaults.standard.synchronize()
-        
+        state.toastMessage.accept("계정이 성공적으로 삭제되었습니다.")
         state.shouldNavigateToLogin.accept(())
     }
 }

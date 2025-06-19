@@ -104,14 +104,23 @@ final class MyPageViewController: UIViewController {
         // 로그인 화면으로 이동
         viewModel.state.shouldNavigateToLogin
             .bind(with: self) { owner, _ in
-                owner.navigateToLogin()
+                // 토스트가 이미 떠있으면 1.5초 뒤에 전환
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    owner.navigateToLogin()
+                }
             }.disposed(by: disposeBag)
-        
+
         // 확인 다이얼로그
         viewModel.state.shouldShowConfirmAlert
             .bind(with: self) { owner, alertData in
                 let (title, message, action) = alertData
                 owner.showConfirmAlert(title: title, message: message, confirmAction: action)
+            }.disposed(by: disposeBag)
+        
+        // 토스트 메시지
+        viewModel.state.toastMessage
+            .bind(with: self) { owner, message in
+                owner.showToast(message: message, type: .success)
             }.disposed(by: disposeBag)
     }
     
@@ -261,5 +270,13 @@ final class MyPageViewController: UIViewController {
     
     func logOut() {
         viewModel.action.accept(.logoutButtonTapped)
+    }
+}
+
+// 토스트 메시지(2초)
+extension MyPageViewController {
+    func showToast(message: String, type: ToastType = .success, duration: TimeInterval = 2.0) {
+        let toastView = ToastView()
+        toastView.show(in: self.view, duration: duration, message: message, type: type)
     }
 }
