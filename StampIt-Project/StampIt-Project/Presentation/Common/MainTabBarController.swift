@@ -32,70 +32,33 @@ final class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabs()
-        bindTapSelection()
     }
     
     // MARK: - Methods
-    
-    private func bindTapSelection() {
-        rx.didSelect
-            .compactMap { [weak self] viewController in
-                self?.viewControllers?.firstIndex(of: viewController)
-            }
-            .asDriver(onErrorJustReturn: .zero)
-            .drive(with: self) { owner, index in
-                owner.updateTabBarImage(selectedIndex: index)
-            }.disposed(by: disposeBag)
-    }
-    
-    private func updateTabBarImage(selectedIndex: Int) {
-        guard let tabItems = tabBar.items else { return }
-        
-        for (index, item) in tabItems.enumerated() {
-            if index == selectedIndex {
-                item.image = UIImage(
-                    named: defaultImageName(for: index) + "Tapped"
-                )?.withRenderingMode(.alwaysOriginal)
-            } else {
-                item.image = UIImage(
-                    named: defaultImageName(for: index)
-                )?.withRenderingMode(.alwaysOriginal)
-            }
-        }
-    }
-    
-    private func defaultImageName(for index: Int) -> String {
-        switch index {
-        case 0: return "tabBarHome"
-        case 1: return "tabBarMission"
-        case 2: return "tabBarMyPage"
-        default: return ""
-        }
-    }
     
     private func setupTabs() {
         let homeVC = container.makeHomeViewController()
         let homeNav = UINavigationController(rootViewController: homeVC)
         homeNav.tabBarItem = UITabBarItem(
             title: "홈",
-            image: UIImage(named: "tabBarHomeTapped")!.withTintColor(.red),
-            tag: 0
+            image: UIImage(named: "tabBarHome"),
+            selectedImage: UIImage(named: "tabBarHomeTapped"),
         )
         
         let missionVC = container.makeMissionListViewController()
         let missionNav = UINavigationController(rootViewController: missionVC)
         missionNav.tabBarItem = UITabBarItem(
             title: "미션",
-            image: UIImage(named: "tabBarMission")!.withTintColor(.red),
-            tag: 1
+            image: UIImage(named: "tabBarMission"),
+            selectedImage: UIImage(named: "tabBarMissionTapped"),
         )
         
         let myPageVC = container.makeMyPageViewController()
         let myPageNav = UINavigationController(rootViewController: myPageVC)
         myPageNav.tabBarItem = UITabBarItem(
             title: "마이",
-            image: UIImage(named: "tabBarMyPage")!.withTintColor(.red),
-            tag: 2
+            image: UIImage(named: "tabBarMyPage"),
+            selectedImage: UIImage(named: "tabBarMyPageTapped"),
         )
         
         viewControllers = [
