@@ -1125,7 +1125,7 @@ extension FirestoreManager {
         missionTitle: String,
         maxStickers: Int,
         stickerType: String = "일반",
-        assignedBy: String,
+        assignedBy: String
     ) -> Observable<Void> {
         return fetchStickerCount(userId: userId)
             .flatMap { [weak self] currentCount -> Observable<Void> in
@@ -1152,7 +1152,7 @@ extension FirestoreManager {
                     createdAt: Timestamp(date: now),
                     missionTitle: missionTitle,
                     maxStickers: maxStickers,
-                    assignedBy: assignedBy,
+                    assignedBy: assignedBy
                 )
                 
                 return self.addSticker(sticker)
