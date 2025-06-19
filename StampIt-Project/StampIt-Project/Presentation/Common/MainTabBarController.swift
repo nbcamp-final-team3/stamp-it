@@ -41,7 +41,9 @@ final class MainTabBarController: UITabBarController {
         rx.didSelect
             .compactMap { [weak self] viewController in
                 self?.viewControllers?.firstIndex(of: viewController)
-            }.subscribe(with: self) { owner, index in
+            }
+            .asDriver(onErrorJustReturn: .zero)
+            .drive(with: self) { owner, index in
                 owner.updateTabBarImage(selectedIndex: index)
             }.disposed(by: disposeBag)
     }
@@ -51,19 +53,14 @@ final class MainTabBarController: UITabBarController {
         
         for (index, item) in tabItems.enumerated() {
             if index == selectedIndex {
-                item.image = UIImage(named: selectedImageName(for: index))?.withRenderingMode(.alwaysOriginal)
+                item.image = UIImage(
+                    named: defaultImageName(for: index) + "Tapped"
+                )?.withRenderingMode(.alwaysOriginal)
             } else {
-                item.image = UIImage(named: defaultImageName(for: index))?.withRenderingMode(.alwaysOriginal)
+                item.image = UIImage(
+                    named: defaultImageName(for: index)
+                )?.withRenderingMode(.alwaysOriginal)
             }
-        }
-    }
-    
-    private func selectedImageName(for index: Int) -> String {
-        switch index {
-        case 0: return "tabBarHomeTapped"
-        case 1: return "tabBarMissionTapped"
-        case 2: return "tabBarMyPageTapped"
-        default: return ""
         }
     }
     
