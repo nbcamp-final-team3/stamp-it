@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "Default.svg",
+      "filename" : "flag_2.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "Default 1.svg",
+      "filename" : "flag_2 1.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "Default 2.svg",
+      "filename" : "flag_2 2.svg",
       "idiom" : "universal",
       "scale" : "3x"
     }
