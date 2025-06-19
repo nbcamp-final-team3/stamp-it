@@ -12,6 +12,8 @@ import SnapKit
 import Then
 
 final class AssignMissionViewController: UIViewController {
+    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "미션 전달하기"))
+    
     private let missionTitleLabel = UILabel().then {
         $0.font = .pretendard(size: 18, weight: .bold)
     }
@@ -24,6 +26,7 @@ final class AssignMissionViewController: UIViewController {
     
     // 멤버 선택 버튼
     private lazy var memberSelectionButton = UIButton().then {
+        $0.titleLabel?.numberOfLines = 1
         $0.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray800)
         $0.addTarget(self, action: #selector(dropdown), for: .touchUpInside)
     }
@@ -111,7 +114,7 @@ final class AssignMissionViewController: UIViewController {
         view.backgroundColor = .white
         
         // dropdownView는 보여질 때 일부 화면이 가려지므로(예: dueDateStackView) 마지막에 서브 뷰로 추가
-        [missionTitleLabel, memberStackView, dueDateStackView, assignButton, dropdownView].forEach {
+        [navigationBar, missionTitleLabel, memberStackView, dueDateStackView, assignButton, dropdownView].forEach {
             view.addSubview($0)
         }
         
@@ -125,13 +128,18 @@ final class AssignMissionViewController: UIViewController {
     }
     
     private func setConstraints() {
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+        
         missionTitleLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(16)
+            $0.top.equalTo(navigationBar.snp.bottom).offset(16)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
         memberStackView.snp.makeConstraints {
-            $0.top.equalTo(missionTitleLabel.snp.bottom).offset(32)
+            $0.top.equalTo(missionTitleLabel.snp.bottom).offset(24)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
@@ -155,10 +163,8 @@ final class AssignMissionViewController: UIViewController {
         }
     }
     
-    private func setNavigationBar() {
-        navigationItem.title = "미션 전달하기"
-        navigationController?.navigationBar.prefersLargeTitles = false
-        navigationController?.navigationBar.tintColor = .black
+    private func setNavigationBar() {        
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     private func bind() {
@@ -212,6 +218,13 @@ final class AssignMissionViewController: UIViewController {
                 dismiss()
             }
             .disposed(by: disposeBag)
+        
+        // 내비게이션 백버튼 누를 때
+        navigationBar.backTapped
+            .bind(with: self) { owner, _ in
+                owner.navigationController?.popViewController(animated: true)
+            }
+            .disposed(by: disposeBag)
     }
     
     // 멤버 선택 버튼 configuration 설정
@@ -221,6 +234,7 @@ final class AssignMissionViewController: UIViewController {
         configuration.baseForegroundColor = .gray800
         configuration.cornerStyle = .medium
         configuration.title = title
+        configuration.titleLineBreakMode = .byTruncatingTail
         
         // 폰트 및 폰트 색상 설정
         let font = UIFont.pretendard(size: 16, weight: .regular)

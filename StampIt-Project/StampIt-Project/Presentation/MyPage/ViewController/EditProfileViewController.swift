@@ -12,6 +12,8 @@ import SnapKit
 import Then
 
 final class EditProfileViewController: UIViewController {
+    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "내 정보 수정"))
+    
     private let profileImageLabel = UILabel().then {
         $0.text = "프로필 이미지"
         $0.font = .pretendard(size: 14, weight: .regular)
@@ -140,7 +142,8 @@ final class EditProfileViewController: UIViewController {
             groupNameStackView.addArrangedSubview($0)
         }
         
-        [profileImageLabel,
+        [navigationBar,
+         profileImageLabel,
          collectionView,
          nicknameStackView,
          groupNameStackView,
@@ -150,8 +153,14 @@ final class EditProfileViewController: UIViewController {
     }
     
     private func makeConstraints() {
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+        
         profileImageLabel.snp.makeConstraints {
-            $0.top.leading.equalTo(view.safeAreaLayoutGuide).offset(16)
+            $0.top.equalTo(navigationBar.snp.bottom).offset(16)
+            $0.leading.equalTo(view.safeAreaLayoutGuide).offset(16)
         }
         
         collectionView.snp.makeConstraints {
@@ -161,7 +170,7 @@ final class EditProfileViewController: UIViewController {
         }
         
         nicknameStackView.snp.makeConstraints {
-            $0.top.equalTo(collectionView.snp.bottom).offset(16)
+            $0.top.equalTo(collectionView.snp.bottom).offset(24)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
@@ -191,16 +200,8 @@ final class EditProfileViewController: UIViewController {
         }
     }
     
-    private func setNavigationBar() {
-        navigationItem.title = "내 정보 수정"
-        navigationController?.navigationBar.prefersLargeTitles = false
-        navigationController?.navigationBar.tintColor = .black
-        
-        // !!!: 나를 호출하는 뷰 컨트롤러에 추가
-        let backButtonImage = UIImage(systemName: "arrow.left")
-        navigationController?.navigationBar.backIndicatorImage = backButtonImage
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = backButtonImage
-        navigationItem.backButtonTitle = ""
+    private func setNavigationBar() {        
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     private func setButtonAction() {
@@ -272,6 +273,13 @@ final class EditProfileViewController: UIViewController {
                 } else {
                     editButton.isEnabled = false
                 }
+            }
+            .disposed(by: disposeBag)
+        
+        // 내비게이션 백버튼 누를 때
+        navigationBar.backTapped
+            .bind(with: self) { owner, _ in
+                owner.navigationController?.popViewController(animated: true)
             }
             .disposed(by: disposeBag)
     }

@@ -12,6 +12,8 @@ import SnapKit
 import Then
 
 final class MissionListViewController: UIViewController {
+    private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))
+    
     private let searchBar = UISearchBar().then {
         $0.searchBarStyle = .minimal
         $0.placeholder = "검색어를 입력해주세요"
@@ -32,6 +34,8 @@ final class MissionListViewController: UIViewController {
     private let noResultsView = NoResultsView()
     
     private let headerView = HeaderView()
+    
+    private let toastView = ToastView()
     
     private let viewModel: MissionListViewModel
     private let disposeBag = DisposeBag()
@@ -66,23 +70,22 @@ final class MissionListViewController: UIViewController {
         viewModel.action.accept(.onAppear)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        setNavigationBar() // 미션 할당 화면으로 이동 후 복귀 시 내비게이션 라지 타이틀 유지를 위해 필요
-    }
-    
     private func prepareSubviews() {
         view.backgroundColor = .white
         
-        [searchBar, collectionView, tableView].forEach {
+        [navigationBar, searchBar, collectionView, tableView].forEach {
             view.addSubview($0)
         }
     }
     
     private func setConstraints() {
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+        
         searchBar.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+            $0.top.equalTo(navigationBar.snp.bottom)
             $0.horizontalEdges.equalToSuperview()
         }
         
@@ -100,14 +103,7 @@ final class MissionListViewController: UIViewController {
     }
     
     private func setNavigationBar() {
-        navigationItem.title = "미션"
-        navigationController?.navigationBar.prefersLargeTitles = true
-        
-        // 뒤로 가기 버튼 이미지를 화살표로 바꾸고 타이틀 삭제
-        let backButtonImage = UIImage(systemName: "arrow.left")
-        navigationController?.navigationBar.backIndicatorImage = backButtonImage
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = backButtonImage
-        navigationItem.backButtonTitle = ""
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     private func bind() {
@@ -194,6 +190,10 @@ final class MissionListViewController: UIViewController {
     // 미션 할당 화면으로 이동
     private func pushAssignMissionViewController(mission: SampleMission) {
         let viewModel = AssignMissionViewModel(mission: mission, missionUseCaseImpl: DIContainer.shared.missionUseCase)
+        viewModel.onSuccess = { [weak self] in
+            guard let self else { return }
+            toastView.show(in: view, duration: 3, message: "미션이 전달되었어요")
+        }
         let viewController = AssignMissionViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)
     }
