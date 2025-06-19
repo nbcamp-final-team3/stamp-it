@@ -109,7 +109,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
             let user = User(
                 userID: authUser.uid,
                 nickname: randomNickname,
-                profileImageURL: authUser.photoURL,
+                profileImageURL: "profileImage1",
                 boards: [],
                 groupID: groupId,
                 groupName: "\(randomNickname)의 그룹",
@@ -128,7 +128,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
             let member = Member(
                 userID: authUser.uid,
                 nickname: randomNickname,
-                profileImageURL: authUser.photoURL,
+                profileImageURL: "profileImage1",
                 monthSticker: 0, // 별도로 추가됨
                 joinedAt: now,
                 isLeader: true

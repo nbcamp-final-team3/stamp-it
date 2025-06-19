@@ -255,7 +255,8 @@ final class AuthRepository: AuthRepositoryProtocol {
                 "userId": memberFirestore.userId,
                 "nickname": memberFirestore.nickname,
                 "joinedAt": memberFirestore.joinedAt,
-                "isLeader": memberFirestore.isLeader
+                "isLeader": memberFirestore.isLeader,
+                "profileImage": "profileImage1"
             ]
             let memberRef = Firestore.firestore()
                 .collection("groups")
@@ -600,7 +601,9 @@ extension AuthRepository {
                 return self.leaveGroupAndCreateNew(
                     userId: currentUser.userID,
                     currentGroupId: currentUser.groupID,
-                    userNickname: currentUser.nickname
+                    userNickname: currentUser.nickname,
+                    profileImageURL: currentUser.profileImageURL ?? "profileImage1"
+
                 )
             }
             .catch { [weak self] error in
@@ -639,7 +642,8 @@ extension AuthRepository {
     private func leaveGroupAndCreateNew(
         userId: String,
         currentGroupId: String,
-        userNickname: String
+        userNickname: String,
+        profileImageURL: String?
     ) -> Observable<User> {
         return Observable.create { [weak self] observer in
             guard let self = self else {
@@ -658,7 +662,8 @@ extension AuthRepository {
                 newGroupId: newGroupId,
                 userNickname: userNickname,
                 inviteCode: inviteCode,
-                now: now
+                now: now,
+                profileImageURL: profileImageURL ?? "profileImage1"
             )
             .flatMap { _ -> Observable<User> in
                 // 2. 데이터 정리 (재시도 로직 포함)
@@ -671,7 +676,7 @@ extension AuthRepository {
                     return User(
                         userID: userId,
                         nickname: userNickname,
-                        profileImageURL: nil,
+                        profileImageURL: profileImageURL ?? "profileImage1",
                         boards: [],
                         groupID: newGroupId,
                         groupName: "\(userNickname)의 그룹",
@@ -684,7 +689,7 @@ extension AuthRepository {
                     return Observable.just(User(
                         userID: userId,
                         nickname: userNickname,
-                        profileImageURL: nil,
+                        profileImageURL: profileImageURL ?? "profileImage1",
                         boards: [],
                         groupID: newGroupId,
                         groupName: "\(userNickname)의 그룹",
@@ -731,7 +736,8 @@ extension AuthRepository {
         newGroupId: String,
         userNickname: String,
         inviteCode: String,
-        now: Date
+        now: Date,
+        profileImageURL: String
     ) -> Observable<Void> {
         return Observable.create { observer in
             let batch = Firestore.firestore().batch()
@@ -766,6 +772,7 @@ extension AuthRepository {
                 "userId": userId,
                 "nickname": userNickname,
                 "joinedAt": Timestamp(date: now),
+                "profileImage": profileImageURL,
                 "isLeader": true
             ]
             batch.setData(memberDict, forDocument: newMemberRef)

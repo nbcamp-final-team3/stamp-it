@@ -13,6 +13,7 @@ struct MemberFirestore: Codable {
     let nickname: String
     let joinedAt: Timestamp
     let isLeader: Bool
+    let profileImage: String?
     
     var documentID: String {
         return userId
@@ -25,7 +26,7 @@ extension MemberFirestore {
         return Member(
             userID: self.userId,
             nickname: self.nickname,
-            profileImageURL: nil,
+            profileImageURL: self.profileImage,
             monthSticker: 0,
             joinedAt: self.joinedAt.dateValue(),
             isLeader: self.isLeader
@@ -39,7 +40,9 @@ extension Member {
             userId: self.userID,
             nickname: self.nickname,
             joinedAt: Timestamp(date: self.joinedAt),
-            isLeader: self.isLeader
+            isLeader: self.isLeader,
+            profileImage: self.profileImageURL
         )
     }
 }
+

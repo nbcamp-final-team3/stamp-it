@@ -8,7 +8,6 @@
 import UIKit
 import Then
 import SnapKit
-import Kingfisher
 
 final class ProfileTab: UIView {
     
@@ -140,17 +139,12 @@ final class ProfileTab: UIView {
     
     func setUser(_ user: User) {
         print("🔍 ProfileTab setUser 호출: \(user.nickname)")
-        
-        // 프로필 이미지 설정 (URL이 있을 때만)
-        if let urlString = user.profileImageURL,
-           let url = URL(string: urlString) {
-            profileImageView.kf.setImage(with: url)
-        } else {
-            profileImageView.image = UIImage(named: "mascotRed") ?? .mascotRed
-        }
-        
-        // 그룹명과 닉네임은 항상 설정
+
+        let imageName = user.profileImageURL ?? "profileImage1"
+        profileImageView.image = UIImage(named: imageName) ?? .profileImage1
+
         groupLable.text = user.groupName
         userLabel.text = user.nickname
-        }
+    }
+
 }
