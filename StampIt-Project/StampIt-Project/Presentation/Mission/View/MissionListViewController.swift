@@ -12,6 +12,8 @@ import SnapKit
 import Then
 
 final class MissionListViewController: UIViewController {
+    private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))
+    
     private let searchBar = UISearchBar().then {
         $0.searchBarStyle = .minimal
         $0.placeholder = "검색어를 입력해주세요"
@@ -75,14 +77,19 @@ final class MissionListViewController: UIViewController {
     private func prepareSubviews() {
         view.backgroundColor = .white
         
-        [searchBar, collectionView, tableView].forEach {
+        [navigationBar, searchBar, collectionView, tableView].forEach {
             view.addSubview($0)
         }
     }
     
     private func setConstraints() {
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+        
         searchBar.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+            $0.top.equalTo(navigationBar.snp.bottom)
             $0.horizontalEdges.equalToSuperview()
         }
         
@@ -100,14 +107,7 @@ final class MissionListViewController: UIViewController {
     }
     
     private func setNavigationBar() {
-        navigationItem.title = "미션"
-        navigationController?.navigationBar.prefersLargeTitles = true
-        
-        // 뒤로 가기 버튼 이미지를 화살표로 바꾸고 타이틀 삭제
-        let backButtonImage = UIImage(systemName: "arrow.left")
-        navigationController?.navigationBar.backIndicatorImage = backButtonImage
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = backButtonImage
-        navigationItem.backButtonTitle = ""
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     private func bind() {
