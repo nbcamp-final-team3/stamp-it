@@ -193,7 +193,7 @@ final class HomeViewController: UIViewController {
             guard let self else { return }
             if show {
                 let message = "'\(missionTitle.truncatedTo10)' 미션을 완료했어요!"
-                toastView.show(in: homeView, duration: 3, message: message)
+                toastView.show(in: homeView, duration: 3, message: message, type: .success)
             } else {
                 toastView.dismiss(duration: 0)
             }
