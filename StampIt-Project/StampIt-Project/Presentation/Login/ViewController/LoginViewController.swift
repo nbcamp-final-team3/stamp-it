@@ -410,10 +410,23 @@ final class LoginViewController: UIViewController {
         let tabBar = MainTabBarController(container: container)
         WindowTransitionManager.shared.changeRootViewController(to: tabBar)
         
-        // 환영 토스트 띄우기
-        let toastView = ToastView()
-        toastView.show(in: view, duration: 3, message: "\(user.nickname)님, 환영합니다!", type: .success)
-        return
+        // 2. 새로운 루트 뷰에서 토스트 표시 (0.5초 후)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // 현재 활성화된 윈도우의 루트 뷰에서 토스트 표시
+            if let windowScene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let rootView = window.rootViewController?.view {
+                
+                let toastView = ToastView()
+                toastView.show(
+                    in: rootView,
+                    duration: 3,
+                    message: "신규 유저 \(user.nickname)님, 환영합니다!",
+                    type: .success
+                )
+            }
+        }
     }
     
     /// 에러 알림 표시
