@@ -1124,7 +1124,7 @@ extension FirestoreManager {
         groupId: String,
         missionTitle: String,
         maxStickers: Int,
-        stickerType: String = "일반",
+        stickerType: String,
         assignedBy: String,
     ) -> Observable<Void> {
         return fetchStickerCount(userId: userId)
