@@ -28,6 +28,7 @@ final class StampBoardTab: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        setStyle()
         setHierarchy()
         setLayout()
         setDataSource()
@@ -69,6 +70,12 @@ final class StampBoardTab: UIView {
                 return cell
             })
         stickerBoardView.setDataSource(stickerBoardDataSource)
+    }
+    
+    // MARK: - Style Helper
+    
+    private func setStyle() {
+        backgroundColor = .red50
     }
     
     // MARK: - Hierarchy Helper

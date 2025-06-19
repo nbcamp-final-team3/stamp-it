@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "tabBarMissionTapped.svg",
+      "filename" : "flag_2.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "tabBarMissionTapped 1.svg",
+      "filename" : "flag_2 1.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "tabBarMissionTapped 2.svg",
+      "filename" : "flag_2 2.svg",
       "idiom" : "universal",
       "scale" : "3x"
     }

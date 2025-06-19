@@ -65,7 +65,7 @@ final class HomeUseCase: HomeUseCaseProtocol {
         missionTitle: String,
         maxSticker: Int,
         stickerType: String,
-        assignedBy: String,
+        assignedBy: String
     ) -> Observable<Void> {
         homeRepository.createSticker(
             userId: userId,
@@ -73,7 +73,7 @@ final class HomeUseCase: HomeUseCaseProtocol {
             missionTitle: missionTitle,
             maxSticker: maxSticker,
             stickerType: stickerType,
-            assignedBy: assignedBy,
+            assignedBy: assignedBy
         )
     }
 

@@ -22,7 +22,9 @@ final class SendInviteViewController: UIViewController {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-    
+
+    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "초대하기"))
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -81,21 +83,37 @@ final class SendInviteViewController: UIViewController {
         view.backgroundColor = .FFFFFF
         setupLayout()
         bindViewModel()
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.tabBarController?.tabBar.isHidden = true
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.tabBarController?.tabBar.isHidden = false
     }
 
     private func setupLayout() {
 
-        [imageView, helpLabel, inviteCodeStackView]
+        [navigationBar,imageView, helpLabel, inviteCodeStackView]
             .forEach{ view.addSubview($0) }
 
         [textFieldInTitle, inviteCodeLabel, copyButton]
             .forEach { inviteCodeStackView.addArrangedSubview($0) }
 
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+
         imageView.snp.makeConstraints {
             $0.centerX.equalToSuperview()
             $0.height.equalTo(100)
             $0.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(30)
-            $0.top.equalTo(view.safeAreaLayoutGuide).offset(140)
+            $0.top.equalTo(navigationBar.snp.bottom).offset(140)
         }
 
         helpLabel.snp.makeConstraints {
@@ -121,10 +139,14 @@ final class SendInviteViewController: UIViewController {
     // MARK: - Bind
     private func bindViewModel() {
         viewModel.state.inviteCode
+            .bind(to: inviteCodeLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        viewModel.state.inviteCode
             .subscribe(onNext: { code in
-                self.inviteCodeLabel.text = code
                 UIPasteboard.general.string = code
-            }).disposed(by: disposeBag)
+            })
+            .disposed(by: disposeBag)
 
 
         viewModel.state.showMessage
@@ -142,6 +164,12 @@ final class SendInviteViewController: UIViewController {
             .map{SendInviteViewModel.Action.copyButtonTapped }
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
+
+        navigationBar.backTapped
+            .bind(with: self) { owner, _ in
+                owner.navigationController?.popViewController(animated: true)
+            }.disposed(by: disposeBag)
+        
     }
 
 }

@@ -54,12 +54,13 @@ final class InviteRepositoryImpl: InviteRepository {
         firestoreManager.deleteGroup(groupId: groupId)
     }
 
-    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String) -> Observable<Void> {
+    func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String, profileImage: String) -> Observable<Void> {
         firestoreManager.switchUserGroup(
             userId: userId,
             fromGroupId: fromGroupId,
             toGroupId: toGroupId,
-            userNickname: userNickname
+            userNickname: userNickname,
+            profileImage: profileImage
         )
     }
 }
