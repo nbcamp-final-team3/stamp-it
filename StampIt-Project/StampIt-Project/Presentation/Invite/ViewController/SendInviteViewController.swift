@@ -129,10 +129,14 @@ final class SendInviteViewController: UIViewController {
     // MARK: - Bind
     private func bindViewModel() {
         viewModel.state.inviteCode
+            .bind(to: inviteCodeLabel.rx.text)
+            .disposed(by: disposeBag)
+
+        viewModel.state.inviteCode
             .subscribe(onNext: { code in
-                self.inviteCodeLabel.text = code
                 UIPasteboard.general.string = code
-            }).disposed(by: disposeBag)
+            })
+            .disposed(by: disposeBag)
 
 
         viewModel.state.showMessage
