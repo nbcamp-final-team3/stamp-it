@@ -25,10 +25,6 @@ final class MyPageUseCaseImpl: MyPageUseCase {
         authRepository.getCurrentUser()
     }
     
-    func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void> {
-        mypageRepository.updateUserNickname(userId: userId, nickname: nickname, changedAt: changedAt)
-    }
-    
     func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[Sticker]> {
         mypageRepository.fetchStickersByPin(userId: userId, pinNumber: pinNumber)
     }

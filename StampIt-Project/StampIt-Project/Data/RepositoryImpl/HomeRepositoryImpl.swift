@@ -31,7 +31,7 @@ final class HomeRepository: HomeRepositoryProtocol {
                 return Member(
                     userID: member.userID,
                     nickname: member.nickname,
-                    profileImageURL: member.profileImageURL,
+                    profileImage: member.profileImage,
                     monthSticker: count,
                     joinedAt: member.joinedAt,
                     isLeader: member.isLeader

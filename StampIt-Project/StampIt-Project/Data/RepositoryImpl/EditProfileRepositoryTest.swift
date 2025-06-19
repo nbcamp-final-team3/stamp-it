@@ -17,7 +17,7 @@ final class EditProfileRepositoryTest: EditProfileRepository {
     }
     
     // 닉네임 업데이트
-    func updateUserNickname(userId: String, nickname: String, changedAt: Date) -> Observable<Void> {
+    func updateUserNickname(userId: String, groupId: String, nickname: String, changedAt: Date) -> Observable<Void> {
         print("Firestore nickname update success: \(userId), \(nickname), \(changedAt)")
         return Observable.create { observer in
             observer.on(.next(()))
@@ -37,7 +37,7 @@ final class EditProfileRepositoryTest: EditProfileRepository {
     }
     
     // 프로필 이미지 업데이트
-    func updateProfileImage(userId: String, imageName: String) -> Observable<Void> {
+    func updateProfileImage(userId: String, groupId: String, imageName: String) -> Observable<Void> {
         print("Firestore profile image update success: \(userId), \(imageName)")
         return Observable.create { observer in
             observer.on(.next(()))

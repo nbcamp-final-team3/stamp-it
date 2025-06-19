@@ -112,7 +112,9 @@ final class HomeViewModel: ViewModelProtocol {
           .subscribe(onNext: { [weak self] members in
               guard let self = self else { return }
 
-              state.isShowGroupOrganizationView.accept(members.count == 1)
+//              state.isShowGroupOrganizationView.accept(members.count == 1)
+
+              state.isShowGroupOrganizationView.accept(false)
 
               self.memberCache = Dictionary(
                 uniqueKeysWithValues: members.map { ($0.userID, $0) }
@@ -258,7 +260,7 @@ final class HomeViewModel: ViewModelProtocol {
                 nickname: member.nickname,
                 stickerCount: "\(member.monthSticker)개",
                 rank: index + 1,
-                profileImageURL: member.profileImageURL
+                profileImage: member.profileImage
             )
             return HomeItem.member(member)
         }
