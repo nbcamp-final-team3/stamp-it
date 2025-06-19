@@ -139,7 +139,7 @@ final class ProfileTab: UIView {
     // MARK: - Methods
     
     func setUser(_ user: User) {
-        let imageName = user.profileImageURL ?? "profileImage1"
+        let imageName = user.profileImage ?? "profileImage1"
         profileImageView.image = UIImage(named: imageName) ?? .profileImage1
 
         groupLable.text = user.groupName

@@ -645,7 +645,7 @@ extension AuthRepository {
                     userId: currentUser.userID,
                     currentGroupId: currentUser.groupID,
                     userNickname: currentUser.nickname,
-                    profileImageURL: currentUser.profileImageURL ?? "profileImage1"
+                    profileImageURL: currentUser.profileImage ?? "profileImage1"
 
                 )
             }

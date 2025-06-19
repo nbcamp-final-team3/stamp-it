@@ -331,7 +331,7 @@ final class EditProfileViewController: UIViewController {
     
     // 기존 프로필 이미지를 선택된 상태(isSelected)로 설정
     private func setupSelectedProfileImage() {
-        let profileImage = viewModel.state.user.value?.profileImageURL
+        let profileImage = viewModel.state.user.value?.profileImage
         
         // 기존 프로필 이미지가 존재하면, 해당 이미지를 선택된 상태(isSelected)로 설정
         if let profileImage, profileImages.contains(profileImage) {

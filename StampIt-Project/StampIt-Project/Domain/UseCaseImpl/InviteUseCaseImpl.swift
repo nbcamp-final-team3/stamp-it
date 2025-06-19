@@ -142,7 +142,7 @@ final class InviteUseCaseImpl: InviteUseCase {
                             fromGroupId: oldGroupId,
                             toGroupId: newGroupId,
                             userNickname: user.nickname,
-                            profileImage: user.profileImageURL ?? "profileImage1"
+                            profileImage: user.profileImage ?? "profileImage1"
                         )
                     }
                     .flatMap {
