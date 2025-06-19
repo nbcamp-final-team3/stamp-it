@@ -16,6 +16,7 @@ final class LoginViewController: UIViewController {
     
     // MARK: - Properties
     private let viewModel: LoginViewModel
+    private let container: DIContainer
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
@@ -118,8 +119,12 @@ final class LoginViewController: UIViewController {
     }
     
     // MARK: - Init
-    init(viewModel: LoginViewModel) {
+    init(
+        viewModel: LoginViewModel,
+        container: DIContainer
+    ) {
         self.viewModel = viewModel
+        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -394,23 +399,18 @@ final class LoginViewController: UIViewController {
             window.makeKeyAndVisible()
         }
     }
-
     
     /// 홈 화면으로 이동
     private func navigateToHome(user: User) {
-        let homeVC = DIContainer.shared.makeHomeViewController()
-        let navController = UINavigationController(rootViewController: homeVC)
-        
-        WindowTransitionManager.shared.changeRootViewController(to: navController)
+        let tabBar = MainTabBarController(container: container)
+        WindowTransitionManager.shared.changeRootViewController(to: tabBar)
     }
     
     /// 신규 사용자 환영 메시지 표시
     private func showWelcomeMessage(user: User) {
         // TODO: 홈 화면 이동 후 신규 사용자 환영 토스트 메시지로 출력(미구현)
-        let homeVC = DIContainer.shared.makeHomeViewController()
-        let navController = UINavigationController(rootViewController: homeVC)
-        
-        WindowTransitionManager.shared.changeRootViewController(to: navController)
+        let tabBar = MainTabBarController(container: container)
+        WindowTransitionManager.shared.changeRootViewController(to: tabBar)
     }
     
     /// 에러 알림 표시

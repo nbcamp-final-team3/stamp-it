@@ -29,17 +29,20 @@ final class DIContainer {
         )
     }()
 
-    private lazy var myPageRepository: MyPageRepository = {
-        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
-    }()
-
     lazy var homeRepository: HomeRepositoryProtocol = {
         return HomeRepository(manager: firestoreManager)
     }()
 
+    lazy var myPageRepository: MyPageRepository = {
+        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+    }()
 
-    private lazy var inviteRepository: InviteRepository = {
+    lazy var inviteRepository: InviteRepository = {
         return InviteRepositoryImpl(firestoreManager: firestoreManager)
+    }()
+    
+    lazy var missionRepository: MissionRepository = {
+        return MissionRepositoryImpl(firestoreManager: firestoreManager, authRepository: authRepository)
     }()
 
     // MARK: - Use Cases (Domain Layer)
@@ -51,7 +54,7 @@ final class DIContainer {
         return HomeUseCase(authRepository: authRepository, homeRepository: homeRepository)
     }()
 
-    private lazy var myPageUseCase: MyPageUseCase = {
+    lazy var myPageUseCase: MyPageUseCase = {
         return MyPageUseCaseImpl(
             authRepository: authRepository,
             mypageRepository: myPageRepository
@@ -66,15 +69,17 @@ final class DIContainer {
         return MemberMissionUseCaseImpl(homeRepository: homeRepository)
     }()
 
+    lazy var missionUseCase: MissionUseCase = {
+        return MissionUseCaseImpl(missionRepositoryImpl: missionRepository)
+    }()
 
-    private lazy var inviteUseCase: InviteUseCase = {
+    lazy var inviteUseCase: InviteUseCase = {
         return InviteUseCaseImpl(
             authRepository: authRepository,
             inviteRepository: inviteRepository
         )
     }()
 
-    
     lazy var accountManageUseCase: AccountManageUseCaseProtocol = {
         return AccountManageUseCase(authRepository: authRepository)
     }()
@@ -88,7 +93,7 @@ final class DIContainer {
         return HomeViewModel(useCase: homeUseCase)
     }
 
-    private func makeMyPageViewModel() -> MyPageViewModel {
+    func makeMyPageViewModel() -> MyPageViewModel {
         return MyPageViewModel(
             myPageUseCase: myPageUseCase,
             accountManageUseCase: accountManageUseCase
@@ -99,15 +104,17 @@ final class DIContainer {
         return OnboardingViewModel(totalPages: 3)
     }
 
-    func makeMyMissionViewModel(user: User, memberCache: [String: User]) -> MyMissionViewModel {
+    func makeMyMissionViewModel(user: User, memberCache: [String: Member]) -> MyMissionViewModel {
         return MyMissionViewModel(user: user, memberCache: memberCache, useCase: myMissionUseCase)
     }
 
-    func makeMemberMissionViewModel(user: User, memberCache: [String: User]) -> MemberMissionViewModel {
+    func makeMemberMissionViewModel(user: User, memberCache: [String: Member]) -> MemberMissionViewModel {
         return MemberMissionViewModel(user: user, memberCache: memberCache, useCase: memberMissionUseCase)
     }
-
     
+    func makeMissionListViewModel() -> MissionListViewModel {
+        return MissionListViewModel(missionUseCaseImpl: missionUseCase)
+    }
 
     func makeReceiveInviteViewModel() -> ReceiveInviteViewModel {
         return ReceiveInviteViewModel(useCase: inviteUseCase)
@@ -120,7 +127,7 @@ final class DIContainer {
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
-        return LoginViewController(viewModel: viewModel)
+        return LoginViewController(viewModel: viewModel, container: self)
     }
 
     func makeHomeViewController() -> HomeViewController {
@@ -130,7 +137,7 @@ final class DIContainer {
 
     func makeMyPageViewController() -> MyPageViewController {
         let viewModel = makeMyPageViewModel()
-        return MyPageViewController(viewModel: viewModel)
+        return MyPageViewController(viewModel: viewModel, container: self)
     }
     
     func makeOnboardingViewController() -> OnboardingViewController {
@@ -138,17 +145,20 @@ final class DIContainer {
         return OnboardingViewController(viewModel: viewModel)
     }
 
-    func makeMyMissionViewController(user: User, memberCache: [String: User]) -> MyMissionViewController {
+    func makeMyMissionViewController(user: User, memberCache: [String: Member]) -> MyMissionViewController {
         let viewModel = makeMyMissionViewModel(user: user, memberCache: memberCache)
         return MyMissionViewController(viewModel: viewModel)
     }
 
-    func makeMemberMissionViewController(user: User, memberCache: [String: User]) -> MemberMissionViewController {
+    func makeMemberMissionViewController(user: User, memberCache: [String: Member]) -> MemberMissionViewController {
         let viewModel = makeMemberMissionViewModel(user: user, memberCache: memberCache)
         return MemberMissionViewController(viewModel: viewModel)
     }
-
     
+    func makeMissionListViewController() -> MissionListViewController {
+        let viewModel = makeMissionListViewModel()
+        return MissionListViewController(viewModel: viewModel)
+    }
 
     func makeReceiveInviteViewController() -> ReceiveInviteViewController {
         let viewModel = makeReceiveInviteViewModel()

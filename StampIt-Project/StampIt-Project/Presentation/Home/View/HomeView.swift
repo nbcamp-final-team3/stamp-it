@@ -14,7 +14,7 @@ final class HomeView: UIView {
     // MARK: - Actions
 
     let didTapGroupOrganizationButton = PublishRelay<Void>()
-    let didTapMissionCompleteButton = PublishRelay<String>()
+    let didTapMissionCompleteButton = PublishRelay<HomeItem>()
     let didTapMoreReceivedMissionButton = PublishRelay<Void>()
     let didTapMoreSendedMissionButton = PublishRelay<Void>()
     let username = PublishRelay<String>()

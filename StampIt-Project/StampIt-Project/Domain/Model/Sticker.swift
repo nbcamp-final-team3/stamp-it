@@ -8,6 +8,7 @@
 import Foundation
 
 struct Sticker: Hashable {
+    let userID: String
     let stickerID: String
     let title: String
     let description: String
@@ -16,6 +17,7 @@ struct Sticker: Hashable {
     let createdAt: Date
     let maxStickers: Int
     let pinNumber: Int
+    let assignedBy: String
 }
 
 enum StickerType: String, Hashable {

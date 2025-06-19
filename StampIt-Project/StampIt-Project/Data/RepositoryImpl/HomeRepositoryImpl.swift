@@ -16,16 +16,33 @@ final class HomeRepository: HomeRepositoryProtocol {
         self.manager = manager
     }
 
-    func fetchGroupMembers(ofGroup groupID: String) -> Observable<[User]> {
-        manager.fetchMembers(groupId: groupID)
-            .flatMapLatest { [weak self] members -> Observable<[User]> in
-                guard let self else { return .just([]) }
-                let userObservables = members.map { member in
-                    self.manager.fetchUser(userId: member.userId)
-                        .map { $0.toDomainModel() }
-                }
-                return Observable.zip(userObservables)
+    func fetchGroupMembers(ofGroup groupID: String) -> Observable<[Member]> {
+        let thisMonth = Date().toYearMonthString()
+        return Observable.combineLatest(
+            manager.fetchMembers(groupId: groupID)
+                .map { $0.map { $0.toDomainModel() } },
+            manager.fetchGroupStickers(groupId: groupID, month: thisMonth)
+                .map { $0.map { $0.toDomainModel() } }
+        )
+        .map { members, stickers in
+            let stickerMap = Dictionary(grouping: stickers) { $0.userID }
+            return members.map { member in
+                let count = stickerMap[member.userID]?.count ?? 0
+                return Member(
+                    userID: member.userID,
+                    nickname: member.nickname,
+                    profileImageURL: member.profileImageURL,
+                    monthSticker: count,
+                    joinedAt: member.joinedAt,
+                    isLeader: member.isLeader
+                )
             }
+        }
+    }
+
+    func fetchStickers(ofGroup groupID: String, month: String) -> Observable<[Sticker]> {
+        manager.fetchGroupStickers(groupId: groupID, month: month)
+            .map { $0.map { $0.toDomainModel() } }
     }
 
     func fetchMissions(
@@ -37,7 +54,7 @@ final class HomeRepository: HomeRepositoryProtocol {
             .map { $0.map { $0.toDomainModel() } }
     }
     
-    func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Void> {
+    func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission> {
         let updated = MissionFirestore(
             missionId: mission.missionID,
             title: mission.title,
@@ -53,5 +70,24 @@ final class HomeRepository: HomeRepositoryProtocol {
         )
 
         return manager.updateMission(groupId: groupID, mission: updated)
+            .map { $0.toDomainModel() }
+    }
+
+    func createSticker(
+        userId: String,
+        groupId: String,
+        missionTitle: String,
+        maxSticker: Int,
+        stickerType: String,
+        assignedBy: String,
+    ) -> Observable<Void> {
+        manager.createStickerFromMission(
+            userId: userId,
+            groupId: groupId,
+            missionTitle: missionTitle,
+            maxStickers: maxSticker,
+            stickerType: stickerType,
+            assignedBy: assignedBy,
+        )
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Mission {
+struct Mission: Equatable {
     let missionID: String
     let title: String
     let assignedTo: String

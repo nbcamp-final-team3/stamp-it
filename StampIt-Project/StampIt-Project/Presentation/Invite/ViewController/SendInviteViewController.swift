@@ -132,8 +132,8 @@ final class SendInviteViewController: UIViewController {
             .subscribe(onNext: { [weak self] message in
                 guard let self = self else { return }
 
-                let toastView = ToastView(message: message)
-                toastView.show(in: self.view)
+                let toastView = ToastView()
+                toastView.show(in: self.view, message: message)
             })
             .disposed(by: disposeBag)
 

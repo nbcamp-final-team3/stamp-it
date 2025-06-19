@@ -15,6 +15,7 @@ final class MyPageViewController: UIViewController {
     // MARK: - Properties
     
     private var viewModel: MyPageViewModel
+    private var container: DIContainer
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
@@ -29,8 +30,12 @@ final class MyPageViewController: UIViewController {
     
     // MARK: - Initializer, Deinit, requiered
     
-    init(viewModel: MyPageViewModel) {
+    init(
+        viewModel: MyPageViewModel,
+        container: DIContainer
+    ) {
         self.viewModel = viewModel
+        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -42,6 +47,7 @@ final class MyPageViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        viewModel.action.accept(.viewDidLoad)
         setStyle()
         setHierarchy()
         setLayout()
@@ -62,7 +68,6 @@ final class MyPageViewController: UIViewController {
     // MARK: - Bind
     
     private func bind() {
-        viewModel.action.accept(.viewDidLoad)
         
         navigationBar.tabTapped
             .bind(with: self) { owner, type in
@@ -228,7 +233,7 @@ final class MyPageViewController: UIViewController {
          UserDefaults.standard.removeObject(forKey: "lastLoginDate")
         
         let loginViewModel = DIContainer.shared.makeLoginViewModel()
-        let loginVC = LoginViewController(viewModel: loginViewModel)
+        let loginVC = LoginViewController(viewModel: loginViewModel, container: container)
         let navController = UINavigationController(rootViewController: loginVC)
         
         WindowTransitionManager.shared.changeRootViewController(to: navController)
