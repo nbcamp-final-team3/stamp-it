@@ -11,7 +11,7 @@ import RxSwift
 struct MissionUseCaseImpl: MissionUseCase {
     private let missionRepositoryImpl: MissionRepository
     
-    init(missionRepositoryImpl: MissionRepository = MissionRepositoryImpl()) {
+    init(missionRepositoryImpl: MissionRepository) {
         self.missionRepositoryImpl = missionRepositoryImpl
     }
     
