@@ -8,7 +8,6 @@
 import UIKit
 import SnapKit
 import Then
-import Kingfisher
 
 final class MemberCompactCell: UICollectionViewCell {
     
