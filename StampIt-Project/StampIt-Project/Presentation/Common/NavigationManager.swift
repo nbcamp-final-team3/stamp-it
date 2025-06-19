@@ -11,6 +11,7 @@ final class NavigationManager {
     static let shared = NavigationManager()
     private init() {}
 
+    // TODO: 현재는 push는 NavigationController를 사용해서 직접 push, 추후 커스텀 애니메이션 추가, 화면 전환 상황 추가할 때 일괄 변경되거나 push가 삭제될 예정
     // 커스텀 전환 애니메이션 (슬라이드+페이드)
     private func makeDefaultTransition(duration: CFTimeInterval = 0.32) -> CATransition {
         let transition = CATransition()
