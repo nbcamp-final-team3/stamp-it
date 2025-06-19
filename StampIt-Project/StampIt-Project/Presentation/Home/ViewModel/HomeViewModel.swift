@@ -112,9 +112,7 @@ final class HomeViewModel: ViewModelProtocol {
           .subscribe(onNext: { [weak self] members in
               guard let self = self else { return }
 
-//              state.isShowGroupOrganizationView.accept(members.count == 1)
-
-              state.isShowGroupOrganizationView.accept(false)
+              state.isShowGroupOrganizationView.accept(members.count == 1)
 
               self.memberCache = Dictionary(
                 uniqueKeysWithValues: members.map { ($0.userID, $0) }
