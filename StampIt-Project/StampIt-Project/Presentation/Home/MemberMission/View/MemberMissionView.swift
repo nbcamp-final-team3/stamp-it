@@ -107,9 +107,6 @@ final class MemberMissionView: UIView {
     // MARK: - Methods
 
     func updateSnapshot(withItems items: [MemberMissionItem], toSection section: MemberMissionSection) {
-        #if DEBUG
-        let items = [MemberMissionItem]()
-        #endif
         guard var snapshot = dataSource?.snapshot() else { return }
         let itemsToDelete = snapshot.itemIdentifiers(inSection: section)
         snapshot.deleteItems(itemsToDelete)
