@@ -44,6 +44,10 @@ final class DIContainer {
     lazy var missionRepository: MissionRepository = {
         return MissionRepositoryImpl(firestoreManager: firestoreManager, authRepository: authRepository)
     }()
+    
+    lazy var editProfileRepository: EditProfileRepository = {
+        return EditProfileRepositoryImpl(firestoreManager: firestoreManager)
+    }()
 
     // MARK: - Use Cases (Domain Layer)
     lazy var loginUseCase: LoginUseCaseProtocol = {
@@ -84,6 +88,10 @@ final class DIContainer {
         return AccountManageUseCase(authRepository: authRepository)
     }()
     
+    lazy var editProfileUseCase: EditProfileUseCase = {
+        return EditProfileUseCaseImpl(editProfileRepositoryImpl: editProfileRepository)
+    }()
+    
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -122,6 +130,10 @@ final class DIContainer {
 
     func makeSendInviteViewModel() -> SendInviteViewModel {
         return SendInviteViewModel(useCase: inviteUseCase)
+    }
+    
+    func makeEditProfileViewModel(user: User) -> EditProfileViewModel {
+        return EditProfileViewModel(user: user, editProfileUseCaseImpl: editProfileUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)
@@ -170,6 +182,11 @@ final class DIContainer {
         return SendInviteViewController(viewModel: viewModel)
     }
 
+    func makeEditProfileViewController(user: User) -> EditProfileViewController {
+        let viewModel = makeEditProfileViewModel(user: user)
+        return EditProfileViewController(viewModel: viewModel)
+    }
+    
     // MARK: - Singleton
     static let shared = DIContainer()
     private init() {}

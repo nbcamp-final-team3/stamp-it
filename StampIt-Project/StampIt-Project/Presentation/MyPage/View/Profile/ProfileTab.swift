@@ -45,8 +45,9 @@ final class ProfileTab: UIView {
         $0.text = "유저이름"
     }
     
-    private let editImageView = UIImageView().then {
-        $0.image = UIImage(named: MyPage.User.editImage)!.withTintColor(.neutralGray400)
+    private let editButton = UIButton().then {
+        let image = UIImage(named: MyPage.User.editImage)!.withTintColor(.neutralGray400)
+        $0.setImage(image, for: .normal)
     }
     
     /// Divider
@@ -100,7 +101,7 @@ final class ProfileTab: UIView {
         
         [
             userLabel,
-            editImageView
+            editButton
         ]
             .forEach { hStackView.addArrangedSubview($0) }
     }
@@ -117,7 +118,7 @@ final class ProfileTab: UIView {
             $0.size.equalTo(MyPage.User.profileImageSize)
         }
         
-        editImageView.snp.makeConstraints {
+        editButton.snp.makeConstraints {
             $0.size.equalTo(MyPage.User.editImageSize)
         }
         
@@ -142,5 +143,9 @@ final class ProfileTab: UIView {
         profileImageView.kf.setImage(with: url)
         groupLable.text = user.groupName
         userLabel.text = user.nickname
+    }
+    
+    func setButtonAction(target: Any?, action: Selector) {
+        editButton.addTarget(target, action: action, for: .touchUpInside)
     }
 }
