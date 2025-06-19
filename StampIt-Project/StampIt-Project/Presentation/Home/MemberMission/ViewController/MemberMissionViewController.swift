@@ -18,6 +18,7 @@ final class MemberMissionViewController: UIViewController {
 
     // MARK: - UI Components
 
+    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "멤버 미션"))
     private let memberMissionView = MemberMissionView()
 
     // MARK: - Life Cycles
@@ -31,24 +32,65 @@ final class MemberMissionViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func loadView() {
-        view = memberMissionView
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
+        setStyles()
+        setHierarchy()
+        setConstraints()
         bind()
     }
 
+    // MARK: - Set Styles
+
+    private func setStyles() {
+        view.backgroundColor = .FFFFFF
+        navigationController?.navigationBar.isHidden = true
+        tabBarController?.tabBar.isHidden = true
+    }
+
+    // MARK: - Set Hierarchy
+
+    private func setHierarchy() {
+        [
+            navigationBar,
+            memberMissionView,
+        ].forEach { view.addSubview($0) }
+    }
+
+    // MARK: - Set Constraints
+
+    private func setConstraints() {
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+
+        memberMissionView.snp.makeConstraints {
+            $0.top.equalTo(navigationBar.snp.bottom)
+            $0.directionalHorizontalEdges.bottom.equalToSuperview()
+        }
+    }
     // MARK: - Bind
 
     private func bind() {
         viewModel.action.accept(.viewDidLoad)
 
+        navigationBar.backTapped
+            .map { MemberMissionViewModel.Action.didTapBackButton }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.missions
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
                 owner.memberMissionView.updateSnapshot(withItems: items, toSection: .mission)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.isPopVC
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.navigationController?.popViewController(animated: true)
             }
             .disposed(by: disposeBag)
     }
