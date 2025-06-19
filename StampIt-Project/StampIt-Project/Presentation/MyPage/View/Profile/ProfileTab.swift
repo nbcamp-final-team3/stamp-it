@@ -22,9 +22,11 @@ final class ProfileTab: UIView {
     }
     
     private let profileImageView = UIImageView().then {
-        $0.contentMode = .scaleAspectFill
+        $0.contentMode = .center
         $0.clipsToBounds = true
-        $0.backgroundColor = .neutralGray300
+        $0.backgroundColor = .white
+        $0.layer.borderWidth = 1
+        $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.cornerRadius = MyPage.User.profileImageSize / 2
     }
     
@@ -137,10 +139,18 @@ final class ProfileTab: UIView {
     // MARK: - Methods
     
     func setUser(_ user: User) {
-        guard let urlString = user.profileImageURL,
-              let url = URL(string: urlString) else { return }
-        profileImageView.kf.setImage(with: url)
+        print("🔍 ProfileTab setUser 호출: \(user.nickname)")
+        
+        // 프로필 이미지 설정 (URL이 있을 때만)
+        if let urlString = user.profileImageURL,
+           let url = URL(string: urlString) {
+            profileImageView.kf.setImage(with: url)
+        } else {
+            profileImageView.image = UIImage(named: "mascotRed") ?? .mascotRed
+        }
+        
+        // 그룹명과 닉네임은 항상 설정
         groupLable.text = user.groupName
         userLabel.text = user.nickname
-    }
+        }
 }

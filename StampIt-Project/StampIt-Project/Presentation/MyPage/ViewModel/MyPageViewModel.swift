@@ -76,8 +76,11 @@ final class MyPageViewModel: ViewModelProtocol {
     }
     
     private func bindUser() {
+        print("🔍 사용자 정보 조회 시작")
         myPageUseCase.fetchUser()
+            .observe(on: MainScheduler.instance)
             .subscribe(with: self) { owner, user in
+                print("🔍 사용자 정보 받음: \(user?.nickname ?? "nil")")
                 owner.state.user.accept(user)
                 owner.bindStickerSummaryData()
             }.disposed(by: disposeBag)

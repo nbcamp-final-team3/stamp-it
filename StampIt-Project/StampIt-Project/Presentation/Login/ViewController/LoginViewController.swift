@@ -303,7 +303,6 @@ final class LoginViewController: UIViewController {
             .compactMap { $0 }
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] (user, isNewUser, nextAction) in
-                UserCache.shared.clearCache()
                 UserCache.shared.setCurrentUser(user)
                 self?.handleLoginSuccess(user: user, isNewUser: isNewUser, nextAction: nextAction)
             })

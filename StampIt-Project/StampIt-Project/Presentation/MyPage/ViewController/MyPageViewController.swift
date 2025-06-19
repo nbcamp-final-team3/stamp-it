@@ -92,7 +92,9 @@ final class MyPageViewController: UIViewController {
         viewModel.state.user
             .compactMap { $0 }
             .bind(with: self) { owner, user in
+                print("🔍 UI 업데이트 시작: \(user.nickname)")
                 owner.profileView.setUser(user)
+                print("🔍 UI 업데이트 완료")
             }.disposed(by: disposeBag)
         
         viewModel.state.alertMessage
