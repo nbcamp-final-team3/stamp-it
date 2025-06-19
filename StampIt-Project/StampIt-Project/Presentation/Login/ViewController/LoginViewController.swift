@@ -74,18 +74,18 @@ final class LoginViewController: UIViewController {
         button.layer.borderColor = UIColor(red: 218/255, green: 220/255, blue: 224/255, alpha: 1).cgColor // 공식 가이드 연회색
         button.clipsToBounds = true
 
-        let title = "Sign in with Google"
-        let font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        let title = NSLocalizedString("login_google", comment: "")
+        let font = UIFont.systemFont(ofSize: 18, weight: .medium)
 
         let googleLogo = UIImage(named: "GoogleLogo")
         let imageAttachment = NSTextAttachment()
         imageAttachment.image = googleLogo
-        imageAttachment.bounds = CGRect(x: 0, y: -2, width: 20, height: 20)
+        imageAttachment.bounds = CGRect(x: 0, y: -2, width: 18, height: 18)
 
         let fullString = NSMutableAttributedString()
         fullString.append(NSAttributedString(attachment: imageAttachment))
-        // 10pt 간격
-        let space = NSAttributedString(string: "\u{200A}", attributes: [.font: font, .kern: 10])
+        // 5pt 간격
+        let space = NSAttributedString(string: "\u{200A}", attributes: [.font: font, .kern: 5])
         fullString.append(space)
         fullString.append(NSAttributedString(string: title, attributes: [
             .font: font,
@@ -94,7 +94,7 @@ final class LoginViewController: UIViewController {
         button.setAttributedTitle(fullString, for: .normal)
 
         button.setImage(nil, for: .normal)
-        button.accessibilityLabel = "구글로 로그인하기"
+        button.accessibilityLabel = NSLocalizedString("login_google_kr", comment: "")
         return button
     }()
     
@@ -232,12 +232,12 @@ final class LoginViewController: UIViewController {
         
         // Apple 로그인 버튼 높이
         appleLoginButton.snp.makeConstraints { make in
-            make.height.equalTo(44)
+            make.height.equalTo(48)
         }
         
         // Google 로그인 버튼 높이
         googleLoginButton.snp.makeConstraints { make in
-            make.height.equalTo(44)
+            make.height.equalTo(48)
         }
         
         // 로딩 컨테이너 제약조건 (최하단)

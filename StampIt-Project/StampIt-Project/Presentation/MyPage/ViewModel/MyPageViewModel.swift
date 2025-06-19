@@ -205,7 +205,7 @@ final class MyPageViewModel: ViewModelProtocol {
 
         if memberCount <= 1 {
             // 본인만 있는 경우: 탈퇴 불가
-            state.alertMessage.accept("혼자 있는 그룹에서는 탈퇴할 수 없습니다.\n계정 탈퇴를 원하시면 '서비스 탈퇴'를 이용해주세요.")
+            state.alertMessage.accept("계정 삭제를 원하신다면\n'서비스 탈퇴'를 이용해주세요.")
         }else if currentUser.isLeader {
                 // 리더도 탈퇴 가능하되, 자동 위임 안내
                 state.shouldShowConfirmAlert.accept((
