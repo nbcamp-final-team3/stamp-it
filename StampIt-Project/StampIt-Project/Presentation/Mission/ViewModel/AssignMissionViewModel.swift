@@ -109,17 +109,16 @@ final class AssignMissionViewModel: ViewModelProtocol {
     
     // 미션 정보 저장
     private func createMission() -> Observable<Void> {
-        let nickname = state.selectedMember.value.map { $0.nickname }
         let dueDate = state.dueDate.value
-        guard let nickname, let user else {
-            return Observable.error(NSError(domain: "user data or member data is nil.", code: 0, userInfo: nil))
+        guard let user else {
+            return Observable.error(NSError(domain: "user data is nil.", code: 0, userInfo: nil))
         }
         
         let mission = Mission(
             missionID: mission.missionId,
             title: mission.title,
-            assignedTo: nickname,
-            assignedBy: user.nickname,
+            assignedTo: user.userID,
+            assignedBy: user.userID,
             createDate: Date(),
             dueDate: dueDate,
             status: MissionStatus.assigned,
