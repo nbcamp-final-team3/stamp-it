@@ -20,6 +20,7 @@ final class HomeViewController: UIViewController {
 
     // MARK: - UI Components
 
+    private let navigationBar = DefaultNavigationBar(.logoWithItem)
     private let homeView = HomeView()
     private let toastView = ToastView(withCancelButton: true)
 
@@ -34,17 +35,45 @@ final class HomeViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func loadView() {
-        view = homeView
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
+        setStyles()
+        setHierarchy()
+        setConstraints()
         bind()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         viewModel.action.accept(.viewWillAppear)
+    }
+
+    // MARK: - Set Styles
+
+    private func setStyles() {
+        navigationController?.navigationBar.isHidden = true
+    }
+
+    // MARK: - Set Hierarchy
+
+    private func setHierarchy() {
+        [
+            navigationBar,
+            homeView,
+        ].forEach { view.addSubview($0) }
+    }
+
+    // MARK: - Set Constraints
+
+    private func setConstraints() {
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+
+        homeView.snp.makeConstraints {
+            $0.top.equalTo(navigationBar.snp.bottom)
+            $0.directionalHorizontalEdges.bottom.equalToSuperview()
+        }
     }
 
     // MARK: - Bind
