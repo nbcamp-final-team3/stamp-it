@@ -38,69 +38,60 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             if let error = error {
                 print("❌ Firestore 네트워크 활성화 실패: \(error.localizedDescription)")
             } else {
+                print("✅ Firestore 네트워크 활성화 성공")
             }
         }
     }
     
-    // MARK: - Google Sign-In 설정
+    // MARK: - Google Sign-In 설정 (수정됨)
     private func configureGoogleSignIn() {
-        // 환경 변수 방식 시도
+        // 1차: Info.plist에서 GIDClientID 읽기
         if let clientId = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String {
             GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
             return
         }
         
-        // GoogleService-Info.plist 방식 시도
+        // 2차: GoogleService-Info.plist에서 읽기
         guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
               let plist = NSDictionary(contentsOfFile: path),
               let clientId = plist["CLIENT_ID"] as? String else {
+            print("❌ Google Client ID를 찾을 수 없습니다.")
             return
         }
         
         GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
     }
+
     
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        return GIDSignIn.sharedInstance.handle(url)
+        print("🔗 URL 처리 시도: \(url.absoluteString)")
+        
+        // Google Sign-In URL 처리
+        if GIDSignIn.sharedInstance.handle(url) {
+            print("✅ Google Sign-In URL 처리 성공")
+            return true
+        }
+        
+        print("❌ URL 처리 실패")
+        return false
     }
     
     // MARK: UISceneSession Lifecycle
     
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        // Called when a new scene session is being created.
-        // Use this method to select a configuration to create the new scene with.
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
     
     func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
         // Called when the user discards a scene session.
-        // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
-        // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
     
     // MARK: - Core Data stack
     
     lazy var persistentContainer: NSPersistentContainer = {
-        /*
-         The persistent container for the application. This implementation
-         creates and returns a container, having loaded the store for the
-         application to it. This property is optional since there are legitimate
-         error conditions that could cause the creation of the store to fail.
-         */
         let container = NSPersistentContainer(name: "StampIt_Project")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                
-                /*
-                 Typical reasons for an error here include:
-                 * The parent directory does not exist, cannot be created, or disallows writing.
-                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
-                 * The device is out of space.
-                 * The store could not be migrated to the current model version.
-                 Check the error message to determine what the actual problem was.
-                 */
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         })
@@ -115,13 +106,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             do {
                 try context.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nserror = error as NSError
                 fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
             }
         }
     }
-    
 }
-
