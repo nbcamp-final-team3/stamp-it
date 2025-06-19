@@ -19,7 +19,11 @@ final class MyPageViewController: UIViewController {
     
     // MARK: - UI Components
 
-    private let tabButton = TabButton()
+    private let navigationBar = DefaultNavigationBar(
+        .segmentedControlTabs(
+            tab1: TabType.stampBoard.title,
+            tab2: TabType.profile.title
+        ))
     private let stampBoardView = StampBoardTab()
     private let profileView = ProfileTab()
     
@@ -60,19 +64,16 @@ final class MyPageViewController: UIViewController {
     private func bind() {
         viewModel.action.accept(.viewDidLoad)
         
-        tabButton.stampTapped
-            .bind(with: self) { owner, _ in
-                owner.viewModel.action.accept(.tabButtonTapped(.stampBoard))
-            }.disposed(by: disposeBag)
-        
-        tabButton.profileTapped
-            .bind(with: self) { owner, _ in
-                owner.viewModel.action.accept(.tabButtonTapped(.profile))
+        navigationBar.tabTapped
+            .bind(with: self) { owner, type in
+                owner.viewModel.action.accept(
+                    .tabButtonTapped(TabType(rawValue: type.rawValue)!)
+                )
             }.disposed(by: disposeBag)
     
         viewModel.state.tabType
             .bind(with: self) { owner, tab in
-                owner.tabButton.updateTitleColor(selected: tab)
+                owner.navigationBar.updateTabTitleColor(selected: tab)
                 owner.updateSelectedTab(selected: tab)
             }.disposed(by: disposeBag)
         
@@ -117,13 +118,14 @@ final class MyPageViewController: UIViewController {
         view.backgroundColor = .white
         stampBoardView.isHidden = false
         profileView.isHidden = true
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     // MARK: - Hierarchy Helper
     
     private func setHierarchy() {
         [
-            tabButton,
+            navigationBar,
             stampBoardView,
             profileView
         ]
@@ -133,17 +135,18 @@ final class MyPageViewController: UIViewController {
     // MARK: - Layout Helper
     
     private func setLayout() {
-        tabButton.snp.makeConstraints {
-            $0.top.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
         }
         
         stampBoardView.snp.makeConstraints {
-            $0.top.equalTo(tabButton.snp.bottom)
+            $0.top.equalTo(navigationBar.snp.bottom)
             $0.directionalHorizontalEdges.bottom.equalToSuperview()
         }
         
         profileView.snp.makeConstraints {
-            $0.top.equalTo(tabButton.snp.bottom)
+            $0.top.equalTo(navigationBar.snp.bottom)
             $0.directionalHorizontalEdges.bottom.equalToSuperview()
         }
     }

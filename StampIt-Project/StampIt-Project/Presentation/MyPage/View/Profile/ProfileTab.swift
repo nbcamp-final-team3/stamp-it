@@ -46,8 +46,7 @@ final class ProfileTab: UIView {
     }
     
     private let editImageView = UIImageView().then {
-        $0.image = UIImage(named: MyPage.User.editImage)
-        $0.tintColor = .neutralGray400
+        $0.image = UIImage(named: MyPage.User.editImage)!.withTintColor(.neutralGray400)
     }
     
     /// Divider

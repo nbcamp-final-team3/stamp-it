@@ -36,7 +36,7 @@ enum MyPageMenu: CaseIterable {
     
     var title: String {
         switch self {
-        case .deleteMember: return "멤버 삭제하기"
+        case .deleteMember: return "멤버 내보내기"
         case .inviteMember: return "초대 하기"
         case .receiveInvite: return "초대 받기"
         case .leaveGroup: return "그룹 탈퇴"
