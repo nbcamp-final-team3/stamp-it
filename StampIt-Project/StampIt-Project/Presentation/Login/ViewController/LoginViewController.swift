@@ -135,6 +135,7 @@ final class LoginViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureNavigationBar()
         setupUI()
         bindViewModel()
         viewModel.send(action: .viewDidLoad)
@@ -158,6 +159,26 @@ final class LoginViewController: UIViewController {
         googleLoginButton.isEnabled = true
         appleLoginButton.alpha = 1.0
         googleLoginButton.alpha = 1.0
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        navigationController?.navigationBar.isHidden = true
+    }
+    
+    // MARK: - Navigation Configuration
+    private func configureNavigationBar() {
+        // Navigation Bar 완전 비우기
+        navigationItem.title = nil
+        navigationItem.titleView = nil
+        navigationItem.leftBarButtonItem = nil
+        navigationItem.rightBarButtonItem = nil
+        navigationItem.leftBarButtonItems = nil
+        navigationItem.rightBarButtonItems = nil
+        
+        // Navigation Bar 숨김
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.navigationBar.isHidden = true
     }
     
     // MARK: - Setup UI
