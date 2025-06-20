@@ -25,15 +25,15 @@ enum AuthError: Error, LocalizedError {
         case .presentingViewControllerNotFound:
             return "화면을 찾을 수 없습니다."
         case .googleSignInFailed:
-            return "Google 로그인 실패했습니다."
+            return ""
         case .tokenRetrievalFailed:
             return "토큰을 가져올 수 없습니다."
         case .firebaseSignInFailed:
             return "Firebase 로그인 실패에 실패했습니다."
         case .appleSignInCanceled:
-            return "Apple 로그인이 취소되었습니다"
+            return ""
         case .appleSignInNotImplemented:
-            return "Apple 로그인은 아직 구현되지 않았습니다."
+            return "" // TODO: 리팩토링때 삭제, 애플 로그인 구현 전 에러
         case .signOutFailed:
             return "로그아웃에 실패했습니다."
         case .accountDeletionFailed:

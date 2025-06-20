@@ -98,7 +98,7 @@ final class MyPageViewController: UIViewController {
         
         viewModel.state.alertMessage
             .bind(with: self) { owner, message in
-                owner.showAlert(title: "알림", message: message)
+                owner.showAlert(title: "1인 그룹에서는 그룹 탈퇴가 지원되지 않아요.", message: message)
             }.disposed(by: disposeBag)
         
         // 로그인 화면으로 이동

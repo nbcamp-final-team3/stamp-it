@@ -315,7 +315,7 @@ final class AuthRepository: AuthRepositoryProtocol {
         if let authError = error as? AuthError {
             switch authError {
             case .googleSignInFailed:
-                return .authenticationFailed("Google 로그인 실패")
+                return .authenticationFailed("") // TODO: 부용아 나중에 삭제하도록 하렴(리팩토링)
             case .firebaseSignInFailed:
                 return .authenticationFailed("Firebase 로그인 실패")
             case .userNotFound:
