@@ -24,6 +24,7 @@ final class MissionListViewController: UIViewController {
     
     private lazy var tableView = UITableView().then {
         $0.register(MissionListCell.self, forCellReuseIdentifier: MissionListCell.reuseIdentifier)
+        $0.keyboardDismissMode = .onDrag
         $0.delegate = self
     }
     
@@ -68,6 +69,8 @@ final class MissionListViewController: UIViewController {
         bind()
         
         setCollectionViewCell()
+        
+        setTapGesture()
         
         // 미션 샘플 데이터 로드
         viewModel.action.accept(.onAppear)
@@ -188,6 +191,17 @@ final class MissionListViewController: UIViewController {
         // 전체보기 셀의 isSelected = true로 설정
         let defaultSelection = IndexPath(item: 0, section: 0)
         collectionView.selectItem(at: defaultSelection, animated: false, scrollPosition: [])
+    }
+    
+    // 서치바 바깥 화면을 터치하면 키보드 내려감
+    private func setTapGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
     
     // 미션 할당 화면으로 이동
