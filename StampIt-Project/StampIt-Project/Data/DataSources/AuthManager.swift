@@ -231,6 +231,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
     }
 }
 
+// TODO: 아래 애플 로그인의 경우 확인을 위해 print문을 많이 출력시켜둠, 다음 업데이트 전에 print문 삭제 필요
 // MARK: - Apple Sign-In Delegates
 extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     
@@ -245,72 +246,123 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
     }
     
     /// Apple Sign-In 인증 성공 시 호출되는 델리게이트 메서드
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        
-        if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+        func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
             
-            // 1. 필수 데이터 검증
-            guard let nonce = currentNonce else {
+            print("🍎 [Apple Login] 인증 성공 - 토큰 처리 시작")
+            
+            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                
+                print("🍎 [Apple Login] Apple ID Credential 획득")
+                print("   - User ID: \(appleIDCredential.user)")
+                print("   - Email: \(appleIDCredential.email ?? "없음")")
+                print("   - Full Name: \(appleIDCredential.fullName?.description ?? "없음")")
+                
+                // 1. 필수 데이터 검증
+                guard let nonce = currentNonce else {
+                    print("❌ [Apple Login] Nonce가 없음")
+                    appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+                    return
+                }
+                print("✅ [Apple Login] Nonce 검증 완료")
+                
+                guard let appleIDToken = appleIDCredential.identityToken else {
+                    print("❌ [Apple Login] Identity Token이 없음")
+                    appleSignInObserver?(.failure(AuthError.tokenRetrievalFailed))
+                    return
+                }
+                print("✅ [Apple Login] Identity Token 획득")
+                
+                guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
+                    print("❌ [Apple Login] Token String 변환 실패")
+                    appleSignInObserver?(.failure(AuthError.tokenRetrievalFailed))
+                    return
+                }
+                print("✅ [Apple Login] Token String 변환 완료")
+                print("   - Token 길이: \(idTokenString.count)")
+                
+                // 2. Firebase 인증 자격 증명 생성
+                print("🔥 [Firebase] Apple Credential 생성 중...")
+                let credential = OAuthProvider.appleCredential(
+                    withIDToken: idTokenString,
+                    rawNonce: nonce,
+                    fullName: appleIDCredential.fullName
+                )
+                print("✅ [Firebase] Apple Credential 생성 완료")
+                
+                // 3. Firebase 로그인 수행
+                print("🔥 [Firebase] Apple 로그인 시도 중...")
+                Auth.auth().signIn(with: credential) { [weak self] authResult, error in
+                    if let error = error {
+                        print("❌ [Firebase] Apple 로그인 실패: \(error.localizedDescription)")
+                        print("   - Error Code: \((error as NSError).code)")
+                        print("   - Error Domain: \((error as NSError).domain)")
+                        self?.appleSignInObserver?(.failure(AuthError.firebaseSignInFailed))
+                        return
+                    }
+                    
+                    guard let authResult = authResult else {
+                        print("❌ [Firebase] AuthResult가 없음")
+                        self?.appleSignInObserver?(.failure(AuthError.unknownError))
+                        return
+                    }
+                    
+                    print("✅ [Firebase] Apple 로그인 성공!")
+                    print("   - User ID: \(authResult.user.uid)")
+                    print("   - Email: \(authResult.user.email ?? "없음")")
+                    print("   - Display Name: \(authResult.user.displayName ?? "없음")")
+                    print("   - Is New User: \(authResult.additionalUserInfo?.isNewUser ?? false)")
+                    
+                    self?.appleSignInObserver?(.success(authResult))
+                    
+                    // 정리
+                    self?.appleSignInObserver = nil
+                    self?.currentNonce = nil
+                }
+            } else {
+                print("❌ [Apple Login] Apple ID Credential 타입 불일치")
                 appleSignInObserver?(.failure(AuthError.appleSignInFailed))
-                return
-            }
-            
-            guard let appleIDToken = appleIDCredential.identityToken else {
-                appleSignInObserver?(.failure(AuthError.tokenRetrievalFailed))
-                return
-            }
-            
-            guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                appleSignInObserver?(.failure(AuthError.tokenRetrievalFailed))
-                return
-            }
-            
-            // 2. Firebase 인증 자격 증명 생성
-            let credential = OAuthProvider.appleCredential(
-                withIDToken: idTokenString,
-                rawNonce: nonce,
-                fullName: appleIDCredential.fullName
-            )
-            
-            // 3. Firebase 로그인 수행
-            Auth.auth().signIn(with: credential) { [weak self] authResult, error in
-                if error != nil {
-                    self?.appleSignInObserver?(.failure(AuthError.firebaseSignInFailed))
-                    return
-                }
-                
-                guard let authResult = authResult else {
-                    self?.appleSignInObserver?(.failure(AuthError.unknownError))
-                    return
-                }
-                
-                self?.appleSignInObserver?(.success(authResult))
-                
-                // 정리
-                self?.appleSignInObserver = nil
-                self?.currentNonce = nil
             }
         }
-    }
+    
     
     /// Apple Sign-In 인증 실패 시 호출되는 델리게이트 메서드
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        
-        if let authError = error as? ASAuthorizationError {
-            switch authError.code {
-            case .canceled:
-                appleSignInObserver?(.failure(AuthError.appleSignInCanceled))
-            default:
-                appleSignInObserver?(.failure(AuthError.appleSignInFailed))
-            }
-        } else {
-            appleSignInObserver?(.failure(AuthError.appleSignInFailed))
-        }
-        
-        // 정리
-        appleSignInObserver = nil
-        currentNonce = nil
-    }
+     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+         
+         print("❌ [Apple Login] 인증 실패: \(error.localizedDescription)")
+         
+         if let authError = error as? ASAuthorizationError {
+             print("   - Error Code: \(authError.code.rawValue)")
+             print("   - Error Description: \(authError.localizedDescription)")
+             
+             switch authError.code {
+             case .canceled:
+                 print("   - 사용자가 취소함")
+                 appleSignInObserver?(.failure(AuthError.appleSignInCanceled))
+             case .failed:
+                 print("   - 인증 실패")
+                 appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+             case .invalidResponse:
+                 print("   - 잘못된 응답")
+                 appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+             case .notHandled:
+                 print("   - 처리되지 않음")
+                 appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+             case .unknown:
+                 print("   - 알 수 없는 오류")
+                 appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+             default:
+                 print("   - 새로운 오류 타입")
+                 appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+             }
+         } else {
+             print("   - 일반 오류: \((error as NSError).code)")
+             appleSignInObserver?(.failure(AuthError.appleSignInFailed))
+         }
+         
+         // 정리
+         appleSignInObserver = nil
+         currentNonce = nil
+     }
 }
 
 extension AuthManager {

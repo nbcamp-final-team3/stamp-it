@@ -64,19 +64,15 @@ final class EditProfileViewModel: ViewModelProtocol {
                 case .onAppear:
                     print("on appear")
                 case .nicknameChanged(let nickname):
-                    print("nickname is changed: \(nickname)")
                     newNickname = nickname
                     state.isUserDataChanged.accept(isUserDataChanged)
                 case .groupNameChanged(let groupName):
-                    print("group name is changed: \(groupName)")
                     newGroupName = groupName
                     state.isUserDataChanged.accept(isUserDataChanged)
                 case .profileImageChanged(let indexPath):
-                    print("profile image is changed: \(indexPath)")
                     newProfileImageName = "profileImage\(indexPath.item + 1)"
                     state.isUserDataChanged.accept(isUserDataChanged)
                 case .didTapEditButton:
-                    print("did tap edit button.")
                     updateUserData()
                 }
             }
