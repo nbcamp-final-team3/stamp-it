@@ -36,7 +36,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     }
     
     // MARK: - Sign-In Helper Methods (Private)
-    /// 공통 로그인 로직 처리
+    /// 공통 로그인 ㅋ로직 처리
     private func performSignIn(authMethod: Observable<AuthDataResult>) -> Observable<LoginResult> {
         return authMethod
             .flatMap { [weak self] authDataResult -> Observable<LoginResult> in
@@ -57,13 +57,14 @@ final class AuthRepository: AuthRepositoryProtocol {
     /// AuthDataResult를 LoginResult로 변환
     private func processAuthResult(_ authDataResult: AuthDataResult) -> Observable<LoginResult> {
         let firebaseUser = authDataResult.user
+        let isNewUser = authDataResult.additionalUserInfo?.isNewUser ?? false
         let authUser = createAuthUser(
             from: firebaseUser,
-            isNewUser: authDataResult.additionalUserInfo?.isNewUser ?? false
+            isNewUser: isNewUser
         )
-        
-        if authUser.isNewUser {
-            // 신규 사용자: AuthUser 정보만 반환 (나머진 UseCase에서 완전한 User 생성)
+
+        if isNewUser {
+            // 신규 사용자 플로우
             return Observable.just(LoginResult(
                 authUser: authUser,
                 user: nil,
@@ -71,7 +72,7 @@ final class AuthRepository: AuthRepositoryProtocol {
                 needsGroupSetup: true
             ))
         } else {
-            // 기존 사용자: Firestore에서 완전한 정보 조회
+            // 기존 사용자: Firestore에서 정보 조회
             return fetchUserWithGroupInfo(userId: authUser.uid)
                 .map { completeUser in
                     return LoginResult(
@@ -81,8 +82,24 @@ final class AuthRepository: AuthRepositoryProtocol {
                         needsGroupSetup: false
                     )
                 }
+                .catch { error in
+                    // Firestore에 유저 문서가 없으면 신규 유저 플로우로 전환!
+                    // (예: FirestoreError.documentNotFound)
+                    if let firestoreError = error as? FirestoreError,
+                       case .documentNotFound = firestoreError {
+                        return Observable.just(LoginResult(
+                            authUser: authUser,
+                            user: nil,
+                            isNewUser: true,
+                            needsGroupSetup: true
+                        ))
+                    } else {
+                        return Observable.error(error)
+                    }
+                }
         }
     }
+
     
     /// Firebase User를 AuthUser로 변환
     private func createAuthUser(from firebaseUser: FirebaseAuth.User, isNewUser: Bool) -> AuthUser {
@@ -410,10 +427,10 @@ extension AuthRepository {
                 }
                 let providerID = self.getCurrentProviderID()
                 if providerID == "apple.com" {
-                    // 애플: 10회까지만 시도 후, 실패 시 재인증 필요
+                    // 애플: 3회까지만 시도 후, 실패 시 재인증 필요
                     return self.deleteFirestoreDataUntilSuccess(user: user)
                         .flatMap { _ in
-                            self.deleteAuthAccountWithLimitedRetry(maxRetry: 10)
+                            self.deleteAuthAccountWithLimitedRetry(maxRetry: 3)
                         }
                 } else {
                     // 구글 등: 기존 무한 재시도
