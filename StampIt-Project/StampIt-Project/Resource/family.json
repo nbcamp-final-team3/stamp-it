@@ -1,0 +1,152 @@
+[
+  {
+    "missionId": "family_001",
+    "title": "가족과 30분 이상 진솔한 대화하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_002",
+    "title": "룸메이트와 오늘 하루 이야기 나누기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_003",
+    "title": "부모님께 안부 전화드리기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_004",
+    "title": "친구에게 안부 메시지 보내기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_005",
+    "title": "누군가에게 진심어린 감사 인사 전하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_006",
+    "title": "가족 구성원에게 칭찬해주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_007",
+    "title": "누군가의 고민 들어주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_008",
+    "title": "함께 TV 프로그램 시청하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_009",
+    "title": "보드게임이나 카드게임 같이하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_010",
+    "title": "함께 산책하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_011",
+    "title": "카페 가서 함께 시간 보내기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_012",
+    "title": "어깨나 목 마사지해주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_013",
+    "title": "좋아하는 간식 사다주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_014",
+    "title": "깜짝 선물 준비해주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_015",
+    "title": "편의점 심부름 해주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_016",
+    "title": "약국 다녀와주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_017",
+    "title": "누군가의 집안일 대신 해주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_018",
+    "title": "아침에 깨워주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_019",
+    "title": "점심 사주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_020",
+    "title": "따뜻한 차 한잔 타주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_021",
+    "title": "비 올 때 우산 챙겨주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_022",
+    "title": "함께 요리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_023",
+    "title": "영화 같이 보기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_024",
+    "title": "쇼핑 함께 가기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_025",
+    "title": "운동 함께하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_026",
+    "title": "예쁜 사진 찍어주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_027",
+    "title": "맛있는 곳에서 외식하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_028",
+    "title": "주말 나들이 계획 함께 세우기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_029",
+    "title": "대청소 함께하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "family_030",
+    "title": "집들이나 파티 준비 함께하기",
+    "missionType": "앱제공"
+  }
+]

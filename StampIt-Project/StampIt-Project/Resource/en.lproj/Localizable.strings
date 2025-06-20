@@ -1,0 +1,9 @@
+/* 
+  Localizable.strings
+  StampIt-Project
+
+  Created by iOS study on 6/20/25.
+  
+*/
+"login_google" = "Sign in with Google";
+"login_google_kr" = "Sign in with Google";

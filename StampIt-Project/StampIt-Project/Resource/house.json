@@ -1,0 +1,352 @@
+[
+  {
+    "missionId": "house_001",
+    "title": "거실 진공청소기 돌리기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_002",
+    "title": "화장실 변기 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_003",
+    "title": "주방 개수대 닦고 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_004",
+    "title": "창문 닦기 (거실)",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_005",
+    "title": "침실 이불 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_006",
+    "title": "베란다 바닥 쓸고 닦기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_007",
+    "title": "냉장고 내부 정리하고 유통기한 확인하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_008",
+    "title": "신발장 정리하고 신발 가지런히 놓기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_009",
+    "title": "옷장 정리하고 옷 개서 넣기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_010",
+    "title": "책상 위 정리하고 먼지 닦기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_011",
+    "title": "아침식사 준비하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_012",
+    "title": "저녁식사 준비하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_013",
+    "title": "간단한 간식 만들어주기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_014",
+    "title": "설거지 깨끗하게 하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_015",
+    "title": "분리수거 정리해서 버리기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_016",
+    "title": "음식물쓰레기 버리기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_017",
+    "title": "밑반찬 하나 만들기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_018",
+    "title": "김치냉장고 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_019",
+    "title": "식탁 깨끗하게 세팅하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_020",
+    "title": "물병과 텀블러 깨끗하게 세척하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_021",
+    "title": "세탁기 돌리기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_022",
+    "title": "빨래 널고 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_023",
+    "title": "빨래 개서 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_024",
+    "title": "이불 빨고 말리기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_025",
+    "title": "화분에 물주고 관리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_026",
+    "title": "택배 받아서 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_027",
+    "title": "전기요금/가스비 확인하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_028",
+    "title": "생활용품 쇼핑해오기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_029",
+    "title": "약국에서 상비약 사오기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_030",
+    "title": "집 앞 현관 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_031",
+    "title": "우편함 확인하고 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_032",
+    "title": "화장실 바닥 닦기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_033",
+    "title": "거울 깨끗하게 닦기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_034",
+    "title": "세면대 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_035",
+    "title": "샤워부스/욕조 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_036",
+    "title": "가스레인지 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_037",
+    "title": "전자레인지 내부 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_038",
+    "title": "에어컨 필터 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_039",
+    "title": "선풍기 먼지 제거하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_040",
+    "title": "TV 화면과 주변 먼지 닦기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_041",
+    "title": "컴퓨터 키보드와 모니터 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_042",
+    "title": "침대 시트 교체하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_043",
+    "title": "베개 커버 세탁하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_044",
+    "title": "카펫/러그 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_045",
+    "title": "소파 먼지 제거하고 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_046",
+    "title": "쓰레기통 비우고 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_047",
+    "title": "현관 신발 정리하고 매트 털기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_048",
+    "title": "조명기구 먼지 닦기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_049",
+    "title": "문손잡이와 스위치 소독하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_050",
+    "title": "식기건조대 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_051",
+    "title": "냉장고 문과 손잡이 닦기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_052",
+    "title": "식탁 의자 닦고 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_053",
+    "title": "창틀과 방충망 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_054",
+    "title": "블라인드 먼지 제거하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_055",
+    "title": "커튼 세탁하거나 털기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_056",
+    "title": "화장품/세면용품 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_057",
+    "title": "약품 정리하고 유통기한 확인하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_058",
+    "title": "청소도구 정리하고 세척하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_059",
+    "title": "물티슈와 화장지 보충하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_060",
+    "title": "수건 교체하고 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_061",
+    "title": "전선 정리하고 먼지 제거하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_062",
+    "title": "서랍 정리하고 불필요한 물건 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_063",
+    "title": "냉동실 정리하고 성에 제거하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_064",
+    "title": "식품 보관용기 세척하고 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_065",
+    "title": "행주와 스펀지 교체하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_066",
+    "title": "정수기 청소하고 필터 확인하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_067",
+    "title": "공기청정기 필터 청소하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_068",
+    "title": "가습기 청소하고 물 교체하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_069",
+    "title": "계량기 확인하고 주변 정리하기",
+    "missionType": "앱제공"
+  },
+  {
+    "missionId": "house_070",
+    "title": "대청소 하루 (방 한 곳 완전 정리)",
+    "missionType": "앱제공"
+  }
+]
