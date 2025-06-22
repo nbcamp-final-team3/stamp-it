@@ -84,11 +84,14 @@ final class SendInviteViewController: UIViewController {
         setupLayout()
         bindViewModel()
         navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.delegate = self
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.tabBarController?.tabBar.isHidden = true
+        // 스택에 쌓인 화면이므로 스와이프 제스처 활성화
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -173,3 +176,13 @@ final class SendInviteViewController: UIViewController {
     }
 
 }
+
+// MARK: - UINavigationControllerDelegate
+extension SendInviteViewController: UINavigationControllerDelegate {
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        // Root view controller가 아닌 경우에만 스와이프 제스처 활성화
+        let isRootViewController = navigationController.viewControllers.count <= 1
+        navigationController.interactivePopGestureRecognizer?.isEnabled = !isRootViewController
+    }
+}
+

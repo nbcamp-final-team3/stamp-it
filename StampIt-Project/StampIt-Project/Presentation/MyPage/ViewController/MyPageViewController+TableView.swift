@@ -49,12 +49,14 @@ extension MyPageViewController: UITableViewDelegate {
             // TODO: 멤버 초대 기능 구현 후 추가
             let vc = DIContainer.shared.makeSendInviteViewController()
             print("초대하기 탭")
+            // 스와이프 뒤로가기 제스처 활성화 (push 후에 활성화됨)
             navigationController?.pushViewController(vc, animated: true)
             
         case .receiveInvite:
             // TODO: 초대받기 기능 구현 후 추가
             let vc = DIContainer.shared.makeReceiveInviteViewController()
             print("초대받기 탭")
+            // 스와이프 뒤로가기 제스처 활성화 (push 후에 활성화됨)
             navigationController?.pushViewController(vc, animated: true)
             
         case .leaveGroup:
