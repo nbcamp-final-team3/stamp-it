@@ -74,6 +74,7 @@ final class ReceiveInviteViewController: UIViewController {
         $0.layer.cornerRadius = 12
         $0.layer.masksToBounds = true
         $0.layer.borderWidth = 0
+        $0.layoutMargins = UIEdgeInsets(top: 8, left: 24, bottom: 8, right: 24)
     }
 
     private let enterButton = DefaultButton(type: .enter)
