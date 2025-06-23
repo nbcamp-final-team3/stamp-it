@@ -202,6 +202,30 @@ final class StickerManager: StickerManagerProtocol {
         }
     }
     
+    // addSnapshotListener를 추가하되 최적화하기(새 페이지 생성 감지)
+    func observeStickerCount(userId: String) -> Observable<Int> {
+        return Observable.create { observer in
+            let listener = self.stickersCollection
+                .whereField("userId", isEqualTo: userId)
+                .addSnapshotListener { querySnapshot, error in
+                    if let error = error {
+                        observer.onError(StickerError.fetchFailed(error.localizedDescription))
+                        return
+                    }
+                    
+                    let count = querySnapshot?.documents.count ?? 0
+                    observer.onNext(count)
+                }
+            
+            return Disposables.create {
+                listener.remove()
+            }
+        }
+        .distinctUntilChanged() // 같은 값이면 방출하지 않음
+        .debounce(.milliseconds(300), scheduler: MainScheduler.instance) // 연속 변경 방지
+    }
+
+    
     /// 특정 사용자의 현재 스티커 개수 조회
     func fetchStickerCount(userId: String) -> Observable<Int> {
         return Observable.create { observer in
