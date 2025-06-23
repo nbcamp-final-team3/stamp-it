@@ -30,7 +30,7 @@ final class MyPageViewModel: ViewModelProtocol {
         let user = BehaviorRelay<User?>(value: nil)
         let stickers = BehaviorRelay<[Sticker]>(value: [])
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
-        let stickerSummary = BehaviorRelay<(collectedSticker: Int, completedBoard: Int)>(value: (.zero, .zero))
+        let stickerSummary = BehaviorRelay<(collected: Int, completed: Int)>(value: (.zero, .zero))
         let isLoading = BehaviorRelay<Bool>(value: false)
         let alertMessage = PublishRelay<String>()
         let shouldNavigateToLogin = PublishRelay<Void>()
@@ -111,8 +111,8 @@ final class MyPageViewModel: ViewModelProtocol {
                 let completedBoard = Int(sticker / totalSticker)
                 
                 owner.state.stickerSummary.accept((
-                    collectedSticker: collectedSticker,
-                    completedBoard: completedBoard
+                    collected: collectedSticker,
+                    completed: completedBoard
                 ))
                 
                 owner.fetchStickersByPin(

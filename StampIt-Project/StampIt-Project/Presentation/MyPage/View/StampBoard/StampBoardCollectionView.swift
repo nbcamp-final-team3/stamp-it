@@ -9,7 +9,7 @@ import UIKit
 import Then
 import SnapKit
 
-final class StampBoard: UIView {
+final class StampBoardCollectionView: UIView {
     
     // MARK: - UI Components
     
@@ -17,9 +17,10 @@ final class StampBoard: UIView {
         frame: .zero,
         collectionViewLayout: createCompositionalLayout()
     ).then {
+        $0.register(SummaryCell.self, forCellWithReuseIdentifier: SummaryCell.identifier)
         $0.register(StampCell.self, forCellWithReuseIdentifier: StampCell.identifier)
-        $0.backgroundColor = .red50
-        $0.isScrollEnabled = false
+        $0.backgroundColor = .clear
+        $0.showsVerticalScrollIndicator = false
     }
     
     // MARK: - Initializer, Deinit, requiered
@@ -50,8 +51,35 @@ final class StampBoard: UIView {
     
     private func createCompositionalLayout() -> UICollectionViewLayout {
         UICollectionViewCompositionalLayout { [weak self] sectionIndex, environment in
-            self?.createStampBoardLayout()
+            guard let section = StampBoardSection(rawValue: sectionIndex) else {
+                return self?.createStampSummaryLayout()
+            }
+            switch section {
+            case .summary: return self?.createStampSummaryLayout()
+            case .defaultBoard: return self?.createStampBoardLayout()
+            }
         }
+    }
+    
+    private func createStampSummaryLayout() -> NSCollectionLayoutSection {
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .absolute(72)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .absolute(72)
+        )
+        let group = NSCollectionLayoutGroup.vertical(
+            layoutSize: groupSize,
+            subitems: [item]
+        )
+        
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = .init(top: 30, leading: 16, bottom: 0, trailing: 16)
+        return section
     }
     
     private func createStampBoardLayout() -> NSCollectionLayoutSection {
@@ -71,6 +99,7 @@ final class StampBoard: UIView {
         )
         
         let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = .init(top: 24, leading: 36, bottom: 30, trailing: StickerType.imageSize / 3)
         return section
     }
     

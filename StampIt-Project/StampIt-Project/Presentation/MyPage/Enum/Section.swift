@@ -59,10 +59,8 @@ enum MyPageMenu: CaseIterable {
     }
 }
 
-typealias StampBoardSection = MyPageStampBoardSection
-typealias StampBoardItem = Sticker
-
-enum MyPageStampBoardSection: Hashable {
+enum StampBoardSection: Int, Hashable {
+    case summary
     case defaultBoard
     
     var type: [[StampCellType]] {
@@ -76,21 +74,30 @@ enum MyPageStampBoardSection: Hashable {
                 [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
                 [.horizontal, .horizontal, .horizontal, .horizontal, .none],
             ]
+        default: return []
         }
     }
     
     var column: Int {
         switch self {
         case .defaultBoard: return 5
+        default: return 0
         }
     }
     
     var totalStamp: Int {
         switch self {
         case .defaultBoard: return 30
+        default: return 0
         }
     }
 }
+
+enum StampBoardItem: Hashable {
+    case summary(collected: Int, completed: Int)
+    case stickers(Sticker)
+}
+
 
 /// Dashed Line 기준
 enum StampCellType: Hashable {
