@@ -22,6 +22,7 @@ final class EditProfileViewController: UIViewController {
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
         $0.register(ProfileImageCell.self, forCellWithReuseIdentifier: ProfileImageCell.reuseIdentifier)
+        $0.isScrollEnabled = false
     }
     
     private let nicknameLabel = UILabel().then {

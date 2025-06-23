@@ -30,6 +30,7 @@ final class MissionListViewController: UIViewController {
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
         $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
+        $0.isScrollEnabled = false
     }
     
     private let noResultsView = NoResultsView().then {
