@@ -130,7 +130,7 @@ final class MyPageViewController: UIViewController {
         view.backgroundColor = .white
         stampBoardView.isHidden = false
         profileView.isHidden = true
-        navigationController?.setNavigationBarHidden(true, animated: false)
+//        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     // MARK: - Hierarchy Helper
