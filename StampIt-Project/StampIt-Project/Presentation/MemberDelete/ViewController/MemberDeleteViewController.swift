@@ -22,12 +22,11 @@ final class MemberDeleteViewController: UIViewController {
 
     // MARK: - UI
 
+    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "멤버 내보내기"))
+    
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then() {
         $0.register(MemberDeleteCell.self, forCellWithReuseIdentifier: MemberDeleteCell.reuseIdentifier)
     }
-
-
-    private let exportButton = DefaultButton(type: .export)
 
    // MARK: - Init
 
@@ -44,8 +43,11 @@ final class MemberDeleteViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        navigationController?.navigationBar.isHidden = true
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
         setupUI()
+        setupDataSource()
         bind()
     }
 
@@ -53,60 +55,120 @@ final class MemberDeleteViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = .white
+        view.addSubview(navigationBar)
         view.addSubview(collectionView)
-        view.addSubview(exportButton)
+        
+        setupConstraints()
+    }
+    
+    private func setupConstraints() {
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+        
+        collectionView.snp.makeConstraints {
+            $0.top.equalTo(navigationBar.snp.bottom)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(view.safeAreaLayoutGuide)
+        }
     }
     
     // MARK: - CollectionView Layout
     
     private func createLayout() -> UICollectionViewLayout {
-        let layout = UICollectionViewCompositionalLayout { (sectionIndex, layoutEnvironment) -> NSCollectionLayoutSection? in
-            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
-            let item = NSCollectionLayoutItem(layoutSize: itemSize)
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(100))
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-            let section = NSCollectionLayoutSection(group: group)
-            return section
+        // 2x2 그리드 레이아웃 설정
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(0.5), // 그룹 내에서 꽉 차게
+            heightDimension: .fractionalHeight(1.0)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0), // 화면 너비의 절반
+            heightDimension: .absolute(200)       // 높이 200px 고정
+        )
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, repeatingSubitem: item, count: 2)
+        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+        
+        return UICollectionViewCompositionalLayout(section: section)
+    }
+
+    private func setupDataSource() {
+        dataSource = UICollectionViewDiffableDataSource<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>(collectionView: collectionView) { (collectionView, indexPath, item) -> UICollectionViewCell? in
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MemberDeleteCell.reuseIdentifier, for: indexPath) as! MemberDeleteCell
+            cell.configure(with: item)
+            return cell
         }
-        return layout
+        
+        // 테스트 데이터 추가
+        var snapshot = NSDiffableDataSourceSnapshot<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>()
+        snapshot.appendSections([.main])
+        
+        let testItems = [
+            MemberDeleteViewModel.Item(id: "1", name: "테스트 멤버 1"),
+            MemberDeleteViewModel.Item(id: "2", name: "테스트 멤버 2"),
+            MemberDeleteViewModel.Item(id: "3", name: "테스트 멤버 3")
+        ]
+        
+        snapshot.appendItems(testItems, toSection: .main)
+        dataSource?.apply(snapshot, animatingDifferences: false)
     }
 
     private func bind() {
         /// 멤버 목록 바인딩
-        viewModel.state.members
-        .asDriver()
-        .drive(onNext: { [weak self] members in
-            var snapshot = NSDiffableDataSourceSnapshot<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>()
-            snapshot.appendSections([.main])
-            snapshot.appendItems(members, toSection: .main)
-            self?.dataSource.apply(snapshot, animatingDifferences: true)
-        })
-        .disposed(by: disposeBag)
-
-        /// 버튼 클릭 이벤트 바인딩
-        exportButton.rx.tap
-        .map { MemberDeleteViewModel.Action.exportButtonTapped }
-        .bind(to: viewModel.input.action)
-        .disposed(by: disposeBag)
-
-        /// 리더 여부에 따라 버튼 활성화/비활성화 바인딩
-        viewModel.isLeader
-            .asDriver()
-            .drive(exportButton.rx.isEnabled)
+//        viewModel.state.members
+//        .asDriver()
+//        .drive(onNext: { [weak self] members in
+//            var snapshot = NSDiffableDataSourceSnapshot<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>()
+//            snapshot.appendSections([.main])
+//            snapshot.appendItems(members, toSection: .main)
+//            self?.dataSource.apply(snapshot, animatingDifferences: true)
+//        })
+//        .disposed(by: disposeBag)
+//
+//        /// 버튼 클릭 이벤트 바인딩
+//        exportButton.rx.tap
+//        .map { MemberDeleteViewModel.Action.exportButtonTapped }
+//        .bind(to: viewModel.input.action)
+//        .disposed(by: disposeBag)
+//
+//        /// 리더 여부에 따라 버튼 활성화/비활성화 바인딩
+//        viewModel.isLeader
+//            .asDriver()
+//            .drive(exportButton.rx.isEnabled)
+//            .disposed(by: disposeBag)
+        
+        // 네비게이션바 뒤로가기 버튼
+        navigationBar.backTapped
+            .bind(with: self) { owner, _ in
+                owner.navigationController?.popViewController(animated: true)
+            }
             .disposed(by: disposeBag)
     }
 
-    func showExportAlert(for member: Member) {
-        let alert = UIAlertController(
-            title: "\(member.nickname)님을 그룹에서 내보낼까요?",
-            message: "내보내신 후 복구는 불가능해요",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        alert.addAction(UIAlertAction(title: "내보내기", style: .destructive) { _ in
-            self.viewModel.action.accept(.exportMember(memberID: member.userID))
-        })
-        present(alert, animated: true)
-    }
+//    func showExportAlert(for member: Member) {
+//        let alert = UIAlertController(
+//            title: "\(member.nickname)님을 그룹에서 내보낼까요?",
+//            message: "내보내신 후 복구는 불가능해요",
+//            preferredStyle: .alert
+//        )
+//        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+//        alert.addAction(UIAlertAction(title: "내보내기", style: .destructive) { _ in
+//            self.viewModel.action.accept(.exportMember(memberID: member.userID))
+//        })
+//        present(alert, animated: true)
+//    }
 
 }
+
+extension MemberDeleteViewController: UIGestureRecognizerDelegate {
+  func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+    // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
+    return navigationController?.viewControllers.count ?? 0 > 1
+  }
+}
+
