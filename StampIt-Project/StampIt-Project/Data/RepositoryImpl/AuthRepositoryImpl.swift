@@ -14,14 +14,16 @@ final class AuthRepository: AuthRepositoryProtocol {
     
     // MARK: - Properties
     private let authManager: AuthManagerProtocol
-    private let firestoreManager: FirestoreManagerProtocol
+    private let userManager: UserManager
+    private let firestoreManager: FirestoreManagerProtocol // TODO: 리팩토링 후 삭제
     private let disposeBag = DisposeBag()
     
     //MARK: - Init
     init(authManager: AuthManagerProtocol,
-         firestoreManager: FirestoreManagerProtocol) {
+         userManager: UserManager) {
         self.authManager = authManager
-        self.firestoreManager = firestoreManager
+        self.userManager = userManager
+        //self.firestoreManager = firestoreManager
     }
     
     // MARK: - Sign-In
