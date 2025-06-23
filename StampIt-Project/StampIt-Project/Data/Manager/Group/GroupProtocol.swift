@@ -20,9 +20,6 @@ protocol GroupManagerProtocol {
     func updateGroupName(groupId: String, name: String, changedAt: Date) -> Observable<Void>
     func updateGroupLeader(groupId: String, newLeaderId: String) -> Observable<Void>
     func updateMemberCount(groupId: String, count: Int) -> Observable<Void>
-    func updateInviteCode(groupId: String, newInviteCode: String) -> Observable<Void>
     
-    // 초대 관련
-    func fetchGroupByInviteCode(inviteCode: String) -> Observable<GroupFirestore>
-    func fetchGroupInviteCode(groupId: String) -> Observable<String>
+    // 초대 관련은 Extension
 }

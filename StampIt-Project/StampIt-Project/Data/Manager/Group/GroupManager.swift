@@ -190,61 +190,110 @@ final class GroupManager: GroupManagerProtocol {
             return Disposables.create()
         }
     }
-    
-    /// 초대 코드 업데이트
-    func updateInviteCode(groupId: String, newInviteCode: String) -> Observable<Void> {
-        return Observable.create { observer in
-            self.groupsCollection.document(groupId).updateData([
-                "inviteCode": newInviteCode,
-                "inviteCreatedAt": Timestamp(date: Date())
-            ]) { error in
+}
+
+// MARK: - Invite 관련 DB 접근만 담당
+extension GroupManager {
+
+    private var invitesCollection: CollectionReference { db.collection("invites") }
+
+    // 초대장 단건 조회
+    func fetchInvite(inviteCode: String) -> Observable<InviteFirestore?> {
+        Observable.create { observer in
+            self.invitesCollection.document(inviteCode).getDocument { snapshot, error in
                 if let error = error {
-                    observer.onError(GroupError.updateFailed(error.localizedDescription))
-                } else {
-                    observer.onNext(())
+                    observer.onError(error)
+                    return
+                }
+                guard let snapshot = snapshot, snapshot.exists else {
+                    observer.onNext(nil)
                     observer.onCompleted()
+                    return
+                }
+                do {
+                    let invite = try snapshot.data(as: InviteFirestore.self)
+                    observer.onNext(invite)
+                    observer.onCompleted()
+                } catch {
+                    observer.onError(error)
                 }
             }
             return Disposables.create()
         }
     }
-    
-    /// 초대 코드로 그룹 정보 조회
-    func fetchGroupByInviteCode(inviteCode: String) -> Observable<GroupFirestore> {
-        return Observable.create { observer in
-            self.groupsCollection
-                .whereField("inviteCode", isEqualTo: inviteCode)
-                .limit(to: 1)
-                .getDocuments { querySnapshot, error in
+
+    // 초대장 생성
+    func createInvite(_ invite: InviteFirestore) -> Observable<Void> {
+        Observable.create { observer in
+            do {
+                try self.invitesCollection.document(invite.inviteCode).setData(from: invite) { error in
                     if let error = error {
-                        observer.onError(GroupError.fetchFailed(error.localizedDescription))
+                        observer.onError(error)
+                    } else {
+                        observer.onNext(())
+                        observer.onCompleted()
+                    }
+                }
+            } catch {
+                observer.onError(error)
+            }
+            return Disposables.create()
+        }
+    }
+
+    // 초대 코드로 그룹 조회
+    func fetchGroupByInviteCode(inviteCode: String) -> Observable<GroupFirestore?> {
+        Observable.create { observer in
+            self.groupsCollection.whereField("inviteCode", isEqualTo: inviteCode).limit(to: 1)
+                .getDocuments { snapshot, error in
+                    if let error = error {
+                        observer.onError(error)
                         return
                     }
-                    
-                    guard let documents = querySnapshot?.documents,
-                          let document = documents.first else {
-                        observer.onError(GroupError.groupNotFound)
+                    guard let documents = snapshot?.documents, let document = documents.first else {
+                        observer.onNext(nil)
+                        observer.onCompleted()
                         return
                     }
-                    
                     do {
                         let group = try document.data(as: GroupFirestore.self)
                         observer.onNext(group)
                         observer.onCompleted()
                     } catch {
-                        observer.onError(GroupError.decodingFailed(error.localizedDescription))
+                        observer.onError(error)
                     }
                 }
-            
             return Disposables.create()
         }
     }
-    
-    /// 그룹의 현재 초대 코드 조회
-    func fetchGroupInviteCode(groupId: String) -> Observable<String> {
-        return fetchGroupOnce(groupId: groupId)
-            .map { group in
-                return group.inviteCode
+
+    // 그룹의 모든 초대장 삭제
+    func deleteGroupInvites(groupId: String) -> Observable<Void> {
+        Observable.create { observer in
+            self.invitesCollection.whereField("groupId", isEqualTo: groupId).getDocuments { snapshot, error in
+                if let error = error {
+                    observer.onError(error)
+                    return
+                }
+                guard let documents = snapshot?.documents else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                    return
+                }
+                let batch = Firestore.firestore().batch()
+                for doc in documents {
+                    batch.deleteDocument(doc.reference)
+                }
+                batch.commit { error in
+                    if let error = error {
+                        observer.onError(error)
+                    } else {
+                        observer.onNext(())
+                        observer.onCompleted()
+                    }
+                }
             }
+            return Disposables.create()
+        }
     }
 }
