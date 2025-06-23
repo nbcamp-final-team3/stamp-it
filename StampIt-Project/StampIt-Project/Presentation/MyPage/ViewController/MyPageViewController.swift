@@ -130,7 +130,7 @@ final class MyPageViewController: UIViewController {
         view.backgroundColor = .white
         stampBoardView.isHidden = false
         profileView.isHidden = true
-        navigationController?.setNavigationBarHidden(true, animated: false)
+//        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     // MARK: - Hierarchy Helper
@@ -167,7 +167,6 @@ final class MyPageViewController: UIViewController {
     
     private func setDelegate() {
         profileView.tableView.delegate = self
-        navigationController?.delegate = self
     }
 
     // MARK: - DataSource Helper
@@ -281,13 +280,3 @@ extension MyPageViewController {
         toastView.show(in: self.view, duration: duration, message: message, type: type)
     }
 }
-
-// MARK: - UINavigationControllerDelegate
-extension MyPageViewController: UINavigationControllerDelegate {
-    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
-        // Root view controller인 경우 스와이프 제스처 비활성화
-        let isRootViewController = navigationController.viewControllers.count <= 1
-        navigationController.interactivePopGestureRecognizer?.isEnabled = !isRootViewController
-    }
-}
-

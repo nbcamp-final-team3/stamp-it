@@ -11,7 +11,7 @@ import Then
 import SnapKit
 import RxSwift
 
-final class SendInviteViewController: UIViewController {
+final class SendInviteViewController: UIViewController{
 
     // MARK: - Properties
     private let viewModel: SendInviteViewModel
@@ -28,7 +28,7 @@ final class SendInviteViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private let imageView = UIImageView().then {
         $0.image = UIImage(named: "MascotCharacter")
         $0.contentMode = .scaleAspectFit
@@ -80,15 +80,14 @@ final class SendInviteViewController: UIViewController {
         view.backgroundColor = .FFFFFF
         setupLayout()
         bindViewModel()
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        navigationController?.delegate = self
+        navigationController?.navigationBar.isHidden = true
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.tabBarController?.tabBar.isHidden = true
-        // 스택에 쌓인 화면이므로 스와이프 제스처 활성화
-        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -98,7 +97,7 @@ final class SendInviteViewController: UIViewController {
 
     private func setupLayout() {
 
-        [navigationBar,imageView, helpLabel, stackViewContainerView]
+        [navigationBar, imageView, helpLabel, stackViewContainerView]
             .forEach{ view.addSubview($0) }
 
         [textFieldInTitle, inviteCodeLabel, copyButton]
@@ -139,7 +138,7 @@ final class SendInviteViewController: UIViewController {
         inviteCodeStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        
+
         textFieldInTitle.snp.makeConstraints {
             $0.width.equalTo(60)
         }
@@ -182,17 +181,18 @@ final class SendInviteViewController: UIViewController {
             .bind(with: self) { owner, _ in
                 owner.navigationController?.popViewController(animated: true)
             }.disposed(by: disposeBag)
-        
+
     }
 
 }
+    // MARK: - UINavigationControllerDelegate
 
-// MARK: - UINavigationControllerDelegate
-extension SendInviteViewController: UINavigationControllerDelegate {
-    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
-        // Root view controller가 아닌 경우에만 스와이프 제스처 활성화
-        let isRootViewController = navigationController.viewControllers.count <= 1
-        navigationController.interactivePopGestureRecognizer?.isEnabled = !isRootViewController
-    }
+extension SendInviteViewController: UIGestureRecognizerDelegate {
+  func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+    // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
+    return navigationController?.viewControllers.count ?? 0 > 1
+  }
 }
+
+
 
