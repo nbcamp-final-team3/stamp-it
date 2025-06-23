@@ -55,6 +55,7 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     private let newTag = TagView(type: .outlined).then {
         $0.updateText(with: "New")
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
     }
 
     private let nameTag = TagView(type: .filledBold)
@@ -232,7 +233,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         self.type = .sended
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
-        nameTag.updateText(with: mission.assignee)
+        nameTag.updateText(with: "to." + mission.assignee)
         dateTag.updateText(with: "~" + mission.dueDate)
         if mission.isOverdue { dateTag.updateTextColor(.gray200) }
         daysLeftLabel.text = mission.daysLeft
@@ -246,7 +247,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
         newTag.isHidden = !(mission.isNew ?? false)
-        nameTag.updateText(with: mission.assigner)
+        nameTag.updateText(with: "from." + mission.assigner)
         dateTag.updateText(with: "~" + mission.dueDate)
         if mission.isOverdue { dateTag.updateTextColor(.gray200) }
         titleLabel.text = mission.title
