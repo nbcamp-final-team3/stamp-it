@@ -37,9 +37,18 @@ final class AssignMissionViewModel: ViewModelProtocol {
     
     init(
         mission: SampleMission,
+        selectedMember: Member? = nil,
         missionUseCaseImpl: MissionUseCase
     ) {
         self.mission = mission
+        
+        // 홈 화면에서 특정 멤버가 선택된 상태에서 미션 화면으로 진입할 때 사용
+        if let selectedMember {
+            var members: [Member] = []
+            members.append(selectedMember)
+            state.members.accept(members)
+        }
+        
         self.missionUseCaseImpl = missionUseCaseImpl
         
         bind()
@@ -87,7 +96,13 @@ final class AssignMissionViewModel: ViewModelProtocol {
                 guard let self else { return }
                 
                 self.user = user
-                fetchMembers() // 유저 정보를 받으면 멤버 정보 요청
+                
+                // 유저 정보를 받으면 멤버 정보 요청
+                // 홈 화면에서 특정 멤버가 선택된 상태에서 미션 화면으로 진입할 때는 멤버 정보 패치 불필요
+                if state.members.value.isEmpty {
+                    fetchMembers()
+                }
+                
             } onError: { error in
                 print(error)
             }
