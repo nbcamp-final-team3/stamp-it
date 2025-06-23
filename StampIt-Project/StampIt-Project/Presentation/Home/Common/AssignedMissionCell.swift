@@ -208,6 +208,16 @@ final class AssignedMissionCell: UICollectionViewCell {
         }
     }
 
+    private func updateContentStackViewConstraints() {
+        let trailingView = type == .received ? statusButton : statusView
+
+        contentStackView.snp.remakeConstraints { make in
+            make.verticalEdges.equalToSuperview().inset(12)
+            make.leading.equalToSuperview()
+            make.trailing.equalTo(trailingView.snp.leading).offset(-20)
+        }
+    }
+
     // MARK: - Bind
 
     private func bind() {
@@ -228,6 +238,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         daysLeftLabel.text = mission.daysLeft
         titleLabel.text = mission.title
         updateStatusView(for: mission.status)
+        updateContentStackViewConstraints()
     }
 
     func configureAsReceived(with mission: HomeReceivedMission) {
@@ -240,6 +251,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         if mission.isOverdue { dateTag.updateTextColor(.gray200) }
         titleLabel.text = mission.title
         statusButton.updateStatus(to: mission.status)
+        updateContentStackViewConstraints()
     }
 
     private func toggleViewOnType() {
