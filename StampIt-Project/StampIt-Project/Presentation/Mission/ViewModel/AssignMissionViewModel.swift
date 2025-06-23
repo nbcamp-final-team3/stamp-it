@@ -132,7 +132,7 @@ final class AssignMissionViewModel: ViewModelProtocol {
         }
         
         let mission = Mission(
-            missionID: mission.missionId,
+            missionID: UUID().uuidString,
             title: mission.title,
             assignedTo: member.userID,
             assignedBy: user.userID,
