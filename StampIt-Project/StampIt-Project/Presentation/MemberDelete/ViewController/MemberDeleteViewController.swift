@@ -79,21 +79,20 @@ final class MemberDeleteViewController: UIViewController {
     private func createLayout() -> UICollectionViewLayout {
         // 2x2 그리드 레이아웃 설정
         let itemSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(0.5), // 그룹 내에서 꽉 차게
+            widthDimension: .fractionalWidth(0.5),
             heightDimension: .fractionalHeight(1.0)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        
+        item.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
+
         let groupSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1.0), // 화면 너비의 절반
-            heightDimension: .absolute(200)       // 높이 200px 고정
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .absolute(220)
         )
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, repeatingSubitem: item, count: 2)
-        group.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
 
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
-        
         return UICollectionViewCompositionalLayout(section: section)
     }
 
