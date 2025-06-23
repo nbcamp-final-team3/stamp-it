@@ -57,13 +57,13 @@ final class StampBoard: UIView {
     private func createStampBoardLayout() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(0.2),
-            heightDimension: .absolute(72)
+            heightDimension: .absolute(MyPage.StampBoard.height)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .absolute(72)
+            heightDimension: .absolute(MyPage.StampBoard.height)
         )
         let group = NSCollectionLayoutGroup.horizontal(
             layoutSize: groupSize,
