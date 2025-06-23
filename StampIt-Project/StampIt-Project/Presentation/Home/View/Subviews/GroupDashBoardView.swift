@@ -313,7 +313,7 @@ final class GroupDashboardView: UIView {
     private func makeHeaderLayout() -> NSCollectionLayoutBoundarySupplementaryItem {
         let headerSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
-            heightDimension: .absolute(57)
+            heightDimension: .estimated(60)
         )
 
         let header = NSCollectionLayoutBoundarySupplementaryItem(
