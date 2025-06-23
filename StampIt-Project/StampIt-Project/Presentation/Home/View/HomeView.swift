@@ -14,6 +14,11 @@ final class HomeView: UIView {
     // MARK: - Actions
 
     let didTapGroupOrganizationButton = PublishRelay<Void>()
+    let didTapMissionCompleteButton = PublishRelay<HomeItem>()
+    let didTapMoreReceivedMissionButton = PublishRelay<Void>()
+    let didTapMoreSendedMissionButton = PublishRelay<Void>()
+    let username = PublishRelay<String>()
+    let groupName = PublishRelay<String>()
 
     // MARK: - Properties
 
@@ -21,7 +26,13 @@ final class HomeView: UIView {
 
     // MARK: - UI Components
 
-    private let groupOrganizationView = GroupOrganizationView()
+    private let groupOrganizationView = GroupOrganizationView().then {
+        $0.isHidden = true
+    }
+
+    private let groupDashboardView = GroupDashboardView().then {
+        $0.isHidden = true
+    }
 
     // MARK: - Init
 
@@ -40,14 +51,23 @@ final class HomeView: UIView {
     // MARK: - Set Hierarchy
 
     private func setHierarchy() {
-        addSubview(groupOrganizationView)
+        [
+            groupOrganizationView,
+            groupDashboardView,
+        ].forEach { addSubview($0) }
     }
 
     // MARK: - Set Constraints
 
     private func setConstraints() {
         groupOrganizationView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.top.equalTo(safeAreaLayoutGuide)
+            make.directionalHorizontalEdges.bottom.equalToSuperview()
+        }
+
+        groupDashboardView.snp.makeConstraints { make in
+            make.verticalEdges.equalTo(safeAreaLayoutGuide)
+            make.directionalHorizontalEdges.equalToSuperview()
         }
     }
 
@@ -57,5 +77,36 @@ final class HomeView: UIView {
         groupOrganizationView.didTapGroupOrganizationButton
             .bind(to: didTapGroupOrganizationButton)
             .disposed(by: disposeBag)
+
+        groupDashboardView.didTapMissionCompleteButton
+            .bind(to: didTapMissionCompleteButton)
+            .disposed(by: disposeBag)
+
+        groupDashboardView.didTapMoreReceivedMissionButton
+            .bind(to: didTapMoreReceivedMissionButton)
+            .disposed(by: disposeBag)
+
+        groupDashboardView.didTapMoreSendedMissionButton
+            .bind(to: didTapMoreSendedMissionButton)
+            .disposed(by: disposeBag)
+
+        username
+            .bind(to: groupDashboardView.username)
+            .disposed(by: disposeBag)
+
+        groupName
+            .bind(to: groupDashboardView.groupName)
+            .disposed(by: disposeBag)
+    }
+
+    // MARK: - Methods
+
+    func updateSnapshot(withItems items: [HomeItem], toSection section: HomeSection) {
+        groupDashboardView.updateSnapshot(withItems: items, toSection: section)
+    }
+
+    func toggleView(showGroupOrganizationView: Bool) {
+        groupOrganizationView.isHidden = !showGroupOrganizationView
+        groupDashboardView.isHidden = showGroupOrganizationView
     }
 }

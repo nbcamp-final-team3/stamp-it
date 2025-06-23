@@ -1,0 +1,101 @@
+//
+//  ProfileSection.swift
+//  StampIt-Project
+//
+//  Created by kingj on 6/9/25.
+//
+
+enum MyPageProfileSection: CaseIterable {
+    case groupMember
+    case groupService
+    
+    var menus: [MyPageMenu] {
+        switch self {
+        case .groupMember:
+            return [
+                /*.deleteMember,*/
+                .inviteMember, .receiveInvite]
+        case .groupService:
+            return [.leaveGroup, .logout, .leaveService]
+        }
+    }
+    
+    var headerTitle: String {
+        switch self {
+        case .groupMember: return "그룹 구성원 관리"
+        case .groupService: return "그룹 및 서비스 관리"
+        }
+    }
+}
+
+enum MyPageMenu: CaseIterable {
+    /*case deleteMember*/
+    case inviteMember
+    case receiveInvite
+    case leaveGroup
+    case logout
+    case leaveService
+    
+    var title: String {
+        switch self {
+        /*case .deleteMember: return "멤버 내보내기"*/
+        case .inviteMember: return "초대 하기"
+        case .receiveInvite: return "초대 받기"
+        case .leaveGroup: return "그룹 탈퇴"
+        case .logout: return "로그아웃"
+        case .leaveService: return "서비스 탈퇴"
+        }
+    }
+    
+    var subtitle: String {
+        switch self {
+        /*case .deleteMember: return ""*/
+        case .inviteMember: return "그룹에 새로운 구성원 초대하기"
+        case .receiveInvite: return "새로운 그룹에 초대받기"
+        case .leaveGroup: return "현재 그룹에서 탈퇴하기"
+        case .logout: return "현재 계정 로그아웃하기"
+        case .leaveService: return "‘스탬프잇' 탈퇴하기"
+        }
+    }
+}
+
+typealias StampBoardSection = MyPageStampBoardSection
+typealias StampBoardItem = Sticker
+
+enum MyPageStampBoardSection: Hashable {
+    case defaultBoard
+    
+    var type: [[StampCellType]] {
+        switch self {
+        case .defaultBoard:
+            return [
+                [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
+                [.both, .horizontal, .horizontal, .horizontal, .none],
+                [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
+                [.both, .horizontal, .horizontal, .horizontal, .none],
+                [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
+                [.horizontal, .horizontal, .horizontal, .horizontal, .none],
+            ]
+        }
+    }
+    
+    var column: Int {
+        switch self {
+        case .defaultBoard: return 5
+        }
+    }
+    
+    var totalStamp: Int {
+        switch self {
+        case .defaultBoard: return 30
+        }
+    }
+}
+
+/// Dashed Line 기준
+enum StampCellType: Hashable {
+    case horizontal
+    case vertical
+    case both
+    case none
+}

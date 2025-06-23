@@ -12,25 +12,42 @@ import SnapKit
 import Then
 
 final class MissionListViewController: UIViewController {
+    private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))
+    
     private let searchBar = UISearchBar().then {
         $0.searchBarStyle = .minimal
-        $0.placeholder = "검색어를 입력해주세요."
+        $0.placeholder = "검색어를 입력해주세요"
+        $0.searchTextField.font = .pretendard(size: 16, weight: .regular)
+        $0.searchTextField.layer.cornerRadius = 18
+        $0.searchTextField.clipsToBounds = true
     }
     
-    private let tableView = UITableView().then {
+    private lazy var tableView = UITableView().then {
         $0.register(MissionListCell.self, forCellReuseIdentifier: MissionListCell.reuseIdentifier)
+        $0.keyboardDismissMode = .onDrag
+        $0.delegate = self
     }
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
         $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
+        $0.isScrollEnabled = false
     }
+    
+    private let noResultsView = NoResultsView().then {
+        $0.configureContent(title: "검색 결과가 없어요", description: "다른 검색어로 검색해보세요")
+        $0.updateContainerTopInset(105)
+    }
+
+    private let headerView = HeaderView()
+    
+    private let toastView = ToastView()
     
     private let viewModel: MissionListViewModel
     private let disposeBag = DisposeBag()
     
     private var dataSource: UICollectionViewDiffableDataSource<MissionListViewModel.Section, MissionListViewModel.Item>?
     
-    init(viewModel: MissionListViewModel = .init()) {
+    init(viewModel: MissionListViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -52,27 +69,30 @@ final class MissionListViewController: UIViewController {
         
         bind()
         
-        // 미션 샘플 데이터 로드
-        viewModel.input.accept(.onAppear)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+        setCollectionViewCell()
         
-        setNavigationBar() // 미션 할당 화면으로 이동 후 복귀 시 내비게이션 라지 타이틀 유지를 위해 필요
+        setTapGesture()
+        
+        // 미션 샘플 데이터 로드
+        viewModel.action.accept(.onAppear)
     }
     
     private func prepareSubviews() {
         view.backgroundColor = .white
         
-        [searchBar, collectionView, tableView].forEach {
+        [navigationBar, searchBar, collectionView, tableView].forEach {
             view.addSubview($0)
         }
     }
     
     private func setConstraints() {
+        navigationBar.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.directionalHorizontalEdges.equalToSuperview()
+        }
+        
         searchBar.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+            $0.top.equalTo(navigationBar.snp.bottom)
             $0.horizontalEdges.equalToSuperview()
         }
         
@@ -90,19 +110,14 @@ final class MissionListViewController: UIViewController {
     }
     
     private func setNavigationBar() {
-        navigationItem.title = "미션"
-        navigationController?.navigationBar.prefersLargeTitles = true
-        
-        // 뒤로 가기 버튼 이미지를 화살표로 바꾸고 타이틀 삭제
-        let backButtonImage = UIImage(systemName: "arrow.left")
-        navigationController?.navigationBar.backIndicatorImage = backButtonImage
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = backButtonImage
-        navigationItem.backButtonTitle = ""
+        navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
     
     private func bind() {
         // 미션 샘플 데이터를 테이블 뷰에 표시
-        viewModel.output.missions
+        viewModel.state.missions
             .asDriver(onErrorDriveWith: .empty())
             .drive(tableView.rx.items(cellIdentifier: MissionListCell.reuseIdentifier, cellType: MissionListCell.self)) { (_, element, cell) in
                 cell.configure(with: element.title)
@@ -110,7 +125,7 @@ final class MissionListViewController: UIViewController {
             .disposed(by: disposeBag)
         
         // 컬렉션 뷰 스냅샷 변경 시 뷰 반영
-        viewModel.output.snapshot
+        viewModel.state.snapshot
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] snapshot in
                 guard let self, let snapshot, let dataSource else { return }
@@ -125,7 +140,7 @@ final class MissionListViewController: UIViewController {
             .skip(1)
             .debounce(.milliseconds(300))
             .drive { [weak self] in
-                self?.viewModel.input.accept(.searchTextChanged($0))
+                self?.viewModel.action.accept(.searchTextChanged($0))
             }
             .disposed(by: disposeBag)
         
@@ -135,7 +150,7 @@ final class MissionListViewController: UIViewController {
             .drive { [weak self] in
                 guard let self else { return }
                 
-                viewModel.input.accept(.didSelectTableViewCell($0))
+                viewModel.action.accept(.didSelectTableViewCell($0))
                 pushAssignMissionViewController(mission: $0)
             }
             .disposed(by: disposeBag)
@@ -146,14 +161,59 @@ final class MissionListViewController: UIViewController {
             .drive { [weak self] in
                 guard let self else { return }
                 
-                viewModel.input.accept(.didSelectCollectionViewCell($0))
+                viewModel.action.accept(.didSelectCollectionViewCell($0))
+            }
+            .disposed(by: disposeBag)
+        
+        // 검색 결과가 없으면 결과없음 레이블 표시
+        viewModel.state.missions
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] results in
+                guard let self else { return }
+                
+                if results.isEmpty {
+                    tableView.backgroundView = noResultsView
+                } else {
+                    tableView.backgroundView = nil
+                }
+            }
+            .disposed(by: disposeBag)
+        
+        // 검색 결과가 있으면 테이블 뷰 헤더에 "ㅇㅇ으로 검색한 결과입니다" 표시
+        viewModel.state.searchText
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] searchText in
+                guard let self, !searchText.isEmpty else { return }
+                
+                headerView.configure(with: searchText)
             }
             .disposed(by: disposeBag)
     }
     
+    private func setCollectionViewCell() {
+        // 전체보기 셀의 isSelected = true로 설정
+        let defaultSelection = IndexPath(item: 0, section: 0)
+        collectionView.selectItem(at: defaultSelection, animated: false, scrollPosition: [])
+    }
+    
+    // 서치바 바깥 화면을 터치하면 키보드 내려감
+    private func setTapGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
     // 미션 할당 화면으로 이동
     private func pushAssignMissionViewController(mission: SampleMission) {
-        let viewModel = AssignMissionViewModel(mission: mission)
+        let viewModel = AssignMissionViewModel(mission: mission, missionUseCaseImpl: DIContainer.shared.missionUseCase)
+        viewModel.onSuccess = { [weak self] in
+            guard let self else { return }
+            toastView.show(in: view, duration: 3, message: "미션이 전달되었어요", type: .success)
+        }
         let viewController = AssignMissionViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)
     }
@@ -189,9 +249,33 @@ final class MissionListViewController: UIViewController {
                 return cell
             case .category(let category):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
-                cell.configure(image: category.image, title: category.title, titleColor: .darkGray, backgroundColor: .white)
+                cell.configure(image: category.image, title: category.title, titleColor: .gray400, backgroundColor: .white)
                 return cell
             }
         }
+    }
+}
+
+extension MissionListViewController: UITableViewDelegate {
+    // 검색 결과가 있을 때만 헤더 표시
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        if viewModel.state.missions.value.isEmpty || viewModel.state.searchText.value.isEmpty {
+            return nil
+        }
+        return headerView
+    }
+    
+    func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
+        if viewModel.state.missions.value.isEmpty || viewModel.state.searchText.value.isEmpty {
+            return 0
+        }
+        return 16
+    }
+}
+
+extension MissionListViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
+        return navigationController?.viewControllers.count ?? 0 > 1
     }
 }

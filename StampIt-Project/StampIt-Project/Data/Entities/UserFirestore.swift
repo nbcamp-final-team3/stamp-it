@@ -11,7 +11,6 @@ import FirebaseFirestore
 struct UserFirestore: Codable {
     let userId: String
     let nickname: String
-    let email: String
     let profileImage: String?        // nullable
     let groupId: String
     let nicknameChangedAt: Timestamp
@@ -29,7 +28,7 @@ extension UserFirestore {
         return StampIt_Project.User(
             userID: self.userId,
             nickname: self.nickname,
-            profileImageURL: self.profileImage,
+            profileImage: self.profileImage,
             boards: [],  // 별도 로직에서 처리
             groupID: self.groupId,
             groupName: "", // 별도 조회 필요
@@ -46,12 +45,26 @@ extension UserFirestore {
         return StampIt_Project.User(
             userID: self.userId,
             nickname: self.nickname,
-            profileImageURL: self.profileImage,
+            profileImage: self.profileImage,
             boards: [],
             groupID: self.groupId,
             groupName: groupName,
             isLeader: isLeader,
             joinedGroupAt: self.createdAt.dateValue()
+        )
+    }
+}
+
+// Domain → Infrastructure 변환 메서드
+extension User {
+    func toFirestoreModel() -> UserFirestore {
+        return UserFirestore(
+            userId: self.userID,
+            nickname: self.nickname,
+            profileImage: self.profileImage,
+            groupId: self.groupID,
+            nicknameChangedAt: Timestamp(date: Date()), // 현재 시간으로 설정
+            createdAt: Timestamp(date: self.joinedGroupAt)
         )
     }
 }

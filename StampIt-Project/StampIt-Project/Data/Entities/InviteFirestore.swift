@@ -18,6 +18,8 @@ struct InviteFirestore: Codable {
     var documentID: String {
         return inviteCode
     }
+
+    
 }
 
 
@@ -27,7 +29,21 @@ extension InviteFirestore {
         return Invitation(
             groupID: self.groupId,
             createdBy: self.createdBy,
-            expiredAt: self.expiredAt?.dateValue() ?? Date.distantFuture
+            expiredAt: self.expiredAt?.dateValue() ?? Date.distantFuture,
+            inviteCode: self.inviteCode,
+            createdAt: self.createdAt.dateValue()
+        )
+    }
+}
+
+extension Invitation {
+    func toFirestoreModel() -> InviteFirestore {
+        return InviteFirestore(
+            inviteCode: self.inviteCode,
+            groupId: self.groupID,
+            createdBy: self.createdBy,
+            createdAt: Timestamp(date: self.createdAt),
+            expiredAt: self.expiredAt == Date.distantFuture ? nil : Timestamp(date: self.expiredAt)
         )
     }
 }

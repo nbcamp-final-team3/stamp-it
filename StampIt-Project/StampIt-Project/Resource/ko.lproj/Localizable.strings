@@ -1,0 +1,10 @@
+/* 
+  Localizable.strings
+  StampIt-Project
+
+  Created by iOS study on 6/20/25.
+  
+*/
+
+"login_google" = "Google로 로그인";
+"login_google_kr" = "Google로 로그인";

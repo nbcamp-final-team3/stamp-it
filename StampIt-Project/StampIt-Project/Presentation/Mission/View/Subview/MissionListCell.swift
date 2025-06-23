@@ -13,6 +13,7 @@ final class MissionListCell: UITableViewCell {
     static let reuseIdentifier = "MissionListCell"
     
     private let label = UILabel().then {
+        $0.font = .pretendard(size: 16, weight: .regular)
         $0.numberOfLines = 0
     }
     
@@ -22,6 +23,8 @@ final class MissionListCell: UITableViewCell {
         contentView.addSubview(label)
         
         setConstraints()
+        
+        selectionStyle = .none
     }
     
     required init?(coder: NSCoder) {
@@ -30,7 +33,7 @@ final class MissionListCell: UITableViewCell {
     
     private func setConstraints() {
         label.snp.makeConstraints {
-            $0.verticalEdges.equalToSuperview().inset(8)
+            $0.verticalEdges.equalToSuperview().inset(12)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
     }
