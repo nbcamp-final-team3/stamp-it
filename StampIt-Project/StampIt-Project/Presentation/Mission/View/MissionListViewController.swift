@@ -110,6 +110,8 @@ final class MissionListViewController: UIViewController {
     
     private func setNavigationBar() {
         navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
     
     private func bind() {
@@ -267,5 +269,12 @@ extension MissionListViewController: UITableViewDelegate {
             return 0
         }
         return 16
+    }
+}
+
+extension MissionListViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
+        return navigationController?.viewControllers.count ?? 0 > 1
     }
 }
