@@ -16,9 +16,9 @@ final class MemberDeleteCell: UICollectionViewCell {
     private let profileImageView = UIImageView().then {
         $0.contentMode = .scaleAspectFit
         $0.clipsToBounds = true
-        $0.layer.cornerRadius = 40 // 92x92 원형
-        $0.backgroundColor = .gray500 // placeholder color
-        $0.image = UIImage(named: "profileImage1") // Assets의 mascotCharacter 기본 이미지
+        $0.layer.cornerRadius = 40
+        $0.backgroundColor = .gray500
+        $0.image = UIImage(named: "profileImage1")
         $0.clipsToBounds = true
     }
 
@@ -94,32 +94,8 @@ final class MemberDeleteCell: UICollectionViewCell {
     }
 
     // MARK: - Configure
-    func configure(with member: Member) {
-        nameLabel.text = member.nickname
-//        profileImageView.image = member. // user속성을 알아야 유저의 프로필 이미지 가져옴
-    }
     
     func configure(with item: MemberDeleteViewModel.Item) {
         nameLabel.text = item.name
     }
 }
-
-// // MARK: - Decoration View for Shadow
-// final class ShadowBackgroundView: UICollectionReusableView {
-//     static let reuseIdentifier = "shadow-background-reuse-identifier"
-
-//     override init(frame: CGRect) {
-//         super.init(frame: frame)
-//         backgroundColor = .white
-//         layer.cornerRadius = 20
-//         layer.shadowColor = UIColor.black.cgColor
-//         layer.shadowOffset = CGSize(width: 0, height: 0)
-//         layer.shadowRadius = 4
-//         layer.shadowOpacity = 0.1
-//         layer.masksToBounds = false
-//     }
-
-//     required init?(coder: NSCoder) {
-//         fatalError("init(coder:) has not been implemented")
-//     }
-// }
