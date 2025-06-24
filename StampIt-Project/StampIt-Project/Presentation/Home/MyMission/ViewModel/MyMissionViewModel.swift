@@ -81,9 +81,9 @@ final class MyMissionViewModel: ViewModelProtocol {
     private func fetchMissions() {
         guard let user = state.user.value else { return }
         useCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
-            .do(onNext: { myMissions in
-                self.myMissions = myMissions
-            })
+            .do { [weak self] myMissions in
+                self?.myMissions = myMissions
+            }
             .map { [weak self] in
                 guard let self else { return [] }
                 return mapper.map(myMissions: $0, member: memberCache)
@@ -97,7 +97,8 @@ final class MyMissionViewModel: ViewModelProtocol {
     ///
     /// 전달받은 미션의 ID로 myMissions에서 해당 미션을 찾아 UI를 우선 업데이트,
     /// 4초간 대기 후 캐시 업데이트 및 API 호출
-    func handleMissionCompleteButtonTapped(missionID: String) {
+    private func handleMissionCompleteButtonTapped(missionID: String) {
+        guard let user = state.user.value else { return }
         updateMissionItem(missionID: missionID)
         state.isShowStickerReceived.accept(true)
 
@@ -107,21 +108,12 @@ final class MyMissionViewModel: ViewModelProtocol {
             .flatMap { [weak self] _ -> Observable<Mission> in
                 guard let self else { return .empty() }
                 let missionToUpdate = updateMissionCache(missionID: missionID)
-                guard let mission = missionToUpdate,
-                      let user = state.user.value else { return .empty() }
+                guard let mission = missionToUpdate else { return .empty() }
                 return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
             .flatMap { [weak self] mission -> Observable<Void> in
-                guard let self, let user = state.user.value else { return .empty() }
-
-                return useCase.createSticker(
-                    userId: user.userID,
-                    groupId: user.groupID,
-                    missionTitle: mission.title,
-                    maxSticker: 30, // TODO: pin 번호 계산용
-                    stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
-                    assignedBy: mission.assignedBy,
-                )
+                guard let self else { return .empty() }
+                return useCase.createSticker(user: user, mission: mission)
             }
             .subscribe()
             .disposed(by: pendingCommits)
@@ -172,7 +164,7 @@ final class MyMissionViewModel: ViewModelProtocol {
     }
 
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
-    func cancelMissionComplete() {
+    private func cancelMissionComplete() {
         pendingCommits = DisposeBag()
         let cachedMissions = mapper
             .map(myMissions: myMissions, member: memberCache)

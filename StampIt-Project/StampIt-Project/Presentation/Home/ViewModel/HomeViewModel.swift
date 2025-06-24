@@ -127,11 +127,9 @@ final class HomeViewModel: ViewModelProtocol {
 
               state.isShowGroupOrganizationView.accept(members.count == 1)
 
-              self.memberCache = Dictionary(
-                uniqueKeysWithValues: members.map { ($0.userID, $0) }
-              )
+              self.memberCache = Dictionary(uniqueKeysWithValues: members.map { ($0.userID, $0) })
               let userID = state.user.value?.userID ?? ""
-              let items = self.memberMapper.map(members: members, userID: userID)
+              let items = memberMapper.map(members: members, userID: userID)
               self.state.rankedMembers.accept(items)
           })
           .disposed(by: disposeBag)
@@ -177,7 +175,8 @@ final class HomeViewModel: ViewModelProtocol {
             .map { id in memberMissions.filter { $0.assignedTo == memberID } }
             ?? memberMissions
         let first4 = Array(filteredMissions.prefix(4))
-        let homeItems = missionMapper.map(memberMission: first4, member: memberCache)
+        let homeItems = missionMapper
+            .map(memberMission: first4, member: memberCache)
             .map { HomeItem.memberMission($0) }
         state.memberMissionsForDisplay.accept(homeItems)
     }
@@ -202,6 +201,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// 미션 완료 API를 호출하고,
     /// 전달받은 미션의 ID로 myMissions에서 해당 미션을 찾아 제거, 스티커 생성
     func handleMissionCompleteButtonTapped(missionID: String) {
+        guard let user = state.user.value else { return }
         removeMissionItem(missionID: missionID)
         state.isShowStickerReceived.accept(true)
 
@@ -211,23 +211,12 @@ final class HomeViewModel: ViewModelProtocol {
             .flatMap { [weak self] _ -> Observable<Mission> in
                 guard let self else { return .empty() }
                 let removedMission = removeMissionCache(missionID: missionID)
-
-                guard let mission = removedMission,
-                      let user = state.user.value else { return .empty() }
-
+                guard let mission = removedMission else { return .empty() }
                 return myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
             .flatMap { [weak self] mission -> Observable<Void> in
-                guard let self, let user = state.user.value else { return .empty() }
-
-                return myMissionUseCase.createSticker(
-                    userId: user.userID,
-                    groupId: user.groupID,
-                    missionTitle: mission.title,
-                    maxSticker: 30, // TODO: pin 번호 계산용
-                    stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
-                    assignedBy: mission.assignedBy,
-                )
+                guard let self else { return .empty() }
+                return myMissionUseCase.createSticker(user: user, mission: mission)
             }
             .subscribe()
             .disposed(by: pendingCommits)
