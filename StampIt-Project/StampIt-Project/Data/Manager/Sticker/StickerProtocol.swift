@@ -61,6 +61,7 @@ protocol StickerManagerProtocol: FullCRUDRepository where Entity == StickerFires
         missionTitle: String,
         maxStickers: Int,
         stickerType: String,
+        missionId: String,
         assignedBy: String
-    ) -> Observable<Void>
+    ) -> Observable<Void> 
 }

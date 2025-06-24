@@ -7,14 +7,11 @@
 
 import Foundation
 
+// MARK: - StickerError 정의 (완전 수정)
 enum StickerError: Error, LocalizedError {
-    // 스티커 관련 특화 에러
     case stickerNotFound
     case stickerAlreadyExists
-    case invalidPinNumber
-    case stickerLimitExceeded
-    case invalidStickerType
-    case unknownError
+    case invalidInput(String)
     
     // 일반적인 Sticker 작업 에러
     case createFailed(String)
@@ -30,14 +27,8 @@ enum StickerError: Error, LocalizedError {
             return "스티커를 찾을 수 없습니다"
         case .stickerAlreadyExists:
             return "이미 존재하는 스티커입니다"
-        case .invalidPinNumber:
-            return "유효하지 않은 핀 번호입니다"
-        case .stickerLimitExceeded:
-            return "스티커 개수 제한을 초과했습니다"
-        case .invalidStickerType:
-            return "유효하지 않은 스티커 타입입니다"
-        case .unknownError:
-            return "알 수 없는 오류가 발생했습니다"
+        case .invalidInput(let message):
+            return "잘못된 입력: \(message)"
         case .createFailed(let message):
             return "스티커 생성에 실패했습니다: \(message)"
         case .fetchFailed(let message):
