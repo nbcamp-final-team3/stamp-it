@@ -54,8 +54,8 @@ final class DefaultButton: UIButton {
         configurationUpdateHandler = { [weak self] button in
             guard let self = self else { return }
             var updated = button.configuration
-            updated?.baseBackgroundColor = button.isEnabled ? self.type.backgroundColor : .gray50
-            updated?.baseForegroundColor = button.isEnabled ? self.type.titleColor : .gray300
+            updated?.baseBackgroundColor = button.isEnabled ? type.backgroundColor : .gray50
+            updated?.baseForegroundColor = button.isEnabled ? type.titleColor : .gray300
             button.configuration = updated
         }
     }
