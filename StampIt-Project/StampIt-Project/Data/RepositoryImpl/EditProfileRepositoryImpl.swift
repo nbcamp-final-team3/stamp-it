@@ -43,7 +43,7 @@ final class EditProfileRepositoryImpl: EditProfileRepository {
         return Observable.zip(updateUser, updateMembership)
             .map { _ in () }
             .catch { [weak self] error in
-                guard let self = self else {
+                guard self != nil else {
                     return Observable.error(RepositoryError.unknownError)
                 }
                 return Observable.error(error)
@@ -78,7 +78,7 @@ final class EditProfileRepositoryImpl: EditProfileRepository {
             return Observable.zip(updateUser, updateMembership)
                 .map { _ in () }
                 .catch { [weak self] error in
-                    guard let self = self else {
+                    guard self != nil else {
                         return Observable.error(RepositoryError.unknownError)
                     }
                     return Observable.error(error)

@@ -69,20 +69,5 @@ func mapToRepositoryError(_ error: Error) -> RepositoryError {
             return .authenticationFailed(authError.localizedDescription)
         }
     }
-    
-    // 네트워크 에러 처리
-    if let nsError = error as NSError? {
-        switch nsError.code {
-        case NSURLErrorTimedOut:
-            return .networkError("연결 시간 초과")
-        case NSURLErrorNotConnectedToInternet:
-            return .networkError("인터넷 연결이 없습니다")
-        case NSURLErrorNetworkConnectionLost:
-            return .networkError("네트워크 연결이 끊어졌습니다")
-        default:
-            break
-        }
-    }
-    
     return .unknownError
 }

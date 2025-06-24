@@ -76,6 +76,7 @@ final class DIContainer {
             membershipManager: membershipManager,
             missionManager: missionManager,
             stickerManager: stickerManager,
+            authRepository: authRepository as! AuthRepository,
             mapToRepositoryError: { error in
                 return RepositoryError.unknownError
             }
