@@ -7,13 +7,11 @@
 
 import Foundation
 
+// MARK: - MissionError 정의 (완전 수정)
 enum MissionError: Error, LocalizedError {
-    // 미션 관련 특화 에러
     case missionNotFound
-    case missionAlreadyCompleted
-    case missionExpired
-    case invalidAssignment
-    case duplicateMission
+    case missionAlreadyExists
+    case invalidInput(String)
     
     // 일반적인 Mission 작업 에러
     case createFailed(String)
@@ -27,14 +25,10 @@ enum MissionError: Error, LocalizedError {
         switch self {
         case .missionNotFound:
             return "미션을 찾을 수 없습니다"
-        case .missionAlreadyCompleted:
-            return "이미 완료된 미션입니다"
-        case .missionExpired:
-            return "만료된 미션입니다"
-        case .invalidAssignment:
-            return "유효하지 않은 미션 할당입니다"
-        case .duplicateMission:
-            return "중복된 미션입니다"
+        case .missionAlreadyExists:
+            return "이미 존재하는 미션입니다"
+        case .invalidInput(let message):
+            return "잘못된 입력: \(message)"
         case .createFailed(let message):
             return "미션 생성에 실패했습니다: \(message)"
         case .fetchFailed(let message):
