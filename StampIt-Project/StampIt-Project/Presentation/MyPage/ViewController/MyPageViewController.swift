@@ -147,8 +147,7 @@ final class MyPageViewController: UIViewController {
     
     private func setLayout() {
         navigationBar.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide)
-            $0.directionalHorizontalEdges.equalToSuperview()
+            $0.top.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
         }
         
         stampBoardView.snp.makeConstraints {

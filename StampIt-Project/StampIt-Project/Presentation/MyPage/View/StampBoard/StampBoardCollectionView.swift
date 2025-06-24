@@ -78,7 +78,12 @@ final class StampBoardCollectionView: UIView {
         )
         
         let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = .init(top: 30, leading: 16, bottom: 0, trailing: 16)
+        section.contentInsets = .init(
+            top: 30,
+            leading: 16,
+            bottom: 0,
+            trailing: 16
+        )
         return section
     }
     
@@ -99,7 +104,13 @@ final class StampBoardCollectionView: UIView {
         )
         
         let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = .init(top: 24, leading: 36, bottom: 30, trailing: StickerType.imageSize / 3)
+        let isPortrait = UIScreen.main.bounds.height > UIScreen.main.bounds.width
+        section.contentInsets = .init(
+            top: 24,
+            leading: isPortrait ? 36 : 45,
+            bottom: 30,
+            trailing: isPortrait ? StickerType.imageSize / 3 : -45
+        )
         return section
     }
     

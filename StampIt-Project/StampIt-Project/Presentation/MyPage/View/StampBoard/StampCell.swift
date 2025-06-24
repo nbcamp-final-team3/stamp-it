@@ -58,14 +58,15 @@ final class StampCell: UICollectionViewCell {
         }
         
         horizontalLine.snp.makeConstraints {
-            $0.size.equalToSuperview()
+            $0.height.equalTo(3)
+            $0.width.equalToSuperview()
             $0.top.equalToSuperview().offset(StickerType.imageSize / 2)
             $0.trailing.equalToSuperview()
         }
         
         verticalLine.snp.makeConstraints {
             $0.height.equalTo(MyPage.StampBoard.height)
-            $0.width.equalTo(StickerType.imageSize)
+            $0.width.equalTo(3)
             $0.leading.equalToSuperview().offset(StickerType.imageSize / 2)
             $0.top.equalToSuperview()
         }
