@@ -48,7 +48,7 @@ final class MyPageViewModel: ViewModelProtocol {
     // MARK: - Initializer, Deinit, requiered
     
     init(
-        myPageUseCase: MyPageUseCase, 
+        myPageUseCase: MyPageUseCase,
         accountManageUseCase: AccountManageUseCaseProtocol
     ) {
         self.myPageUseCase = myPageUseCase
@@ -85,41 +85,49 @@ final class MyPageViewModel: ViewModelProtocol {
             }.disposed(by: disposeBag)
     }
     
-    private func fetchStickersByPin(userId: String, pinNumber: Int) {
-        myPageUseCase.fetchStickersByPin(userId: userId, pinNumber: pinNumber)
-            .subscribe(
-                with: self,
-                onNext: { owner, stickers in
-                    owner.state.stickers.accept(
-                        owner.makeZigzagOrder(from: stickers, columns: StampBoardSection.defaultBoard.column)
-                    )
-                }, onError: { owner, error in
-                    owner.state.stickers.accept(
-                        owner.makeZigzagOrder(from: [], columns: StampBoardSection.defaultBoard.column)
-                    )
-                }
-            ).disposed(by: disposeBag)
-    }
-    
     private func bindStickerSummaryData() {
         guard let user = state.user.value else { return }
         
+        /// stickerSummary, stickers 가 동시에 변경
         myPageUseCase.fetchStickerCount(userId: user.userID)
-            .subscribe(with: self) { owner, sticker in
-                let totalSticker = StampBoardSection.defaultBoard.totalStamp
-                let collectedSticker = Int(sticker % totalSticker)
-                let completedBoard = Int(sticker / totalSticker)
+            .flatMapLatest { [weak self] count -> Observable<(Int, [Sticker])> in
+                guard let self else { return .empty() }
                 
+                let completedBoard = Int(count / StampBoardSection.defaultBoard.totalStamp)
+                let pinNumber = completedBoard + 1
+                
+                return self.myPageUseCase.fetchStickersByPin(
+                    userId: user.userID,
+                    pinNumber: pinNumber
+                ).map { stickers in
+                    return (count, stickers)
+                }
+            }
+            .observe(on: MainScheduler.instance)
+            .subscribe(with: self) { owner, result in
+                let (count, stickers) = result
+                
+                let totalSticker = StampBoardSection.defaultBoard.totalStamp
+                let collectedSticker = Int(count % totalSticker)
+                let completedBoard = Int(count / totalSticker)
+                
+                /// stickerSummary 업데이트
                 owner.state.stickerSummary.accept((
                     collected: collectedSticker,
                     completed: completedBoard
                 ))
                 
-                owner.fetchStickersByPin(
-                    userId: user.userID,
-                    pinNumber: completedBoard + 1
-                )
+                /// Zigzag 변환후 stickers 업데이트
+                owner.updateStickerZigzag(stickers)
             }.disposed(by: disposeBag)
+    }
+    
+    private func updateStickerZigzag(_ stickers: [Sticker]) {
+        let zigzagged = makeZigzagOrder(
+            from: stickers,
+            columns: StampBoardSection.defaultBoard.column
+        )
+        state.stickers.accept(zigzagged)
     }
     
     private func makeZigzagOrder(from stickers: [Sticker], columns: Int) -> [Sticker] {

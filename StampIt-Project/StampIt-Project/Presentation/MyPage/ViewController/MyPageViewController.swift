@@ -80,15 +80,14 @@ final class MyPageViewController: UIViewController {
                 owner.updateSelectedTab(selected: tab)
             }.disposed(by: disposeBag)
         
-        viewModel.state.stickers
-            .bind(with: self) { owner, stickers in
-                owner.updateUI(with: stickers)
-            }.disposed(by: disposeBag)
-        
-        viewModel.state.stickerSummary
-            .bind(with: self) { owner, summary in
-                owner.stampBoardView.stickerSummary.accept(summary)
-            }.disposed(by: disposeBag)
+        Observable.combineLatest(
+            viewModel.state.stickerSummary,
+            viewModel.state.stickers
+        )
+        .bind(with: self) { owner, combined in
+            let (summary, stickers) = combined
+            owner.updateSnapshot(summary: summary, stickers: stickers)
+        }.disposed(by: disposeBag)
         
         viewModel.state.user
             .compactMap { $0 }
@@ -177,10 +176,25 @@ final class MyPageViewController: UIViewController {
 
     // MARK: - Snapshot
     
-    private func updateUI(with stickers: [Sticker]) {
+    private func updateSnapshot(
+        summary: (collected: Int, completed: Int),
+        stickers: [Sticker]
+    ) {
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
+        snapshot.appendSections([.summary])
+        snapshot.appendItems(
+            [.summary(
+                collected: summary.collected,
+                completed: summary.completed
+            )],
+            toSection: .summary
+        )
+        
         snapshot.appendSections([.defaultBoard])
-        snapshot.appendItems(stickers, toSection: .defaultBoard)
+        snapshot.appendItems(
+            stickers.map { .stickers($0) } ,
+            toSection: .defaultBoard
+        )
         stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
     }
     

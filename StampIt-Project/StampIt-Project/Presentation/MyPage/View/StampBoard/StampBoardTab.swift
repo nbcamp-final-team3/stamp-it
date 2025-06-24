@@ -65,7 +65,6 @@ final class StampBoardTab: UIView {
                             totalBoard: "\(completed)"
                         )
                     }
-                    
                     return cell
                     
                 case .defaultBoard:
