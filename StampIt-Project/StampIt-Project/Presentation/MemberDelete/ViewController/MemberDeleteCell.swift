@@ -21,7 +21,7 @@ final class MemberDeleteCell: UICollectionViewCell {
         $0.image = UIImage(named: "profileImage1")
         $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.borderWidth = 1
-        $0.layer.opacity = 0.5
+        $0.layer.opacity = 1
         $0.clipsToBounds = true
     }
 
