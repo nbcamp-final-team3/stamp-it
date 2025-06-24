@@ -10,9 +10,10 @@ import FirebaseFirestore
 
 struct MissionFirestore: Codable {
     let missionId: String
+    let groupId: String
     let title: String
-    let assignedBy: String
-    let assignedTo: String
+    let assignedBy: String          // 미션 준 사람
+    let assignedTo: String          // 미션 받은 사람
     let createDate: Timestamp
     let dueDate: Timestamp
     let category: String
