@@ -91,7 +91,7 @@ final class MissionListViewController: UIViewController {
     private func setConstraints() {
         navigationBar.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
-            $0.directionalHorizontalEdges.equalToSuperview()
+            $0.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
         }
         
         searchBar.snp.makeConstraints {
