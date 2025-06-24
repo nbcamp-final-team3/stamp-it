@@ -82,22 +82,21 @@ final class MemberDeleteViewController: UIViewController {
     // MARK: - CollectionView Layout
     
     private func createLayout() -> UICollectionViewLayout {
-        // 2x2 그리드 레이아웃 설정
         let itemSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(0.5),
+            widthDimension: .fractionalWidth(1.0),
             heightDimension: .fractionalHeight(1.0)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
 
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .absolute(220)
+            heightDimension: .absolute(80) // 셀 높이 조정
         )
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, repeatingSubitem: item, count: 2)
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, repeatingSubitem: item, count: 1)
 
         let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0)
         return UICollectionViewCompositionalLayout(section: section)
     }
 
@@ -114,9 +113,9 @@ final class MemberDeleteViewController: UIViewController {
 
         // TODO: 실제 DB에서 데이터 받아오면 삭제 예정
         let testItems = [
-            MemberDeleteViewModel.Item(id: "1", name: "테스트 멤버 1"),
-            MemberDeleteViewModel.Item(id: "2", name: "테스트 멤버 2"),
-            MemberDeleteViewModel.Item(id: "3", name: "테스트 멤버 3")
+            MemberDeleteViewModel.Item(id: "1", name: "김철수"),
+            MemberDeleteViewModel.Item(id: "2", name: "이영희"),
+            MemberDeleteViewModel.Item(id: "3", name: "박민수")
         ]
         
         snapshot.appendItems(testItems, toSection: .main)
@@ -175,5 +174,22 @@ extension MemberDeleteViewController: UIGestureRecognizerDelegate {
     // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
     return navigationController?.viewControllers.count ?? 0 > 1
   }
+}
+
+private func showSelectInvitationVC() {
+    let vm = SelectInvitationViewModel()
+    let vc = SelectInvitationViewController(viewModel: vm)
+
+    vc.didTapConfirmButton
+        .map { HomeViewModel.Action.didReceiveInvitationType($0) }
+        .bind(to: viewModel.action)
+        .disposed(by: vc.disposeBag)
+
+    if let sheet = vc.sheetPresentationController {
+        sheet.detents = [.medium()]
+        sheet.prefersGrabberVisible = true
+        sheet.preferredCornerRadius = 32
+    }
+    present(vc, animated: true)
 }
 

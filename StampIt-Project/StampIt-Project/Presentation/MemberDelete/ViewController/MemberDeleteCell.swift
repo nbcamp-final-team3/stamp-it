@@ -14,31 +14,38 @@ final class MemberDeleteCell: UICollectionViewCell {
 
     // MARK: - UI
     private let profileImageView = UIImageView().then {
-        $0.contentMode = .center
+        $0.contentMode = .scaleAspectFill
         $0.clipsToBounds = true
-        $0.layer.cornerRadius = 40
-        $0.backgroundColor = .FFFFFF
+        $0.layer.cornerRadius = 24 // 48/2
+        $0.backgroundColor = .gray200
         $0.image = UIImage(named: "profileImage1")
-        $0.layer.borderColor = UIColor.gray200.cgColor
-        $0.layer.borderWidth = 1
-        $0.layer.opacity = 1
-        $0.clipsToBounds = true
     }
 
     private let nameLabel = UILabel().then {
-        $0.font = .pretendard(size: 16, weight: .regular)
+        $0.font = .pretendard(size: 16, weight: .semibold)
         $0.textColor = .gray800
-        $0.textAlignment = .center
-        $0.numberOfLines = 1
-        $0.lineBreakMode = .byTruncatingMiddle
     }
 
-    let exportButton = DefaultButton(type: .export)
+    private let dateLabel = UILabel().then {
+        $0.font = .pretendard(size: 13, weight: .regular)
+        $0.textColor = .gray400
+    }
 
-    private let stackView = UIStackView().then {
+    private let optionButton = UIButton().then {
+        $0.setImage(UIImage(named: "MoreVert"), for: .normal)
+        $0.tintColor = .gray400
+    }
+
+    private let infoStack = UIStackView().then {
         $0.axis = .vertical
+        $0.spacing = 4
+        $0.alignment = .leading
+    }
+
+    private let hStack = UIStackView().then {
+        $0.axis = .horizontal
+        $0.spacing = 12
         $0.alignment = .center
-        $0.spacing = 8
     }
 
     // MARK: - Init
@@ -60,45 +67,37 @@ final class MemberDeleteCell: UICollectionViewCell {
 
     // MARK: - UI Setup
     private func setupUI() {
-        contentView.addSubview(stackView)
+        contentView.addSubview(hStack)
+        [profileImageView, infoStack, optionButton].forEach { hStack.addArrangedSubview($0) }
+        [nameLabel, dateLabel].forEach { infoStack.addArrangedSubview($0) }
 
-        [profileImageView, nameLabel, exportButton]
-            .forEach { stackView.addArrangedSubview($0) }
-
-        stackView.snp.makeConstraints {
-            $0.center.equalToSuperview()
-            $0.leading.trailing.equalToSuperview().inset(8)
-            $0.top.bottom.equalToSuperview().inset(16)
+        hStack.snp.makeConstraints {
+            $0.edges.equalToSuperview().inset(16)
         }
-
         profileImageView.snp.makeConstraints {
-            $0.height.equalTo(80)
-            $0.width.equalTo(80)
+            $0.width.height.equalTo(48)
         }
-
-        exportButton.snp.makeConstraints {
-            $0.width.greaterThanOrEqualTo(88)
-            $0.height.equalTo(36)
+        optionButton.snp.makeConstraints {
+            $0.width.height.equalTo(24)
         }
     }
 
     private func setupShadowAndCorner() {
         backgroundColor = .clear
         contentView.backgroundColor = .white
-        contentView.layer.cornerRadius = 20
+        contentView.layer.cornerRadius = 16
         contentView.layer.masksToBounds = true
-
-        // 셀 자체에 그림자 적용
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOffset = .zero
         layer.shadowRadius = 1
-        layer.shadowOpacity = 0.1
+        layer.shadowOpacity = 0.08
         layer.masksToBounds = false
     }
 
     // MARK: - Configure
-    
     func configure(with item: MemberDeleteViewModel.Item) {
         nameLabel.text = item.name
+        dateLabel.text = "가입일: 0000년 00월 00일" // 실제 데이터로 교체
+        // profileImageView.image = ... // 실제 이미지로 교체
     }
 }
