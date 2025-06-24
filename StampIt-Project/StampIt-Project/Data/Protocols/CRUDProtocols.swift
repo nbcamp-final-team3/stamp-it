@@ -9,6 +9,8 @@ import RxSwift
 import Foundation
 import FirebaseFirestore
 
+// MARK: - 기본 CRUD 프로토콜들
+
 /// 생성 기능만 필요한 클라이언트용
 protocol Creatable {
     associatedtype Entity
@@ -22,11 +24,11 @@ protocol Fetchable {
     func fetch(id: ID) -> Observable<Entity?>
 }
 
-/// 실시간 관찰만 필요한 클라이언트용 (이름 변경!)
+/// 실시간 관찰만 필요한 클라이언트용
 protocol Observing {
     associatedtype Entity
     associatedtype ID
-    func observe(id: ID) -> Observable<Entity?>  // RxSwift.Observable 사용
+    func observe(id: ID) -> Observable<Entity?>
 }
 
 /// 업데이트만 필요한 클라이언트용
@@ -55,3 +57,5 @@ protocol Queryable {
 protocol Transactional {
     func runTransaction<T>(_ block: @escaping (Transaction) throws -> T) -> Observable<T>
 }
+
+
