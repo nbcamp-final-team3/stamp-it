@@ -30,29 +30,39 @@ final class HomeUseCase: HomeUseCaseProtocol {
 
     func fetchReceivedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
         homeRepository.fetchMissions(to: userID, by: nil, ofGroup: groupID)
-            .flatMapLatest { [weak self] missions -> Observable<[Mission]> in
-                guard let self else { return .empty() }
+            .do { [weak self] missions in
+                guard let self else { return }
+                let toExpire = getExpiredMissions(missions)
+                toExpire.forEach { mission in
+                    _ = self.homeRepository
+                        .updateMissionStatus(for: mission, ofGroup: groupID, to: .failed)
+                        .take(1)
+                        .subscribe()
+                }
+            }
+            .map { missions in
                 let startOfToday = Calendar.current.startOfDay(for: Date())
-                guard let endDate = Calendar.current.date(
-                    byAdding: .day,
-                    value: 6,
-                    to: startOfToday
-                ) else { return .empty() }
+                let endDate = Calendar.current.date(byAdding: .day, value: 6, to: startOfToday)!
 
-                return handleExpiredAndMerge(missions: missions, groupID: groupID)
-                    .map {
-                        $0.filter { startOfToday...endDate ~= $0.dueDate && $0.status == .assigned }
-                          .sorted { $0.createDate > $1.createDate }
-                    }
+                return missions
+                    .filter { startOfToday...endDate ~= $0.dueDate }
+                    .sorted { $0.createDate > $1.createDate }
             }
     }
 
     func fetchSendedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
         homeRepository.fetchMissions(to: nil, by: userID, ofGroup: groupID)
-            .flatMapLatest { [weak self] missions -> Observable<[Mission]> in
-                guard let self else { return .empty() }
-                return handleExpiredAndMerge(missions: missions, groupID: groupID)
+            .do { [weak self] missions in
+                guard let self else { return }
+                let toExpire = getExpiredMissions(missions)
+                toExpire.forEach { mission in
+                    _ = self.homeRepository
+                        .updateMissionStatus(for: mission, ofGroup: groupID, to: .failed)
+                        .take(1)
+                        .subscribe()
+                }
             }
+            .map { $0.sorted { $0.createDate > $1.createDate } }
     }
 
     func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission> {
@@ -79,23 +89,11 @@ final class HomeUseCase: HomeUseCaseProtocol {
 
     /// 만료된 assigned 미션을 서버에 failed로 업데이트하고
     /// 나머지 미션과 합쳐서 생성일 순으로 내림차순 정렬된 배열을 방출
-    private func handleExpiredAndMerge(missions: [Mission], groupID: String) -> Observable<[Mission]> {
-        let toExpire = missions.filter {
+    private func getExpiredMissions(_ missions: [Mission]) -> [Mission] {
+        return missions.filter {
             let dueDay = Calendar.current.component(.day, from: $0.dueDate)
             let today = Calendar.current.component(.day, from: Date())
             return $0.status == .assigned && dueDay < today
         }
-        let others = missions.filter { !toExpire.contains($0) }
-
-        return Observable
-            .from(toExpire)
-            .concatMap { mission in
-                self.updateMissionStatus(for: mission, ofGroup: groupID, to: .failed)
-            }
-            .toArray()
-            .asObservable()
-            .map { updated in
-                (others + updated).sorted { $0.createDate > $1.createDate }
-            }
     }
 }
