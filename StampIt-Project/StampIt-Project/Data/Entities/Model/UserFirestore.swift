@@ -39,19 +39,17 @@ extension UserFirestore {
     /// 그룹 정보와 함께 도메인 모델 변환 (Repository에서 사용)
        func toDomainModel(
            groupName: String,
-           isLeader: Bool,
-           boards: [StickerBoard] = [],
-           joinedGroupAt: Date? = nil
+           isLeader: Bool
        ) -> StampIt_Project.User {
            let domainUser = StampIt_Project.User(
                userID: self.userId,
                nickname: self.nickname,
                profileImage: self.profileImage,
-               boards: boards,
+               boards: [],
                groupID: self.groupId,
                groupName: groupName,
                isLeader: isLeader,
-               joinedGroupAt: joinedGroupAt ?? self.createdAt.dateValue()
+               joinedGroupAt: self.createdAt.dateValue()
            )
            return domainUser
        }
