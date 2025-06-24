@@ -37,7 +37,7 @@ final class MyMissionViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     var state = State()
     private var memberCache: [String: Member] = [:]
-    private var receivedMissions = [Mission]()
+    private var myMissions = [Mission]()
     private var pendingCommits = DisposeBag()
 
     // MARK: - Init
@@ -74,8 +74,8 @@ final class MyMissionViewModel: ViewModelProtocol {
     private func fetchMissions() {
         guard let user = state.user.value else { return }
         useCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
-            .do(onNext: { receivedMissions in
-                self.receivedMissions = receivedMissions
+            .do(onNext: { myMissions in
+                self.myMissions = myMissions
             })
             .map { [weak self] in
                 guard let self else { return [] }
@@ -87,7 +87,7 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     /// 미션 완료 바인딩
     ///
-    /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 UI를 우선 업데이트,
+    /// 전달받은 미션의 ID로 myMissions에서 해당 미션을 찾아 UI를 우선 업데이트,
     /// 4초간 대기 후 캐시 업데이트 및 API 호출
     func handleMissionCompleteButtonTapped(missionID: String) {
         updateMissionItem(missionID: missionID)
@@ -124,7 +124,7 @@ final class MyMissionViewModel: ViewModelProtocol {
     private func mapMissionsToMyMissionItems(_ missions: [Mission]) -> [MyMissionItem] {
         missions.map { mission in
             let assigner = memberCache[mission.assignedBy]?.nickname ?? mission.assignedBy
-            let missionItem = HomeReceivedMission(
+            let missionItem = HomeMyMission(
                 missionID: mission.missionID,
                 title: mission.title,
                 category: mission.category,
@@ -144,7 +144,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         let updated = items.map { item in
             let mission = item.mission!
             if mission.missionID == missionID {
-                let updated = HomeReceivedMission(
+                let updated = HomeMyMission(
                     missionID: mission.missionID,
                     title: mission.title,
                     category: mission.category,
@@ -163,8 +163,8 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     /// 도메인 미션 캐시에서 미션 업데이트
     private func updateMissionCache(missionID: String) -> Mission? {
-        guard let index = receivedMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
-        let missionToUpdate = receivedMissions[index]
+        guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
+        let missionToUpdate = myMissions[index]
         let updated = Mission(
             missionID: missionToUpdate.missionID,
             title: missionToUpdate.title,
@@ -176,14 +176,14 @@ final class MyMissionViewModel: ViewModelProtocol {
             imageURL: missionToUpdate.imageURL,
             category: missionToUpdate.category
         )
-        receivedMissions[index] = updated
+        myMissions[index] = updated
         return updated
     }
 
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     func cancelMissionComplete() {
         pendingCommits = DisposeBag()
-        let cachedMissions = mapMissionsToMyMissionItems(receivedMissions)
+        let cachedMissions = mapMissionsToMyMissionItems(myMissions)
         state.missions.accept(cachedMissions)
         state.isShowStickerReceived.accept(false)
     }

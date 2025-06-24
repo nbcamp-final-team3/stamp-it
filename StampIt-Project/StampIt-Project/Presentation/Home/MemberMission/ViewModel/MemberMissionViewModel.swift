@@ -80,7 +80,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
         missions.map { mission in
             let assignee = memberCache[mission.assignedTo]?.nickname ?? mission.assignedTo
             let (isOverdue, daysLeft) = formatOverdueAndDays(from: mission.dueDate)
-            let missionItem = HomeSendedMission(
+            let missionItem = HomeMemberMission(
                 missionID: mission.missionID,
                 title: mission.title,
                 category: mission.category,

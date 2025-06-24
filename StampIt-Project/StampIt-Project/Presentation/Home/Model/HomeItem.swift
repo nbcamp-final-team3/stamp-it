@@ -9,8 +9,8 @@ import Foundation
 
 enum HomeSection: Hashable, CaseIterable {
     case ranking
-    case receivedMission
-    case sendedMission
+    case myMission
+    case memberMission
 }
 
 extension HomeSection {
@@ -18,9 +18,9 @@ extension HomeSection {
         switch self {
         case .ranking:
             return nil
-        case .receivedMission:
+        case .myMission:
             return "아직 부여된 미션이 없어요!"
-        case .sendedMission:
+        case .memberMission:
             return "아직 전달한 미션이 없어요!"
         }
     }
@@ -28,8 +28,8 @@ extension HomeSection {
 
 enum HomeItem: Hashable {
     case member(HomeMember)
-    case received(HomeReceivedMission)
-    case sended(HomeSendedMission)
+    case myMission(HomeMyMission)
+    case memberMission(HomeMemberMission)
     case placeholder(HomeSection)
 
     var member: HomeMember? {
@@ -40,16 +40,16 @@ enum HomeItem: Hashable {
         }
     }
 
-    var received: HomeReceivedMission? {
-        if case .received(let mission) = self {
+    var received: HomeMyMission? {
+        if case .myMission(let mission) = self {
             return mission
         } else {
             return nil
         }
     }
 
-    var sended: HomeSendedMission? {
-        if case .sended(let mission) = self {
+    var sended: HomeMemberMission? {
+        if case .memberMission(let mission) = self {
             return mission
         } else {
             return nil
@@ -65,7 +65,7 @@ struct HomeMember: Hashable {
     let profileImage: String?
 }
 
-struct HomeReceivedMission: Hashable {
+struct HomeMyMission: Hashable {
     let missionID: String
     let title: String
     let category: MissionCategory
@@ -76,7 +76,7 @@ struct HomeReceivedMission: Hashable {
     let status: MissionStatus
 }
 
-struct HomeSendedMission: Hashable {
+struct HomeMemberMission: Hashable {
     let missionID: String
     let title: String
     let category: MissionCategory
