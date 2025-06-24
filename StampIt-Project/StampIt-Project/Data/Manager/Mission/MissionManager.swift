@@ -10,7 +10,7 @@ import FirebaseFirestore
 import Firebase
 import RxSwift
 
-// MARK: - MissionManager Implementation (✅ 완전 리팩토링)
+// MARK: - MissionManager Implementation
 final class MissionManager: MissionManagerProtocol {
     typealias Entity = MissionFirestore
     typealias ID = String
@@ -306,34 +306,31 @@ final class MissionManager: MissionManagerProtocol {
     
     /// 특정 사용자 관련 미션 삭제 (유저 탈퇴 시 사용)
     func deleteUserMissions(userId: String, groupId: String) -> Observable<Void> {
-        return Observable.create { observer in
-            // 사용자가 할당받은 미션 조회
-            self.fetchList(query: .byAssignee(userId, groupId: groupId))
-                .flatMap { assignedMissions -> Observable<Void> in
-                    // 사용자가 할당한 미션 조회
-                    return self.fetchList(query: .byAssigner(userId, groupId: groupId))
-                        .map { assignedByMissions in
-                            return assignedMissions + assignedByMissions
-                        }
-                }
-                .flatMap { allMissions -> Observable<Void> in
-                    let deleteObservables = allMissions.map { mission in
-                        self.delete(id: mission.documentID)
-                    }
-                    return Observable.zip(deleteObservables).map { _ in () }
-                }
-                .subscribe(
-                    onNext: {
-                        observer.onNext(())
-                        observer.onCompleted()
-                    },
-                    onError: { error in
-                        observer.onError(MissionError.deleteFailed(error.localizedDescription))
-                    }
-                )
-                .disposed(by: DisposeBag())
+        // 사용자가 할당받은 미션과 할당한 미션을 모두 조회
+        return Observable.zip(
+            fetchList(query: .byAssignee(userId, groupId: groupId)),
+            fetchList(query: .byAssigner(userId, groupId: groupId))
+        )
+        .flatMap { [weak self] (assignedMissions, assignedByMissions) -> Observable<Void> in
+            guard let self = self else {
+                return Observable.error(MissionError.fetchFailed("MissionManager 인스턴스가 없습니다"))
+            }
             
-            return Disposables.create()
+            let allMissions = assignedMissions + assignedByMissions
+            
+            // 삭제할 미션이 없으면 바로 성공 반환
+            guard !allMissions.isEmpty else {
+                return Observable.just(())
+            }
+            
+            // 각 미션 삭제
+            let deleteObservables = allMissions.map { mission in
+                self.delete(id: mission.documentID)
+            }
+            
+            // 모든 삭제 작업 완료 대기
+            return Observable.zip(deleteObservables)
+                .map { _ in () } // [Void] → Void 변환
         }
     }
     
@@ -345,10 +342,19 @@ final class MissionManager: MissionManagerProtocol {
                     return Observable.error(MissionError.fetchFailed("MissionManager 인스턴스가 없습니다"))
                 }
                 
+                // 삭제할 미션이 없으면 바로 성공 반환
+                guard !missions.isEmpty else {
+                    return Observable.just(())
+                }
+                
+                // 각 미션 삭제
                 let deleteObservables = missions.map { mission in
                     self.delete(id: mission.documentID)
                 }
-                return Observable.zip(deleteObservables).map { _ in () }
+                
+                // 모든 삭제 작업 완료 대기
+                return Observable.zip(deleteObservables)
+                    .map { _ in () } // [Void] → Void 변환
             }
     }
 }
