@@ -11,7 +11,8 @@ enum UserError: Error, LocalizedError {
     // 사용자 관련 특화 에러
     case userNotFound
     case userAlreadyExists
-    
+    case invalidInput(String)
+
     // 일반적인 User 작업 에러
     case createFailed(String)
     case fetchFailed(String)
@@ -38,6 +39,8 @@ enum UserError: Error, LocalizedError {
             return "사용자 데이터 인코딩에 실패했습니다: \(message)"
         case .decodingFailed(let message):
             return "사용자 데이터 디코딩에 실패했습니다: \(message)"
+        case .invalidInput(let message):
+            return "잘못된 입력: \(message)"
         }
     }
 }
