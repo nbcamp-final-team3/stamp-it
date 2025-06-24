@@ -80,7 +80,11 @@ final class HomeUseCase: HomeUseCaseProtocol {
     /// 만료된 assigned 미션을 서버에 failed로 업데이트하고
     /// 나머지 미션과 합쳐서 생성일 순으로 내림차순 정렬된 배열을 방출
     private func handleExpiredAndMerge(missions: [Mission], groupID: String) -> Observable<[Mission]> {
-        let toExpire = missions.filter { $0.status == .assigned && $0.dueDate < Date() }
+        let toExpire = missions.filter {
+            let dueDay = Calendar.current.component(.day, from: $0.dueDate)
+            let today = Calendar.current.component(.day, from: Date())
+            return $0.status == .assigned && dueDay < today
+        }
         let others = missions.filter { !toExpire.contains($0) }
 
         return Observable

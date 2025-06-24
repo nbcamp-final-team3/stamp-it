@@ -38,6 +38,13 @@ final class TagView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override var intrinsicContentSize: CGSize {
+        let labelSize = label.intrinsicContentSize
+        let width = labelSize.width + 8 * 2
+        let height = labelSize.height + verticalInset * 2
+        return CGSize(width: width, height: height)
+    }
+
     // MARK: - Set Styles
 
     private func setStyles() {

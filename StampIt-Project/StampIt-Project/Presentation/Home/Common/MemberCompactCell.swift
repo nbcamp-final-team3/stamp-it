@@ -29,14 +29,11 @@ final class MemberCompactCell: UICollectionViewCell {
 
     // MARK: - UI Components
 
-    private let imageContainerView = UIView().then {
+    private let profileImageView = UIImageView().then {
+        $0.contentMode = .center
         $0.backgroundColor = .clear
         $0.layer.cornerRadius = 60 / 2
         $0.clipsToBounds = true
-    }
-
-    private let profileImageView = UIImageView().then {
-        $0.contentMode = .scaleAspectFit
     }
     
     private let rankBadgeImageView = UIImageView().then {
@@ -73,9 +70,9 @@ final class MemberCompactCell: UICollectionViewCell {
     private func setStyles() {
         rankBadgeImageView.isHidden = type != .rank
         stickerCountLabel.isHidden = type != .rank
-        imageContainerView.layer.borderWidth = borderWidth
-        imageContainerView.layer.borderColor = borderColor
-        imageContainerView.layer.opacity = opacity
+        profileImageView.layer.borderWidth = borderWidth
+        profileImageView.layer.borderColor = borderColor
+        profileImageView.layer.opacity = opacity
         nameLabel.textColor = nameTextColor
     }
 
@@ -83,40 +80,31 @@ final class MemberCompactCell: UICollectionViewCell {
 
     private func setHierarchy() {
         [
-            imageContainerView,
+            profileImageView,
             rankBadgeImageView,
             nameLabel,
             stickerCountLabel,
         ].forEach { addSubview($0) }
-
-        [
-            profileImageView
-        ].forEach { imageContainerView.addSubview($0) }
     }
 
     // MARK: - Set Constraints
 
     private func setConstraints() {
-        imageContainerView.snp.makeConstraints { make in
+        profileImageView.snp.makeConstraints { make in
             make.top.equalToSuperview()
             make.centerX.equalToSuperview()
             make.size.equalTo(60)
         }
 
-        profileImageView.snp.makeConstraints { make in
-            make.center.equalToSuperview()
-            make.size.equalTo(40)
-        }
-
         rankBadgeImageView.snp.makeConstraints { make in
-            make.bottom.equalTo(imageContainerView.snp.bottom).offset(4)
+            make.bottom.equalTo(profileImageView.snp.bottom).offset(4)
             make.centerX.equalToSuperview()
             make.size.equalTo(16)
         }
 
         nameLabel.snp.makeConstraints { make in
             let offset = type == .rank ? 8 : 4
-            make.top.equalTo(imageContainerView.snp.bottom).offset(offset)
+            make.top.equalTo(profileImageView.snp.bottom).offset(offset)
             make.directionalHorizontalEdges.equalToSuperview()
             make.height.equalTo(21)
         }
@@ -131,7 +119,7 @@ final class MemberCompactCell: UICollectionViewCell {
     private func updateNameLabelConstraints() {
         nameLabel.snp.updateConstraints { make in
             let offset = type == .rank ? 8 : 4
-            make.top.equalTo(imageContainerView.snp.bottom).offset(offset)
+            make.top.equalTo(profileImageView.snp.bottom).offset(offset)
         }
     }
 
@@ -155,9 +143,9 @@ final class MemberCompactCell: UICollectionViewCell {
 
     private func setStylesIfSelectedForNormalType() {
         guard type == .normal else { return }
-        imageContainerView.layer.borderColor = borderColor
-        imageContainerView.layer.borderWidth = borderWidth
-        imageContainerView.layer.opacity = opacity
+        profileImageView.layer.borderColor = borderColor
+        profileImageView.layer.borderWidth = borderWidth
+        profileImageView.layer.opacity = opacity
         nameLabel.textColor = nameTextColor
     }
 

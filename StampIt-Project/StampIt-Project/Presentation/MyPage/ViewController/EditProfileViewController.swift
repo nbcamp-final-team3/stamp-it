@@ -12,6 +12,8 @@ import SnapKit
 import Then
 
 final class EditProfileViewController: UIViewController {
+    typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
+    
     private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "내 정보 수정"))
     
     private let profileImageLabel = UILabel().then {
@@ -22,6 +24,7 @@ final class EditProfileViewController: UIViewController {
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
         $0.register(ProfileImageCell.self, forCellWithReuseIdentifier: ProfileImageCell.reuseIdentifier)
+        $0.isScrollEnabled = false
     }
     
     private let nicknameLabel = UILabel().then {
@@ -90,13 +93,15 @@ final class EditProfileViewController: UIViewController {
     
     private let editButton = DefaultButton(type: .modify)
     
+    private let toastView = ToastView()
+    
     private let viewModel: EditProfileViewModel
     private let disposeBag = DisposeBag()
     
     // 프로필 이미지 에셋
     private let profileImages = ["profileImage1", "profileImage2", "profileImage3", "profileImage4", "profileImage5", "profileImage6", "profileImage7", "profileImage8"]
     
-    private var dataSource: UICollectionViewDiffableDataSource<Section, Item>?
+    private var dataSource: DataSource?
     
     init(viewModel: EditProfileViewModel) {
         self.viewModel = viewModel
@@ -155,7 +160,7 @@ final class EditProfileViewController: UIViewController {
     private func makeConstraints() {
         navigationBar.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
-            $0.directionalHorizontalEdges.equalToSuperview()
+            $0.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
         }
         
         profileImageLabel.snp.makeConstraints {
@@ -242,6 +247,16 @@ final class EditProfileViewController: UIViewController {
             }
             .disposed(by: disposeBag)
         
+        // 닉네임 변경 시 글자수 검증 에러 출력
+        viewModel.state.nicknameError
+            .asDriver(onErrorDriveWith: .empty())
+            .skip(1)
+            .drive { [weak self] message in
+                guard let self, let message else { return }
+                toastView.show(in: view, duration: 3, message: message, type: .failure)
+            }
+            .disposed(by: disposeBag)
+        
         // 그룹명 변경 추적
         groupNameTextField.rx.text
             .orEmpty
@@ -303,7 +318,7 @@ final class EditProfileViewController: UIViewController {
     
     // 컬렉션 뷰 데이터소스 설정
     private func configureDataSource() {
-        dataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView) { collectionView, indexPath, item in
+        dataSource = DataSource(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
             case .image:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProfileImageCell.reuseIdentifier, for: indexPath) as! ProfileImageCell

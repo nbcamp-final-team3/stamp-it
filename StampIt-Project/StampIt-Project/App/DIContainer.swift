@@ -142,6 +142,10 @@ final class DIContainer {
         return EditProfileViewModel(user: user, editProfileUseCaseImpl: editProfileUseCase)
     }
 
+    func makeMemberDeleteViewModel() -> MemberDeleteViewModel {
+        return MemberDeleteViewModel()
+    }
+
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
@@ -206,6 +210,11 @@ final class DIContainer {
         return EditProfileViewController(viewModel: viewModel)
     }
     
+    func makeMemberDeleteViewController() -> MemberDeleteViewController {
+        let viewModel = makeMemberDeleteViewModel()
+        return MemberDeleteViewController(viewModel: viewModel)
+    }
+
     // MARK: - Singleton
     static let shared = DIContainer()
     private init() {}
