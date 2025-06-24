@@ -91,6 +91,8 @@ final class EditProfileViewController: UIViewController {
     
     private let editButton = DefaultButton(type: .modify)
     
+    private let toastView = ToastView()
+    
     private let viewModel: EditProfileViewModel
     private let disposeBag = DisposeBag()
     
@@ -240,6 +242,16 @@ final class EditProfileViewController: UIViewController {
             .skip(1)
             .drive { [weak self] in
                 self?.viewModel.action.accept(.nicknameChanged($0))
+            }
+            .disposed(by: disposeBag)
+        
+        // 닉네임 변경 시 글자수 검증 에러 출력
+        viewModel.state.nicknameError
+            .asDriver(onErrorDriveWith: .empty())
+            .skip(1)
+            .drive { [weak self] message in
+                guard let self, let message else { return }
+                toastView.show(in: view, duration: 3, message: message, type: .failure)
             }
             .disposed(by: disposeBag)
         
