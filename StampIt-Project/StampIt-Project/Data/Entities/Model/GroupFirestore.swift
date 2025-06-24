@@ -13,6 +13,7 @@ struct GroupFirestore: Codable {
     let name: String
     let leaderId: String
     let inviteCode: String
+    let inviteCodeCreateAt: Timestamp
     let nameChangedAt: Timestamp
     let createdAt: Timestamp
     
@@ -41,6 +42,7 @@ extension Group {
             name: name,
             leaderId: self.leaderID,
             inviteCode: inviteCode,
+            inviteCodeCreateAt: Timestamp(date: Date()),
             nameChangedAt: Timestamp(date: self.nameChangedAt),
             createdAt: Timestamp(date: Date())
         )

@@ -19,6 +19,8 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     private let missionManager: MissionManager
     private let stickerManager: StickerManager
     
+    private let authRepository: AuthRepositoryProtocol
+    
     private let disposeBag = DisposeBag()
     private let mapToRepositoryError: (Error) -> RepositoryError
     
@@ -30,6 +32,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         membershipManager: MembershipManager,
         missionManager: MissionManager,
         stickerManager: StickerManager,
+        authRepository: AuthRepository,
         mapToRepositoryError: @escaping (Error) -> RepositoryError
     ) {
         self.authManager = authManager
@@ -38,31 +41,16 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         self.membershipManager = membershipManager
         self.missionManager = missionManager
         self.stickerManager = stickerManager
+        self.authRepository = authRepository
         self.mapToRepositoryError = mapToRepositoryError
     }
     
     // MARK: - 계정 조회
     // 현재 사용자 정보 조회
-    private func getCurrentUserInfo() -> Observable<User> {
-        guard let firebaseUser = authManager.getCurrentUser() else {
-            return Observable.error(RepositoryError.userNotFound)
-        }
-        
-        return userManager.fetchUserOnce(userId: firebaseUser.uid)
-            .flatMap { [weak self] userFirestore -> Observable<User> in
-                guard let self = self else {
-                    return Observable.error(RepositoryError.unknownError)
-                }
-                
-                return self.groupManager.fetchGroup(groupId: userFirestore.groupId)
-                    .map { groupFirestore -> User in
-                        let isLeader = groupFirestore.leaderId == userFirestore.userId
-                        return userFirestore.toDomainModel(
-                            groupName: groupFirestore.name,
-                            isLeader: isLeader
-                        )
-                    }
-            }
+    private func getCurrentUser() -> Observable<User> {
+        return authRepository.getCurrentUser()
+            .compactMap { $0 }
+            .ifEmpty(switchTo: Observable.error(RepositoryError.userNotFound))
     }
     
     // MARK: - 로그아웃
@@ -82,7 +70,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     
     /// 계정 완전 삭제 (Firestore → Auth 순서, 재시도 10회)
     func deleteAccount() -> Observable<Void> {
-        return getCurrentUserInfo()
+        return getCurrentUser()
             .flatMap { [weak self] user -> Observable<Void> in
                 guard let self = self else {
                     return Observable.error(RepositoryError.unknownError)
@@ -318,7 +306,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     
     /// 그룹 탈퇴 후 새로운 1인 그룹 생성 (새로운 매니저 구조 반영)
     func leaveGroup() -> Observable<User> {
-        return getCurrentUserInfo()
+        return getCurrentUser()
             .flatMap { [weak self] currentUser -> Observable<User> in
                 guard let self = self else {
                     return Observable.error(RepositoryError.unknownError)
@@ -380,7 +368,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     // MARK: - Private Methods
     /// 사용자 관련 모든 Firestore 데이터 삭제 (계정 탈퇴용) (새로운 매니저 구조 반영)
     private func deleteAllUserData(userId: String) -> Observable<Void> {
-        return getCurrentUserInfo()
+        return getCurrentUser()
             .flatMap { [weak self] (user: User) -> Observable<Void> in
                 guard let self = self else {
                     return Observable.error(RepositoryError.unknownError)

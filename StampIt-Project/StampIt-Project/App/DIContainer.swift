@@ -12,40 +12,74 @@ import Foundation
 final class DIContainer {
 
     // MARK: - Managers (Infrastructure Layer)
-    lazy var authManager: AuthManagerProtocol = {
-        return AuthManager()
-    }()
+    lazy var authManager: AuthManagerProtocol = AuthManager()
+    lazy var userManager: UserManager = UserManager()
+    lazy var groupManager: GroupManager = GroupManager()
+    lazy var membershipManager: MembershipManager = MembershipManager()
+    lazy var missionManager: MissionManager = MissionManager()
+    lazy var stickerManager: StickerManager = StickerManager()
 
-    lazy var firestoreManager: FirestoreManagerProtocol = {
-        return FirestoreManager()
-    }()
 
     // MARK: - Repositories (Data Layer)
     lazy var authRepository: AuthRepositoryProtocol = {
         return AuthRepository(
             authManager: authManager,
-            firestoreManager: firestoreManager
+            userManager: userManager,
+            groupManager: groupManager,
+            membershipManager: membershipManager,
+            missionManager: missionManager,
+            stickerManager: stickerManager
         )
     }()
 
     lazy var homeRepository: HomeRepositoryProtocol = {
-        return HomeRepository(manager: firestoreManager)
+        return HomeRepository(
+            membershipManager: membershipManager,
+            stickerManager: stickerManager,
+            missionManager: missionManager
+        )
     }()
 
     lazy var myPageRepository: MyPageRepository = {
-        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+        return MyPageRepositoryImpl(stickerManager: stickerManager)
     }()
 
     lazy var inviteRepository: InviteRepository = {
-        return InviteRepositoryImpl(firestoreManager: firestoreManager)
+        return InviteRepositoryImpl(
+            groupManager: groupManager,
+            membershipManager: membershipManager,
+            userManager: userManager
+        )
     }()
-    
+
     lazy var missionRepository: MissionRepository = {
-        return MissionRepositoryImpl(firestoreManager: firestoreManager, authRepository: authRepository)
+        return MissionRepositoryImpl(
+            missionManager: missionManager,
+            membershipManager: membershipManager,
+            authRepository: authRepository
+        )
     }()
-    
+
     lazy var editProfileRepository: EditProfileRepository = {
-        return EditProfileRepositoryImpl(firestoreManager: firestoreManager)
+        return EditProfileRepositoryImpl(
+            userManager: userManager,
+            groupManager: groupManager,
+            membershipManager: membershipManager
+        )
+    }()
+
+    lazy var accountManageRepository: AccountManageRepositoryProtocol = {
+        return AccountManageRepository(
+            authManager: authManager,
+            userManager: userManager,
+            groupManager: groupManager,
+            membershipManager: membershipManager,
+            missionManager: missionManager,
+            stickerManager: stickerManager,
+            mapToRepositoryError: { error in
+                return RepositoryError.unknownError
+            }
+        )
     }()
 
     // MARK: - Use Cases (Domain Layer)
@@ -84,7 +118,10 @@ final class DIContainer {
     }()
 
     lazy var accountManageUseCase: AccountManageUseCaseProtocol = {
-        return AccountManageUseCase(authRepository: authRepository)
+        return AccountManageUseCase(
+            accountManageRepository: accountManageRepository,
+            authRepository: authRepository
+        )
     }()
     
     lazy var editProfileUseCase: EditProfileUseCase = {

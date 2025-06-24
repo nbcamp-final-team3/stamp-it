@@ -81,8 +81,8 @@ final class MissionRepositoryImpl: MissionRepository {
             dueDate: Timestamp(date: mission.dueDate),
             category: category,
             status: MissionFirestore.Status.assigned.rawValue,
-            missionType: MissionFirestore.MissionType.app.rawValue,
-            createdAt: Timestamp(date: mission.createDate))
+            missionType: MissionFirestore.MissionType.app.rawValue
+        )
         
         return missionManager.createMission(groupId: groupId, mission: missionFirestore)
     }

@@ -75,7 +75,6 @@ final class HomeRepository: HomeRepositoryProtocol {
             status: status.rawValue,
             // TODO: 커스텀 타입 추가 시 도메인 모델 변경
             missionType: MissionFirestore.MissionType.app.rawValue,
-            createdAt: Timestamp(date: mission.createDate)
         )
 
         return missionManager.updateMission(groupId: groupID, mission: updated)

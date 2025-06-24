@@ -5,10 +5,6 @@
 //  Created by iOS study on 6/5/25.
 //
 
-// 1. missionTitle → missionId 변경으로 정규화
-// 2. 미션 정보 변경 시 스티커 데이터 동기화 불필요
-// 3. 미션과 스티커 간 명확한 참조 관계 설정
-
 import Foundation
 import FirebaseFirestore
 
