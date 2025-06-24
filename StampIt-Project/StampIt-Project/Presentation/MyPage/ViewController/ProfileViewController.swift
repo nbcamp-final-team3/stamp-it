@@ -41,6 +41,7 @@ final class ProfileViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        viewModel.action.accept(.viewDidLoad)
         setStyle()
         setHierarchy()
         setLayout()
@@ -53,7 +54,7 @@ final class ProfileViewController: UIViewController {
     // 화면이 나타날 때마다 데이터 새로고침
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // user 다시 불러오기?
+        viewModel.action.accept(.viewDidLoad)
     }
     
     // MARK: - Bind

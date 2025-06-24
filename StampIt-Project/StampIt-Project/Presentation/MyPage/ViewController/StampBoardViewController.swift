@@ -36,6 +36,7 @@ final class StampBoardViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        viewModel.action.accept(.viewDidLoad)
         setStyle()
         setHierarchy()
         setLayout()
