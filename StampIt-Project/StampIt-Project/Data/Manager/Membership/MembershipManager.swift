@@ -281,10 +281,43 @@ final class MembershipManager: MembershipManagerProtocol {
         return updateFields(id: membershipId, fields: query)
     }
     
+    /// 유저 닉네임 업데이트
+    func updateMemberNickname(groupId: String, userId: String, nickname: String) -> Observable<Void> {
+        let membershipId = "\(groupId)_\(userId)"
+        return updateFields(id: membershipId, fields: [
+                "nickname": nickname,
+                "updatedAt": Timestamp(date: Date())
+            ])
+    }
+    
+    /// 유저 프로필 이미지 업데이트
+    func updateMemberProfileImage(groupId: String, userId: String, profileImage: String) -> Observable<Void>{
+        let membershipId = "\(groupId)_\(userId)"
+        
+        return updateFields(id: membershipId, fields: [
+            "profileImage": profileImage,
+            "updatedAt": Timestamp(date: Date())
+        ])
+    }
+    
+    
     /// 멤버 리더 상태 업데이트 (그룹 탈퇴 시 사용)
     func updateMemberLeaderStatus(groupId: String, userId: String, isLeader: Bool) -> Observable<Void> {
         let membershipId = "\(groupId)_\(userId)"
         return updateFields(id: membershipId, fields: ["isLeader": isLeader])
+    }
+    
+    func deleteGroupMemberships(groupId: String) -> Observable<Void> {
+        return fetchList(query: .byGroup(groupId))
+            .flatMap { [weak self] memberships -> Observable<Void> in
+                guard let self = self else {
+                    return Observable.error(MembershipError.fetchFailed("MembershipManager 인스턴스가 없습니다"))
+                }
+                let deleteObservables = memberships.map { membership in
+                    self.delete(id: membership.documentID)
+                }
+                return Observable.zip(deleteObservables).map { _ in () }
+            }
     }
     
     /// 가장 오래된 멤버 조회 (특정 유저 제외)
