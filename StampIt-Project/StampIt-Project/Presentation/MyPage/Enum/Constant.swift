@@ -17,6 +17,21 @@ enum TabType: String {
         case .profile: return "프로필"
         }
     }
+    
+    var index: Int {
+        switch self {
+        case .stampBoard: return 0
+        case .profile: return 1
+        }
+    }
+    
+    static func index(_ index: Int) -> TabType {
+        switch index {
+        case 0: return .stampBoard
+        case 1: return .profile
+        default: return .stampBoard
+        }
+    }
 }
 
 extension StickerType {

@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Foundation
 
 // MARK: - 의존성 주입 컨테이너
 final class DIContainer {
@@ -57,7 +56,7 @@ final class DIContainer {
         return HomeUseCase(authRepository: authRepository, homeRepository: homeRepository)
     }()
 
-    lazy var myPageUseCase: MyPageUseCase = {
+    lazy var myPageUseCase: MyPageUseCaseProtocol = {
         return MyPageUseCaseImpl(
             authRepository: authRepository,
             mypageRepository: myPageRepository
@@ -99,12 +98,20 @@ final class DIContainer {
     func makeHomeViewModel() -> HomeViewModel {
         return HomeViewModel(useCase: homeUseCase)
     }
-
-    func makeMyPageViewModel() -> MyPageViewModel {
-        return MyPageViewModel(
+    
+    func makeStampBoardViewModel() -> StampBoardViewModel {
+        return StampBoardViewModel(myPageUseCase: myPageUseCase)
+    }
+    
+    func makeProfileViewModel() -> ProfileViewModel {
+        return ProfileViewModel(
             myPageUseCase: myPageUseCase,
             accountManageUseCase: accountManageUseCase
         )
+    }
+    
+    func makeMyPageViewModel() -> MyPageViewModel {
+        return MyPageViewModel()
     }
 
     func makeOnboardingViewModel() -> OnboardingViewModel {
@@ -148,7 +155,20 @@ final class DIContainer {
 
     func makeMyPageViewController() -> MyPageViewController {
         let viewModel = makeMyPageViewModel()
-        return MyPageViewController(viewModel: viewModel, container: self)
+        return MyPageViewController(
+            viewModel: viewModel,
+            container: self
+        )
+    }
+    
+    func makeStampBoardViewController() -> StampBoardViewController {
+        let viewModel = makeStampBoardViewModel()
+        return StampBoardViewController(viewModel: viewModel)
+    }
+    
+    func makeProfileViewController() -> ProfileViewController {
+        let viewModel = makeProfileViewModel()
+        return ProfileViewController(viewModel: viewModel, container: self)
     }
     
     func makeOnboardingViewController() -> OnboardingViewController {
