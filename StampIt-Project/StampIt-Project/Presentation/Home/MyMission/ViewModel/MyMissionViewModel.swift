@@ -127,19 +127,11 @@ final class MyMissionViewModel: ViewModelProtocol {
         let updated = items.map { item in
             let mission = item.mission!
             if mission.missionID == missionID {
-                let updated = HomeMyMission(
-                    missionID: mission.missionID,
-                    title: mission.title,
-                    category: mission.category,
-                    dueDate: mission.dueDate,
-                    assigner: mission.assigner,
-                    isNew: mission.isNew,
-                    isOverdue: mission.isOverdue,
-                    status: .completed
-                )
+                let updated = mission.makeCopyCompleted()
                 return MyMissionItem.mission(updated)
+            } else {
+                return item
             }
-            return item
         }
         state.missions.accept(updated)
     }
@@ -148,17 +140,7 @@ final class MyMissionViewModel: ViewModelProtocol {
     private func updateMissionCache(missionID: String) -> Mission? {
         guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
         let missionToUpdate = myMissions[index]
-        let updated = Mission(
-            missionID: missionToUpdate.missionID,
-            title: missionToUpdate.title,
-            assignedTo: missionToUpdate.assignedTo,
-            assignedBy: missionToUpdate.assignedBy,
-            createDate: missionToUpdate.createDate,
-            dueDate: missionToUpdate.dueDate,
-            status: .completed,
-            imageURL: missionToUpdate.imageURL,
-            category: missionToUpdate.category
-        )
+        let updated = missionToUpdate.makeCopyCompleted()
         myMissions[index] = updated
         return updated
     }

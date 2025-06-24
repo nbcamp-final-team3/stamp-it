@@ -17,4 +17,18 @@ struct Mission: Equatable {
     let status: MissionStatus
     let imageURL: String
     let category: MissionCategory
+
+    func makeCopyCompleted() -> Mission {
+        .init(
+            missionID: self.missionID,
+            title: self.title,
+            assignedTo: self.assignedTo,
+            assignedBy: self.assignedBy,
+            createDate: self.createDate,
+            dueDate: self.dueDate,
+            status: .completed,
+            imageURL: self.imageURL,
+            category: self.category,
+        )
+    }
 }

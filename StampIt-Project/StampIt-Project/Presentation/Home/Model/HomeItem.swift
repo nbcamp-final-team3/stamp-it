@@ -74,6 +74,19 @@ struct HomeMyMission: Hashable {
     let isNew: Bool?
     let isOverdue: Bool
     let status: MissionStatus
+
+    func makeCopyCompleted() -> HomeMyMission {
+        .init(
+            missionID: self.missionID,
+            title: self.title,
+            category: self.category,
+            dueDate: self.dueDate,
+            assigner: self.assigner,
+            isNew: self.isNew,
+            isOverdue: self.isOverdue,
+            status: .completed
+        )
+    }
 }
 
 struct HomeMemberMission: Hashable {
