@@ -14,37 +14,44 @@ final class MemberDeleteCell: UICollectionViewCell {
 
     // MARK: - UI
     private let profileImageView = UIImageView().then {
-        $0.contentMode = .scaleAspectFill
+        $0.contentMode = .center
         $0.clipsToBounds = true
-        $0.layer.cornerRadius = 24 // 48/2
-        $0.backgroundColor = .gray200
+        $0.layer.cornerRadius = 30 // 48/2
+        $0.backgroundColor = .FFFFFF
+        $0.layer.borderColor = UIColor.gray200.cgColor
+        $0.layer.borderWidth = 1
+        $0.layer.opacity = 1
         $0.image = UIImage(named: "profileImage1")
     }
 
     private let nameLabel = UILabel().then {
         $0.font = .pretendard(size: 16, weight: .semibold)
         $0.textColor = .gray800
+        $0.numberOfLines = 1
+        $0.lineBreakMode = .byTruncatingTail
     }
 
     private let dateLabel = UILabel().then {
         $0.font = .pretendard(size: 13, weight: .regular)
-        $0.textColor = .gray400
+        $0.textColor = .gray500
+        $0.numberOfLines = 1
+        $0.lineBreakMode = .byTruncatingTail
     }
 
     private let optionButton = UIButton().then {
         $0.setImage(UIImage(named: "MoreVert"), for: .normal)
-        $0.tintColor = .gray400
+        $0.tintColor = .gray300
     }
 
-    private let infoStack = UIStackView().then {
+    private let infoVstack = UIStackView().then {
         $0.axis = .vertical
-        $0.spacing = 4
+        $0.spacing = 8
         $0.alignment = .leading
     }
 
     private let hStack = UIStackView().then {
         $0.axis = .horizontal
-        $0.spacing = 12
+        $0.spacing = 16
         $0.alignment = .center
     }
 
@@ -68,18 +75,39 @@ final class MemberDeleteCell: UICollectionViewCell {
     // MARK: - UI Setup
     private func setupUI() {
         contentView.addSubview(hStack)
-        [profileImageView, infoStack, optionButton].forEach { hStack.addArrangedSubview($0) }
-        [nameLabel, dateLabel].forEach { infoStack.addArrangedSubview($0) }
+        contentView.addSubview(optionButton)
+
+        [profileImageView, infoVstack]
+            .forEach { hStack.addArrangedSubview($0) }
+
+        [nameLabel, dateLabel]
+            .forEach { infoVstack.addArrangedSubview($0) }
+
+        nameLabel.snp.makeConstraints {
+            //여유 공간 확보?
+            $0.height.equalTo(16)
+        }
+
+         infoVstack.snp.makeConstraints {
+             $0.centerY.equalTo(profileImageView.snp.centerY)
+         }
 
         hStack.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(16)
+            $0.top.leading.bottom.equalToSuperview().inset(16)
         }
+
         profileImageView.snp.makeConstraints {
-            $0.width.height.equalTo(48)
+            $0.width.height.equalTo(60)
+            $0.centerY.equalToSuperview()
         }
+
         optionButton.snp.makeConstraints {
-            $0.width.height.equalTo(24)
+            $0.width.height.equalTo(28)
+            $0.top.equalTo(hStack.snp.top)
+            $0.trailing.equalToSuperview().inset(16)
+            $0.leading.greaterThanOrEqualTo(hStack.snp.trailing).offset(10)
         }
+
     }
 
     private func setupShadowAndCorner() {

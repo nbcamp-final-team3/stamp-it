@@ -91,7 +91,7 @@ final class MemberDeleteViewController: UIViewController {
 
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .absolute(80) // 셀 높이 조정
+            heightDimension: .estimated(110) // 셀 높이 조정
         )
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, repeatingSubitem: item, count: 1)
 
@@ -176,20 +176,20 @@ extension MemberDeleteViewController: UIGestureRecognizerDelegate {
   }
 }
 
-private func showSelectInvitationVC() {
-    let vm = SelectInvitationViewModel()
-    let vc = SelectInvitationViewController(viewModel: vm)
-
-    vc.didTapConfirmButton
-        .map { HomeViewModel.Action.didReceiveInvitationType($0) }
-        .bind(to: viewModel.action)
-        .disposed(by: vc.disposeBag)
-
-    if let sheet = vc.sheetPresentationController {
-        sheet.detents = [.medium()]
-        sheet.prefersGrabberVisible = true
-        sheet.preferredCornerRadius = 32
-    }
-    present(vc, animated: true)
-}
+//private func showSelectInvitationVC() {
+//    let vm = SelectInvitationViewModel()
+//    let vc = SelectInvitationViewController(viewModel: vm)
+//
+//    vc.didTapConfirmButton
+//        .map { HomeViewModel.Action.didReceiveInvitationType($0) }
+//        .bind(to: viewModel.action)
+//        .disposed(by: vc.disposeBag)
+//
+//    if let sheet = vc.sheetPresentationController {
+//        sheet.detents = [.medium()]
+//        sheet.prefersGrabberVisible = true
+//        sheet.preferredCornerRadius = 32
+//    }
+//    present(vc, animated: true)
+//}
 
