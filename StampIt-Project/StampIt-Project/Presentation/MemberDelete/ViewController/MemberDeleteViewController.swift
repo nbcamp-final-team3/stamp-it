@@ -43,15 +43,20 @@ final class MemberDeleteViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationController?.navigationBar.isHidden = true
-        navigationController?.interactivePopGestureRecognizer?.delegate = self
-        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+
         setupUI()
         setupDataSource()
         bind()
+        setupNavigation()
     }
 
     // MARK: - UI Setup
+
+    private func setupNavigation() {
+        navigationController?.navigationBar.isHidden = true
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+    }
 
     private func setupUI() {
         view.backgroundColor = .white
@@ -106,7 +111,8 @@ final class MemberDeleteViewController: UIViewController {
         // 테스트 데이터 추가
         var snapshot = NSDiffableDataSourceSnapshot<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>()
         snapshot.appendSections([.main])
-        
+
+        // TODO: 실제 DB에서 데이터 받아오면 삭제 예정
         let testItems = [
             MemberDeleteViewModel.Item(id: "1", name: "테스트 멤버 1"),
             MemberDeleteViewModel.Item(id: "2", name: "테스트 멤버 2"),
