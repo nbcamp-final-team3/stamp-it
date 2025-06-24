@@ -7,13 +7,13 @@
 
 import Foundation
 
+// MARK: - GroupError 정의 (완전 수정)
 enum GroupError: Error, LocalizedError {
-    // 그룹 관련 특화 에러
     case groupNotFound
     case groupAlreadyExists
-    case invalidInviteCode
-    case memberLimitExceeded
-    case leaderCannotLeaveGroup
+    case inviteNotFound
+    case inviteExpired
+    case invalidInput(String)
     
     // 일반적인 Group 작업 에러
     case createFailed(String)
@@ -29,12 +29,12 @@ enum GroupError: Error, LocalizedError {
             return "그룹을 찾을 수 없습니다"
         case .groupAlreadyExists:
             return "이미 존재하는 그룹입니다"
-        case .invalidInviteCode:
-            return "유효하지 않은 초대 코드입니다"
-        case .memberLimitExceeded:
-            return "그룹 멤버 수가 초과되었습니다"
-        case .leaderCannotLeaveGroup:
-            return "그룹장은 그룹을 탈퇴할 수 없습니다"
+        case .inviteNotFound:
+            return "초대 코드를 찾을 수 없습니다"
+        case .inviteExpired:
+            return "만료된 초대 코드입니다"
+        case .invalidInput(let message):
+            return "잘못된 입력: \(message)"
         case .createFailed(let message):
             return "그룹 생성에 실패했습니다: \(message)"
         case .fetchFailed(let message):
