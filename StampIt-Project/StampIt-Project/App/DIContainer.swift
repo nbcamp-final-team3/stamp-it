@@ -48,6 +48,12 @@ final class DIContainer {
         return EditProfileRepositoryImpl(firestoreManager: firestoreManager)
     }()
 
+    // MARK: - Services
+
+    lazy var missionExpirationService: MissionExpirationService = {
+        return MissionExpirationServiceImpl(homeRepository: homeRepository)
+    }()
+
     // MARK: - Use Cases (Domain Layer)
     lazy var loginUseCase: LoginUseCaseProtocol = {
         return LoginUseCase(authRepository: authRepository)
@@ -65,11 +71,17 @@ final class DIContainer {
     }()
 
     lazy var myMissionUseCase: MyMissionUseCaseProtocol = {
-        return MyMissionUseCaseImpl(homeRepository: homeRepository)
+        return MyMissionUseCaseImpl(
+            homeRepository: homeRepository,
+            expirationService: missionExpirationService
+        )
     }()
 
     lazy var memberMissionUseCase: MemberMissionUseCaseProtocol = {
-        return MemberMissionUseCaseImpl(homeRepository: homeRepository)
+        return MemberMissionUseCaseImpl(
+            homeRepository: homeRepository,
+            expirationService: missionExpirationService
+        )
     }()
 
     lazy var missionUseCase: MissionUseCase = {
