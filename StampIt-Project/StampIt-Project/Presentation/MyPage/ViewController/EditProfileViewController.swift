@@ -12,6 +12,8 @@ import SnapKit
 import Then
 
 final class EditProfileViewController: UIViewController {
+    typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
+    
     private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "내 정보 수정"))
     
     private let profileImageLabel = UILabel().then {
@@ -99,7 +101,7 @@ final class EditProfileViewController: UIViewController {
     // 프로필 이미지 에셋
     private let profileImages = ["profileImage1", "profileImage2", "profileImage3", "profileImage4", "profileImage5", "profileImage6", "profileImage7", "profileImage8"]
     
-    private var dataSource: UICollectionViewDiffableDataSource<Section, Item>?
+    private var dataSource: DataSource?
     
     init(viewModel: EditProfileViewModel) {
         self.viewModel = viewModel
@@ -316,7 +318,7 @@ final class EditProfileViewController: UIViewController {
     
     // 컬렉션 뷰 데이터소스 설정
     private func configureDataSource() {
-        dataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView) { collectionView, indexPath, item in
+        dataSource = DataSource(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
             case .image:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProfileImageCell.reuseIdentifier, for: indexPath) as! ProfileImageCell

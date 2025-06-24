@@ -12,7 +12,7 @@ import SnapKit
 import Then
 
 final class MissionListViewController: UIViewController {
-    typealias Datasource = UICollectionViewDiffableDataSource<Section, Item>
+    typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
     
     private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))
     
@@ -47,7 +47,7 @@ final class MissionListViewController: UIViewController {
     private let viewModel: MissionListViewModel
     private let disposeBag = DisposeBag()
     
-    private var dataSource: Datasource?
+    private var dataSource: DataSource?
     
     init(viewModel: MissionListViewModel) {
         self.viewModel = viewModel
@@ -235,7 +235,7 @@ final class MissionListViewController: UIViewController {
     
     // 컬렉션 뷰 데이터소스 설정
     private func configureDataSource() {
-        dataSource = Datasource(collectionView: collectionView) { collectionView, indexPath, item in
+        dataSource = DataSource(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
             case .all:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
