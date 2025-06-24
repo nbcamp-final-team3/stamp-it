@@ -15,6 +15,8 @@ final class HomeViewModel: ViewModelProtocol {
     private let rankingUseCase: RankingUseCaseProtocol
     private let myMissionUseCase: MyMissionUseCaseProtocol
     private let memberMissionUseCase: MemberMissionUseCaseProtocol
+    private let memberMapper: MemberMapping
+    private let missionMapper: MissionMapping
 
     // MARK: - Action & State
 
@@ -58,11 +60,15 @@ final class HomeViewModel: ViewModelProtocol {
 
     init(rankingUseCase: RankingUseCaseProtocol,
          myMissionUseCase: MyMissionUseCaseProtocol,
-         memberMissionUseCase: MemberMissionUseCaseProtocol
+         memberMissionUseCase: MemberMissionUseCaseProtocol,
+         memberMapper: MemberMapper,
+         missionMapper: MissionMapper,
     ) {
         self.rankingUseCase = rankingUseCase
         self.myMissionUseCase = myMissionUseCase
         self.memberMissionUseCase = memberMissionUseCase
+        self.memberMapper = memberMapper
+        self.missionMapper = missionMapper
         bind()
     }
 
@@ -124,7 +130,8 @@ final class HomeViewModel: ViewModelProtocol {
               self.memberCache = Dictionary(
                 uniqueKeysWithValues: members.map { ($0.userID, $0) }
               )
-              let items = self.mapMembersToHomeItems(members)
+              let userID = state.user.value?.userID ?? ""
+              let items = self.memberMapper.map(members: members, userID: userID)
               self.state.rankedMembers.accept(items)
           })
           .disposed(by: disposeBag)
@@ -139,7 +146,7 @@ final class HomeViewModel: ViewModelProtocol {
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
               self.myMissions = missions
-              let items = self.mapMyMissionsToHomeItems(missions)
+              let items = self.missionMapper.map(myMissions: missions, member: memberCache)
               self.state.myMissions.accept(items)
           })
           .disposed(by: disposeBag)
@@ -154,8 +161,9 @@ final class HomeViewModel: ViewModelProtocol {
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
               self.memberMissions = missions
-              let items = self.mapMemberMissionsToHomeItems(
-                Array(missions.prefix(4))
+              let items = self.missionMapper.map(
+                memberMission: Array(missions.prefix(4)),
+                member: memberCache
               )
               self.state.memberMissionsForDisplay.accept(items)
           })
@@ -168,7 +176,7 @@ final class HomeViewModel: ViewModelProtocol {
             .map { id in memberMissions.filter { $0.assignedTo == memberID } }
             ?? memberMissions
         let first4 = Array(filteredMissions.prefix(4))
-        let homeItems = mapMemberMissionsToHomeItems(first4)
+        let homeItems = missionMapper.map(memberMission: first4, member: memberCache)
         state.memberMissionsForDisplay.accept(homeItems)
     }
 
@@ -239,7 +247,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     func cancelMissionComplete() {
         pendingCommits = DisposeBag()
-        let cachedMissions = mapMyMissionsToHomeItems(myMissions)
+        let cachedMissions = missionMapper.map(myMissions: myMissions, member: memberCache)
         state.myMissions.accept(cachedMissions)
         state.isShowStickerReceived.accept(false)
     }
@@ -249,71 +257,5 @@ final class HomeViewModel: ViewModelProtocol {
     /// fetch 전 placeholder 제공
     private func showPlaceholderOnSendedSection() {
         state.memberMissionsForDisplay.accept([])
-    }
-
-    /// [User]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
-    private func mapMembersToHomeItems(_ members: [Member]) -> [HomeItem] {
-        let userID = state.user.value?.userID ?? ""
-        return members.enumerated().map { index, member in
-            let isUser = member.userID == userID
-            let member = HomeMember(
-                memberID: member.userID,
-                nickname: isUser ? "나" : member.nickname,
-                stickerCount: "\(member.monthSticker)개",
-                rank: index + 1,
-                profileImage: member.profileImage
-            )
-            return HomeItem.member(member)
-        }
-    }
-
-    /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
-    private func mapMyMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
-        missions.map { mission in
-            let assigner = memberCache[mission.assignedBy]?.nickname ?? mission.assignedBy
-            let homeMission = HomeMyMission(
-                missionID: mission.missionID,
-                title: mission.title,
-                category: mission.category,
-                dueDate: mission.dueDate.toMonthDayString(),
-                assigner: assigner,
-                isNew: nil,
-                isOverdue: formatOverdueAndDays(from: mission.dueDate).isOverdue,
-                status: mission.status
-            )
-            return HomeItem.myMission(homeMission)
-        }
-    }
-
-    /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
-    private func mapMemberMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
-        missions.map { mission in
-            let assignee = memberCache[mission.assignedTo]?.nickname ?? ""
-            let (isOverdue, daysLeft) = formatOverdueAndDays(from: mission.dueDate)
-            let homeMission = HomeMemberMission(
-                missionID: mission.missionID,
-                title: mission.title,
-                category: mission.category,
-                dueDate: mission.dueDate.toMonthDayString(),
-                assignee: assignee,
-                status: mission.status,
-                isOverdue: isOverdue,
-                daysLeft: daysLeft
-            )
-            return HomeItem.memberMission(homeMission)
-        }
-    }
-
-    private func formatOverdueAndDays(from dueDate: Date) -> (isOverdue: Bool, daysLeft: String) {
-        let cal = Calendar.current
-        let todayStart = cal.startOfDay(for: Date())
-        let dueStart = cal.startOfDay(for: dueDate)
-
-        let dayDiff = cal.dateComponents([.day], from: todayStart, to: dueStart).day ?? 0
-
-        let isOverdue = dayDiff < 0
-        let daysLeft = dayDiff == 0 ? "오늘" : "\(dayDiff)일 전"
-
-        return (isOverdue, daysLeft)
     }
 }

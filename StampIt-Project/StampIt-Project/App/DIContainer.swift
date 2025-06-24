@@ -113,6 +113,8 @@ final class DIContainer {
             rankingUseCase: rankingUseCase,
             myMissionUseCase: myMissionUseCase,
             memberMissionUseCase: memberMissionUseCase,
+            memberMapper: MemberMapper(),
+            missionMapper: MissionMapper(),
         )
     }
 
