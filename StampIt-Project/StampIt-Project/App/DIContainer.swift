@@ -53,8 +53,8 @@ final class DIContainer {
         return LoginUseCase(authRepository: authRepository)
     }()
 
-    lazy var homeUseCase: HomeUseCaseProtocol = {
-        return HomeUseCase(authRepository: authRepository, homeRepository: homeRepository)
+    lazy var rankingUseCase: RankingUseCaseProtocol = {
+        return RankingUseCase(authRepository: authRepository, homeRepository: homeRepository)
     }()
 
     lazy var myPageUseCase: MyPageUseCase = {
@@ -97,7 +97,11 @@ final class DIContainer {
     }
 
     func makeHomeViewModel() -> HomeViewModel {
-        return HomeViewModel(useCase: homeUseCase)
+        return HomeViewModel(
+            rankingUseCase: rankingUseCase,
+            myMissionUseCase: myMissionUseCase,
+            memberMissionUseCase: memberMissionUseCase,
+        )
     }
 
     func makeMyPageViewModel() -> MyPageViewModel {

@@ -9,5 +9,5 @@ import Foundation
 import RxSwift
 
 protocol MemberMissionUseCaseProtocol {
-    func fetchSendedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]>
+    func fetchMissions(by userID: String, ofGroup groupID: String) -> Observable<[Mission]>
 }

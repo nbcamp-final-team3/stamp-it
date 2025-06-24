@@ -15,11 +15,30 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
         self.homeRepository = homeRepository
     }
 
-    func fetchReceivedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
+    func fetchMissions(to userID: String?, ofGroup groupID: String) -> Observable<[Mission]> {
         homeRepository.fetchMissions(to: userID, by: nil, ofGroup: groupID)
-            .map { missions in
-                missions.sorted { $0.createDate > $1.createDate }
+            .do { [weak self] missions in
+                self?.handleExpiredMissions(missions, groupID: groupID)
             }
+            .map { $0.sorted { $0.createDate > $1.createDate } }
+    }
+
+    private func handleExpiredMissions(_ missions: [Mission], groupID: String) {
+        let toExpire = getExpiredMissions(missions)
+        toExpire.forEach { mission in
+            _ = self.homeRepository
+                .updateMissionStatus(for: mission, ofGroup: groupID, to: .failed)
+                .take(1)
+                .subscribe()
+        }
+    }
+
+    private func getExpiredMissions(_ missions: [Mission]) -> [Mission] {
+        return missions.filter {
+            let dueDay = Calendar.current.component(.day, from: $0.dueDate)
+            let today = Calendar.current.component(.day, from: Date())
+            return $0.status == .assigned && dueDay < today
+        }
     }
 
     func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission> {

@@ -12,7 +12,9 @@ import RxRelay
 final class HomeViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
-    private let useCase: HomeUseCaseProtocol
+    private let rankingUseCase: RankingUseCaseProtocol
+    private let myMissionUseCase: MyMissionUseCaseProtocol
+    private let memberMissionUseCase: MemberMissionUseCaseProtocol
 
     // MARK: - Action & State
 
@@ -54,8 +56,13 @@ final class HomeViewModel: ViewModelProtocol {
 
     // MARK: - Init
 
-    init(useCase: HomeUseCaseProtocol) {
-        self.useCase = useCase
+    init(rankingUseCase: RankingUseCaseProtocol,
+         myMissionUseCase: MyMissionUseCaseProtocol,
+         memberMissionUseCase: MemberMissionUseCaseProtocol
+    ) {
+        self.rankingUseCase = rankingUseCase
+        self.myMissionUseCase = myMissionUseCase
+        self.memberMissionUseCase = memberMissionUseCase
         bind()
     }
 
@@ -91,7 +98,7 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// user 정보 바인딩
     private func bindUser() {
-        let currentUser = useCase.fetchCurrentUser()
+        let currentUser = rankingUseCase.fetchCurrentUser()
             .compactMap { $0 }
             .do(onNext: { [weak self] user in
                 self?.state.user.accept(user)
@@ -107,7 +114,7 @@ final class HomeViewModel: ViewModelProtocol {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Member]> in
               guard let self = self else { return .empty() }
-              return self.useCase.fetchRanking(ofGroup: user.groupID)
+              return self.rankingUseCase.fetchRanking(ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] members in
               guard let self = self else { return }
@@ -127,10 +134,7 @@ final class HomeViewModel: ViewModelProtocol {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Mission]> in
               guard let self = self else { return .empty() }
-              return self.useCase.fetchReceivedMissions(
-                ofUser: user.userID,
-                fromGroup: user.groupID
-              )
+              return self.myMissionUseCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
@@ -145,10 +149,7 @@ final class HomeViewModel: ViewModelProtocol {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Mission]> in
               guard let self = self else { return .empty() }
-              return self.useCase.fetchSendedMissions(
-                ofUser: user.userID,
-                fromGroup: user.groupID
-              )
+              return self.memberMissionUseCase.fetchMissions(by: user.userID,ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
@@ -204,12 +205,12 @@ final class HomeViewModel: ViewModelProtocol {
                 guard let mission = removedMission,
                       let user = state.user.value else { return .empty() }
 
-                return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
+                return myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self, let user = state.user.value else { return .empty() }
 
-                return useCase.createSticker(
+                return myMissionUseCase.createSticker(
                     userId: user.userID,
                     groupId: user.groupID,
                     missionTitle: mission.title,

@@ -65,7 +65,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
     /// 유저가 그룹 구성원에게 할당한 미션 바인딩
     private func fetchMissions() {
         guard let user = state.user.value else { return }
-        useCase.fetchSendedMissions(ofUser: user.userID, fromGroup: user.groupID)
+        useCase.fetchMissions(by: user.userID, ofGroup: user.groupID)
             .map { [weak self] in
                 guard let self else { return [] }
                 return mapMissionsToMemberMissionItems($0)

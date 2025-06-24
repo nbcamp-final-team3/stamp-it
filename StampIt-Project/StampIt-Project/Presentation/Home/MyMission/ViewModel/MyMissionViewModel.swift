@@ -73,7 +73,7 @@ final class MyMissionViewModel: ViewModelProtocol {
     /// 유저에게 할당된 미션 바인딩
     private func fetchMissions() {
         guard let user = state.user.value else { return }
-        useCase.fetchReceivedMissions(ofUser: user.userID, fromGroup: user.groupID)
+        useCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
             .do(onNext: { receivedMissions in
                 self.receivedMissions = receivedMissions
             })
