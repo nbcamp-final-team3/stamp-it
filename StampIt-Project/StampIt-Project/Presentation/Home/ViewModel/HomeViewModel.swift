@@ -252,10 +252,12 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// [User]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     private func mapMembersToHomeItems(_ members: [Member]) -> [HomeItem] {
-        members.enumerated().map { index, member in
+        let userID = state.user.value?.userID ?? ""
+        return members.enumerated().map { index, member in
+            let isUser = member.userID == userID
             let member = HomeMember(
                 memberID: member.userID,
-                nickname: member.nickname,
+                nickname: isUser ? "나" : member.nickname,
                 stickerCount: "\(member.monthSticker)개",
                 rank: index + 1,
                 profileImage: member.profileImage

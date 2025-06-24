@@ -74,6 +74,7 @@ final class ReceiveInviteViewController: UIViewController {
         $0.layer.cornerRadius = 12
         $0.layer.masksToBounds = true
         $0.layer.borderWidth = 0
+        $0.layoutMargins = UIEdgeInsets(top: 8, left: 24, bottom: 8, right: 24)
     }
 
     private let enterButton = DefaultButton(type: .enter)
@@ -85,8 +86,9 @@ final class ReceiveInviteViewController: UIViewController {
         view.backgroundColor = .white
         setupLayout()
         bindViewModel()
+        setupNavigation()
         textField.delegate = self
-        navigationController?.setNavigationBarHidden(true, animated: false)
+
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -97,6 +99,12 @@ final class ReceiveInviteViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.tabBarController?.tabBar.isHidden = false
+    }
+
+    private func setupNavigation() {
+        navigationController?.navigationBar.isHidden = true
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
 
     private func setupLayout() {
@@ -223,3 +231,14 @@ extension ReceiveInviteViewController: UITextFieldDelegate {
         }
     }
 }
+
+// MARK: - UINavigationControllerDelegate
+
+extension ReceiveInviteViewController: UIGestureRecognizerDelegate {
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
+        return navigationController?.viewControllers.count ?? 0 > 1
+    }
+}
+

@@ -103,6 +103,7 @@ final class MissionCardCell: UICollectionViewCell {
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOpacity = 0.16
         layer.shadowRadius = 4
+        layer.shadowOffset = .zero
     }
 
     // MARK: - Set Hierarchy

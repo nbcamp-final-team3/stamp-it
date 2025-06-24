@@ -44,10 +44,6 @@ final class DefaultButton: UIButton {
         let styled = attributed.settingAttributes(container)
         config.attributedTitle = styled
 
-        // color
-        config.baseBackgroundColor = .red400
-        config.baseForegroundColor = .white
-
         config.contentInsets = type.contentInsets
 
         configuration = config
@@ -55,10 +51,11 @@ final class DefaultButton: UIButton {
 
     /// 버튼의 state가 변경될 때마다 호출되는 handler 정의
     private func stateUpdateHandler() {
-        configurationUpdateHandler = { button in
+        configurationUpdateHandler = { [weak self] button in
+            guard let self = self else { return }
             var updated = button.configuration
-            updated?.baseBackgroundColor = button.isEnabled ? .red400 : .gray50
-            updated?.baseForegroundColor = button.isEnabled ? .white : .gray300
+            updated?.baseBackgroundColor = button.isEnabled ? type.backgroundColor : .gray50
+            updated?.baseForegroundColor = button.isEnabled ? type.titleColor : .gray300
             button.configuration = updated
         }
     }
@@ -86,6 +83,8 @@ extension DefaultButton {
         case enter
         case modify
         case groupOrganization
+        case export
+
 
         var title: String {
             switch self {
@@ -101,6 +100,8 @@ extension DefaultButton {
                 "수정하기"
             case .groupOrganization:
                 "그룹 구성하기"
+            case .export:
+                "내보내기"
             }
         }
 
@@ -108,6 +109,8 @@ extension DefaultButton {
             switch self {
             case .groupOrganization:
                     .pretendard(size: 16, weight: .semibold)
+            case .export:
+                    .pretendard(size: 14, weight: .semibold)
             default:
                     .pretendard(size: 18, weight: .semibold)
             }
@@ -116,6 +119,7 @@ extension DefaultButton {
         var radius: CGFloat {
             switch self {
             case .groupOrganization: 10
+            case .export: 8
             default: 12
             }
         }
@@ -124,8 +128,28 @@ extension DefaultButton {
             switch self {
             case .groupOrganization:
                     .init(top: 12.5, leading: 80, bottom: 12.5, trailing: 80)
+            case .export:
+                    .init(top: 6, leading: 20, bottom: 6, trailing: 20)
             default:
                     .init(top: 16, leading: 20, bottom: 16, trailing: 20)
+            }
+        }
+
+        var backgroundColor: UIColor {
+            switch self {
+            case .export:
+                    .red50
+            default:
+                    .red400
+            }
+        }
+
+        var titleColor: UIColor {
+            switch self {
+            case .export:
+                    .red400
+            default:
+                    .FFFFFF
             }
         }
     }
