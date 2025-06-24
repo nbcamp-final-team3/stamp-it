@@ -130,11 +130,21 @@ final class DIContainer {
     }
 
     func makeMyMissionViewModel(user: User, memberCache: [String: Member]) -> MyMissionViewModel {
-        return MyMissionViewModel(user: user, memberCache: memberCache, useCase: myMissionUseCase)
+        return MyMissionViewModel(
+            user: user,
+            memberCache: memberCache,
+            useCase: myMissionUseCase,
+            mapper: MissionMapper(),
+        )
     }
 
     func makeMemberMissionViewModel(user: User, memberCache: [String: Member]) -> MemberMissionViewModel {
-        return MemberMissionViewModel(user: user, memberCache: memberCache, useCase: memberMissionUseCase)
+        return MemberMissionViewModel(
+            user: user,
+            memberCache: memberCache,
+            useCase: memberMissionUseCase,
+            mapper: MissionMapper(),
+        )
     }
     
     func makeMissionListViewModel() -> MissionListViewModel {

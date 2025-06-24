@@ -146,7 +146,9 @@ final class HomeViewModel: ViewModelProtocol {
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
               self.myMissions = missions
-              let items = self.missionMapper.map(myMissions: missions, member: memberCache)
+              let items = self.missionMapper
+                  .map(myMissions: missions, member: memberCache)
+                  .map { HomeItem.myMission($0) }
               self.state.myMissions.accept(items)
           })
           .disposed(by: disposeBag)
@@ -161,10 +163,9 @@ final class HomeViewModel: ViewModelProtocol {
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
               self.memberMissions = missions
-              let items = self.missionMapper.map(
-                memberMission: Array(missions.prefix(4)),
-                member: memberCache
-              )
+              let items = self.missionMapper
+                  .map(memberMission: Array(missions.prefix(4)), member: memberCache)
+                  .map { HomeItem.memberMission($0) }
               self.state.memberMissionsForDisplay.accept(items)
           })
           .disposed(by: disposeBag)
@@ -177,6 +178,7 @@ final class HomeViewModel: ViewModelProtocol {
             ?? memberMissions
         let first4 = Array(filteredMissions.prefix(4))
         let homeItems = missionMapper.map(memberMission: first4, member: memberCache)
+            .map { HomeItem.memberMission($0) }
         state.memberMissionsForDisplay.accept(homeItems)
     }
 
@@ -247,7 +249,9 @@ final class HomeViewModel: ViewModelProtocol {
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     func cancelMissionComplete() {
         pendingCommits = DisposeBag()
-        let cachedMissions = missionMapper.map(myMissions: myMissions, member: memberCache)
+        let cachedMissions = missionMapper
+            .map(myMissions: myMissions, member: memberCache)
+            .map { HomeItem.myMission($0) }
         state.myMissions.accept(cachedMissions)
         state.isShowStickerReceived.accept(false)
     }

@@ -13,6 +13,7 @@ final class MyMissionViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
     private let useCase: MyMissionUseCaseProtocol
+    private let mapper: MissionMapping
 
     // MARK: - Action & State
 
@@ -42,10 +43,16 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     // MARK: - Init
 
-    init(user: User, memberCache: [String: Member], useCase: MyMissionUseCaseProtocol) {
+    init(
+        user: User,
+        memberCache: [String: Member],
+        useCase: MyMissionUseCaseProtocol,
+        mapper: MissionMapping,
+    ) {
         self.useCase = useCase
         state.user.accept(user)
         self.memberCache = memberCache
+        self.mapper = mapper
         bind()
     }
 
@@ -79,7 +86,8 @@ final class MyMissionViewModel: ViewModelProtocol {
             })
             .map { [weak self] in
                 guard let self else { return [] }
-                return mapMissionsToMyMissionItems($0)
+                return mapper.map(myMissions: $0, member: memberCache)
+                    .map { MyMissionItem.mission($0) }
             }
             .bind(to: state.missions)
             .disposed(by: disposeBag)
@@ -120,23 +128,6 @@ final class MyMissionViewModel: ViewModelProtocol {
     }
 
     // MARK: - Methods
-
-    private func mapMissionsToMyMissionItems(_ missions: [Mission]) -> [MyMissionItem] {
-        missions.map { mission in
-            let assigner = memberCache[mission.assignedBy]?.nickname ?? mission.assignedBy
-            let missionItem = HomeMyMission(
-                missionID: mission.missionID,
-                title: mission.title,
-                category: mission.category,
-                dueDate: mission.dueDate.toMonthDayString(),
-                assigner: assigner,
-                isNew: isNew(createDate: mission.createDate),
-                isOverdue: formatOverdue(from: mission.dueDate),
-                status: mission.status
-            )
-            return MyMissionItem.mission(missionItem)
-        }
-    }
 
     /// UI에서 미션 업데이트
     private func updateMissionItem(missionID: String) {
@@ -183,22 +174,10 @@ final class MyMissionViewModel: ViewModelProtocol {
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     func cancelMissionComplete() {
         pendingCommits = DisposeBag()
-        let cachedMissions = mapMissionsToMyMissionItems(myMissions)
+        let cachedMissions = mapper
+            .map(myMissions: myMissions, member: memberCache)
+            .map { MyMissionItem.mission($0) }
         state.missions.accept(cachedMissions)
         state.isShowStickerReceived.accept(false)
-    }
-
-    private func isNew(createDate: Date) -> Bool {
-        let today = Calendar.current.dateComponents([.day], from: Date())
-        let created = Calendar.current.dateComponents([.day], from: createDate)
-        return today.day == created.day
-    }
-
-    private func formatOverdue(from dueDate: Date) -> Bool {
-        let cal = Calendar.current
-        let todayStart = cal.startOfDay(for: Date())
-        let dueStart = cal.startOfDay(for: dueDate)
-        let dayDiff = cal.dateComponents([.day], from: todayStart, to: dueStart).day ?? 0
-        return dayDiff < 0
     }
 }

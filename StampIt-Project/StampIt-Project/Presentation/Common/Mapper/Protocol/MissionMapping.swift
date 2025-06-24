@@ -8,6 +8,6 @@
 import Foundation
 
 protocol MissionMapping {
-    func map(myMissions: [Mission], member: [String: Member]) -> [HomeItem]
-    func map(memberMission: [Mission], member: [String: Member]) -> [HomeItem]
+    func map(myMissions: [Mission], member: [String: Member]) -> [HomeMyMission]
+    func map(memberMission: [Mission], member: [String: Member]) -> [HomeMemberMission]
 }
