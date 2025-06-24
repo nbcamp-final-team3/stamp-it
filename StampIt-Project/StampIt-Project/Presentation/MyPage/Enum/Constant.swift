@@ -61,6 +61,7 @@ enum MyPage {
         static let fontSizeSmall: CGFloat = 14
         static let fontSizeMedium: CGFloat = 16
         static let vStackSpacing: CGFloat = 6
+        static let height: CGFloat = 72
     }
 }
 
