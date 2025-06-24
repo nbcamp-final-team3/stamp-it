@@ -18,7 +18,7 @@ final class AppMissionManager: AppMissionManagerProtocol {
     private let db = Firestore.firestore()
     
     // MARK: - Collection Reference
-    private var appMissionsCollection: CollectionReference {
+    var appMissionsCollection: CollectionReference {
         return db.collection("appMissions")
     }
     

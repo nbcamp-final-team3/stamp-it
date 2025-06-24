@@ -9,33 +9,50 @@ import Foundation
 import RxSwift
 
 final class EditProfileRepositoryImpl: EditProfileRepository {
-    private let firestoreManager: FirestoreManagerProtocol
+    private let userManager: UserManager
+    private let groupManager: GroupManager
+    private let membershipManager: MembershipManager
     
-    init(firestoreManager: FirestoreManagerProtocol) {
-        self.firestoreManager = firestoreManager
-    }
+    init(
+            userManager: UserManager,
+            groupManager: GroupManager,
+            membershipManager: MembershipManager,
+        ) {
+            self.userManager = userManager
+            self.groupManager = groupManager
+            self.membershipManager = membershipManager
+        }
     
     // 닉네임 업데이트
     func updateUserNickname(userId: String, groupId: String, nickname: String, changedAt: Date) -> Observable<Void> {
-        let updateUser = firestoreManager.updateUserNickname(
+        // 1. users 컬렉션 업데이트
+        let updateUser = userManager.updateUserNickname(
             userId: userId,
             nickname: nickname,
             changedAt: changedAt
         )
-
-        let updateMember = firestoreManager.updateMember(
+        
+        // 2. memberships 컬렉션 업데이트
+        let updateMembership = membershipManager.updateMemberNickname(
             groupId: groupId,
             userId: userId,
-            query: ["nickname": nickname]
+            nickname: nickname
         )
-
-        return Observable.zip(updateUser, updateMember)
+        
+        // 두 작업을 병렬로 실행
+        return Observable.zip(updateUser, updateMembership)
             .map { _ in () }
+            .catch { [weak self] error in
+                guard let self = self else {
+                    return Observable.error(RepositoryError.unknownError)
+                }
+                return Observable.error(error)
+            }
     }
     
     // 그룹명 업데이트
     func updateGroupName(groupId: String, groupName: String, changedAt: Date) -> Observable<Void> {
-        firestoreManager.updateGroupName(
+        return groupManager.updateGroupName(
             groupId: groupId,
             name: groupName,
             changedAt: changedAt
@@ -44,18 +61,27 @@ final class EditProfileRepositoryImpl: EditProfileRepository {
     
     // 프로필 이미지 업데이트
     func updateProfileImage(userId: String, groupId: String, imageName: String) -> Observable<Void> {
-        let updateUser = firestoreManager.updateProfileImage(
-            userId: userId,
-            imageName: imageName
-        )
-
-        let updateMember = firestoreManager.updateMember(
-            groupId: groupId,
-            userId: userId,
-            query: ["profileImage": imageName]
-        )
-
-        return Observable.zip(updateUser, updateMember)
-            .map { _ in () }
-    }
+            // 1. users 컬렉션 업데이트
+            let updateUser = userManager.updateProfileImage(
+                userId: userId,
+                imageName: imageName
+            )
+            
+            // 2. memberships 컬렉션 업데이트
+            let updateMembership = membershipManager.updateMemberProfileImage(
+                groupId: groupId,
+                userId: userId,
+                profileImage: imageName
+            )
+            
+            // 두 작업을 병렬로 실행
+            return Observable.zip(updateUser, updateMembership)
+                .map { _ in () }
+                .catch { [weak self] error in
+                    guard let self = self else {
+                        return Observable.error(RepositoryError.unknownError)
+                    }
+                    return Observable.error(error)
+                }
+        }
 }
