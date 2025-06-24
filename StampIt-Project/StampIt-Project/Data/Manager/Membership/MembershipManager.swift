@@ -10,59 +10,28 @@ import FirebaseFirestore
 import Firebase
 import RxSwift
 
+// MARK: - MembershipManager Implementation (쿼리 사용 리팩토링)
 final class MembershipManager: MembershipManagerProtocol {
+    typealias Entity = GroupMembershipFirestore
+    typealias ID = String
+    typealias Query = MembershipQuery
     
     // MARK: - Properties
     private let db = Firestore.firestore()
     
     // MARK: - Collection Reference
-    private var membershipCollection: CollectionReference {
-        return db.collection("groupMemberships")
+    var membershipCollection: CollectionReference {
+        return db.collection("memberships")
     }
     
     // MARK: - Init
     init() {}
     
-    // MARK: - Membership Operations
-    
-    /// 그룹 멤버십 목록 실시간 조회
-    func fetchMemberships(groupId: String) -> Observable<[GroupMembershipFirestore]> {
+    // MARK: - FullCRUDRepository 프로토콜 구현
+    func fetch(id: String) -> Observable<GroupMembershipFirestore?> {
         return Observable.create { observer in
-            let listener = self.membershipCollection
-                .whereField("groupId", isEqualTo: groupId)
-                .order(by: "joinedAt", descending: false)
-                .addSnapshotListener { querySnapshot, error in
-                    if let error = error {
-                        observer.onError(MembershipError.fetchFailed(error.localizedDescription))
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents else {
-                        observer.onNext([])
-                        return
-                    }
-                    
-                    do {
-                        let memberships = try documents.compactMap { document -> GroupMembershipFirestore? in
-                            return try document.data(as: GroupMembershipFirestore.self)
-                        }
-                        observer.onNext(memberships)
-                    } catch {
-                        observer.onError(MembershipError.decodingFailed(error.localizedDescription))
-                    }
-                }
-            
-            return Disposables.create {
-                listener.remove()
-            }
-        }
-    }
-    
-    /// 특정 멤버십 조회
-    func fetchMembership(membershipId: String) -> Observable<GroupMembershipFirestore?> {
-        return Observable.create { observer in
-            self.membershipCollection.document(membershipId)
-                .getDocument { documentSnapshot, error in
+            self.membershipCollection.document(id)
+                .getDocument(source: .server) { documentSnapshot, error in
                     if let error = error {
                         observer.onError(MembershipError.fetchFailed(error.localizedDescription))
                         return
@@ -87,28 +56,23 @@ final class MembershipManager: MembershipManagerProtocol {
         }
     }
     
-    /// 사용자의 모든 멤버십 조회
-    func fetchUserMemberships(userId: String) -> Observable<[GroupMembershipFirestore]> {
+    func observe(id: String) -> Observable<GroupMembershipFirestore?> {
         return Observable.create { observer in
-            let listener = self.membershipCollection
-                .whereField("userId", isEqualTo: userId)
-                .order(by: "joinedAt", descending: false)
-                .addSnapshotListener { querySnapshot, error in
+            let listener = self.membershipCollection.document(id)
+                .addSnapshotListener { documentSnapshot, error in
                     if let error = error {
                         observer.onError(MembershipError.fetchFailed(error.localizedDescription))
                         return
                     }
                     
-                    guard let documents = querySnapshot?.documents else {
-                        observer.onNext([])
+                    guard let document = documentSnapshot, document.exists else {
+                        observer.onNext(nil)
                         return
                     }
                     
                     do {
-                        let memberships = try documents.compactMap { document -> GroupMembershipFirestore? in
-                            return try document.data(as: GroupMembershipFirestore.self)
-                        }
-                        observer.onNext(memberships)
+                        let membership = try document.data(as: GroupMembershipFirestore.self)
+                        observer.onNext(membership)
                     } catch {
                         observer.onError(MembershipError.decodingFailed(error.localizedDescription))
                     }
@@ -120,12 +84,11 @@ final class MembershipManager: MembershipManagerProtocol {
         }
     }
     
-    /// 새 멤버십 생성
-    func createMembership(_ membership: GroupMembershipFirestore) -> Observable<Void> {
+    func create(_ entity: GroupMembershipFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                try self.membershipCollection.document(membership.documentID)
-                    .setData(from: membership) { error in
+                try self.membershipCollection.document(entity.documentID)
+                    .setData(from: entity) { error in
                         if let error = error {
                             observer.onError(MembershipError.createFailed(error.localizedDescription))
                         } else {
@@ -141,12 +104,15 @@ final class MembershipManager: MembershipManagerProtocol {
         }
     }
     
-    /// 멤버십 정보 업데이트
-    func updateMembership(_ membership: GroupMembershipFirestore) -> Observable<Void> {
+    func update(id: String, entity: GroupMembershipFirestore) -> Observable<Void> {
+        guard id == entity.documentID else {
+            return Observable.error(MembershipError.invalidInput("ID 불일치"))
+        }
+        
         return Observable.create { observer in
             do {
-                try self.membershipCollection.document(membership.documentID)
-                    .setData(from: membership, merge: true) { error in
+                try self.membershipCollection.document(entity.documentID)
+                    .setData(from: entity, merge: true) { error in
                         if let error = error {
                             observer.onError(MembershipError.updateFailed(error.localizedDescription))
                         } else {
@@ -162,250 +128,243 @@ final class MembershipManager: MembershipManagerProtocol {
         }
     }
     
-    /// 멤버십 삭제
-    func deleteMembership(membershipId: String) -> Observable<Void> {
+    func updateFields(id: String, fields: [String: Any]) -> Observable<Void> {
         return Observable.create { observer in
-            self.membershipCollection.document(membershipId)
-                .delete { error in
-                    if let error = error {
-                        observer.onError(MembershipError.deleteFailed(error.localizedDescription))
-                    } else {
-                        observer.onNext(())
-                        observer.onCompleted()
-                    }
+            self.membershipCollection.document(id).updateData(fields) { error in
+                if let error = error {
+                    observer.onError(MembershipError.updateFailed(error.localizedDescription))
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
                 }
-            
+            }
             return Disposables.create()
         }
     }
     
-    /// 사용자를 그룹에 추가
-    func addUserToGroup(userId: String, groupId: String, nickname: String, profileImage: String?) -> Observable<Void> {
-        let membershipId = "\(groupId)_\(userId)"
-        let membership = GroupMembershipFirestore(
-            membershipId: membershipId,
-            groupId: groupId,
-            userId: userId,
-            nickname: nickname,
-            profileImage: profileImage,
-            isLeader: false,
-            joinedAt: Timestamp(date: Date())
-        )
+    func delete(id: String) -> Observable<Void> {
+        return Observable.create { observer in
+            self.membershipCollection.document(id).delete { error in
+                if let error = error {
+                    observer.onError(MembershipError.deleteFailed(error.localizedDescription))
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
+    }
+    
+    func fetchList(query: MembershipQuery) -> Observable<[GroupMembershipFirestore]> {
+        return Observable.create { observer in
+            var firestoreQuery: FirebaseFirestore.Query = self.membershipCollection
+            
+            // 쿼리 조건 적용
+            firestoreQuery = self.applyQueryConditions(firestoreQuery, query: query)
+            
+            firestoreQuery.getDocuments { snapshot, error in
+                if let error = error {
+                    observer.onError(MembershipError.fetchFailed(error.localizedDescription))
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    observer.onNext([])
+                    observer.onCompleted()
+                    return
+                }
+                
+                do {
+                    let memberships = try documents.compactMap { document in
+                        try document.data(as: GroupMembershipFirestore.self)
+                    }
+                    observer.onNext(memberships)
+                    observer.onCompleted()
+                } catch {
+                    observer.onError(MembershipError.decodingFailed(error.localizedDescription))
+                }
+            }
+            return Disposables.create()
+        }
+    }
+    
+    func observeList(query: MembershipQuery) -> Observable<[GroupMembershipFirestore]> {
+        return Observable.create { observer in
+            var firestoreQuery: FirebaseFirestore.Query = self.membershipCollection
+            
+            // 쿼리 조건 적용
+            firestoreQuery = self.applyQueryConditions(firestoreQuery, query: query)
+            
+            let listener = firestoreQuery.addSnapshotListener { snapshot, error in
+                if let error = error {
+                    observer.onError(MembershipError.fetchFailed(error.localizedDescription))
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    observer.onNext([])
+                    return
+                }
+                
+                do {
+                    let memberships = try documents.compactMap { document in
+                        try document.data(as: GroupMembershipFirestore.self)
+                    }
+                    observer.onNext(memberships)
+                } catch {
+                    observer.onError(MembershipError.decodingFailed(error.localizedDescription))
+                }
+            }
+            
+            return Disposables.create {
+                listener.remove()
+            }
+        }
+    }
+    
+    // MARK: - Private Helper
+    private func applyQueryConditions(_ query: FirebaseFirestore.Query, query membershipQuery: MembershipQuery) -> FirebaseFirestore.Query {
+        var result = query
         
-        return createMembership(membership)
+        if let membershipIds = membershipQuery.membershipIds, !membershipIds.isEmpty {
+            result = result.whereField("membershipId", in: membershipIds)
+        }
+        
+        if let groupIds = membershipQuery.groupIds, !groupIds.isEmpty {
+            result = result.whereField("groupId", in: groupIds)
+        }
+        
+        if let userIds = membershipQuery.userIds, !userIds.isEmpty {
+            result = result.whereField("userId", in: userIds)
+        }
+        
+        if let isLeaderOnly = membershipQuery.isLeaderOnly, isLeaderOnly {
+            result = result.whereField("isLeader", isEqualTo: true)
+        }
+        
+        if let joinedAfter = membershipQuery.joinedAfter {
+            result = result.whereField("joinedAt", isGreaterThan: Timestamp(date: joinedAfter))
+        }
+        
+        if let orderBy = membershipQuery.orderBy {
+            result = result.order(by: orderBy.field, descending: orderBy.descending)
+        }
+        
+        if let limit = membershipQuery.limit {
+            result = result.limit(to: limit)
+        }
+        
+        return result
     }
     
-    /// 사용자를 그룹에서 제거
-    func removeUserFromGroup(userId: String, groupId: String) -> Observable<Void> {
+    // MARK: - 기존 FirestoreManager 메서드들 (하위 호환성)
+    /// 그룹 멤버 목록 실시간 조회
+    func fetchMembers(groupId: String) -> Observable<[GroupMembershipFirestore]> {
+        return observeList(query: .byGroup(groupId))
+    }
+    
+    /// 그룹에 새 멤버 추가
+    func addMember(groupId: String, member: GroupMembershipFirestore) -> Observable<Void> {
+        return create(member)
+    }
+    
+    /// 그룹에서 멤버 제거(내보내기, 그룹 탈퇴)
+    func removeMember(groupId: String, userId: String) -> Observable<Void> {
         let membershipId = "\(groupId)_\(userId)"
-        return deleteMembership(membershipId: membershipId)
+        return delete(id: membershipId)
     }
     
-    /// 멤버십 닉네임 업데이트
-    func updateMembershipNickname(membershipId: String, nickname: String) -> Observable<Void> {
-        return Observable.create { observer in
-            self.membershipCollection.document(membershipId).updateData([
-                "nickname": nickname
-            ]) { error in
-                if let error = error {
-                    observer.onError(MembershipError.updateFailed(error.localizedDescription))
-                } else {
-                    observer.onNext(())
-                    observer.onCompleted()
-                }
-            }
-            return Disposables.create()
-        }
+    /// 멤버 정보 업데이트
+    func updateMember(groupId: String, userId: String, query: [String: String]) -> Observable<Void> {
+        let membershipId = "\(groupId)_\(userId)"
+        return updateFields(id: membershipId, fields: query)
     }
     
-    /// 멤버십 프로필 이미지 업데이트
-    func updateMembershipProfileImage(membershipId: String, profileImage: String) -> Observable<Void> {
-        return Observable.create { observer in
-            self.membershipCollection.document(membershipId).updateData([
-                "profileImage": profileImage
-            ]) { error in
-                if let error = error {
-                    observer.onError(MembershipError.updateFailed(error.localizedDescription))
-                } else {
-                    observer.onNext(())
-                    observer.onCompleted()
-                }
-            }
-            return Disposables.create()
-        }
-    }
-    
-    /// 리더 상태 업데이트
-    func updateLeaderStatus(membershipId: String, isLeader: Bool) -> Observable<Void> {
-        return Observable.create { observer in
-            self.membershipCollection.document(membershipId).updateData([
-                "isLeader": isLeader
-            ]) { error in
-                if let error = error {
-                    observer.onError(MembershipError.updateFailed(error.localizedDescription))
-                } else {
-                    observer.onNext(())
-                    observer.onCompleted()
-                }
-            }
-            return Disposables.create()
-        }
-    }
-    
-    /// 그룹 멤버 수 조회
-    func fetchGroupMemberCount(groupId: String) -> Observable<Int> {
-        return Observable.create { observer in
-            self.membershipCollection
-                .whereField("groupId", isEqualTo: groupId)
-                .getDocuments { querySnapshot, error in
-                    if let error = error {
-                        observer.onError(MembershipError.fetchFailed(error.localizedDescription))
-                        return
-                    }
-                    
-                    let count = querySnapshot?.documents.count ?? 0
-                    observer.onNext(count)
-                    observer.onCompleted()
-                }
-            
-            return Disposables.create()
-        }
-    }
-    
-    /// 그룹 리더 조회
-    func fetchGroupLeader(groupId: String) -> Observable<GroupMembershipFirestore?> {
-        return Observable.create { observer in
-            self.membershipCollection
-                .whereField("groupId", isEqualTo: groupId)
-                .whereField("isLeader", isEqualTo: true)
-                .limit(to: 1)
-                .getDocuments { querySnapshot, error in
-                    if let error = error {
-                        observer.onError(MembershipError.fetchFailed(error.localizedDescription))
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents,
-                          let document = documents.first else {
-                        observer.onNext(nil)
-                        observer.onCompleted()
-                        return
-                    }
-                    
-                    do {
-                        let membership = try document.data(as: GroupMembershipFirestore.self)
-                        observer.onNext(membership)
-                        observer.onCompleted()
-                    } catch {
-                        observer.onError(MembershipError.decodingFailed(error.localizedDescription))
-                    }
-                }
-            
-            return Disposables.create()
-        }
+    /// 멤버 리더 상태 업데이트 (그룹 탈퇴 시 사용)
+    func updateMemberLeaderStatus(groupId: String, userId: String, isLeader: Bool) -> Observable<Void> {
+        let membershipId = "\(groupId)_\(userId)"
+        return updateFields(id: membershipId, fields: ["isLeader": isLeader])
     }
     
     /// 가장 오래된 멤버 조회 (특정 유저 제외)
-    func fetchOldestMember(groupId: String, excludeUserId: String) -> Observable<GroupMembershipFirestore?> {
+    func fetchOldestMember(groupId: String, excludeUserId: String) -> Observable<GroupMembershipFirestore> {
+        return fetchList(query: MembershipQuery(
+            membershipIds: nil,
+            groupIds: [groupId],
+            userIds: nil,
+            isLeaderOnly: nil,
+            joinedAfter: nil,
+            orderBy: QueryOrder(field: "joinedAt", descending: false),
+            limit: 10
+        ))
+        .map { memberships -> GroupMembershipFirestore in
+            let candidates = memberships.filter { $0.userId != excludeUserId }
+            guard let oldest = candidates.first else {
+                throw MembershipError.memberNotFound
+            }
+            return oldest
+        }
+    }
+    
+    /// 그룹 멤버 수 조회 (가입 제한 확인용)
+    func fetchGroupMemberCount(groupId: String) -> Observable<Int> {
+        return fetchList(query: .byGroup(groupId))
+            .map { $0.count }
+    }
+    
+    /// 사용자 그룹 변경 (트랜잭션) -  기존 switchUserGroup 메서드 (추후 수정!!!!!!!!!!!!!)
+    func switchUserGroup(
+        userId: String,
+        fromGroupId: String,
+        toGroupId: String,
+        userNickname: String,
+        profileImage: String
+    ) -> Observable<Void> {
         return Observable.create { observer in
-            self.membershipCollection
-                .whereField("groupId", isEqualTo: groupId)
-                .whereField("userId", isNotEqualTo: excludeUserId)
-                .order(by: "joinedAt", descending: false)
-                .limit(to: 1)
-                .getDocuments { querySnapshot, error in
-                    if let error = error {
-                        observer.onError(MembershipError.fetchFailed(error.localizedDescription))
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents,
-                          let document = documents.first else {
-                        observer.onNext(nil)
-                        observer.onCompleted()
-                        return
-                    }
-                    
-                    do {
-                        let membership = try document.data(as: GroupMembershipFirestore.self)
-                        observer.onNext(membership)
-                        observer.onCompleted()
-                    } catch {
-                        observer.onError(MembershipError.decodingFailed(error.localizedDescription))
-                    }
-                }
+            let batch = Firestore.firestore().batch()
             
-            return Disposables.create()
-        }
-    }
-    
-    /// 특정 사용자의 모든 멤버십 삭제 (유저 탈퇴 시 사용)
-    func deleteUserMemberships(userId: String) -> Observable<Void> {
-        return Observable.create { observer in
-            self.membershipCollection
-                .whereField("userId", isEqualTo: userId)
-                .getDocuments { querySnapshot, error in
-                    if let error = error {
-                        observer.onError(MembershipError.deleteFailed(error.localizedDescription))
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents else {
-                        observer.onNext(())
-                        observer.onCompleted()
-                        return
-                    }
-                    
-                    let batch = Firestore.firestore().batch()
-                    documents.forEach { document in
-                        batch.deleteDocument(document.reference)
-                    }
-                    
-                    batch.commit { error in
-                        if let error = error {
-                            observer.onError(MembershipError.deleteFailed(error.localizedDescription))
-                        } else {
-                            observer.onNext(())
-                            observer.onCompleted()
-                        }
-                    }
+            let safeProfileImage = profileImage.isEmpty ? "profileImage1" : profileImage
+            
+            // 1. 사용자 그룹 ID 업데이트
+            let userRef = self.db.collection("users").document(userId)
+            batch.updateData([
+                "groupId": toGroupId,
+                "nickname": userNickname,
+                "profileImage": safeProfileImage
+            ], forDocument: userRef)
+            
+            // 2. 기존 그룹에서 멤버 제거
+            let oldMembershipId = "\(fromGroupId)_\(userId)"
+            let oldMemberRef = self.membershipCollection.document(oldMembershipId)
+            batch.deleteDocument(oldMemberRef)
+            
+            // 3. 새 그룹에 멤버 추가
+            let newMembershipId = "\(toGroupId)_\(userId)"
+            let newMemberRef = self.membershipCollection.document(newMembershipId)
+            let memberData: [String: Any] = [
+                "membershipId": newMembershipId,
+                "groupId": toGroupId,
+                "userId": userId,
+                "nickname": userNickname,
+                "profileImage": safeProfileImage,
+                "isLeader": false,
+                "joinedAt": Timestamp(date: Date())
+            ]
+            batch.setData(memberData, forDocument: newMemberRef)
+            
+            // 4. 커밋
+            batch.commit { error in
+                if let error = error {
+                    observer.onError(MembershipError.updateFailed(error.localizedDescription))
+                } else {
+                    observer.onNext(())
+                    observer.onCompleted()
                 }
-            return Disposables.create()
-        }
-    }
-    
-    /// 특정 그룹의 모든 멤버십 삭제 (그룹 삭제 시 사용)
-    func deleteGroupMemberships(groupId: String) -> Observable<Void> {
-        return Observable.create { observer in
-            self.membershipCollection
-                .whereField("groupId", isEqualTo: groupId)
-                .getDocuments { querySnapshot, error in
-                    if let error = error {
-                        observer.onError(MembershipError.deleteFailed(error.localizedDescription))
-                        return
-                    }
-                    
-                    guard let documents = querySnapshot?.documents else {
-                        observer.onNext(())
-                        observer.onCompleted()
-                        return
-                    }
-                    
-                    let batch = Firestore.firestore().batch()
-                    documents.forEach { document in
-                        batch.deleteDocument(document.reference)
-                    }
-                    
-                    batch.commit { error in
-                        if let error = error {
-                            observer.onError(MembershipError.deleteFailed(error.localizedDescription))
-                        } else {
-                            observer.onNext(())
-                            observer.onCompleted()
-                        }
-                    }
-                }
+            }
+            
             return Disposables.create()
         }
     }
 }
+
