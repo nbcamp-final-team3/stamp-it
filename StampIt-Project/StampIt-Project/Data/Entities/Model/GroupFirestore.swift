@@ -13,7 +13,7 @@ struct GroupFirestore: Codable {
     let name: String
     let leaderId: String
     let inviteCode: String
-    let inviteCodeCreateAt: Timestamp
+    let inviteCodeCreateAt: Timestamp?
     let nameChangedAt: Timestamp
     let createdAt: Timestamp
     

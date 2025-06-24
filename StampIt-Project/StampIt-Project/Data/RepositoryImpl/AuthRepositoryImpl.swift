@@ -63,7 +63,7 @@ final class AuthRepository: AuthRepositoryProtocol {
                 return self.processAuthResult(authDataResult)
             }
             .catch { [weak self] error in
-                guard let self = self else {
+                guard self != nil else {
                     return Observable.error(RepositoryError.unknownError)
                 }
                 return Observable.error(error)
@@ -251,7 +251,7 @@ final class AuthRepository: AuthRepositoryProtocol {
         invite: Invitation
     ) -> Observable<StampIt_Project.User> {
         return Observable.create { [weak self] observer in
-            guard let self = self else {
+            guard self != nil else {
                 observer.onError(RepositoryError.unknownError)
                 return Disposables.create()
             }

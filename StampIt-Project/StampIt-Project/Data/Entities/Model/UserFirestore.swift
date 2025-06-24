@@ -11,10 +11,10 @@ import FirebaseFirestore
 struct UserFirestore: Codable {
     let userId: String
     let nickname: String
+    let groupId: String
     let profileImage: String?
     let nicknameChangedAt: Timestamp
     let createdAt: Timestamp
-    let groupId: String
     
     var documentID: String { return userId }
 }
@@ -28,8 +28,8 @@ extension UserFirestore {
             userID: self.userId,
             nickname: self.nickname,
             profileImage: self.profileImage,
-            boards: [],  // 별도 로직에서 처리 (StickerManager)
-            groupID: "",  // 빈 문자열로 기본값 설정
+            boards: [],
+            groupID: self.groupId,
             groupName: "", // 별도 조회 필요 (GroupManager)
             isLeader: false, // 별도 조회 필요 (GroupMembershipManager)
             joinedGroupAt: self.createdAt.dateValue()
@@ -37,24 +37,24 @@ extension UserFirestore {
     }
     
     /// 그룹 정보와 함께 도메인 모델 변환 (Repository에서 사용)
-    func toDomainModel(
-        groupID: String = "",
-        groupName: String = "",
-        isLeader: Bool = false,
-        boards: [StickerBoard] = [],
-        joinedGroupAt: Date? = nil
-    ) -> StampIt_Project.User {
-        return StampIt_Project.User(
-            userID: self.userId,
-            nickname: self.nickname,
-            profileImage: self.profileImage,
-            boards: boards,
-            groupID: groupID,
-            groupName: groupName,
-            isLeader: isLeader,
-            joinedGroupAt: joinedGroupAt ?? self.createdAt.dateValue()
-        )
-    }
+       func toDomainModel(
+           groupName: String,
+           isLeader: Bool,
+           boards: [StickerBoard] = [],
+           joinedGroupAt: Date? = nil
+       ) -> StampIt_Project.User {
+           let domainUser = StampIt_Project.User(
+               userID: self.userId,
+               nickname: self.nickname,
+               profileImage: self.profileImage,
+               boards: boards,
+               groupID: self.groupId,
+               groupName: groupName,
+               isLeader: isLeader,
+               joinedGroupAt: joinedGroupAt ?? self.createdAt.dateValue()
+           )
+           return domainUser
+       }
     
     /// 특정 그룹에서의 사용자 정보 변환 (그룹별 정보 포함)
     func toDomainModelForGroup(
@@ -83,10 +83,10 @@ extension User {
         return UserFirestore(
             userId: self.userID,
             nickname: self.nickname,
+            groupId: self.groupID,
             profileImage: self.profileImage,
             nicknameChangedAt: Timestamp(date: Date()), // 현재 시간으로 설정
-            createdAt: Timestamp(date: Date()), // 현재 시간으로 설정 (가입일)
-            groupId: self.groupID
+            createdAt: Timestamp(date: Date())
         )
     }
     
@@ -95,10 +95,10 @@ extension User {
         return UserFirestore(
             userId: self.userID,
             nickname: self.nickname,
+            groupId: self.groupID,
             profileImage: self.profileImage,
             nicknameChangedAt: Timestamp(date: Date()),
             createdAt: Timestamp(date: preserveCreatedAt), // 기존 생성일 유지
-            groupId: self.groupID
         )
     }
 }

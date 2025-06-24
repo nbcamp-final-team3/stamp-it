@@ -105,7 +105,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
             let now = Date()
             let inviteCode = self.generateInviteCode()
             
-            // ✅ Domain 모델 생성
+            // Domain 모델 생성
             let user = User(
                 userID: authUser.uid,
                 nickname: randomNickname,
