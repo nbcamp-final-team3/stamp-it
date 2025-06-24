@@ -80,9 +80,7 @@ final class SendInviteViewController: UIViewController{
         view.backgroundColor = .FFFFFF
         setupLayout()
         bindViewModel()
-        navigationController?.navigationBar.isHidden = true
-        navigationController?.interactivePopGestureRecognizer?.delegate = self
-        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        setupNavigation()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -93,6 +91,12 @@ final class SendInviteViewController: UIViewController{
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.tabBarController?.tabBar.isHidden = false
+    }
+
+    private func setupNavigation() {
+        navigationController?.navigationBar.isHidden = true
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
 
     private func setupLayout() {
