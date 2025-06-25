@@ -104,6 +104,10 @@ final class MemberDeleteViewController: UIViewController {
         dataSource = UICollectionViewDiffableDataSource<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>(collectionView: collectionView) { (collectionView, indexPath, item) -> UICollectionViewCell? in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MemberDeleteCell.reuseIdentifier, for: indexPath) as! MemberDeleteCell
             cell.configure(with: item)
+            cell.optionButtonTapped = { [weak self] in
+                guard let self = self else { return }
+                self.viewModel.action.accept(.didTapCardOptionButton)
+            }
             return cell
         }
         
@@ -123,35 +127,73 @@ final class MemberDeleteViewController: UIViewController {
     }
 
     private func bind() {
-        /// 멤버 목록 바인딩
-//        viewModel.state.members
-//        .asDriver()
-//        .drive(onNext: { [weak self] members in
-//            var snapshot = NSDiffableDataSourceSnapshot<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>()
-//            snapshot.appendSections([.main])
-//            snapshot.appendItems(members, toSection: .main)
-//            self?.dataSource.apply(snapshot, animatingDifferences: true)
-//        })
-//        .disposed(by: disposeBag)
-//
-//        /// 버튼 클릭 이벤트 바인딩
-//        exportButton.rx.tap
-//        .map { MemberDeleteViewModel.Action.exportButtonTapped }
-//        .bind(to: viewModel.input.action)
-//        .disposed(by: disposeBag)
-//
-//        /// 리더 여부에 따라 버튼 활성화/비활성화 바인딩
-//        viewModel.isLeader
-//            .asDriver()
-//            .drive(exportButton.rx.isEnabled)
-//            .disposed(by: disposeBag)
-        
         // 네비게이션바 뒤로가기 버튼
         navigationBar.backTapped
             .bind(with: self) { owner, _ in
                 owner.navigationController?.popViewController(animated: true)
             }
             .disposed(by: disposeBag)
+
+        // 옵션 시트 표시
+        viewModel.state.showOptionSheet
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, _ in
+                owner.showMemberManageOptionSheet()
+            }
+            .disposed(by: disposeBag)
+
+        // 리더 위임 처리
+        viewModel.state.isLeaderMandate
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, _ in
+                owner.handleLeaderMandate()
+            }
+            .disposed(by: disposeBag)
+
+        // 멤버 내보내기 처리
+        viewModel.state.isMemberExport
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, _ in
+                owner.handleMemberExport()
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.isPushReceiveInvitationVC
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, _ in
+                let receiveInviteVC = DIContainer.shared.makeReceiveInviteViewController()
+                owner.navigationController?.pushViewController(receiveInviteVC, animated: true)
+            }
+            .disposed(by: disposeBag)
+    }
+
+    private func handleLeaderMandate() {
+        // 리더 위임 로직 구현
+        print("리더 위임 처리")
+        // TODO: 실제 리더 위임 로직 구현
+    }
+
+    private func handleMemberExport() {
+        // 멤버 내보내기 로직 구현
+        print("멤버 내보내기 처리")
+        // TODO: 실제 멤버 내보내기 로직 구현
+    }
+
+    private func showMemberManageOptionSheet() {
+        let vm = MemberManageOptionViewModel()
+        let vc = MemberManageOptionViewController(viewModel: vm)
+
+        vc.didTapConfirmButton
+            .map { MemberDeleteViewModel.Action.didReceiveMemberManageType($0) }
+            .bind(to: viewModel.action)
+            .disposed(by: vc.disposeBag)
+
+        if let sheet = vc.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 32
+        }
+        present(vc, animated: true)
     }
 
 //    func showExportAlert(for member: Member) {
@@ -167,6 +209,18 @@ final class MemberDeleteViewController: UIViewController {
 //        present(alert, animated: true)
 //    }
 
+    func presentOptionSheet(for memberId: String) {
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "그룹 리더 위임하기", style: .default) { _ in
+            self.viewModel.action.accept(.didRequestSelectType(.delegateLeader(memberId: memberId)))
+        })
+        alert.addAction(UIAlertAction(title: "멤버 내보내기", style: .destructive) { _ in
+            self.viewModel.action.accept(.didRequestSelectType(.kickMember(memberId: memberId)))
+        })
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+        present(alert, animated: true)
+    }
+
 }
 
 extension MemberDeleteViewController: UIGestureRecognizerDelegate {
@@ -176,20 +230,5 @@ extension MemberDeleteViewController: UIGestureRecognizerDelegate {
   }
 }
 
-//private func showSelectInvitationVC() {
-//    let vm = SelectInvitationViewModel()
-//    let vc = SelectInvitationViewController(viewModel: vm)
-//
-//    vc.didTapConfirmButton
-//        .map { HomeViewModel.Action.didReceiveInvitationType($0) }
-//        .bind(to: viewModel.action)
-//        .disposed(by: vc.disposeBag)
-//
-//    if let sheet = vc.sheetPresentationController {
-//        sheet.detents = [.medium()]
-//        sheet.prefersGrabberVisible = true
-//        sheet.preferredCornerRadius = 32
-//    }
-//    present(vc, animated: true)
-//}
+
 

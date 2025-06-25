@@ -12,6 +12,9 @@ import SnapKit
 final class MemberDeleteCell: UICollectionViewCell {
     static let reuseIdentifier = "MemberDeleteCell"
 
+    // MARK: - Callback
+    var optionButtonTapped: (() -> Void)?
+
     // MARK: - UI
     private let profileImageView = UIImageView().then {
         $0.contentMode = .center
@@ -108,6 +111,8 @@ final class MemberDeleteCell: UICollectionViewCell {
             $0.leading.greaterThanOrEqualTo(hStack.snp.trailing).offset(10)
         }
 
+        // 옵션 버튼 탭 이벤트 추가
+        optionButton.addTarget(self, action: #selector(optionButtonTapped), for: .touchUpInside)
     }
 
     private func setupShadowAndCorner() {
@@ -127,5 +132,10 @@ final class MemberDeleteCell: UICollectionViewCell {
         nameLabel.text = item.name
         dateLabel.text = "가입일: 0000년 00월 00일" // 실제 데이터로 교체
         // profileImageView.image = ... // 실제 이미지로 교체
+    }
+
+    // MARK: - Actions
+    @objc private func optionButtonTapped() {
+        optionButtonTapped?()
     }
 }

@@ -16,11 +16,16 @@ final class MemberDeleteViewModel: ViewModelProtocol {
 
     enum Action {
         case exportButtonTapped
+        case didTapCardOptionButton
+        case didReceiveMemberManageType(MemberManageOptionType)
     }
 
     struct State {
         // 접속해 있는 유저가 그룹의 리더인지 여부
         let isLeader = BehaviorRelay<Bool>(value: false)
+        let isLeaderMandate = PublishRelay<Void>()
+        let isMemberExport = PublishRelay<Void>()
+        let showOptionSheet = PublishRelay<Void>()
     }
 
     let disposeBag = DisposeBag()
@@ -33,6 +38,30 @@ final class MemberDeleteViewModel: ViewModelProtocol {
 
     private func bindActions() {
         // Action과 State 바인딩 구현
+        action
+            .subscribe(with: self) { owner, action in
+                switch action {
+                case .didTapCardOptionButton:
+                    owner.state.showOptionSheet.accept(())
+                case .didReceiveMemberManageType(let type):
+                    owner.handleMemberState(type: type)
+                case .exportButtonTapped:
+                    owner.handleManageOption()
+                }
+            }.disposed(by: disposeBag)
+    }
+
+    private func handleManageOption() {
+        state.showOptionSheet.accept(())
+    }
+
+    private func handleMemberState(type: MemberManageOptionType) {
+        switch type {
+        case .leaderMandate:
+            state.isLeaderMandate.accept(())
+        case .exportMember:
+            state.isMemberExport.accept(())
+        }
     }
 }
 
