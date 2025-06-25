@@ -26,6 +26,7 @@ final class MissionListViewController: UIViewController {
     
     private lazy var tableView = UITableView().then {
         $0.register(MissionListCell.self, forCellReuseIdentifier: MissionListCell.reuseIdentifier)
+        $0.separatorColor = .gray50
         $0.keyboardDismissMode = .onDrag
         $0.delegate = self
     }
@@ -102,7 +103,7 @@ final class MissionListViewController: UIViewController {
         collectionView.snp.makeConstraints {
             $0.top.equalTo(searchBar.snp.bottom).offset(8)
             $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges)
-            $0.height.equalTo(36)
+            $0.height.equalTo(32)
         }
         
         tableView.snp.makeConstraints {
