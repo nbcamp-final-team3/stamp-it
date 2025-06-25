@@ -16,21 +16,21 @@ final class GroupMemberManageViewController: UIViewController {
 
      // MARK: - Properties
 
-    private let viewModel: MemberDeleteViewModel
+    private let viewModel: GroupMemberManageViewModel
     private let disposeBag = DisposeBag()
-    private var dataSource: UICollectionViewDiffableDataSource<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>?
+    private var dataSource: UICollectionViewDiffableDataSource<GroupMemberManageViewModel.Section, GroupMemberManageViewModel.Item>?
 
     // MARK: - UI
 
     private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "멤버 내보내기"))
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then() {
-        $0.register(MemberCardCell.self, forCellWithReuseIdentifier: MemberCardCell.reuseIdentifier)
+        $0.register(GroupMemberCardCell.self, forCellWithReuseIdentifier: GroupMemberCardCell.reuseIdentifier)
     }
 
    // MARK: - Init
 
-    init(viewModel: MemberDeleteViewModel) {
+    init(viewModel: GroupMemberManageViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -101,12 +101,12 @@ final class GroupMemberManageViewController: UIViewController {
     }
 
     private func setupDataSource() {
-        dataSource = UICollectionViewDiffableDataSource<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>(collectionView: collectionView) { (collectionView, indexPath, item) -> UICollectionViewCell? in
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MemberCardCell.reuseIdentifier, for: indexPath) as! MemberCardCell
+        dataSource = UICollectionViewDiffableDataSource<GroupMemberManageViewModel.Section, GroupMemberManageViewModel.Item>(collectionView: collectionView) { (collectionView, indexPath, item) -> UICollectionViewCell? in
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupMemberCardCell.reuseIdentifier, for: indexPath) as! GroupMemberCardCell
             cell.configure(with: item, at: indexPath)
 
             cell.optionButtonTapped
-                .map { _ in MemberDeleteViewModel.Action.didTapCardOptionButton }
+                .map { _ in GroupMemberManageViewModel.Action.didTapCardOptionButton }
                 .bind(to: self.viewModel.action)
                 .disposed(by: self.disposeBag)
             
@@ -114,14 +114,14 @@ final class GroupMemberManageViewController: UIViewController {
         }
         
         // 테스트 데이터 추가
-        var snapshot = NSDiffableDataSourceSnapshot<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>()
+        var snapshot = NSDiffableDataSourceSnapshot<GroupMemberManageViewModel.Section, GroupMemberManageViewModel.Item>()
         snapshot.appendSections([.main])
 
         // TODO: 실제 DB에서 데이터 받아오면 삭제 예정
         let testItems = [
-            MemberDeleteViewModel.Item(id: "1", name: "김철수"),
-            MemberDeleteViewModel.Item(id: "2", name: "이영희"),
-            MemberDeleteViewModel.Item(id: "3", name: "박민수")
+            GroupMemberManageViewModel.Item(id: "1", name: "김철수"),
+            GroupMemberManageViewModel.Item(id: "2", name: "이영희"),
+            GroupMemberManageViewModel.Item(id: "3", name: "박민수")
         ]
         
         snapshot.appendItems(testItems, toSection: .main)
@@ -178,7 +178,7 @@ final class GroupMemberManageViewController: UIViewController {
         let vc = MemberManageOptionViewController(viewModel: vm)
 
         vc.didTapConfirmButton
-            .map { MemberDeleteViewModel.Action.didReceiveMemberManageType($0) }
+            .map { GroupMemberManageViewModel.Action.didReceiveMemberManageType($0) }
             .bind(to: viewModel.action)
             .disposed(by: vc.disposeBag)
 
@@ -189,7 +189,6 @@ final class GroupMemberManageViewController: UIViewController {
                 identifier: .init("small"),
                 resolver: { context in
                     let calculated = context.maximumDetentValue * 0.35
-                    print(calculated)
                     return max(calculated, 350)
                 }
             )

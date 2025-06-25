@@ -10,7 +10,7 @@ import RxSwift
 import RxCocoa
 
 
-final class MemberDeleteViewModel: ViewModelProtocol {
+final class GroupMemberManageViewModel: ViewModelProtocol {
 
     // MARK: - Action & State
 
@@ -65,7 +65,7 @@ final class MemberDeleteViewModel: ViewModelProtocol {
 }
 
 
-extension MemberDeleteViewModel {
+extension GroupMemberManageViewModel {
     enum Section {
         case main
     }

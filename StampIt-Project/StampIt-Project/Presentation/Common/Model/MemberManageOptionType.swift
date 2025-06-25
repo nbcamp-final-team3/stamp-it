@@ -21,13 +21,4 @@ enum MemberManageOptionType {
             "멤버 내보내기"
         }
     }
-
-    // var description: String {
-    //     switch self {
-    //     case .leaderMandate:
-    //         "다른 멤버에게 그룹 리더 권한을 위임합니다"
-    //     case .exportMember:
-    //         "해당 멤버를 그룹에서 내보냅니다"
-    //     }
-    // }
 }
