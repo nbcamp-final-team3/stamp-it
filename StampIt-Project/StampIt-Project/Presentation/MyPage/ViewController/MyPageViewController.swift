@@ -141,7 +141,7 @@ final class MyPageViewController: UIViewController {
         guard let currenctVC = pageViewController.viewControllers?.first,
               let currentIndex = viewControllers.firstIndex(of: currenctVC) else { return }
         
-        let newIndex = selected.index
+        let newIndex = selected.rawValue
         
         /// 같은 탭이면 무시
         guard newIndex != currentIndex else { return }
@@ -168,7 +168,7 @@ extension MyPageViewController: UIPageViewControllerDelegate {
            let newVC = pageViewController.viewControllers?.first,
            let newIndex = viewControllers.firstIndex(of: newVC) {
             viewModel.action.accept(
-                .tabChanged(TabType.index(newIndex))
+                .tabChanged(TabType(rawValue: newIndex) ?? .stampBoard)
             )
         }
     }
