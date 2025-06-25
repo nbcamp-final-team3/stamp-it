@@ -8,13 +8,11 @@
 enum MyPageProfileSection: CaseIterable {
     case groupMember
     case groupService
-    
+
     var menus: [MyPageMenu] {
         switch self {
         case .groupMember:
-            return [
-                /*.deleteMember,*/
-                .inviteMember, .receiveInvite]
+            return [.deleteMember, .inviteMember, .receiveInvite]
         case .groupService:
             return [.leaveGroup, .logout, .leaveService]
         }
@@ -29,7 +27,7 @@ enum MyPageProfileSection: CaseIterable {
 }
 
 enum MyPageMenu: CaseIterable {
-    /*case deleteMember*/
+    case deleteMember
     case inviteMember
     case receiveInvite
     case leaveGroup
@@ -38,7 +36,7 @@ enum MyPageMenu: CaseIterable {
     
     var title: String {
         switch self {
-        /*case .deleteMember: return "멤버 내보내기"*/
+        case .deleteMember: return "멤버 내보내기"
         case .inviteMember: return "초대 하기"
         case .receiveInvite: return "초대 받기"
         case .leaveGroup: return "그룹 탈퇴"
@@ -49,7 +47,7 @@ enum MyPageMenu: CaseIterable {
     
     var subtitle: String {
         switch self {
-        /*case .deleteMember: return ""*/
+        case .deleteMember: return "그룹 멤버 내보내기"
         case .inviteMember: return "그룹에 새로운 구성원 초대하기"
         case .receiveInvite: return "새로운 그룹에 초대받기"
         case .leaveGroup: return "현재 그룹에서 탈퇴하기"
@@ -59,10 +57,8 @@ enum MyPageMenu: CaseIterable {
     }
 }
 
-typealias StampBoardSection = MyPageStampBoardSection
-typealias StampBoardItem = Sticker
-
-enum MyPageStampBoardSection: Hashable {
+enum StampBoardSection: Int, Hashable {
+    case summary
     case defaultBoard
     
     var type: [[StampCellType]] {
@@ -76,21 +72,30 @@ enum MyPageStampBoardSection: Hashable {
                 [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
                 [.horizontal, .horizontal, .horizontal, .horizontal, .none],
             ]
+        default: return []
         }
     }
     
     var column: Int {
         switch self {
         case .defaultBoard: return 5
+        default: return 0
         }
     }
     
     var totalStamp: Int {
         switch self {
         case .defaultBoard: return 30
+        default: return 0
         }
     }
 }
+
+enum StampBoardItem: Hashable {
+    case summary(collected: Int, completed: Int)
+    case stickers(Sticker)
+}
+
 
 /// Dashed Line 기준
 enum StampCellType: Hashable {

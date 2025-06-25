@@ -71,6 +71,5 @@ final class DashedLine: UIView {
         lineLayer.lineCap = .round
         lineLayer.lineWidth = 2.0
         lineLayer.lineDashPattern = [2, 4]
-        lineLayer.zPosition = -1
     }
 }

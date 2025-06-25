@@ -9,14 +9,7 @@ import Foundation
 import RxSwift
 
 protocol MyMissionUseCaseProtocol {
-    func fetchReceivedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]>
+    func fetchMissions(to userID: String?, ofGroup groupID: String) -> Observable<[Mission]>
     func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission>
-    func createSticker(
-        userId: String,
-        groupId: String,
-        missionTitle: String,
-        maxSticker: Int,
-        stickerType: String,
-        assignedBy: String
-    ) -> Observable<Void>
+    func createSticker(user: User, mission: Mission) -> Observable<Void>
 }

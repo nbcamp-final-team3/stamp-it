@@ -30,6 +30,11 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     // MARK: - UI Components
 
+    private let contentStackView = UIStackView().then {
+        $0.spacing = 12
+        $0.alignment = .center
+    }
+
     private let imageContainerView = UIView().then {
         $0.layer.cornerRadius = 8
     }
@@ -38,12 +43,19 @@ final class AssignedMissionCell: UICollectionViewCell {
         $0.contentMode = .scaleAspectFit
     }
 
+    private let tagAndTitleStackView = UIStackView().then {
+        $0.axis = .vertical
+        $0.spacing = 4
+        $0.alignment = .leading
+    }
+
     private let tagStackView = UIStackView().then {
         $0.spacing = 4
     }
 
     private let newTag = TagView(type: .outlined).then {
         $0.updateText(with: "New")
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
     }
 
     private let nameTag = TagView(type: .filledBold)
@@ -51,8 +63,10 @@ final class AssignedMissionCell: UICollectionViewCell {
     private let dateTag = TagView(type: .filledBold)
 
     private let titleLabel = UILabel().then {
+        $0.setTextWithLineHeight(text: nil, lineHeight: 21)
         $0.font = .pretendard(size: 14, weight: .regular)
         $0.textColor = .gray800
+        $0.numberOfLines = 0
     }
 
     private let statusView = UIView()
@@ -110,23 +124,31 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     private func setHierarchy() {
         [
-            imageContainerView,
-            tagStackView,
-            titleLabel,
+            contentStackView,
             statusView,
             statusButton,
             separatorView,
         ].forEach{ contentView.addSubview($0) }
 
         [
+            imageContainerView,
+            tagAndTitleStackView,
+        ].forEach { contentStackView.addArrangedSubview($0) }
+
+        [
             categoryImageView,
         ].forEach { imageContainerView.addSubview($0) }
+
+        [
+            tagStackView,
+            titleLabel,
+        ].forEach { tagAndTitleStackView.addArrangedSubview($0) }
 
         [
             newTag,
             nameTag,
             dateTag,
-            ].forEach { tagStackView.addArrangedSubview($0) }
+        ].forEach { tagStackView.addArrangedSubview($0) }
         
         [
             daysLeftLabel,
@@ -138,9 +160,13 @@ final class AssignedMissionCell: UICollectionViewCell {
     // MARK: - Set Constraints
 
     private func setConstraints() {
-        imageContainerView.snp.makeConstraints { make in
+        contentStackView.snp.makeConstraints { make in
             make.verticalEdges.equalToSuperview().inset(12)
             make.leading.equalToSuperview()
+            make.trailing.equalTo(statusButton.snp.leading).offset(-20)
+        }
+
+        imageContainerView.snp.makeConstraints { make in
             make.size.equalTo(50)
         }
 
@@ -149,23 +175,10 @@ final class AssignedMissionCell: UICollectionViewCell {
             make.size.equalTo(35)
         }
 
-        tagStackView.snp.makeConstraints { make in
-            make.top.equalToSuperview().inset(13.5)
-            make.leading.equalTo(imageContainerView.snp.trailing).offset(12)
-        }
-
-        titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(tagStackView.snp.bottom).offset(4)
-            make.leading.equalTo(imageContainerView.snp.trailing).offset(12)
-            make.trailing.equalToSuperview().inset(80)
-            make.bottom.equalToSuperview().inset(13.5)
-            make.height.equalTo(21)
-        }
-
         statusView.snp.makeConstraints { make in
             make.verticalEdges.equalToSuperview().inset(15.5)
             make.trailing.equalToSuperview()
-            make.width.equalTo(80)
+            make.width.equalTo(46)
         }
 
         daysLeftLabel.snp.makeConstraints { make in
@@ -196,6 +209,16 @@ final class AssignedMissionCell: UICollectionViewCell {
         }
     }
 
+    private func updateContentStackViewConstraints() {
+        let trailingView = type == .received ? statusButton : statusView
+
+        contentStackView.snp.remakeConstraints { make in
+            make.verticalEdges.equalToSuperview().inset(12)
+            make.leading.equalToSuperview()
+            make.trailing.equalTo(trailingView.snp.leading).offset(-20)
+        }
+    }
+
     // MARK: - Bind
 
     private func bind() {
@@ -206,28 +229,30 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     // MARK: - Methods
 
-    func configureAsSended(with mission: HomeSendedMission) {
+    func configureAsSended(with mission: HomeMemberMission) {
         self.type = .sended
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
-        nameTag.updateText(with: mission.assignee)
+        nameTag.updateText(with: "to." + mission.assignee)
         dateTag.updateText(with: "~" + mission.dueDate)
         if mission.isOverdue { dateTag.updateTextColor(.gray200) }
         daysLeftLabel.text = mission.daysLeft
         titleLabel.text = mission.title
         updateStatusView(for: mission.status)
+        updateContentStackViewConstraints()
     }
 
-    func configureAsReceived(with mission: HomeReceivedMission) {
+    func configureAsReceived(with mission: HomeMyMission) {
         self.type = .received
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
         newTag.isHidden = !(mission.isNew ?? false)
-        nameTag.updateText(with: mission.assigner)
+        nameTag.updateText(with: "from." + mission.assigner)
         dateTag.updateText(with: "~" + mission.dueDate)
         if mission.isOverdue { dateTag.updateTextColor(.gray200) }
         titleLabel.text = mission.title
         statusButton.updateStatus(to: mission.status)
+        updateContentStackViewConstraints()
     }
 
     private func toggleViewOnType() {

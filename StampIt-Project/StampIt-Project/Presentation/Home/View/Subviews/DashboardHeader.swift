@@ -35,8 +35,10 @@ final class DashboardHeader: UICollectionReusableView {
     }
 
     private let descriptionLabel = UILabel().then {
+        $0.setTextWithLineHeight(text: nil, lineHeight: 21)
         $0.font = .pretendard(size: 14, weight: .regular)
         $0.textColor = ._000000
+        $0.numberOfLines = 0
     }
 
     private let moreButton = UIButton().then {
@@ -112,10 +114,6 @@ final class DashboardHeader: UICollectionReusableView {
 
         titleLabel.snp.makeConstraints { make in
             make.height.equalTo(36)
-        }
-
-        descriptionLabel.snp.makeConstraints { make in
-            make.height.equalTo(21)
         }
 
         moreButton.snp.makeConstraints { make in

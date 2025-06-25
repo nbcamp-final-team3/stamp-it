@@ -13,6 +13,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
     private let useCase: MemberMissionUseCaseProtocol
+    private let mapper: MissionMapping
 
     // MARK: - Action & State
 
@@ -38,10 +39,16 @@ final class MemberMissionViewModel: ViewModelProtocol {
 
     // MARK: - Init
 
-    init(user: User, memberCache: [String: Member], useCase: MemberMissionUseCaseProtocol) {
+    init(
+        user: User,
+        memberCache: [String: Member],
+        useCase: MemberMissionUseCaseProtocol,
+        mapper: MissionMapping,
+    ) {
         self.useCase = useCase
         state.user.accept(user)
         self.memberCache = memberCache
+        self.mapper = mapper
         bind()
     }
 
@@ -65,51 +72,13 @@ final class MemberMissionViewModel: ViewModelProtocol {
     /// 유저가 그룹 구성원에게 할당한 미션 바인딩
     private func fetchMissions() {
         guard let user = state.user.value else { return }
-        useCase.fetchSendedMissions(ofUser: user.userID, fromGroup: user.groupID)
+        useCase.fetchMissions(by: user.userID, ofGroup: user.groupID)
             .map { [weak self] in
                 guard let self else { return [] }
-                return mapMissionsToMemberMissionItems($0)
+                return mapper.map(memberMission: $0, member: memberCache)
+                    .map { MemberMissionItem.mission($0) }
             }
             .bind(to: state.missions)
             .disposed(by: disposeBag)
-    }
-
-    // MARK: - Methods
-
-    private func mapMissionsToMemberMissionItems(_ missions: [Mission]) -> [MemberMissionItem] {
-        missions.map { mission in
-            let assignee = memberCache[mission.assignedTo]?.nickname ?? mission.assignedTo
-            let (isOverdue, daysLeft) = formatOverdueAndDays(from: mission.dueDate)
-            let missionItem = HomeSendedMission(
-                missionID: mission.missionID,
-                title: mission.title,
-                category: mission.category,
-                dueDate: mission.dueDate.toMonthDayString(),
-                assignee: assignee,
-                status: mission.status,
-                isOverdue: isOverdue,
-                daysLeft: daysLeft
-            )
-            return MemberMissionItem.mission(missionItem)
-        }
-    }
-
-    private func isNew(createDate: Date) -> Bool {
-        let today = Calendar.current.dateComponents([.day], from: Date())
-        let created = Calendar.current.dateComponents([.day], from: createDate)
-        return today.day == created.day
-    }
-
-    private func formatOverdueAndDays(from dueDate: Date) -> (isOverdue: Bool, daysLeft: String) {
-        let cal = Calendar.current
-        let todayStart = cal.startOfDay(for: Date())
-        let dueStart = cal.startOfDay(for: dueDate)
-
-        let dayDiff = cal.dateComponents([.day], from: todayStart, to: dueStart).day ?? 0
-
-        let isOverdue = dayDiff < 0
-        let daysLeft = dayDiff == 0 ? "오늘" : "\(dayDiff)일 전"
-
-        return (isOverdue, daysLeft)
     }
 }

@@ -12,7 +12,11 @@ import RxRelay
 final class HomeViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
-    private let useCase: HomeUseCaseProtocol
+    private let rankingUseCase: RankingUseCaseProtocol
+    private let myMissionUseCase: MyMissionUseCaseProtocol
+    private let memberMissionUseCase: MemberMissionUseCaseProtocol
+    private let memberMapper: MemberMapping
+    private let missionMapper: MissionMapping
 
     // MARK: - Action & State
 
@@ -22,17 +26,17 @@ final class HomeViewModel: ViewModelProtocol {
         case didReceiveInvitationType(InvitationType)
         case didTapMissonCompleteButton(HomeItem)
         case didTapCompleteCancelButton
-        case didTapMoreReceivedMissions
+        case didTapMoreMyMissions
         case didSelectReceivedMember(memberID: String)
-        case didTapMoreSendedMissions
+        case didTapMoreMemberMissions
     }
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
         let isShowGroupOrganizationView = PublishRelay<Bool>()
         let rankedMembers = PublishRelay<[HomeItem]>()
-        let receivedMissions = BehaviorRelay<[HomeItem]>(value: [])
-        let sendedMissionsForDisplay = PublishRelay<[HomeItem]>()
+        let myMissions = BehaviorRelay<[HomeItem]>(value: [])
+        let memberMissionsForDisplay = PublishRelay<[HomeItem]>()
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
@@ -48,14 +52,23 @@ final class HomeViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     var state = State()
     var memberCache = [String: Member]() // 멤버 정보 저장
-    private var receivedMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
-    private var sendedMissions = [Mission]()
+    private var myMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
+    private var memberMissions = [Mission]()
     private var pendingCommits = DisposeBag()
 
     // MARK: - Init
 
-    init(useCase: HomeUseCaseProtocol) {
-        self.useCase = useCase
+    init(rankingUseCase: RankingUseCaseProtocol,
+         myMissionUseCase: MyMissionUseCaseProtocol,
+         memberMissionUseCase: MemberMissionUseCaseProtocol,
+         memberMapper: MemberMapper,
+         missionMapper: MissionMapper,
+    ) {
+        self.rankingUseCase = rankingUseCase
+        self.myMissionUseCase = myMissionUseCase
+        self.memberMissionUseCase = memberMissionUseCase
+        self.memberMapper = memberMapper
+        self.missionMapper = missionMapper
         bind()
     }
 
@@ -78,11 +91,11 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.state.completedMissionTitle.accept(item.received!.title)
                 case .didTapCompleteCancelButton:
                     owner.cancelMissionComplete()
-                case .didTapMoreReceivedMissions:
+                case .didTapMoreMyMissions:
                     owner.state.isPushMyMissionVC.accept(())
                 case .didSelectReceivedMember(memberID: let id):
-                    owner.updateSendedMissions(memberID: id)
-                case .didTapMoreSendedMissions:
+                    owner.updateMemberMissions(memberID: id)
+                case .didTapMoreMemberMissions:
                     owner.state.isPushMemberMissionVC.accept(())
                 }
             }
@@ -91,7 +104,7 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// user 정보 바인딩
     private func bindUser() {
-        let currentUser = useCase.fetchCurrentUser()
+        let currentUser = rankingUseCase.fetchCurrentUser()
             .compactMap { $0 }
             .do(onNext: { [weak self] user in
                 self?.state.user.accept(user)
@@ -99,76 +112,73 @@ final class HomeViewModel: ViewModelProtocol {
             .share(replay: 1, scope: .whileConnected)
 
         bindRanking(ofUser: currentUser)
-        bindReceivedMissions(ofUser: currentUser)
-        bindSendedMissions(ofUser: currentUser)
+        bindMyMissions(ofUser: currentUser)
+        bindMemberMissions(ofUser: currentUser)
     }
 
     private func bindRanking(ofUser currentUser: Observable<User>) {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Member]> in
               guard let self = self else { return .empty() }
-              return self.useCase.fetchRanking(ofGroup: user.groupID)
+              return self.rankingUseCase.fetchRanking(ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] members in
               guard let self = self else { return }
 
               state.isShowGroupOrganizationView.accept(members.count == 1)
 
-              self.memberCache = Dictionary(
-                uniqueKeysWithValues: members.map { ($0.userID, $0) }
-              )
-              let items = self.mapMembersToHomeItems(members)
+              self.memberCache = Dictionary(uniqueKeysWithValues: members.map { ($0.userID, $0) })
+              let userID = state.user.value?.userID ?? ""
+              let items = memberMapper.map(members: members, userID: userID)
               self.state.rankedMembers.accept(items)
           })
           .disposed(by: disposeBag)
     }
 
-    private func bindReceivedMissions(ofUser currentUser: Observable<User>) {
+    private func bindMyMissions(ofUser currentUser: Observable<User>) {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Mission]> in
               guard let self = self else { return .empty() }
-              return self.useCase.fetchReceivedMissions(
-                ofUser: user.userID,
-                fromGroup: user.groupID
-              )
+              return self.myMissionUseCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
-              self.receivedMissions = missions
-              let items = self.mapReceivedMissionsToHomeItems(missions)
-              self.state.receivedMissions.accept(items)
+              self.myMissions = missions
+              let items = self.missionMapper
+                  .map(myMissions: missions, member: memberCache)
+                  .map { HomeItem.myMission($0) }
+              self.state.myMissions.accept(items)
           })
           .disposed(by: disposeBag)
     }
 
-    private func bindSendedMissions(ofUser currentUser: Observable<User>) {
+    private func bindMemberMissions(ofUser currentUser: Observable<User>) {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Mission]> in
               guard let self = self else { return .empty() }
-              return self.useCase.fetchSendedMissions(
-                ofUser: user.userID,
-                fromGroup: user.groupID
-              )
+              return self.memberMissionUseCase.fetchMissions(by: user.userID,ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
-              self.sendedMissions = missions
-              let items = self.mapSendedMissionsToHomeItems(
-                Array(missions.prefix(4))
-              )
-              self.state.sendedMissionsForDisplay.accept(items)
+              self.memberMissions = missions
+              let items = self.missionMapper
+                  .map(memberMission: Array(missions.prefix(4)), member: memberCache)
+                  .map { HomeItem.memberMission($0) }
+              self.state.memberMissionsForDisplay.accept(items)
           })
           .disposed(by: disposeBag)
     }
 
     /// 멤버 ID가 nil이면 전체, 값이 있으면 해당 멤버에게 전달한 미션만 필터링하여 최근 전달한 4개를 accept
-    private func updateSendedMissions(memberID: String?) {
+    private func updateMemberMissions(memberID: String?) {
         let filteredMissions = memberID
-            .map { id in sendedMissions.filter { $0.assignedTo == memberID } }
-            ?? sendedMissions
+            .map { id in memberMissions.filter { $0.assignedTo == memberID } }
+            ?? memberMissions
         let first4 = Array(filteredMissions.prefix(4))
-        let homeItems = mapSendedMissionsToHomeItems(first4)
-        state.sendedMissionsForDisplay.accept(homeItems)
+        let homeItems = missionMapper
+            .map(memberMission: first4, member: memberCache)
+            .map { HomeItem.memberMission($0) }
+        state.memberMissionsForDisplay.accept(homeItems)
     }
 
     /// 그룹 구성하기 버튼 탭 시 초대하기/초대받기 선택할 수 있는 뷰 제공
@@ -189,8 +199,9 @@ final class HomeViewModel: ViewModelProtocol {
     /// 미션 완료 바인딩
     ///
     /// 미션 완료 API를 호출하고,
-    /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 제거, 스티커 생성
+    /// 전달받은 미션의 ID로 myMissions에서 해당 미션을 찾아 제거, 스티커 생성
     func handleMissionCompleteButtonTapped(missionID: String) {
+        guard let user = state.user.value else { return }
         removeMissionItem(missionID: missionID)
         state.isShowStickerReceived.accept(true)
 
@@ -200,23 +211,12 @@ final class HomeViewModel: ViewModelProtocol {
             .flatMap { [weak self] _ -> Observable<Mission> in
                 guard let self else { return .empty() }
                 let removedMission = removeMissionCache(missionID: missionID)
-
-                guard let mission = removedMission,
-                      let user = state.user.value else { return .empty() }
-
-                return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
+                guard let mission = removedMission else { return .empty() }
+                return myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
             .flatMap { [weak self] mission -> Observable<Void> in
-                guard let self, let user = state.user.value else { return .empty() }
-
-                return useCase.createSticker(
-                    userId: user.userID,
-                    groupId: user.groupID,
-                    missionTitle: mission.title,
-                    maxSticker: 30, // TODO: pin 번호 계산용
-                    stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
-                    assignedBy: mission.assignedBy,
-                )
+                guard let self else { return .empty() }
+                return myMissionUseCase.createSticker(user: user, mission: mission)
             }
             .subscribe()
             .disposed(by: pendingCommits)
@@ -224,22 +224,24 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// UI에서 미션 제거
     private func removeMissionItem(missionID: String) {
-        let missions = state.receivedMissions.value
+        let missions = state.myMissions.value
         let updated = missions.filter { $0.received!.missionID != missionID }
-        state.receivedMissions.accept(updated)
+        state.myMissions.accept(updated)
     }
 
     /// 도메인 미션 캐시에서 미션 제거
     private func removeMissionCache(missionID: String) -> Mission? {
-        guard let index = receivedMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
-        return receivedMissions.remove(at: index)
+        guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
+        return myMissions.remove(at: index)
     }
 
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     func cancelMissionComplete() {
         pendingCommits = DisposeBag()
-        let cachedMissions = mapReceivedMissionsToHomeItems(receivedMissions)
-        state.receivedMissions.accept(cachedMissions)
+        let cachedMissions = missionMapper
+            .map(myMissions: myMissions, member: memberCache)
+            .map { HomeItem.myMission($0) }
+        state.myMissions.accept(cachedMissions)
         state.isShowStickerReceived.accept(false)
     }
 
@@ -247,70 +249,6 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// fetch 전 placeholder 제공
     private func showPlaceholderOnSendedSection() {
-        state.sendedMissionsForDisplay.accept([])
-    }
-
-    /// [User]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
-    private func mapMembersToHomeItems(_ members: [Member]) -> [HomeItem] {
-        members.enumerated().map { index, member in
-            let member = HomeMember(
-                memberID: member.userID,
-                nickname: member.nickname,
-                stickerCount: "\(member.monthSticker)개",
-                rank: index + 1,
-                profileImage: member.profileImage
-            )
-            return HomeItem.member(member)
-        }
-    }
-
-    /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
-    private func mapReceivedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
-        missions.map { mission in
-            let assigner = memberCache[mission.assignedBy]?.nickname ?? mission.assignedBy
-            let homeMission = HomeReceivedMission(
-                missionID: mission.missionID,
-                title: mission.title,
-                category: mission.category,
-                dueDate: mission.dueDate.toMonthDayString(),
-                assigner: assigner,
-                isNew: nil,
-                isOverdue: formatOverdueAndDays(from: mission.dueDate).isOverdue,
-                status: mission.status
-            )
-            return HomeItem.received(homeMission)
-        }
-    }
-
-    /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
-    private func mapSendedMissionsToHomeItems(_ missions: [Mission]) -> [HomeItem] {
-        missions.map { mission in
-            let assignee = memberCache[mission.assignedTo]?.nickname ?? ""
-            let (isOverdue, daysLeft) = formatOverdueAndDays(from: mission.dueDate)
-            let homeMission = HomeSendedMission(
-                missionID: mission.missionID,
-                title: mission.title,
-                category: mission.category,
-                dueDate: mission.dueDate.toMonthDayString(),
-                assignee: assignee,
-                status: mission.status,
-                isOverdue: isOverdue,
-                daysLeft: daysLeft
-            )
-            return HomeItem.sended(homeMission)
-        }
-    }
-
-    private func formatOverdueAndDays(from dueDate: Date) -> (isOverdue: Bool, daysLeft: String) {
-        let cal = Calendar.current
-        let todayStart = cal.startOfDay(for: Date())
-        let dueStart = cal.startOfDay(for: dueDate)
-
-        let dayDiff = cal.dateComponents([.day], from: todayStart, to: dueStart).day ?? 0
-
-        let isOverdue = dayDiff < 0
-        let daysLeft = dayDiff == 0 ? "오늘" : "\(dayDiff)일 전"
-
-        return (isOverdue, daysLeft)
+        state.memberMissionsForDisplay.accept([])
     }
 }

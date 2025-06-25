@@ -103,6 +103,7 @@ final class MissionCardCell: UICollectionViewCell {
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOpacity = 0.16
         layer.shadowRadius = 4
+        layer.shadowOffset = .zero
     }
 
     // MARK: - Set Hierarchy
@@ -158,7 +159,7 @@ final class MissionCardCell: UICollectionViewCell {
 
     // MARK: - Methods
 
-    func configure(with mission: HomeReceivedMission) {
+    func configure(with mission: HomeMyMission) {
         categoryImageView.image = mission.category.image
         contentView.backgroundColor = mission.category.backgroundColor
         dateTag.updateText(with: mission.dueDate)

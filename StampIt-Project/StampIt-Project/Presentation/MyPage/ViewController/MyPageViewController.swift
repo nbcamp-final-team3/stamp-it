@@ -14,19 +14,33 @@ final class MyPageViewController: UIViewController {
     
     // MARK: - Properties
     
-    private var viewModel: MyPageViewModel
-    private var container: DIContainer
+    private let viewModel: MyPageViewModel
+    private let container: DIContainer
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
-
+    
+    private lazy var viewControllers: [UIViewController] = [
+        container.makeStampBoardViewController(),
+        container.makeProfileViewController()
+    ]
+    
+    private lazy var pageViewController = UIPageViewController(
+        transitionStyle: .scroll,
+        navigationOrientation: .horizontal
+    ).then {
+        $0.setViewControllers(
+            [viewControllers[0]],
+            direction: .forward,
+            animated: false
+        )
+    }
+    
     private let navigationBar = DefaultNavigationBar(
         .segmentedControlTabs(
             tab1: TabType.stampBoard.title,
             tab2: TabType.profile.title
         ))
-    private let stampBoardView = StampBoardTab()
-    private let profileView = ProfileTab()
     
     // MARK: - Initializer, Deinit, requiered
     
@@ -47,30 +61,21 @@ final class MyPageViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel.action.accept(.viewDidLoad)
         setStyle()
         setHierarchy()
         setLayout()
         setDelegate()
         setDataSource()
-        setAction()
         bind()
-    }
-    
-    // 화면이 나타날 때마다 데이터 새로고침
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        viewModel.action.accept(.viewDidLoad)
     }
     
     // MARK: - Bind
     
     private func bind() {
-        
         navigationBar.tabTapped
             .bind(with: self) { owner, type in
                 owner.viewModel.action.accept(
-                    .tabButtonTapped(TabType(rawValue: type.rawValue)!)
+                    .tabChanged(TabType(rawValue: type.rawValue)!)
                 )
             }.disposed(by: disposeBag)
     
@@ -79,190 +84,112 @@ final class MyPageViewController: UIViewController {
                 owner.navigationBar.updateTabTitleColor(selected: tab)
                 owner.updateSelectedTab(selected: tab)
             }.disposed(by: disposeBag)
-        
-        viewModel.state.stickers
-            .bind(with: self) { owner, stickers in
-                owner.updateUI(with: stickers)
-            }.disposed(by: disposeBag)
-        
-        viewModel.state.stickerSummary
-            .bind(with: self) { owner, summary in
-                owner.stampBoardView.stickerSummary.accept(summary)
-            }.disposed(by: disposeBag)
-        
-        viewModel.state.user
-            .compactMap { $0 }
-            .bind(with: self) { owner, user in
-                owner.profileView.setUser(user)
-            }.disposed(by: disposeBag)
-        
-        viewModel.state.alertMessage
-            .bind(with: self) { owner, message in
-                owner.showAlert(title: "그룹 탈퇴 실패", message: message)
-            }.disposed(by: disposeBag)
-        
-        // 로그인 화면으로 이동
-        viewModel.state.shouldNavigateToLogin
-            .bind(with: self) { owner, _ in
-                // 토스트가 이미 떠있으면 1.5초 뒤에 전환
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    owner.navigateToLogin()
-                }
-            }.disposed(by: disposeBag)
-
-        // 확인 다이얼로그
-        viewModel.state.shouldShowConfirmAlert
-            .bind(with: self) { owner, alertData in
-                let (title, message, action) = alertData
-                owner.showConfirmAlert(title: title, message: message, confirmAction: action)
-            }.disposed(by: disposeBag)
-        
-        // 토스트 메시지
-        viewModel.state.toastMessage
-            .bind(with: self) { owner, message in
-                owner.showToast(message: message, type: .success)
-            }.disposed(by: disposeBag)
     }
     
     // MARK: - Style Helper
     
     private func setStyle() {
         view.backgroundColor = .white
-        stampBoardView.isHidden = false
-        profileView.isHidden = true
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     // MARK: - Hierarchy Helper
     
     private func setHierarchy() {
+        /// 자식 ViewController 로 설정
+        addChild(pageViewController)
+        
         [
             navigationBar,
-            stampBoardView,
-            profileView
+            pageViewController.view
         ]
             .forEach { view.addSubview($0) }
+        
+        /// 자식 ViewController 에 didMove 호출
+        pageViewController.didMove(toParent: self)
     }
 
     // MARK: - Layout Helper
     
     private func setLayout() {
         navigationBar.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide)
-            $0.directionalHorizontalEdges.equalToSuperview()
+            $0.top.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
         }
         
-        stampBoardView.snp.makeConstraints {
+        pageViewController.view.snp.makeConstraints {
             $0.top.equalTo(navigationBar.snp.bottom)
-            $0.directionalHorizontalEdges.bottom.equalToSuperview()
-        }
-        
-        profileView.snp.makeConstraints {
-            $0.top.equalTo(navigationBar.snp.bottom)
-            $0.directionalHorizontalEdges.bottom.equalToSuperview()
+            $0.bottom.directionalHorizontalEdges.equalToSuperview()
         }
     }
     
     // MARK: - Delegate Helper
     
     private func setDelegate() {
-        profileView.tableView.delegate = self
+        pageViewController.delegate = self
     }
 
     // MARK: - DataSource Helper
     
     private func setDataSource() {
-        profileView.tableView.dataSource = self
-    }
-
-    // MARK: - Snapshot
-    
-    private func updateUI(with stickers: [Sticker]) {
-        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
-        snapshot.appendSections([.defaultBoard])
-        snapshot.appendItems(stickers, toSection: .defaultBoard)
-        stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
-    }
-    
-    // MARK: - Button Action Helper
-    
-    private func setAction() {
-        profileView.setButtonAction(target: self, action: #selector(tappedEditButton))
-    }
-    
-    @objc private func tappedEditButton() {
-        let user = viewModel.state.user.value
-        guard let user else { return }
-        let viewController = container.makeEditProfileViewController(user: user)
-        navigationController?.pushViewController(viewController, animated: true)
+        pageViewController.dataSource = self
     }
     
     // MARK: - Methods
     
+    /// 탭 클릭시 ViewController 전환
     private func updateSelectedTab(selected: TabType) {
-        switch selected {
-        case .stampBoard:
-            stampBoardView.isHidden = false
-            profileView.isHidden = true
-            
-        case .profile:
-            stampBoardView.isHidden = true
-            profileView.isHidden = false
-        }
-    }
-    
-    /// 일반 알림 다이얼로그
-    private func showAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .default))
-        present(alert, animated: true)
-    }
-    
-    /// 확인/취소 다이얼로그
-    private func showConfirmAlert(title: String, message: String, confirmAction: @escaping () -> Void) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        guard let currenctVC = pageViewController.viewControllers?.first,
+              let currentIndex = viewControllers.firstIndex(of: currenctVC) else { return }
         
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        alert.addAction(UIAlertAction(title: "확인", style: .destructive) { _ in
-            confirmAction()
-        })
+        let newIndex = selected.rawValue
         
-        present(alert, animated: true)
-    }
-    
-    /// 로그인 화면으로 이동
-    private func navigateToLogin() {
-        UserCache.shared.clearCache()
+        /// 같은 탭이면 무시
+        guard newIndex != currentIndex else { return }
         
-         // UserDefaults에서 로그인 관련 정보 삭제 (필요시)
-         UserDefaults.standard.removeObject(forKey: "userToken")
-         UserDefaults.standard.removeObject(forKey: "lastLoginDate")
+        let direction: UIPageViewController.NavigationDirection = newIndex > currentIndex ? .forward : .reverse
         
-        let loginViewModel = DIContainer.shared.makeLoginViewModel()
-        let loginVC = LoginViewController(viewModel: loginViewModel, container: container)
-        let navController = UINavigationController(rootViewController: loginVC)
-        
-        WindowTransitionManager.shared.changeRootViewController(to: navController)
-    }
-    
-    // 외부에서 쓸 수 있는 메서드로 액션 전달 (public/internal)
-    func leaveGroup() {
-        viewModel.action.accept(.leaveGroupButtonTapped)
-    }
-
-    func deleteAccount() {
-        viewModel.action.accept(.deleteAccountButtonTapped)
-    }
-    
-    func logOut() {
-        viewModel.action.accept(.logoutButtonTapped)
+        pageViewController.setViewControllers(
+            [viewControllers[newIndex]],
+            direction: direction,
+            animated: true
+        )
     }
 }
 
-// 토스트 메시지(2초)
-extension MyPageViewController {
-    func showToast(message: String, type: ToastType = .success, duration: TimeInterval = 2.0) {
-        let toastView = ToastView()
-        toastView.show(in: self.view, duration: duration, message: message, type: type)
+/// Swiping 하여 ViewController 전환
+extension MyPageViewController: UIPageViewControllerDelegate {
+    func pageViewController(
+        _ pageViewController: UIPageViewController,
+        didFinishAnimating finished: Bool,
+        previousViewControllers: [UIViewController],
+        transitionCompleted completed: Bool
+    ) {
+        if completed,
+           let newVC = pageViewController.viewControllers?.first,
+           let newIndex = viewControllers.firstIndex(of: newVC) {
+            viewModel.action.accept(
+                .tabChanged(TabType(rawValue: newIndex) ?? .stampBoard)
+            )
+        }
+    }
+}
+
+extension MyPageViewController: UIPageViewControllerDataSource {
+    func pageViewController(
+        _ pageViewController: UIPageViewController,
+        viewControllerBefore viewController: UIViewController
+    ) -> UIViewController? {
+        guard let currentIndex = viewControllers.firstIndex(of: viewController),
+              currentIndex > 0 else { return nil }
+        return viewControllers[currentIndex - 1]
+    }
+    
+    func pageViewController(
+        _ pageViewController: UIPageViewController,
+        viewControllerAfter viewController: UIViewController
+    ) -> UIViewController? {
+        guard let currentIndex = viewControllers.firstIndex(of: viewController),
+              currentIndex < viewControllers.count - 1 else { return nil }
+        return viewControllers[currentIndex + 1]
     }
 }

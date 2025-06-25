@@ -1,16 +1,20 @@
 //
-//  StampSummary.swift
+//  SummaryCell.swift
 //  StampIt-Project
 //
-//  Created by kingj on 6/10/25.
+//  Created by kingj on 6/23/25.
 //
 
 import UIKit
 import Then
 import SnapKit
 
-final class StampSummary: UIView {
+final class SummaryCell: UICollectionViewCell {
     
+    // MARK: - Properties
+    
+    static let identifier = "SummaryCell"
+
     // MARK: - UI Components
     
     /// Vertical Stack View - 내가 모은 스탬프
@@ -158,8 +162,8 @@ final class StampSummary: UIView {
     
     private func setLayout() {
         hStackView.snp.makeConstraints {
-            $0.edges.equalToSuperview().inset(12)
-            $0.height.equalTo(50)
+            $0.directionalHorizontalEdges.equalToSuperview()
+            $0.directionalVerticalEdges.equalToSuperview()
         }
         
         divider.snp.makeConstraints {

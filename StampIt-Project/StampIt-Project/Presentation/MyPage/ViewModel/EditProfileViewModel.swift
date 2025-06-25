@@ -21,6 +21,7 @@ final class EditProfileViewModel: ViewModelProtocol {
     struct State {
         var user = BehaviorRelay<User?>(value: nil)
         var isUserDataChanged = BehaviorRelay<Bool>(value: false)
+        var nicknameError = BehaviorRelay<String?>(value: nil)
     }
     
     var action = PublishRelay<Action>()
@@ -35,13 +36,22 @@ final class EditProfileViewModel: ViewModelProtocol {
     private var newGroupName: String?
     private var newProfileImageName: String?
     
-    // 유저 정보 중 하나라도 바뀌면 true
-    // 임시 저장 변수(예: newNickname)가 nil이면 아직 바꾸려 시도하지 않은 것이므로 기존 정보와 동일하다고 가정
     private var isUserDataChanged: Bool {
         guard let user = state.user.value else { return false }
-        return (newNickname ?? user.nickname) != user.nickname ||
-               (newGroupName ?? user.groupName) != user.groupName ||
-               (newProfileImageName ?? user.profileImage) != user.profileImage
+        
+        // 닉네임, 그룹명 빈 값("") 허용 안함
+        if newNickname == "" || newGroupName == "" { return false }
+        
+        // 닉네임 글자수 최대 5자
+        if let newNickname, newNickname.count > 5 { return false }
+        
+        // 유저 정보 중 하나라도 바뀌면 true
+        // 임시 저장 변수(예: newNickname)가 nil이면 아직 바꾸려 시도하지 않은 것이므로 기존 정보와 동일하다고 가정
+        if let newNickname, newNickname != user.nickname { return true }
+        if let newGroupName, newGroupName != user.groupName { return true }
+        if let newProfileImageName, newProfileImageName != user.profileImage { return true }
+        
+        return false
     }
     
     init(user: User, editProfileUseCaseImpl: EditProfileUseCase) {
@@ -64,6 +74,10 @@ final class EditProfileViewModel: ViewModelProtocol {
                 case .onAppear:
                     print("on appear")
                 case .nicknameChanged(let nickname):
+                    if nickname.count > 5 {
+                        state.nicknameError.accept("닉네임은 5자까지 가능해요")
+                    }
+                    
                     newNickname = nickname
                     state.isUserDataChanged.accept(isUserDataChanged)
                 case .groupNameChanged(let groupName):
