@@ -47,13 +47,19 @@ final class DIContainer {
         return EditProfileRepositoryImpl(firestoreManager: firestoreManager)
     }()
 
+    // MARK: - Services
+
+    lazy var missionExpirationService: MissionExpirationService = {
+        return MissionExpirationServiceImpl(homeRepository: homeRepository)
+    }()
+
     // MARK: - Use Cases (Domain Layer)
     lazy var loginUseCase: LoginUseCaseProtocol = {
         return LoginUseCase(authRepository: authRepository)
     }()
 
-    lazy var homeUseCase: HomeUseCaseProtocol = {
-        return HomeUseCase(authRepository: authRepository, homeRepository: homeRepository)
+    lazy var rankingUseCase: RankingUseCaseProtocol = {
+        return RankingUseCase(authRepository: authRepository, homeRepository: homeRepository)
     }()
 
     lazy var myPageUseCase: MyPageUseCaseProtocol = {
@@ -64,11 +70,17 @@ final class DIContainer {
     }()
 
     lazy var myMissionUseCase: MyMissionUseCaseProtocol = {
-        return MyMissionUseCaseImpl(homeRepository: homeRepository)
+        return MyMissionUseCaseImpl(
+            homeRepository: homeRepository,
+            expirationService: missionExpirationService
+        )
     }()
 
     lazy var memberMissionUseCase: MemberMissionUseCaseProtocol = {
-        return MemberMissionUseCaseImpl(homeRepository: homeRepository)
+        return MemberMissionUseCaseImpl(
+            homeRepository: homeRepository,
+            expirationService: missionExpirationService
+        )
     }()
 
     lazy var missionUseCase: MissionUseCase = {
@@ -96,7 +108,13 @@ final class DIContainer {
     }
 
     func makeHomeViewModel() -> HomeViewModel {
-        return HomeViewModel(useCase: homeUseCase)
+        return HomeViewModel(
+            rankingUseCase: rankingUseCase,
+            myMissionUseCase: myMissionUseCase,
+            memberMissionUseCase: memberMissionUseCase,
+            memberMapper: MemberMapper(),
+            missionMapper: MissionMapper(),
+        )
     }
     
     func makeStampBoardViewModel() -> StampBoardViewModel {
@@ -119,11 +137,21 @@ final class DIContainer {
     }
 
     func makeMyMissionViewModel(user: User, memberCache: [String: Member]) -> MyMissionViewModel {
-        return MyMissionViewModel(user: user, memberCache: memberCache, useCase: myMissionUseCase)
+        return MyMissionViewModel(
+            user: user,
+            memberCache: memberCache,
+            useCase: myMissionUseCase,
+            mapper: MissionMapper(),
+        )
     }
 
     func makeMemberMissionViewModel(user: User, memberCache: [String: Member]) -> MemberMissionViewModel {
-        return MemberMissionViewModel(user: user, memberCache: memberCache, useCase: memberMissionUseCase)
+        return MemberMissionViewModel(
+            user: user,
+            memberCache: memberCache,
+            useCase: memberMissionUseCase,
+            mapper: MissionMapper(),
+        )
     }
     
     func makeMissionListViewModel() -> MissionListViewModel {

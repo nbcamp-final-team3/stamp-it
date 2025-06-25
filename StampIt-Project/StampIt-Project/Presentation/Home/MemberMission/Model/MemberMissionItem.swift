@@ -12,9 +12,9 @@ enum MemberMissionSection: Hashable, CaseIterable {
 }
 
 enum MemberMissionItem: Hashable {
-    case mission(HomeSendedMission)
+    case mission(HomeMemberMission)
 
-    var mission: HomeSendedMission? {
+    var mission: HomeMemberMission? {
         if case .mission(let mission) = self {
             return mission
         } else {
