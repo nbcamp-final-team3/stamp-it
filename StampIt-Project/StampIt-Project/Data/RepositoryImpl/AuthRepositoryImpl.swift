@@ -78,7 +78,7 @@ final class AuthRepository: AuthRepositoryProtocol {
             from: firebaseUser,
             isNewUser: isNewUser
         )
-
+        
         if isNewUser {
             // 신규 사용자 플로우
             return Observable.just(LoginResult(
@@ -114,7 +114,7 @@ final class AuthRepository: AuthRepositoryProtocol {
                 }
         }
     }
-
+    
     /// Firebase User를 AuthUser로 변환
     private func createAuthUser(from firebaseUser: FirebaseAuth.User, isNewUser: Bool) -> AuthUser {
         return AuthUser(
@@ -224,31 +224,31 @@ final class AuthRepository: AuthRepositoryProtocol {
     func createUser(_ user: UserFirestore) -> Observable<Void> {
         return userManager.create(user)
     }
-
+    
     func createGroup(_ group: GroupFirestore) -> Observable<Void> {
         return groupManager.create(group)
     }
-
-    func addMember(groupId: String, member: MemberFirestore) -> Observable<Void> {
-        // member 컬렉션 삭제, membership 컬렉션 사용
-        let membership = GroupMembershipFirestore(
-            membershipId: "\(groupId)_\(member.userId)",
-            groupId: groupId,
-            userId: member.userId,
-            nickname: member.nickname,
-            profileImage: member.profileImage,
-            isLeader: member.isLeader,
-            joinedAt: member.joinedAt
-        )
-        return membershipManager.create(membership)
+    
+    func addMember(groupId: String, member: GroupMembershipFirestore) -> Observable<Void> {
+        //        // member 컬렉션 삭제, membership 컬렉션 사용
+        //        let membership = GroupMembershipFirestore(
+        //            membershipId: "\(groupId)_\(member.userId)",
+        //            groupId: groupId,
+        //            userId: member.userId,
+        //            nickname: member.nickname,
+        //            profileImage: member.profileImage,
+        //            isLeader: member.isLeader,
+        //            joinedAt: member.joinedAt
+        //        )
+        //        return membershipManager.create(membership)
+        return membershipManager.create(member)
     }
     
     /// 신규 사용자, 그룹, 멤버를 트랜잭션으로 원자적 생성 (새로운 DB 구조 반영)
     func createNewUserWithGroup(
         user: User,
         group: Group,
-        member: Member,
-        invite: Invitation
+        member: Member
     ) -> Observable<StampIt_Project.User> {
         return Observable.create { [weak self] observer in
             guard self != nil else {
@@ -261,10 +261,11 @@ final class AuthRepository: AuthRepositoryProtocol {
             // Domain → Infrastructure 변환
             let userFirestore = user.toFirestoreModel()
             let groupFirestore = group.toFirestoreModel(
-                name: "\(user.nickname)의 그룹",
-                inviteCode: invite.inviteCode
+                groupName: "\(user.nickname)의 그룹",
+                inviteCode: group.inviteCode,
             )
-            let memberFirestore = member.toFirestoreModel()
+            //let memberFirestore = member.toFirestoreModel()
+            let memberFirestore = member.toMembershipFirestoreModel(groupId: group.groupID)
             
             // 1. 유저 생성
             let userDict: [String: Any] = [
@@ -278,19 +279,20 @@ final class AuthRepository: AuthRepositoryProtocol {
             let userRef = Firestore.firestore().collection("users").document(userFirestore.documentID)
             batch.setData(userDict, forDocument: userRef)
             
-            // 2. 그룹 생성 (leaderId 필드 추가)
+            // 2. 그룹 생성
             let groupDict: [String: Any] = [
                 "groupId": groupFirestore.groupId,
                 "name": groupFirestore.name,
-                "leaderId": groupFirestore.leaderId, // 새로 추가된 필드
-                "inviteCode": groupFirestore.inviteCode, // invite 컬렉션 삭제, group 필드로 통일
+                "leaderId": groupFirestore.leaderId,
+                "inviteCode": groupFirestore.inviteCode,
+                "inviteCodeCreateAt": groupFirestore.inviteCodeCreateAt ?? Timestamp(date: Date()),
                 "nameChangedAt": groupFirestore.nameChangedAt,
                 "createdAt": groupFirestore.createdAt
             ]
             let groupRef = Firestore.firestore().collection("groups").document(groupFirestore.documentID)
             batch.setData(groupDict, forDocument: groupRef)
             
-            // 3. 멤버십 생성 (membership 컬렉션 사용)
+            // 3. 멤버십 생성
             let membershipId = "\(groupFirestore.groupId)_\(memberFirestore.userId)"
             let membershipDict: [String: Any] = [
                 "membershipId": membershipId,

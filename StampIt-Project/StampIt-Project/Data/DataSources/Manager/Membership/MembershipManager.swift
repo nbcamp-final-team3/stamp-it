@@ -355,24 +355,24 @@ final class MembershipManager: MembershipManagerProtocol {
         profileImage: String
     ) -> Observable<Void> {
         return Observable.create { observer in
+            
             let batch = Firestore.firestore().batch()
-            
-            let safeProfileImage = profileImage.isEmpty ? "profileImage1" : profileImage
-            
-            // 1. 사용자 그룹 ID 업데이트
             let userRef = self.db.collection("users").document(userId)
+            
+            // 1. 사용자 groupId 업데이트
             batch.updateData([
                 "groupId": toGroupId,
                 "nickname": userNickname,
-                "profileImage": safeProfileImage
+                "profileImage": profileImage.isEmpty ? "profileImage1" : profileImage
+                
             ], forDocument: userRef)
             
-            // 2. 기존 그룹에서 멤버 제거
+            // 2. 기존 그룹 멤버십 삭제
             let oldMembershipId = "\(fromGroupId)_\(userId)"
             let oldMemberRef = self.membershipCollection.document(oldMembershipId)
             batch.deleteDocument(oldMemberRef)
             
-            // 3. 새 그룹에 멤버 추가
+            // 3. 새 그룹 멤버십 추가
             let newMembershipId = "\(toGroupId)_\(userId)"
             let newMemberRef = self.membershipCollection.document(newMembershipId)
             let memberData: [String: Any] = [
@@ -380,10 +380,11 @@ final class MembershipManager: MembershipManagerProtocol {
                 "groupId": toGroupId,
                 "userId": userId,
                 "nickname": userNickname,
-                "profileImage": safeProfileImage,
+                "profileImage": profileImage.isEmpty ? "profileImage1" : profileImage,
                 "isLeader": false,
                 "joinedAt": Timestamp(date: Date())
             ]
+            
             batch.setData(memberData, forDocument: newMemberRef)
             
             // 4. 커밋
@@ -395,7 +396,6 @@ final class MembershipManager: MembershipManagerProtocol {
                     observer.onCompleted()
                 }
             }
-            
             return Disposables.create()
         }
     }

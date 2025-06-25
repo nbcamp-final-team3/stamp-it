@@ -30,8 +30,8 @@ final class InviteUseCaseImpl: InviteUseCase {
 
     // receive 관련 메서드
     func addMember(groupId: String, member: Member) -> Observable<Void> {
-        let toDomain = member.toFirestoreModel()
-        return authRepository.addMember(groupId: groupId, member: toDomain)
+        let membershipFirestore = member.toMembershipFirestoreModel(groupId: groupId)
+        return authRepository.addMember(groupId: groupId, member: membershipFirestore)
     }
 
     // send 관련 메서드
@@ -39,11 +39,11 @@ final class InviteUseCaseImpl: InviteUseCase {
         inviteRepository.fetchGroup(groupId: groupId)
     }
 
-    func createInvite(_ invite: Invitation) -> Observable<Void> {
+    func createInvite(_ invite: Invite) -> Observable<Void> {
         inviteRepository.createInvite(invite)
     }
 
-    func fetchInvite(inviteCode: String) -> Observable<Invitation> {
+    func fetchInvite(inviteCode: String) -> Observable<Invite> {
         inviteRepository.fetchInvite(inviteCode: inviteCode)
     }
 
@@ -69,19 +69,16 @@ final class InviteUseCaseImpl: InviteUseCase {
     }
 
     /// 초대코드를 받아서 해당 그룹에 새 멤버를 추가하는 코드
-    func acceptInvite(inviteCode: String) -> Observable<Invitation> {
+    func acceptInvite(inviteCode: String) -> Observable<Invite> {
         //본인이 db에 추가가 됐는지 확인
         return getCurrentUser()
-            .flatMap { [weak self] optionalUser -> Observable<(User, Invitation)> in
+            .flatMap { [weak self] optionalUser -> Observable<(User, Invite)> in
                 guard let self = self, let user = optionalUser else {
                     return Observable.error(RepositoryError.userNotFound)
                 }
                 return self.fetchInvite(inviteCode: inviteCode)
                     .map { invite in
-                        if invite.expiredAt < Date() {
-                            throw RepositoryError.expiredInviteCode
-                        }
-                        if invite.groupID == user.groupID {
+                        if invite.groupId == user.groupID {
                             throw RepositoryError.alreadyInGroup
                         }
                         return (user, invite)
@@ -118,7 +115,7 @@ final class InviteUseCaseImpl: InviteUseCase {
                         })
                         .map { count in (user, group, fetchUser, count) }
             }
-            .flatMap { [weak self] user, group, fetchUser, memberCount -> Observable<Invitation> in
+            .flatMap { [weak self] user, group, fetchUser, memberCount -> Observable<Invite> in
                 guard let self = self else { return .empty() }
 
                 guard memberCount < 10 else {
@@ -166,7 +163,4 @@ final class InviteUseCaseImpl: InviteUseCase {
                 return group.inviteCode
             }
     }
-
- 
 }
-
