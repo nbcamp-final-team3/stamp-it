@@ -347,6 +347,7 @@ final class MembershipManager: MembershipManagerProtocol {
     }
     
     /// 사용자 그룹 변경 (트랜잭션) -  기존 switchUserGroup 메서드 (추후 수정!!!!!!!!!!!!!)
+    // TODO: 현재 사용되지 않음. 주형님 이 부분 확인하시고 레포로 내려서 그룹 바뀔 때 사용해주시면 됩니다. 그룹 탈퇴하지 않고, 다른 초대 코드를 입력해서 바뀌는 경우를 처리하셔도 되고, 현재 있는 그룹을 탈퇴하기 전까지 다른 그룹으로 이동 못한다고 Alert으로 막고(현재는 1유저=1그룹이라서 Alert으로 막아도 됨) 나중에 추가 처리하셔도 될 것 같습니다. 매니저 리팩토링 할게 많아서 해당 부분까지는 제가 신경쓰기가 너무 힘들어서 양해 부탁드립니다 ㅠ
     func switchUserGroup(
         userId: String,
         fromGroupId: String,

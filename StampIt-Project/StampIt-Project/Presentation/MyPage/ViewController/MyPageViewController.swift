@@ -98,7 +98,7 @@ final class MyPageViewController: UIViewController {
         
         viewModel.state.alertMessage
             .bind(with: self) { owner, message in
-                owner.showAlert(title: "1인 그룹에서는 그룹 탈퇴가 지원되지 않아요.", message: message)
+                owner.showAlert(title: "그룹 탈퇴 실패", message: message)
             }.disposed(by: disposeBag)
         
         // 로그인 화면으로 이동
@@ -229,20 +229,6 @@ final class MyPageViewController: UIViewController {
         
         present(alert, animated: true)
     }
-    
-    /// TODO: 리더 전용 메뉴 표시 (향후 기능 완성 후 활성화)
-     /*
-    private func showLeaderOptionsAlert() {
-        let alert = UIAlertController(title: "그룹장 옵션", message: "그룹을 떠나려면 먼저 다음 작업을 수행해주세요:", preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "그룹장 위임하기", style: .default) { _ in // TODO: 리더 위임 화면으로 이동
-        })
-        alert.addAction(UIAlertAction(title: "멤버 관리하기", style: .default) { _ in // TODO: 멤버 관리 화면으로 이동
-        })
-        alert.addAction(UIAlertAction(title: "계정 탈퇴 (그룹 삭제)", style: .destructive) { _ in self.deleteAccount() })
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        present(alert, animated: true)
-    }
-    */
     
     /// 로그인 화면으로 이동
     private func navigateToLogin() {

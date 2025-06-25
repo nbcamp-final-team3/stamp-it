@@ -24,7 +24,4 @@ protocol GroupManagerProtocol: FullCRUDRepository where Entity == GroupFirestore
     func fetchGroupInviteCode(groupId: String) -> Observable<String>
     func fetchGroupByInviteCode(inviteCode: String) -> Observable<GroupFirestore>
     func updateGroupInviteCode(groupId: String, newInviteCode: String) -> Observable<Void>
-    
-    // 앱 미션 관련 (기존 FirestoreManager 메서드)
-    func fetchAppMissions() -> Observable<[AppMissionFirestore]>
 }

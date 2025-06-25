@@ -329,19 +329,36 @@ final class StickerManager: StickerManagerProtocol {
         }
     }
     
-    /// 특정 사용자의 모든 스티커 삭제 (유저 탈퇴 시 사용)
+    /// 사용자의 모든 스티커 삭제 (서비스 탈퇴용)
     func deleteUserStickers(userId: String) -> Observable<Void> {
-        return fetchList(query: .byUser(userId))
-            .flatMap { [weak self] stickers -> Observable<Void> in
-                guard let self = self else {
-                    return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
-                }
-                
-                let deleteObservables = stickers.map { sticker in
-                    self.delete(id: sticker.documentID)
-                }
-                return Observable.zip(deleteObservables).map { _ in () }
+        return fetchList(query: StickerQuery(
+            stickerIds: nil,
+            userIds: [userId],
+            groupIds: nil,  // 모든 그룹
+            months: nil,
+            pinNumbers: nil,
+            types: nil,
+            createdAfter: nil,
+            orderBy: nil,
+            limit: nil
+        ))
+        .flatMap { [weak self] stickers -> Observable<Void> in
+            guard let self = self else {
+                return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
             }
+            
+            // 빈 배열 처리
+            guard !stickers.isEmpty else {
+                return Observable.just(())
+            }
+            
+            let deleteObservables = stickers.map { sticker in
+                self.delete(id: sticker.documentID)
+            }
+            
+            return Observable.zip(deleteObservables)
+                .map { _ in () }
+        }
     }
     
     /// 특정 그룹의 모든 스티커 삭제 (그룹 삭제 시 사용)
