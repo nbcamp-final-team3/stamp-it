@@ -21,6 +21,7 @@ final class StampBoardCollectionView: UIView {
         $0.register(StampCell.self, forCellWithReuseIdentifier: StampCell.identifier)
         $0.backgroundColor = .clear
         $0.showsVerticalScrollIndicator = false
+        $0.isPagingEnabled = true
     }
     
     // MARK: - Initializer, Deinit, requiered
@@ -90,27 +91,42 @@ final class StampBoardCollectionView: UIView {
     private func createStampBoardLayout() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(0.2),
-            heightDimension: .absolute(MyPage.StampBoard.height)
+            heightDimension: .fractionalHeight(1.0)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         
-        let groupSize = NSCollectionLayoutSize(
+        /// 가로 그룹 (스티커 5개)
+        let horizontalGroupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
             heightDimension: .absolute(MyPage.StampBoard.height)
         )
-        let group = NSCollectionLayoutGroup.horizontal(
-            layoutSize: groupSize,
-            subitems: [item]
+        let horizontalGroup = NSCollectionLayoutGroup.horizontal(
+            layoutSize: horizontalGroupSize,
+            subitems: Array(repeating: item, count: 5)
         )
         
-        let section = NSCollectionLayoutSection(group: group)
+        /// 세로 그룹 (6줄 -> 총 스티커 30개)
+        let verticalGroupSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(0.875),
+            heightDimension: .absolute(MyPage.StampBoard.height * 6)
+        )
+        let verticalGroup = NSCollectionLayoutGroup.vertical(
+            layoutSize: verticalGroupSize,
+            subitems: Array(repeating: horizontalGroup, count: 6)
+        )
+        
+        let section = NSCollectionLayoutSection(group: verticalGroup)
+        
         let isPortrait = UIScreen.main.bounds.height > UIScreen.main.bounds.width
+        
+        section.orthogonalScrollingBehavior = .groupPagingCentered
         section.contentInsets = .init(
             top: 24,
             leading: isPortrait ? 36 : 45,
             bottom: 30,
             trailing: isPortrait ? StickerType.imageSize / 3 : -45
         )
+        
         return section
     }
     
