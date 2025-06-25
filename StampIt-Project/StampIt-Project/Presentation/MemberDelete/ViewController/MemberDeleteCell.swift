@@ -8,12 +8,18 @@
 import UIKit
 import Then
 import SnapKit
+import RxSwift
+import RxCocoa
 
 final class MemberDeleteCell: UICollectionViewCell {
     static let reuseIdentifier = "MemberDeleteCell"
 
-    // MARK: - Callback
-    var optionButtonTapped: (() -> Void)?
+    // MARK: - Actions
+    let optionButtonTapped = PublishRelay<IndexPath>()
+
+    // MARK: - Properties
+    private let disposeBag = DisposeBag()
+    private var indexPath: IndexPath?
 
     // MARK: - UI
     private let profileImageView = UIImageView().then {
@@ -63,6 +69,7 @@ final class MemberDeleteCell: UICollectionViewCell {
         super.init(frame: frame)
         setupUI()
         setupShadowAndCorner()
+        bind()
     }
 
     required init?(coder: NSCoder) {
@@ -110,9 +117,14 @@ final class MemberDeleteCell: UICollectionViewCell {
             $0.trailing.equalToSuperview().inset(16)
             $0.leading.greaterThanOrEqualTo(hStack.snp.trailing).offset(10)
         }
+    }
 
-        // 옵션 버튼 탭 이벤트 추가
-        optionButton.addTarget(self, action: #selector(optionButtonTapped), for: .touchUpInside)
+    // MARK: - Bind
+    private func bind() {
+        optionButton.rx.tap
+            .compactMap { [weak self] in self?.indexPath }
+            .bind(to: optionButtonTapped)
+            .disposed(by: disposeBag)
     }
 
     private func setupShadowAndCorner() {
@@ -128,14 +140,10 @@ final class MemberDeleteCell: UICollectionViewCell {
     }
 
     // MARK: - Configure
-    func configure(with item: MemberDeleteViewModel.Item) {
+    func configure(with item: MemberDeleteViewModel.Item, at indexPath: IndexPath) {
+        self.indexPath = indexPath
         nameLabel.text = item.name
         dateLabel.text = "가입일: 0000년 00월 00일" // 실제 데이터로 교체
         // profileImageView.image = ... // 실제 이미지로 교체
-    }
-
-    // MARK: - Actions
-    @objc private func optionButtonTapped() {
-        optionButtonTapped?()
     }
 }
