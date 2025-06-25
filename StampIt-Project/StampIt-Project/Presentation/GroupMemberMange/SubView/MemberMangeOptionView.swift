@@ -41,9 +41,13 @@ final class MemberManageOptionView: UIView {
         $0.spacing = 12
     }
 
-    private let leaderMandateOptionCard = MemberOptionSelectionCard(type: .leaderMandate)
+    private let leaderMandateOptionCard = OptionSelectionCard().then {
+        $0.configure(title: MemberManageOptionType.leaderMandate.title, subtitle: " ")
+    }
 
-    private let exportMemberOptionCard = MemberOptionSelectionCard(type: .exportMember)
+    private let exportMemberOptionCard = OptionSelectionCard().then {
+        $0.configure(title: MemberManageOptionType.exportMember.title, subtitle: " ")
+    }
 
     private let confirmButton = DefaultButton(type: .confirm).then {
         $0.isEnabled = false
