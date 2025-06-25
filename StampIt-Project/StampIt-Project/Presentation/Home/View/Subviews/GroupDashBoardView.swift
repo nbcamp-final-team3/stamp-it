@@ -18,8 +18,8 @@ final class GroupDashboardView: UIView {
     // MARK: - Action & States
 
     let didTapMissionCompleteButton = PublishRelay<HomeItem>()
-    let didTapMoreReceivedMissionButton = PublishRelay<Void>()
-    let didTapMoreSendedMissionButton = PublishRelay<Void>()
+    let didTapMoreMyMissionButton = PublishRelay<Void>()
+    let didTapMoreMemberMissionButton = PublishRelay<Void>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
 
@@ -89,7 +89,7 @@ final class GroupDashboardView: UIView {
 
                 return cell
 
-            case .received(let mission):
+            case .myMission(let mission):
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: MissionCardCell.identifier,
                     for: indexPath
@@ -105,7 +105,7 @@ final class GroupDashboardView: UIView {
 
                 return cell
 
-            case .sended(let mission):
+            case .memberMission(let mission):
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: AssignedMissionCell.identifier,
                     for: indexPath
@@ -145,7 +145,7 @@ final class GroupDashboardView: UIView {
             case .ranking:
                 return nil
 
-            case .receivedMission:
+            case .myMission:
                 header.configure(title: "내 미션")
                 username
                     .map { "이번주 \($0)님에게 부여된 미션이에요" }
@@ -153,10 +153,10 @@ final class GroupDashboardView: UIView {
                     .disposed(by: header.disposeBag)
 
                 header.didTapMoreMissionButton
-                    .bind(to: didTapMoreReceivedMissionButton)
+                    .bind(to: didTapMoreMyMissionButton)
                     .disposed(by: header.disposeBag)
 
-            case .sendedMission:
+            case .memberMission:
                 header.configure(title: "멤버 미션")
 
                 Observable
@@ -167,7 +167,7 @@ final class GroupDashboardView: UIView {
                     .disposed(by: header.disposeBag)
 
                 header.didTapMoreMissionButton
-                    .bind(to: didTapMoreSendedMissionButton)
+                    .bind(to: didTapMoreMemberMissionButton)
                     .disposed(by: header.disposeBag)
             }
 
@@ -211,9 +211,9 @@ final class GroupDashboardView: UIView {
             switch section {
             case .ranking:
                 return createRankingSection()
-            case .receivedMission:
-                return createReceivedMissionSection()
-            case .sendedMission:
+            case .myMission:
+                return createMyMissionSection()
+            case .memberMission:
                 return createSendMissionSection()
             }
         }
@@ -265,7 +265,7 @@ final class GroupDashboardView: UIView {
         return section
     }
 
-    private func createReceivedMissionSection() -> NSCollectionLayoutSection {
+    private func createMyMissionSection() -> NSCollectionLayoutSection {
         let header = makeHeaderLayout()
 
         let itemSize = NSCollectionLayoutSize(

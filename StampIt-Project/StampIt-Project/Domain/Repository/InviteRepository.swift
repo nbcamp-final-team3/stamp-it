@@ -10,10 +10,10 @@ import RxSwift
 
 protocol InviteRepository {
     // receive 관련 메서드
-    func fetchInvite(inviteCode: String) -> Observable<Invitation>
+    func fetchInvite(inviteCode: String) -> Observable<Invite>
     func addMember(groupId: String, member: Member) -> Observable<Void>
     // send 관련 메서드
-    func createInvite(_ invite: Invitation) -> Observable<Void>
+    func createInvite(_ invite: Invite) -> Observable<Void>
     func fetchGroup(groupId: String) -> Observable<Group>
     // 공통 메서드
     func fetchUserOnce(userId: String) -> Observable<User>

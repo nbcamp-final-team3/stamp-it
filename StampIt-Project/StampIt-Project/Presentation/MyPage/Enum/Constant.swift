@@ -7,9 +7,9 @@
 
 import Foundation
 
-enum TabType: String {
-    case stampBoard
-    case profile
+enum TabType: Int {
+    case stampBoard = 0
+    case profile = 1
     
     var title: String {
         switch self {

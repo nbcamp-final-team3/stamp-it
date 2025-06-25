@@ -69,7 +69,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 return Observable.just(LaunchFlowResult(nextScreen: .login, user: nil))
             }
     }
-
+    
     // MARK: - Private Methods
     /// 로그인 결과 공통 처리 로직 (중복 제거)
     private func processLoginResult(_ loginResult: LoginResult) -> Observable<LoginFlowResult> {
@@ -105,7 +105,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
             let now = Date()
             let inviteCode = self.generateInviteCode()
             
-            // ✅ Domain 모델 생성
+            // Domain 모델 생성
             let user = User(
                 userID: authUser.uid,
                 nickname: randomNickname,
@@ -134,20 +134,10 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 isLeader: true
             )
             
-            let invitation = Invitation(
-                groupID: groupId,
-                createdBy: authUser.uid,
-                expiredAt: Date.distantFuture, // 영구 초대 코드
-                inviteCode: inviteCode,
-                createdAt: now
-            )
-            
-            // 3. 트랜잭션으로 원자적 생성
             self.authRepository.createNewUserWithGroup(
                 user: user,
                 group: group,
-                member: member,
-                invite: invitation
+                member: member
             )
             .subscribe(
                 onNext: { completeUser in
@@ -168,7 +158,8 @@ final class LoginUseCase: LoginUseCaseProtocol {
         }
     }
     
-   /// 랜덤 닉네임 생성 (랜덤 닉네임+닉네임ID 해시값 4자리 묶어서 출력, 예시:  행복한 사자-742A1B2)
+    
+    /// 랜덤 닉네임 생성 (랜덤 닉네임+닉네임ID 해시값 4자리 묶어서 출력, 예시:  행복한 사자-742A1B2)
     static func generateSecureUniqueNickname(userID: String) -> String {
         let adjectives = ["행복한", "즐거운", "활발한", "따뜻한", "밝은"]
         let nouns = ["사자", "호랑이", "곰", "토끼", "고양이"]
@@ -182,7 +173,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
         
         return "\(randomAdjective) \(randomNoun)-\(randomNumber)\(hashedID)"
     }
-
+    
     
     /// 초대 코드 생성 헬퍼 ( 동기적 생성, UUID 기반으로 중복 불가 8자리 코드)
     private func generateInviteCode() -> String {

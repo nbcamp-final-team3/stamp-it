@@ -8,7 +8,7 @@
 import Foundation
 import RxSwift
 
-final class MyPageUseCaseImpl: MyPageUseCase {
+final class MyPageUseCaseImpl: MyPageUseCaseProtocol {
     
     private let authRepository: AuthRepositoryProtocol
     private let mypageRepository: MyPageRepository

@@ -12,6 +12,8 @@ import SnapKit
 import Then
 
 final class MissionListViewController: UIViewController {
+    typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
+    
     private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))
     
     private let searchBar = UISearchBar().then {
@@ -45,7 +47,7 @@ final class MissionListViewController: UIViewController {
     private let viewModel: MissionListViewModel
     private let disposeBag = DisposeBag()
     
-    private var dataSource: UICollectionViewDiffableDataSource<MissionListViewModel.Section, MissionListViewModel.Item>?
+    private var dataSource: DataSource?
     
     init(viewModel: MissionListViewModel) {
         self.viewModel = viewModel
@@ -66,6 +68,7 @@ final class MissionListViewController: UIViewController {
         setNavigationBar()
         
         configureDataSource()
+        updateSnapshot()
         
         bind()
         
@@ -88,7 +91,7 @@ final class MissionListViewController: UIViewController {
     private func setConstraints() {
         navigationBar.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
-            $0.directionalHorizontalEdges.equalToSuperview()
+            $0.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
         }
         
         searchBar.snp.makeConstraints {
@@ -121,15 +124,6 @@ final class MissionListViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(tableView.rx.items(cellIdentifier: MissionListCell.reuseIdentifier, cellType: MissionListCell.self)) { (_, element, cell) in
                 cell.configure(with: element.title)
-            }
-            .disposed(by: disposeBag)
-        
-        // 컬렉션 뷰 스냅샷 변경 시 뷰 반영
-        viewModel.state.snapshot
-            .asDriver(onErrorDriveWith: .empty())
-            .drive { [weak self] snapshot in
-                guard let self, let snapshot, let dataSource else { return }
-                dataSource.apply(snapshot, animatingDifferences: true)
             }
             .disposed(by: disposeBag)
         
@@ -241,7 +235,7 @@ final class MissionListViewController: UIViewController {
     
     // 컬렉션 뷰 데이터소스 설정
     private func configureDataSource() {
-        dataSource = UICollectionViewDiffableDataSource<MissionListViewModel.Section, MissionListViewModel.Item>(collectionView: collectionView) { collectionView, indexPath, item in
+        dataSource = DataSource(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
             case .all:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
@@ -253,6 +247,21 @@ final class MissionListViewController: UIViewController {
                 return cell
             }
         }
+    }
+    
+    // 컬렉션 뷰 스냅샷 업데이트
+    private func updateSnapshot() {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+        snapshot.appendSections([.category])
+        
+        var items: [Item] = []
+        items.append(.all)
+        MissionCategory.allCases.forEach {
+            items.append(.category($0))
+        }
+        snapshot.appendItems(items)
+        
+        dataSource?.apply(snapshot, animatingDifferences: true)
     }
 }
 
@@ -277,5 +286,17 @@ extension MissionListViewController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
         return navigationController?.viewControllers.count ?? 0 > 1
+    }
+}
+
+// 컬렉션 뷰 섹션/아이템 정의
+extension MissionListViewController {
+    enum Section: Hashable {
+        case category
+    }
+    
+    enum Item: Hashable {
+        case all
+        case category(MissionCategory)
     }
 }

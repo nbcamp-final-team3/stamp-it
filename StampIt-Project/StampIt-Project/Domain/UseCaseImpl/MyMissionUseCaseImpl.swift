@@ -10,37 +10,33 @@ import RxSwift
 
 final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
     let homeRepository: HomeRepositoryProtocol
+    let expirationService: MissionExpirationService
 
-    init(homeRepository: HomeRepositoryProtocol) {
+    init(homeRepository: HomeRepositoryProtocol, expirationService: MissionExpirationService) {
         self.homeRepository = homeRepository
+        self.expirationService = expirationService
     }
 
-    func fetchReceivedMissions(ofUser userID: String, fromGroup groupID: String) -> Observable<[Mission]> {
+    func fetchMissions(to userID: String?, ofGroup groupID: String) -> Observable<[Mission]> {
         homeRepository.fetchMissions(to: userID, by: nil, ofGroup: groupID)
-            .map { missions in
-                missions.sorted { $0.createDate > $1.createDate }
+            .do { [weak self] missions in
+                self?.expirationService.handleExpiredMissions(missions, groupID: groupID)
             }
+            .map { $0.sorted { $0.createDate > $1.createDate } }
     }
 
     func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission> {
         homeRepository.updateMissionStatus(for: mission, ofGroup: groupID, to: status)
     }
 
-    func createSticker(
-        userId: String,
-        groupId: String,
-        missionTitle: String,
-        maxSticker: Int,
-        stickerType: String,
-        assignedBy: String
-    ) -> Observable<Void> {
+    func createSticker(user: User, mission: Mission) -> Observable<Void> {
         homeRepository.createSticker(
-            userId: userId,
-            groupId: groupId,
-            missionTitle: missionTitle,
-            maxSticker: maxSticker,
-            stickerType: stickerType,
-            assignedBy: assignedBy
+            userId: user.userID,
+            groupId: user.groupID,
+            missionTitle: mission.title,
+            maxSticker: 30, // TODO: pin 번호 계산용
+            stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
+            assignedBy: mission.assignedBy
         )
     }
 }

@@ -127,13 +127,13 @@ final class HomeViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
-        homeView.didTapMoreReceivedMissionButton
-            .map { HomeViewModel.Action.didTapMoreReceivedMissions }
+        homeView.didTapMoreMyMissionButton
+            .map { HomeViewModel.Action.didTapMoreMyMissions }
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
-        homeView.didTapMoreSendedMissionButton
-            .map { HomeViewModel.Action.didTapMoreSendedMissions }
+        homeView.didTapMoreMemberMissionButton
+            .map { HomeViewModel.Action.didTapMoreMemberMissions }
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
@@ -153,10 +153,10 @@ final class HomeViewController: UIViewController {
             }
             .disposed(by: disposeBag)
 
-        viewModel.state.receivedMissions
+        viewModel.state.myMissions
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
-                owner.homeView.updateSnapshot(withItems: items, toSection: .receivedMission)
+                owner.homeView.updateSnapshot(withItems: items, toSection: .myMission)
             }
             .disposed(by: disposeBag)
 
@@ -165,10 +165,10 @@ final class HomeViewController: UIViewController {
             .drive(onNext: pushMyMissionVC)
             .disposed(by: disposeBag)
 
-        viewModel.state.sendedMissionsForDisplay
+        viewModel.state.memberMissionsForDisplay
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
-                owner.homeView.updateSnapshot(withItems: items, toSection: .sendedMission)
+                owner.homeView.updateSnapshot(withItems: items, toSection: .memberMission)
             }
             .disposed(by: disposeBag)
 

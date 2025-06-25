@@ -229,7 +229,7 @@ final class AssignedMissionCell: UICollectionViewCell {
 
     // MARK: - Methods
 
-    func configureAsSended(with mission: HomeSendedMission) {
+    func configureAsSended(with mission: HomeMemberMission) {
         self.type = .sended
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
@@ -242,7 +242,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         updateContentStackViewConstraints()
     }
 
-    func configureAsReceived(with mission: HomeReceivedMission) {
+    func configureAsReceived(with mission: HomeMyMission) {
         self.type = .received
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
