@@ -7,7 +7,7 @@
 
 import UIKit
 
-extension MyPageViewController: UITableViewDelegate {
+extension ProfileViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         let section = MyPageProfileSection.allCases[section]
         switch section {
@@ -71,7 +71,7 @@ extension MyPageViewController: UITableViewDelegate {
     }
 }
 
-extension MyPageViewController: UITableViewDataSource {
+extension ProfileViewController: UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
         MyPageProfileSection.allCases.count
     }
