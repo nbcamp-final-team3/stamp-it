@@ -208,8 +208,8 @@ final class DIContainer {
         return EditProfileViewModel(user: user, editProfileUseCaseImpl: editProfileUseCase)
     }
 
-    func makeMemberDeleteViewModel() -> MemberDeleteViewModel {
-        return MemberDeleteViewModel()
+    func makeGroupMemberManageViewModel() -> GroupMemberManageViewModel {
+        return GroupMemberManageViewModel()
     }
 
     // MARK: - ViewControllers (Presentation Layer)
@@ -276,9 +276,9 @@ final class DIContainer {
         return EditProfileViewController(viewModel: viewModel)
     }
     
-    func makeMemberDeleteViewController() -> MemberDeleteViewController {
-        let viewModel = makeMemberDeleteViewModel()
-        return MemberDeleteViewController(viewModel: viewModel)
+    func makeGroupMemberManageViewController() -> GroupMemberManageViewController {
+        let viewModel = makeGroupMemberManageViewModel()
+        return GroupMemberManageViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton

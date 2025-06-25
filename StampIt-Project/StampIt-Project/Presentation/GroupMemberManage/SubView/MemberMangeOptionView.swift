@@ -1,8 +1,8 @@
 //
-//  SelectInvitationView.swift
+//  MemberMangeOptionView.swift
 //  StampIt-Project
 //
-//  Created by 곽다은 on 6/9/25.
+//  Created by 윤주형 on 6/25/25.
 //
 
 import UIKit
@@ -11,11 +11,11 @@ import Then
 import RxSwift
 import RxRelay
 
-final class SelectInvitationView: UIView {
+final class MemberManageOptionView: UIView {
 
     // MARK: - Actions
 
-    let didTapOptionCard = PublishRelay<InvitationType>()
+    let didTapOptionCard = PublishRelay<MemberManageOptionType>()
     let didTapConfirmButton = PublishRelay<Void>()
 
     // MARK: - Properties
@@ -31,16 +31,9 @@ final class SelectInvitationView: UIView {
 
     private let titleLabel = UILabel().then {
         let size: CGFloat = 20
-        $0.setTextWithLineHeight(text: "그룹 구성하기", lineHeight: size * 1.2)
+        $0.setTextWithLineHeight(text: "멤버 관리", lineHeight: size * 1.2)
         $0.font = .pretendard(size: size, weight: .medium)
         $0.textColor = ._000000
-    }
-
-    private let descriptionLabel = UILabel().then {
-        let size: CGFloat = 14
-        $0.setTextWithLineHeight(text: "그룹을 구성할 방식을 선택하세요", lineHeight: size * 1.5)
-        $0.font = .pretendard(size: size, weight: .regular)
-        $0.textColor = ._4_E_4_E_4_E
     }
 
     private let optionStackView = UIStackView().then {
@@ -48,12 +41,12 @@ final class SelectInvitationView: UIView {
         $0.spacing = 12
     }
 
-    private let sendOptionCard = OptionSelectionCard().then {
-        $0.configure(title: InvitationType.send.title, subtitle: InvitationType.send.description)
+    private let leaderMandateOptionCard = OptionSelectionCard().then {
+        $0.configure(title: MemberManageOptionType.leaderMandate.title)
     }
 
-    private let receiveOptionCard = OptionSelectionCard().then {
-        $0.configure(title: InvitationType.receive.title, subtitle: InvitationType.receive.description)
+    private let exportMemberOptionCard = OptionSelectionCard().then {
+        $0.configure(title: MemberManageOptionType.exportMember.title)
     }
 
     private let confirmButton = DefaultButton(type: .confirm).then {
@@ -90,13 +83,12 @@ final class SelectInvitationView: UIView {
         ].forEach { addSubview($0) }
 
         [
-            titleLabel,
-            descriptionLabel,
+            titleLabel
         ].forEach { titleStackView.addArrangedSubview($0) }
 
         [
-            sendOptionCard,
-            receiveOptionCard,
+            leaderMandateOptionCard,
+            exportMemberOptionCard,
         ].forEach { optionStackView.addArrangedSubview($0) }
     }
 
@@ -123,13 +115,13 @@ final class SelectInvitationView: UIView {
     // MARK: - Bind
 
     private func bind() {
-        sendOptionCard.rx.controlEvent(.touchUpInside)
-            .map { InvitationType.send }
+        leaderMandateOptionCard.rx.controlEvent(.touchUpInside)
+            .map { MemberManageOptionType.leaderMandate }
             .bind(to: didTapOptionCard)
             .disposed(by: disposeBag)
 
-        receiveOptionCard.rx.controlEvent(.touchUpInside)
-            .map { InvitationType.receive }
+        exportMemberOptionCard.rx.controlEvent(.touchUpInside)
+            .map { MemberManageOptionType.exportMember }
             .bind(to: didTapOptionCard)
             .disposed(by: disposeBag)
 
@@ -138,17 +130,17 @@ final class SelectInvitationView: UIView {
             .disposed(by: disposeBag)
     }
 
-    func handleSelectedOption(_ type: InvitationType?) {
+    func handleSelectedOption(_ type: MemberManageOptionType?) {
         switch type {
-        case .send:
-            sendOptionCard.isSelected = true
-            receiveOptionCard.isSelected = false
-        case .receive:
-            sendOptionCard.isSelected = false
-            receiveOptionCard.isSelected = true
+        case .leaderMandate:
+            leaderMandateOptionCard.isSelected = true
+            exportMemberOptionCard.isSelected = false
+        case .exportMember:
+            leaderMandateOptionCard.isSelected = false
+            exportMemberOptionCard.isSelected = true
         case nil:
-            sendOptionCard.isSelected = false
-            receiveOptionCard.isSelected = false
+            leaderMandateOptionCard.isSelected = false
+            exportMemberOptionCard.isSelected = false
         }
     }
 
