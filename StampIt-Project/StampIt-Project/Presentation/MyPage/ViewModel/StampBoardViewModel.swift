@@ -115,12 +115,12 @@ final class StampBoardViewModel: ViewModelProtocol {
         let totalStickers: [Sticker] = {
             (0..<totalStickerCount).map { index in
                 if stickers.count == .zero {
-                    return Sticker(userID: "", stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1, assignedBy: "")
+                    return makeEmptySticker()
                 } else {
                     if index < stickers.count {
                         return stickers[index]
                     } else {
-                        return Sticker(userID: "", stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1, assignedBy: "")
+                        return makeEmptySticker()
                     }
                 }
             }
@@ -135,5 +135,23 @@ final class StampBoardViewModel: ViewModelProtocol {
             index.isMultiple(of: 2) ? row : row.reversed()
         }
         return ordered
+    }
+    
+    private func makeEmptySticker() -> Sticker {
+        
+        // TODO: pinNumber, type 체크
+        
+        Sticker(
+            userID: "",
+            stickerID: "\(UUID())",
+            title: "",
+            description: "",
+            imageURL: "",
+            type: .stampGray,
+            createdAt: Date(),
+            maxStickers: 30,
+            pinNumber: 1,
+            assignedBy: ""
+        )
     }
 }
