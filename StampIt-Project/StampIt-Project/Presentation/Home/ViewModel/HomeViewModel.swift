@@ -86,9 +86,9 @@ final class HomeViewModel: ViewModelProtocol {
                 case .didReceiveInvitationType(let type):
                     owner.handleInvitation(type: type)
                 case .didTapMissonCompleteButton(let item):
-                    let missionID = item.received!.missionID
+                    let missionID = item.myMission!.missionID
                     owner.handleMissionCompleteButtonTapped(missionID: missionID)
-                    owner.state.completedMissionTitle.accept(item.received!.title)
+                    owner.state.completedMissionTitle.accept(item.myMission!.title)
                 case .didTapCompleteCancelButton:
                     owner.cancelMissionComplete()
                 case .didTapMoreMyMissions:
@@ -225,7 +225,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// UI에서 미션 제거
     private func removeMissionItem(missionID: String) {
         let missions = state.myMissions.value
-        let updated = missions.filter { $0.received!.missionID != missionID }
+        let updated = missions.filter { $0.myMission!.missionID != missionID }
         state.myMissions.accept(updated)
     }
 

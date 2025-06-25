@@ -9,7 +9,9 @@ import UIKit
 
 extension NSCollectionLayoutSection {
     /// 칩 형태의 필터링 섹션 레이아웃
-    static func createFilterSection() -> NSCollectionLayoutSection {
+    static func createFilterSection(
+        withHeader header: NSCollectionLayoutBoundarySupplementaryItem? = nil
+    ) -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                               heightDimension: .fractionalHeight(1))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
@@ -22,6 +24,10 @@ extension NSCollectionLayoutSection {
         section.interGroupSpacing = 8
         section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
         section.orthogonalScrollingBehavior = .continuous
+
+        if let header {
+            section.boundarySupplementaryItems = [header]
+        }
 
         return section
     }

@@ -37,6 +37,7 @@ final class GroupDashboardView: UIView {
         $0.showsVerticalScrollIndicator = false
         $0.register(MemberCompactCell.self, forCellWithReuseIdentifier: MemberCompactCell.identifier)
         $0.register(MissionCardCell.self, forCellWithReuseIdentifier: MissionCardCell.identifier)
+        $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
         $0.register(AssignedMissionCell.self, forCellWithReuseIdentifier: AssignedMissionCell.identifier)
         $0.register(PlaceholderCell.self, forCellWithReuseIdentifier: PlaceholderCell.identifier)
         $0.register(
@@ -105,6 +106,16 @@ final class GroupDashboardView: UIView {
 
                 return cell
 
+            case .memberFilter(let nickname):
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: CategoryCell.reuseIdentifier,
+                    for: indexPath
+                ) as! CategoryCell
+
+                cell.configure(title: nickname)
+
+                return cell
+
             case .memberMission(let mission):
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: AssignedMissionCell.identifier,
@@ -121,9 +132,7 @@ final class GroupDashboardView: UIView {
                     for: indexPath
                 ) as! PlaceholderCell
 
-                if let text = section.placeholderText {
-                    cell.configure(with: text)
-                }
+                cell.configure(with: section.placeholderText)
 
                 return cell
             }
@@ -142,9 +151,6 @@ final class GroupDashboardView: UIView {
             let section = HomeSection.allCases[indexPath.section]
 
             switch section {
-            case .ranking:
-                return nil
-
             case .myMission:
                 header.configure(title: "내 미션")
                 username
@@ -156,7 +162,7 @@ final class GroupDashboardView: UIView {
                     .bind(to: didTapMoreMyMissionButton)
                     .disposed(by: header.disposeBag)
 
-            case .memberMission:
+            case .memberFilter:
                 header.configure(title: "멤버 미션")
 
                 Observable
@@ -169,6 +175,8 @@ final class GroupDashboardView: UIView {
                 header.didTapMoreMissionButton
                     .bind(to: didTapMoreMemberMissionButton)
                     .disposed(by: header.disposeBag)
+            default:
+                return nil
             }
 
             return header
@@ -177,6 +185,7 @@ final class GroupDashboardView: UIView {
         guard let dataSource else { return }
         var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
         snapshot.appendSections(HomeSection.allCases)
+        snapshot.appendItems([.memberFilter(nickname: "전체보기"), .memberFilter(nickname: "단단")], toSection: .memberFilter)
         dataSource.apply(snapshot)
     }
 
@@ -206,13 +215,17 @@ final class GroupDashboardView: UIView {
             guard let self else { return nil }
 
             let section = HomeSection.allCases[section]
-            if isOnlyPlaceholder(inSection: section) { return createEmptySection() }
+            if isOnlyPlaceholder(inSection: section) {
+                return createEmptySection(withHeader: section == .myMission)
+            }
 
             switch section {
             case .ranking:
                 return createRankingSection()
             case .myMission:
                 return createMyMissionSection()
+            case .memberFilter:
+                return .createFilterSection(withHeader: makeHeaderLayout())
             case .memberMission:
                 return createSendMissionSection()
             }
@@ -224,9 +237,7 @@ final class GroupDashboardView: UIView {
         return item?.count == 1 && item?.first == .placeholder(section)
     }
 
-    private func createEmptySection() -> NSCollectionLayoutSection {
-        let header = makeHeaderLayout()
-
+    private func createEmptySection(withHeader: Bool = false) -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
             heightDimension: .fractionalHeight(1)
@@ -241,7 +252,12 @@ final class GroupDashboardView: UIView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = .init(top: 16, leading: 16, bottom: 36, trailing: 16)
-        section.boundarySupplementaryItems = [header]
+
+        if withHeader {
+            let header = makeHeaderLayout()
+            section.boundarySupplementaryItems = [header]
+        }
+
         return section
     }
 
@@ -289,8 +305,6 @@ final class GroupDashboardView: UIView {
     }
 
     private func createSendMissionSection() -> NSCollectionLayoutSection {
-        let header = makeHeaderLayout()
-
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
             heightDimension: .estimated(80)
@@ -306,7 +320,6 @@ final class GroupDashboardView: UIView {
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 6
         section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
-        section.boundarySupplementaryItems = [header]
         return section
     }
 
