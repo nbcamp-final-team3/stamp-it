@@ -98,21 +98,20 @@ final class StampBoardViewController: UIViewController {
         summary: (collected: Int, completed: Int),
         stickers: [Sticker]
     ) {
-        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
-        snapshot.appendSections([.summary])
-        snapshot.appendItems(
-            [.summary(
+        let summaryItem: [StampBoardItem] = [
+            .summary(
                 collected: summary.collected,
                 completed: summary.completed
-            )],
-            toSection: .summary
-        )
+            )
+        ]
         
-        snapshot.appendSections([.defaultBoard])
-        snapshot.appendItems(
-            stickers.map { .stickers($0) } ,
-            toSection: .defaultBoard
-        )
+        let stickerItems: [StampBoardItem] = stickers.map { .stickers($0) }
+        
+        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
+        snapshot.appendSections([.summary, .defaultBoard])
+        snapshot.appendItems(summaryItem, toSection: .summary)
+        snapshot.appendItems(stickerItems, toSection: .defaultBoard)
+        
         stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
     }
 }
