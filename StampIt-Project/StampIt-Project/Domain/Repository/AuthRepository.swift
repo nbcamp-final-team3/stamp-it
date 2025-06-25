@@ -19,7 +19,7 @@ protocol AuthRepositoryProtocol {
     // MARK: - 개별 생성 메서드 노출 (SRP 준수)
     func createUser(_ user: UserFirestore) -> Observable<Void>
     func createGroup(_ group: GroupFirestore) -> Observable<Void>
-    func addMember(groupId: String, member: MemberFirestore) -> Observable<Void>
+    func addMember(groupId: String, member: GroupMembershipFirestore) -> Observable<Void>
     
     // MARK: - 상태 관리
     func getCurrentUser() -> Observable<StampIt_Project.User?>
@@ -31,8 +31,7 @@ protocol AuthRepositoryProtocol {
     func createNewUserWithGroup(
         user: User,
         group: Group,
-        member: Member,
-        invite: Invitation
+        member: Member
     ) -> Observable<StampIt_Project.User>
     
     // MARK: - 편의 메서드 (Extension에서 구현된 것들)
