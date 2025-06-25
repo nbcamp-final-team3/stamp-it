@@ -22,7 +22,7 @@ final class GroupMemberManageViewController: UIViewController {
 
     // MARK: - UI
 
-    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "멤버 내보내기"))
+    private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "멤버 관리"))
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then() {
         $0.register(GroupMemberCardCell.self, forCellWithReuseIdentifier: GroupMemberCardCell.reuseIdentifier)

@@ -42,11 +42,11 @@ final class MemberManageOptionView: UIView {
     }
 
     private let leaderMandateOptionCard = OptionSelectionCard().then {
-        $0.configure(title: MemberManageOptionType.leaderMandate.title, subtitle: " ")
+        $0.configure(title: MemberManageOptionType.leaderMandate.title)
     }
 
     private let exportMemberOptionCard = OptionSelectionCard().then {
-        $0.configure(title: MemberManageOptionType.exportMember.title, subtitle: " ")
+        $0.configure(title: MemberManageOptionType.exportMember.title)
     }
 
     private let confirmButton = DefaultButton(type: .confirm).then {

@@ -1,5 +1,5 @@
 //
-//  MemberDeleteViewModel.swift
+//  GroupMemberManageViewModel.swift
 //  StampIt-Project
 //
 //  Created by 윤주형 on 6/15/25.

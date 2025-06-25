@@ -41,9 +41,9 @@ extension MyPageViewController: UITableViewDelegate {
         let menu = section.menus[indexPath.row]
         
         switch menu {
-        case .deleteMember:
+        case .MemberManage:
             // TODO: 멤버 삭제 기능 구현 후 추가
-            let vc = DIContainer.shared.makeMemberDeleteViewController()
+            let vc = DIContainer.shared.makeGroupMemberManageViewController()
             print("멤버 삭제하기 탭")
             navigationController?.pushViewController(vc, animated: true)
 
