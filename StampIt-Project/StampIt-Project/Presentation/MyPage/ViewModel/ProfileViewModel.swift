@@ -133,13 +133,7 @@ final class ProfileViewModel: ViewModelProtocol {
     /// 그룹 탈퇴 확인 - 다인 그룹에서만 호출됨
     private func showLeaveGroupConfirmation(for currentUser: User) {
         if currentUser.isLeader {
-            state.shouldShowConfirmAlert.accept((
-                "리더 권한을 위임하고 탈퇴하시겠어요?",
-                "가장 오래된 멤버가 새 리더가 되며,\n탈퇴 후 복구는 불가능합니다.",
-                { [weak self] in
-                    self?.performLeaveGroup()
-                }
-            ))
+            state.alertMessage.accept("리더는 다른 멤버에게 리더 위임 후\n그룹 탈퇴가 가능합니다.")
         } else {
             state.shouldShowConfirmAlert.accept((
                 "'\(currentUser.groupName)' 그룹에서 탈퇴하시겠어요?",
@@ -219,23 +213,12 @@ final class ProfileViewModel: ViewModelProtocol {
                 },
                 onError: { [weak self] error in
                     self?.state.isLoading.accept(false)
-                    
-                    // 그룹 탈퇴 전용 에러 처리 - Repository 메시지 그대로 사용
-                    if let repositoryError = error as? RepositoryError {
-                        switch repositoryError {
-                        case .dataError(let message):
-                            // Repository에서 온 메시지를 그대로 표시
-                            self?.state.alertMessage.accept(message)
-                        default:
-                            self?.state.alertMessage.accept("다른 멤버에게 리더 위임 후\n그룹 탈퇴가 가능합니다.")
-                        }
-                    } else {
-                        self?.state.alertMessage.accept("그룹 탈퇴에 실패했습니다.")
-                    }
+                    self?.state.alertMessage.accept("그룹 탈퇴에 실패했습니다.")
                 }
             )
             .disposed(by: disposeBag)
     }
+
     
     // MARK: - Helper Methods
     
