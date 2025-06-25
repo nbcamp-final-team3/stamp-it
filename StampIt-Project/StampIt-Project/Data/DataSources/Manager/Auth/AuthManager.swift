@@ -176,7 +176,6 @@ final class AuthManager: NSObject,AuthManagerProtocol {
             return Disposables.create()
         }
     }
-
     
     // MARK: - User State Methods
     /// 현재 Firebase 인증된 사용자를 반환

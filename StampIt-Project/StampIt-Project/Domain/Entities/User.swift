@@ -12,8 +12,8 @@ struct User {
     let nickname: String
     let profileImage: String?
     let boards: [StickerBoard]
-    let groupID: String
-    let groupName: String
-    let isLeader: Bool
-    let joinedGroupAt: Date
+    let groupID: String         // 현재 활성 그룹 ID
+    let groupName: String       // 현재 활성 그룹 이름
+    let isLeader: Bool          // 현재 그룹에서의 리더 여부
+    let joinedGroupAt: Date     // 현재 그룹 가입일
 }

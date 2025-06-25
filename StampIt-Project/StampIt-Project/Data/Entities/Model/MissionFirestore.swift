@@ -10,15 +10,15 @@ import FirebaseFirestore
 
 struct MissionFirestore: Codable {
     let missionId: String
+    let groupId: String
     let title: String
-    let assignedBy: String
-    let assignedTo: String
-    let createDate: Timestamp
-    let dueDate: Timestamp
-    let category: String
+    let assignedBy: String          // 미션 준 사람
+    let assignedTo: String          // 미션 받은 사람
+    let createDate: Timestamp       // 미션 준 날짜
+    let dueDate: Timestamp          // 미션 끝나는 날짜
+    let category: String            // TODO: 리팩토링 컬렉션 필드에 없음
     let status: String              // "assigned", "completed", "failed"
     let missionType: String         // "app", "custom"
-    let createdAt: Timestamp
     
     var documentID: String {
         return missionId

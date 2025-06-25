@@ -44,4 +44,6 @@ final class MyPageViewModel: ViewModelProtocol {
                 }
             }.disposed(by: disposeBag)
     }
+                    self?.state.alertMessage.accept("로그아웃에 실패했습니다.")
+                }
 }

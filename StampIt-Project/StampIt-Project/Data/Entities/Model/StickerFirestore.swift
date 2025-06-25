@@ -16,7 +16,7 @@ struct StickerFirestore: Codable {
     let type: String                // "일반", "특별", 현재 미사용
     let pinNumber: Int
     let createdAt: Timestamp
-    let missionTitle: String
+    let missionId: String
     let maxStickers: Int
     let assignedBy: String
 
@@ -31,8 +31,8 @@ extension StickerFirestore {
         return Sticker(
             userID: self.userId,
             stickerID: self.stickerId,
-            title: self.missionTitle,
-            description: self.missionTitle, // 현재는 동일
+            title: self.missionId,
+            description: self.missionId,
             imageURL: "",
             type: StickerType(rawValue: self.type) ?? .stampRed,
             createdAt: self.createdAt.dateValue(),

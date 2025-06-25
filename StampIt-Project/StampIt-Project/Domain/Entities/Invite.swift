@@ -7,13 +7,10 @@
 
 import Foundation
 
-struct Invitation {
-    let groupID: String
-    let createdBy: String
-    let expiredAt: Date
-    
-    //추가
-    let inviteCode: String     
+struct Invite {                 //Invitaion > Invite로 수정
+    let inviteCode: String
+    let groupId: String
+    let groupName: String           // 추가
+    let invitedBy: String           // createdBy → invitedBy로 통일 (초대한 사람)
     let createdAt: Date
-
 }
