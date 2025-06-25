@@ -5,8 +5,10 @@
 //  Created by iOS study on 6/18/25.
 //
 
+import Foundation
+
 // MARK: - 그룹 탈퇴 전용 에러 타입
-enum GroupExitError: Error {
+enum GroupExitError: Error, LocalizedError {
     case userNotFound
     case groupNotFound
     case batchCommitFailed(String)

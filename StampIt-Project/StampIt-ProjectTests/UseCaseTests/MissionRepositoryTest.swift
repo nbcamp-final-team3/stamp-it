@@ -11,12 +11,17 @@ import FirebaseCore
 
 // MissionRepositoryImpl 테스트 클래스
 final class MissionRepositoryTest: MissionRepository {
-    private let firestoreManager: FirestoreManagerProtocol
+    private let missionManager: MissionManager
+    private let membershipManager: MembershipManager
     private let authRepository: AuthRepositoryProtocol
     
-    init(firestoreManager: FirestoreManagerProtocol = FirestoreManager(),
-         authRepository: AuthRepositoryProtocol = AuthRepository(authManager: AuthManager(), firestoreManager: FirestoreManager())) {
-        self.firestoreManager = firestoreManager
+    init(
+        missionManager: MissionManager,
+        membershipManager: MembershipManager,
+        authRepository: AuthRepositoryProtocol
+    ) {
+        self.missionManager = missionManager
+        self.membershipManager = membershipManager
         self.authRepository = authRepository
     }
     
@@ -82,6 +87,7 @@ final class MissionRepositoryTest: MissionRepository {
         // 도메인 레이어 Mission 모델 -> 데이터 레이어 MissionFirestore 모델
         let missionFirestore = MissionFirestore(
             missionId: mission.missionID,
+            groupId: groupId,
             title: mission.title,
             assignedBy: mission.assignedBy,
             assignedTo: mission.assignedTo,
@@ -90,8 +96,7 @@ final class MissionRepositoryTest: MissionRepository {
             category: category,
             status: MissionFirestore.Status.assigned.rawValue,
             missionType: MissionFirestore.MissionType.app.rawValue,
-            createdAt: Timestamp(date: mission.createDate))
-        
+        )
         return Observable.create { _ in
             print("""
                   mission created.
@@ -105,7 +110,6 @@ final class MissionRepositoryTest: MissionRepository {
                   category: \(missionFirestore.category)
                   status: \(missionFirestore.status)
                   missionType: \(missionFirestore.missionType)
-                  createdAt: \(missionFirestore.createdAt)
                   """)
             return Disposables.create()
         }

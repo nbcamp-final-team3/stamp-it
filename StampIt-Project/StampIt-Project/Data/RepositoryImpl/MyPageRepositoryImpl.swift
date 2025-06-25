@@ -9,21 +9,20 @@ import Foundation
 import RxSwift
 
 final class MyPageRepositoryImpl: MyPageRepository {
-
-    private var firestoreManager: FirestoreManagerProtocol
+    private let stickerManager: StickerManager
     
-    init(firestoreManager: FirestoreManagerProtocol) {
-        self.firestoreManager = firestoreManager
+    init(stickerManager: StickerManager) {
+        self.stickerManager = stickerManager
     }
     
     func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[Sticker]> {
-        firestoreManager.fetchStickersByPin(userId: userId, pinNumber: pinNumber)
-            .map { stickers in
-                stickers.map { $0.toDomainModel() }
+        return stickerManager.fetchStickersByPin(userId: userId, pinNumber: pinNumber)
+            .map { stickerFirestores in
+                stickerFirestores.map { $0.toDomainModel() }
             }
     }
     
     func fetchStickerCount(userId: String) -> Observable<Int> {
-        firestoreManager.fetchStickerCount(userId: userId)
+        return stickerManager.fetchStickerCount(userId: userId)
     }
 }
