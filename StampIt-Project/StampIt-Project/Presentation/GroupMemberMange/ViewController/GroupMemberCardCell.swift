@@ -1,5 +1,5 @@
 //
-//  MemberDeleteCell.swift
+//  GroupMemberCardCell.swift
 //  StampIt-Project
 //
 //  Created by 윤주형 on 6/15/25.
@@ -11,8 +11,8 @@ import SnapKit
 import RxSwift
 import RxCocoa
 
-final class MemberDeleteCell: UICollectionViewCell {
-    static let reuseIdentifier = "MemberDeleteCell"
+final class GroupMemberCardCell: UICollectionViewCell {
+    static let reuseIdentifier = "GroupMemberCardCell"
 
     // MARK: - Actions
     let optionButtonTapped = PublishRelay<IndexPath>()
@@ -25,7 +25,7 @@ final class MemberDeleteCell: UICollectionViewCell {
     private let profileImageView = UIImageView().then {
         $0.contentMode = .center
         $0.clipsToBounds = true
-        $0.layer.cornerRadius = 30 // 48/2
+        $0.layer.cornerRadius = 30
         $0.backgroundColor = .FFFFFF
         $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.borderWidth = 1
@@ -140,7 +140,7 @@ final class MemberDeleteCell: UICollectionViewCell {
     }
 
     // MARK: - Configure
-    func configure(with item: MemberDeleteViewModel.Item, at indexPath: IndexPath) {
+    func configure(with item: GroupMemberManageViewModel.Item, at indexPath: IndexPath) {
         self.indexPath = indexPath
         nameLabel.text = item.name
         dateLabel.text = "가입일: 0000년 00월 00일" // 실제 데이터로 교체

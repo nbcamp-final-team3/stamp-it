@@ -21,7 +21,6 @@ final class MemberDeleteViewModel: ViewModelProtocol {
     }
 
     struct State {
-        // 접속해 있는 유저가 그룹의 리더인지 여부
         let isLeader = BehaviorRelay<Bool>(value: false)
         let isLeaderMandate = PublishRelay<Void>()
         let isMemberExport = PublishRelay<Void>()

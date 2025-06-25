@@ -36,13 +36,6 @@ final class MemberManageOptionView: UIView {
         $0.textColor = ._000000
     }
 
-    private let descriptionLabel = UILabel().then {
-        let size: CGFloat = 14
-        $0.setTextWithLineHeight(text: "멤버에 대한 작업을 선택하세요", lineHeight: size * 1.5)
-        $0.font = .pretendard(size: size, weight: .regular)
-        $0.textColor = ._4_E_4_E_4_E
-    }
-
     private let optionStackView = UIStackView().then {
         $0.axis = .vertical
         $0.spacing = 12
@@ -86,8 +79,7 @@ final class MemberManageOptionView: UIView {
         ].forEach { addSubview($0) }
 
         [
-            titleLabel,
-            descriptionLabel,
+            titleLabel
         ].forEach { titleStackView.addArrangedSubview($0) }
 
         [

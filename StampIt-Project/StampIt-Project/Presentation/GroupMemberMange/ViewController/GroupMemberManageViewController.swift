@@ -1,5 +1,5 @@
 //
-//  MemberDeleteViewController.swift
+//  GroupMemberManageViewController.swift
 //  StampIt-Project
 //
 //  Created by 윤주형 on 6/15/25.
@@ -12,7 +12,7 @@ import RxSwift
 import RxCocoa
 import SnapKit
 
-final class MemberDeleteViewController: UIViewController {
+final class GroupMemberManageViewController: UIViewController {
 
      // MARK: - Properties
 
@@ -25,7 +25,7 @@ final class MemberDeleteViewController: UIViewController {
     private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "멤버 내보내기"))
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then() {
-        $0.register(MemberDeleteCell.self, forCellWithReuseIdentifier: MemberDeleteCell.reuseIdentifier)
+        $0.register(MemberCardCell.self, forCellWithReuseIdentifier: MemberCardCell.reuseIdentifier)
     }
 
    // MARK: - Init
@@ -91,7 +91,7 @@ final class MemberDeleteViewController: UIViewController {
 
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(110) // 셀 높이 조정
+            heightDimension: .estimated(110)
         )
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, repeatingSubitem: item, count: 1)
 
@@ -102,12 +102,14 @@ final class MemberDeleteViewController: UIViewController {
 
     private func setupDataSource() {
         dataSource = UICollectionViewDiffableDataSource<MemberDeleteViewModel.Section, MemberDeleteViewModel.Item>(collectionView: collectionView) { (collectionView, indexPath, item) -> UICollectionViewCell? in
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MemberDeleteCell.reuseIdentifier, for: indexPath) as! MemberDeleteCell
-            cell.configure(with: item)
-            cell.optionButtonTapped = { [weak self] in
-                guard let self = self else { return }
-                self.viewModel.action.accept(.didTapCardOptionButton)
-            }
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MemberCardCell.reuseIdentifier, for: indexPath) as! MemberCardCell
+            cell.configure(with: item, at: indexPath)
+
+            cell.optionButtonTapped
+                .map { _ in MemberDeleteViewModel.Action.didTapCardOptionButton }
+                .bind(to: self.viewModel.action)
+                .disposed(by: self.disposeBag)
+            
             return cell
         }
         
@@ -157,14 +159,6 @@ final class MemberDeleteViewController: UIViewController {
                 owner.handleMemberExport()
             }
             .disposed(by: disposeBag)
-
-        viewModel.state.isPushReceiveInvitationVC
-            .asDriver(onErrorDriveWith: .empty())
-            .drive(with: self) { owner, _ in
-                let receiveInviteVC = DIContainer.shared.makeReceiveInviteViewController()
-                owner.navigationController?.pushViewController(receiveInviteVC, animated: true)
-            }
-            .disposed(by: disposeBag)
     }
 
     private func handleLeaderMandate() {
@@ -189,41 +183,27 @@ final class MemberDeleteViewController: UIViewController {
             .disposed(by: vc.disposeBag)
 
         if let sheet = vc.sheetPresentationController {
-            sheet.detents = [.medium()]
+            // SafeArea의 25%만 올라오는 custom detent 생성
+            let customDetent = UISheetPresentationController.Detent.custom(
+                // 식별자 선언은 선택의 영역인데 최대한 documents를 따라가고 싶어서 넣었습니다.
+                identifier: .init("small"),
+                resolver: { context in
+                    let calculated = context.maximumDetentValue * 0.35
+                    print(calculated)
+                    return max(calculated, 350)
+                }
+            )
+            
+            sheet.detents = [customDetent]
             sheet.prefersGrabberVisible = true
             sheet.preferredCornerRadius = 32
         }
         present(vc, animated: true)
     }
 
-//    func showExportAlert(for member: Member) {
-//        let alert = UIAlertController(
-//            title: "\(member.nickname)님을 그룹에서 내보낼까요?",
-//            message: "내보내신 후 복구는 불가능해요",
-//            preferredStyle: .alert
-//        )
-//        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-//        alert.addAction(UIAlertAction(title: "내보내기", style: .destructive) { _ in
-//            self.viewModel.action.accept(.exportMember(memberID: member.userID))
-//        })
-//        present(alert, animated: true)
-//    }
-
-    func presentOptionSheet(for memberId: String) {
-        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "그룹 리더 위임하기", style: .default) { _ in
-            self.viewModel.action.accept(.didRequestSelectType(.delegateLeader(memberId: memberId)))
-        })
-        alert.addAction(UIAlertAction(title: "멤버 내보내기", style: .destructive) { _ in
-            self.viewModel.action.accept(.didRequestSelectType(.kickMember(memberId: memberId)))
-        })
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-        present(alert, animated: true)
-    }
-
 }
 
-extension MemberDeleteViewController: UIGestureRecognizerDelegate {
+extension GroupMemberManageViewController: UIGestureRecognizerDelegate {
   func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
     // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
     return navigationController?.viewControllers.count ?? 0 > 1

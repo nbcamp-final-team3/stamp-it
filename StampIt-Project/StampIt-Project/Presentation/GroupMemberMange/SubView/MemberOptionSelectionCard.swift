@@ -1,8 +1,8 @@
 //
-//  OptionSelectionCard.swift
+//  MemberOptionSelectionCard.swift
 //  StampIt-Project
 //
-//  Created by 곽다은 on 6/9/25.
+//  Created by 윤주형 on 6/25/25.
 //
 
 import UIKit
@@ -11,7 +11,7 @@ import Then
 import RxSwift
 import RxRelay
 
-final class OptionSelectionCard: UIControl {
+final class MemberOptionSelectionCard: UIControl {
 
     // MARK: - Properties
 
@@ -45,13 +45,12 @@ final class OptionSelectionCard: UIControl {
 
     // MARK: - Init
 
-    init(type: InvitationType) {
+    init(type: MemberManageOptionType) {
         super.init(frame: .zero)
         setStyles()
         setHierarchy()
         setConstraints()
         titleLabel.text = type.title
-        subtitleLabel.text = type.description
     }
 
     required init?(coder: NSCoder) {
