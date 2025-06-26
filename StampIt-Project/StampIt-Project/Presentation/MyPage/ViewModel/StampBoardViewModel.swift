@@ -120,7 +120,7 @@ final class StampBoardViewModel: ViewModelProtocol {
         let zigzagged: [[Sticker]] = stickers.map {
             makeZigzagOrder(
                 from: $0,
-                columns: StampBoardSection.defaultBoard.column
+                columns: StampBoardSection.column
             )
         }
         state.stickersByPage.accept(zigzagged)

@@ -82,12 +82,7 @@ enum StampBoardSection: Hashable {
         }
     }
     
-    var column: Int {
-        switch self {
-        case .page: return 5
-        default: return .zero
-        }
-    }
+    static var column: Int { 5 }
     
     static var totalStamp: Int { 30 }
     
