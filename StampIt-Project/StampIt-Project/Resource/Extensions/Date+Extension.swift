@@ -28,8 +28,9 @@ extension Date {
 
     /// 오늘부터 days일 이내에 포함되는지 검증
     func isWithinNext(days: Int, calendar: Calendar = .current) -> Bool {
+        let startOfDay = calendar.startOfDay(for: self)
         let start = calendar.startOfDay(for: Date())
         guard let end = calendar.date(byAdding: .day, value: days, to: start) else { return false }
-        return (start ... end).contains(self)
+        return (start ... end).contains(startOfDay)
     }
 }
