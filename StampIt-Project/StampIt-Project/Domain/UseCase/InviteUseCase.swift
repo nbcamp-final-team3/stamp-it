@@ -10,7 +10,7 @@ import RxSwift
 
 protocol InviteUseCase {
     /// 초대 코드 확인 메서드
-    func acceptInvite(inviteCode: String) -> Observable<Invitation>
+    func acceptInvite(inviteCode: String) -> Observable<Invite>
     /// 초대코드 생성 메서드
     func getInviteCode() -> Observable<String>
 }

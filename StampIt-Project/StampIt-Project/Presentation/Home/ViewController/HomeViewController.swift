@@ -30,7 +30,7 @@ final class HomeViewController: UIViewController {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -127,13 +127,18 @@ final class HomeViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
-        homeView.didTapMoreReceivedMissionButton
-            .map { HomeViewModel.Action.didTapMoreReceivedMissions }
+        homeView.didTapMoreMyMissionButton
+            .map { HomeViewModel.Action.didTapMoreMyMissions }
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
-        homeView.didTapMoreSendedMissionButton
-            .map { HomeViewModel.Action.didTapMoreSendedMissions }
+        homeView.didTapMoreMemberMissionButton
+            .map { HomeViewModel.Action.didTapMoreMemberMissions }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
+        homeView.selectMember
+            .map { HomeViewModel.Action.didSelectReceivedMember($0) }
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
@@ -153,10 +158,10 @@ final class HomeViewController: UIViewController {
             }
             .disposed(by: disposeBag)
 
-        viewModel.state.receivedMissions
+        viewModel.state.myMissions
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
-                owner.homeView.updateSnapshot(withItems: items, toSection: .receivedMission)
+                owner.homeView.updateSnapshot(withItems: items, toSection: .myMission)
             }
             .disposed(by: disposeBag)
 
@@ -165,10 +170,20 @@ final class HomeViewController: UIViewController {
             .drive(onNext: pushMyMissionVC)
             .disposed(by: disposeBag)
 
-        viewModel.state.sendedMissionsForDisplay
+        viewModel.state.memberFilter
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
-                owner.homeView.updateSnapshot(withItems: items, toSection: .sendedMission)
+                owner.homeView.updateSnapshot(withItems: items, toSection: .memberFilter)
+                if owner.viewModel.state.selectedFilter.value == nil {
+                    owner.homeView.setDefaultSelection()
+                }
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.memberMissionsForDisplay
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.homeView.updateSnapshot(withItems: items, toSection: .memberMission)
             }
             .disposed(by: disposeBag)
 
@@ -213,7 +228,15 @@ final class HomeViewController: UIViewController {
             .disposed(by: vc.disposeBag)
 
         if let sheet = vc.sheetPresentationController {
-            sheet.detents = [.medium()]
+            // SafeArea의 25%만 올라오는 custom detent 생성
+            let customDetent = UISheetPresentationController.Detent.custom(
+                resolver: { context in
+                    let calculated = context.maximumDetentValue * 0.35
+                    return max(calculated, 388)
+                }
+            )
+
+            sheet.detents = [customDetent]
             sheet.prefersGrabberVisible = true
             sheet.preferredCornerRadius = 32
         }

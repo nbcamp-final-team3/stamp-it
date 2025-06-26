@@ -26,12 +26,13 @@ final class MissionListViewController: UIViewController {
     
     private lazy var tableView = UITableView().then {
         $0.register(MissionListCell.self, forCellReuseIdentifier: MissionListCell.reuseIdentifier)
+        $0.separatorColor = .gray50
         $0.keyboardDismissMode = .onDrag
         $0.delegate = self
     }
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
-        $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
+        $0.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.reuseIdentifier)
         $0.isScrollEnabled = false
     }
     
@@ -96,13 +97,13 @@ final class MissionListViewController: UIViewController {
         
         searchBar.snp.makeConstraints {
             $0.top.equalTo(navigationBar.snp.bottom)
-            $0.horizontalEdges.equalToSuperview()
+            $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges).inset(8)
         }
         
         collectionView.snp.makeConstraints {
             $0.top.equalTo(searchBar.snp.bottom).offset(8)
             $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges)
-            $0.height.equalTo(36)
+            $0.height.equalTo(32)
         }
         
         tableView.snp.makeConstraints {
@@ -215,19 +216,7 @@ final class MissionListViewController: UIViewController {
     // 컬렉션 뷰 레이아웃 설정
     private func createLayout() -> UICollectionViewLayout {
         let layout = UICollectionViewCompositionalLayout { _, _ in
-            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
-                                                  heightDimension: .fractionalHeight(1))
-            let item = NSCollectionLayoutItem(layoutSize: itemSize)
-            
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.2),
-                                                   heightDimension: .absolute(32))
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-            
-            let section = NSCollectionLayoutSection(group: group)
-            section.interGroupSpacing = 8
-            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
-            section.orthogonalScrollingBehavior = .continuous
-            return section
+            return .createFilterSection()
         }
         
         return layout
@@ -238,11 +227,11 @@ final class MissionListViewController: UIViewController {
         dataSource = DataSource(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
             case .all:
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
-                cell.configure(title: "전체보기", titleColor: .white, titleWeight: .bold, backgroundColor: .red400)
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.reuseIdentifier, for: indexPath) as! FilterCell
+                cell.configure(title: "전체보기", titleColor: .white, backgroundColor: .red400)
                 return cell
             case .category(let category):
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.reuseIdentifier, for: indexPath) as! FilterCell
                 cell.configure(image: category.image, title: category.title, titleColor: .gray400, backgroundColor: .white)
                 return cell
             }

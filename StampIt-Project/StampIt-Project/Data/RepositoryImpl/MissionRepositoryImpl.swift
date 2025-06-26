@@ -10,14 +10,17 @@ import RxSwift
 import FirebaseCore
 
 final class MissionRepositoryImpl: MissionRepository {
-    private let firestoreManager: FirestoreManagerProtocol
+    private let missionManager: MissionManager
+    private let membershipManager: MembershipManager
     private let authRepository: AuthRepositoryProtocol
     
     init(
-        firestoreManager: FirestoreManagerProtocol,
+        missionManager: MissionManager,
+        membershipManager: MembershipManager,
         authRepository: AuthRepositoryProtocol
     ) {
-        self.firestoreManager = firestoreManager
+        self.missionManager = missionManager
+        self.membershipManager = membershipManager
         self.authRepository = authRepository
     }
     
@@ -40,8 +43,10 @@ final class MissionRepositoryImpl: MissionRepository {
     
     // 멤버 데이터 패치
     func fetchMembers(ofGroup groupID: String) -> Observable<[Member]> {
-        return firestoreManager.fetchMembers(groupId: groupID)
-            .map { $0.map { $0.toDomainModel() } }
+        return membershipManager.fetchMembers(groupId: groupID)
+            .map { memberships in
+                memberships.map { $0.toDomainModel() }
+            }
     }
     
     // 현재 로그인된 사용자의 정보 가져오기
@@ -68,6 +73,7 @@ final class MissionRepositoryImpl: MissionRepository {
         // 도메인 레이어 Mission 모델 -> 데이터 레이어 MissionFirestore 모델
         let missionFirestore = MissionFirestore(
             missionId: mission.missionID,
+            groupId: groupId,
             title: mission.title,
             assignedBy: mission.assignedBy,
             assignedTo: mission.assignedTo,
@@ -75,10 +81,10 @@ final class MissionRepositoryImpl: MissionRepository {
             dueDate: Timestamp(date: mission.dueDate),
             category: category,
             status: MissionFirestore.Status.assigned.rawValue,
-            missionType: MissionFirestore.MissionType.app.rawValue,
-            createdAt: Timestamp(date: mission.createDate))
+            missionType: MissionFirestore.MissionType.app.rawValue
+        )
         
-        return firestoreManager.createMission(groupId: groupId, mission: missionFirestore)
+        return missionManager.createMission(groupId: groupId, mission: missionFirestore)
     }
     
     // 샘플 미션 JSON 로드 헬퍼

@@ -1,0 +1,482 @@
+[
+    {
+        "missionId": "family_001",
+        "title": "가족과 30분 이상 진솔한 대화하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_002",
+        "title": "룸메이트와 오늘 하루 이야기 나누기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_003",
+        "title": "부모님께 안부 전화드리기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_004",
+        "title": "친구에게 안부 메시지 보내기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_005",
+        "title": "누군가에게 진심어린 감사 인사 전하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_006",
+        "title": "가족 구성원에게 칭찬해주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_007",
+        "title": "누군가의 고민 들어주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_008",
+        "title": "함께 TV 프로그램 시청하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_009",
+        "title": "보드게임이나 카드게임 같이하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_010",
+        "title": "함께 산책하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_011",
+        "title": "카페 가서 함께 시간 보내기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_012",
+        "title": "어깨나 목 마사지해주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_013",
+        "title": "좋아하는 간식 사다주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_014",
+        "title": "깜짝 선물 준비해주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_015",
+        "title": "편의점 심부름 해주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_016",
+        "title": "약국 다녀와주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_017",
+        "title": "누군가의 집안일 대신 해주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_018",
+        "title": "아침에 깨워주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_019",
+        "title": "점심 사주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_020",
+        "title": "따뜻한 차 한잔 타주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_021",
+        "title": "비 올 때 우산 챙겨주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_022",
+        "title": "함께 요리하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_023",
+        "title": "영화 같이 보기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_024",
+        "title": "쇼핑 함께 가기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_025",
+        "title": "운동 함께하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_026",
+        "title": "예쁜 사진 찍어주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_027",
+        "title": "맛있는 곳에서 외식하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_028",
+        "title": "주말 나들이 계획 함께 세우기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_029",
+        "title": "대청소 함께하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_030",
+        "title": "집들이나 파티 준비 함께하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_031",
+        "title": "가족 사진 정리하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_032",
+        "title": "어린 시절 추억 이야기하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_033",
+        "title": "가족 단체 사진 찍기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_034",
+        "title": "손편지 써서 전달하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_035",
+        "title": "함께 음악 듣기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_036",
+        "title": "서로의 꿈과 목표 이야기하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_037",
+        "title": "가족 회의 시간 갖기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_038",
+        "title": "함께 책 읽기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_039",
+        "title": "서로의 하루 일과 공유하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_040",
+        "title": "가족 전통 만들기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_041",
+        "title": "함께 퍼즐 맞추기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_042",
+        "title": "서로의 취미 배워보기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_043",
+        "title": "함께 일기 쓰기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_044",
+        "title": "가족 여행 계획 세우기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_045",
+        "title": "서로에게 편지 읽어주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_046",
+        "title": "함께 노래방 가기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_047",
+        "title": "가족 레시피 함께 만들기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_048",
+        "title": "서로의 고민 해결책 찾아주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_049",
+        "title": "함께 새로운 취미 시작하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_050",
+        "title": "가족 모임 주선하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_051",
+        "title": "가족 구성원 각자의 장점 발표하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_052",
+        "title": "함께 새로운 언어 배우기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_053",
+        "title": "가족 타임캡슐 만들기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_054",
+        "title": "서로의 버킷리스트 공유하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_055",
+        "title": "함께 봉사활동 참여하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_056",
+        "title": "가족 신문 만들기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_057",
+        "title": "서로의 어릴 적 별명 이야기하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_058",
+        "title": "함께 가계도 그려보기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_059",
+        "title": "가족만의 암호나 수신호 만들기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_060",
+        "title": "서로의 롤모델에 대해 이야기하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_061",
+        "title": "함께 별자리 관측하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_062",
+        "title": "가족 운동회 개최하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_063",
+        "title": "서로에게 닉네임 지어주기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_064",
+        "title": "함께 �텃밭 가꾸기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_065",
+        "title": "가족 토론 시간 갖기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_066",
+        "title": "서로의 최근 관심사 공유하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_067",
+        "title": "함께 DIY 프로젝트 하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_068",
+        "title": "가족 게임 토너먼트 열기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_069",
+        "title": "서로의 인생 최고의 순간 이야기하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_070",
+        "title": "함께 새로운 지역 탐방하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_071",
+        "title": "가족 재능 발표회 열기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_072",
+        "title": "서로의 스트레스 해소법 공유하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_073",
+        "title": "함께 명상이나 요가하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_074",
+        "title": "가족 역사 조사하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_075",
+        "title": "서로에게 응원 메시지 남기기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_076",
+        "title": "함께 캠핑이나 피크닉 가기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_077",
+        "title": "가족 미션 챌린지 만들기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_078",
+        "title": "서로의 좋아하는 계절과 이유 이야기하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_079",
+        "title": "함께 박물관이나 전시회 관람하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    },
+    {
+        "missionId": "family_080",
+        "title": "가족 모두가 참여하는 프로젝트 시작하기",
+        "missionType": "앱제공",
+        "category": "가족소통"
+    }
+]

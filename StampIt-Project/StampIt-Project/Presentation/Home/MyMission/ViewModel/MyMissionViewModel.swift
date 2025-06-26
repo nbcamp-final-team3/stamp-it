@@ -13,6 +13,7 @@ final class MyMissionViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
     private let useCase: MyMissionUseCaseProtocol
+    private let mapper: MissionMapping
 
     // MARK: - Action & State
 
@@ -37,15 +38,21 @@ final class MyMissionViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     var state = State()
     private var memberCache: [String: Member] = [:]
-    private var receivedMissions = [Mission]()
+    private var myMissions = [Mission]()
     private var pendingCommits = DisposeBag()
 
     // MARK: - Init
 
-    init(user: User, memberCache: [String: Member], useCase: MyMissionUseCaseProtocol) {
+    init(
+        user: User,
+        memberCache: [String: Member],
+        useCase: MyMissionUseCaseProtocol,
+        mapper: MissionMapping,
+    ) {
         self.useCase = useCase
         state.user.accept(user)
         self.memberCache = memberCache
+        self.mapper = mapper
         bind()
     }
 
@@ -73,13 +80,14 @@ final class MyMissionViewModel: ViewModelProtocol {
     /// 유저에게 할당된 미션 바인딩
     private func fetchMissions() {
         guard let user = state.user.value else { return }
-        useCase.fetchReceivedMissions(ofUser: user.userID, fromGroup: user.groupID)
-            .do(onNext: { receivedMissions in
-                self.receivedMissions = receivedMissions
-            })
+        useCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
+            .do { [weak self] myMissions in
+                self?.myMissions = myMissions
+            }
             .map { [weak self] in
                 guard let self else { return [] }
-                return mapMissionsToMyMissionItems($0)
+                return mapper.map(myMissions: $0, member: memberCache)
+                    .map { MyMissionItem.mission($0) }
             }
             .bind(to: state.missions)
             .disposed(by: disposeBag)
@@ -87,9 +95,10 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     /// 미션 완료 바인딩
     ///
-    /// 전달받은 미션의 ID로 receivedMissions에서 해당 미션을 찾아 UI를 우선 업데이트,
+    /// 전달받은 미션의 ID로 myMissions에서 해당 미션을 찾아 UI를 우선 업데이트,
     /// 4초간 대기 후 캐시 업데이트 및 API 호출
-    func handleMissionCompleteButtonTapped(missionID: String) {
+    private func handleMissionCompleteButtonTapped(missionID: String) {
+        guard let user = state.user.value else { return }
         updateMissionItem(missionID: missionID)
         state.isShowStickerReceived.accept(true)
 
@@ -99,21 +108,12 @@ final class MyMissionViewModel: ViewModelProtocol {
             .flatMap { [weak self] _ -> Observable<Mission> in
                 guard let self else { return .empty() }
                 let missionToUpdate = updateMissionCache(missionID: missionID)
-                guard let mission = missionToUpdate,
-                      let user = state.user.value else { return .empty() }
+                guard let mission = missionToUpdate else { return .empty() }
                 return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
             .flatMap { [weak self] mission -> Observable<Void> in
-                guard let self, let user = state.user.value else { return .empty() }
-
-                return useCase.createSticker(
-                    userId: user.userID,
-                    groupId: user.groupID,
-                    missionTitle: mission.title,
-                    maxSticker: 30, // TODO: pin 번호 계산용
-                    stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
-                    assignedBy: mission.assignedBy,
-                )
+                guard let self else { return .empty() }
+                return useCase.createSticker(user: user, mission: mission)
             }
             .subscribe()
             .disposed(by: pendingCommits)
@@ -121,84 +121,37 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     // MARK: - Methods
 
-    private func mapMissionsToMyMissionItems(_ missions: [Mission]) -> [MyMissionItem] {
-        missions.map { mission in
-            let assigner = memberCache[mission.assignedBy]?.nickname ?? mission.assignedBy
-            let missionItem = HomeReceivedMission(
-                missionID: mission.missionID,
-                title: mission.title,
-                category: mission.category,
-                dueDate: mission.dueDate.toMonthDayString(),
-                assigner: assigner,
-                isNew: isNew(createDate: mission.createDate),
-                isOverdue: formatOverdue(from: mission.dueDate),
-                status: mission.status
-            )
-            return MyMissionItem.mission(missionItem)
-        }
-    }
-
     /// UI에서 미션 업데이트
     private func updateMissionItem(missionID: String) {
         let items = state.missions.value
         let updated = items.map { item in
             let mission = item.mission!
             if mission.missionID == missionID {
-                let updated = HomeReceivedMission(
-                    missionID: mission.missionID,
-                    title: mission.title,
-                    category: mission.category,
-                    dueDate: mission.dueDate,
-                    assigner: mission.assigner,
-                    isNew: mission.isNew,
-                    isOverdue: mission.isOverdue,
-                    status: .completed
-                )
+                let updated = mission.makeCopyCompleted()
                 return MyMissionItem.mission(updated)
+            } else {
+                return item
             }
-            return item
         }
         state.missions.accept(updated)
     }
 
     /// 도메인 미션 캐시에서 미션 업데이트
     private func updateMissionCache(missionID: String) -> Mission? {
-        guard let index = receivedMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
-        let missionToUpdate = receivedMissions[index]
-        let updated = Mission(
-            missionID: missionToUpdate.missionID,
-            title: missionToUpdate.title,
-            assignedTo: missionToUpdate.assignedTo,
-            assignedBy: missionToUpdate.assignedBy,
-            createDate: missionToUpdate.createDate,
-            dueDate: missionToUpdate.dueDate,
-            status: .completed,
-            imageURL: missionToUpdate.imageURL,
-            category: missionToUpdate.category
-        )
-        receivedMissions[index] = updated
+        guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
+        let missionToUpdate = myMissions[index]
+        let updated = missionToUpdate.makeCopyCompleted()
+        myMissions[index] = updated
         return updated
     }
 
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
-    func cancelMissionComplete() {
+    private func cancelMissionComplete() {
         pendingCommits = DisposeBag()
-        let cachedMissions = mapMissionsToMyMissionItems(receivedMissions)
+        let cachedMissions = mapper
+            .map(myMissions: myMissions, member: memberCache)
+            .map { MyMissionItem.mission($0) }
         state.missions.accept(cachedMissions)
         state.isShowStickerReceived.accept(false)
-    }
-
-    private func isNew(createDate: Date) -> Bool {
-        let today = Calendar.current.dateComponents([.day], from: Date())
-        let created = Calendar.current.dateComponents([.day], from: createDate)
-        return today.day == created.day
-    }
-
-    private func formatOverdue(from dueDate: Date) -> Bool {
-        let cal = Calendar.current
-        let todayStart = cal.startOfDay(for: Date())
-        let dueStart = cal.startOfDay(for: dueDate)
-        let dayDiff = cal.dateComponents([.day], from: todayStart, to: dueStart).day ?? 0
-        return dayDiff < 0
     }
 }

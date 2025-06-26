@@ -14,6 +14,7 @@ final class MissionListCell: UITableViewCell {
     
     private let label = UILabel().then {
         $0.font = .pretendard(size: 16, weight: .regular)
+        $0.textColor = .gray800
         $0.numberOfLines = 0
     }
     
@@ -33,7 +34,7 @@ final class MissionListCell: UITableViewCell {
     
     private func setConstraints() {
         label.snp.makeConstraints {
-            $0.verticalEdges.equalToSuperview().inset(12)
+            $0.verticalEdges.equalToSuperview().inset(16)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
     }

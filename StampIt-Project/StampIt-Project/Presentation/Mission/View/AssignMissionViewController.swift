@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 import RxSwift
 import RxCocoa
 import SnapKit
@@ -27,7 +28,7 @@ final class AssignMissionViewController: UIViewController {
     // 멤버 선택 버튼
     private lazy var memberSelectionButton = UIButton().then {
         $0.titleLabel?.numberOfLines = 1
-        $0.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray800)
+        $0.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray200)
         $0.addTarget(self, action: #selector(dropdown), for: .touchUpInside)
     }
     
@@ -51,27 +52,13 @@ final class AssignMissionViewController: UIViewController {
         $0.distribution = .equalSpacing
     }
     
-    private let dueDateLabel = UILabel().then {
-        $0.text = "미션 기한"
-        $0.font = .pretendard(size: 16, weight: .regular)
-        $0.textColor = .gray800
-    }
-    
-    // 날짜 선택 피커
-    private let dueDatePicker = UIDatePicker().then {
-        $0.preferredDatePickerStyle = .compact
-        $0.datePickerMode = .date
-        $0.locale = Locale(identifier: "ko_KR")
-        $0.minimumDate = Date()
-        $0.tintColor = .red400
-    }
-    
-    // dueDateLabel + dueDatePicker
-    private let dueDateStackView = UIStackView().then {
-        $0.axis = .horizontal
-        $0.alignment = .center
-        $0.distribution = .equalSpacing
-    }
+    private lazy var dueDateView: UIView = {
+        let hostingController = UIHostingController(rootView: DueDateView { [weak self] selectedDate in
+            self?.viewModel.action.accept(.didSelectDueDate(selectedDate))
+        })
+        hostingController.view.backgroundColor = .clear
+        return hostingController.view
+    }()
     
     // 미션 전달하기 버튼(화면 맨 아래)
     private let assignButton = DefaultButton(type: .send).then {
@@ -116,16 +103,12 @@ final class AssignMissionViewController: UIViewController {
         view.backgroundColor = .white
         
         // dropdownView는 보여질 때 일부 화면이 가려지므로(예: dueDateStackView) 마지막에 서브 뷰로 추가
-        [navigationBar, missionTitleLabel, memberStackView, dueDateStackView, assignButton, dropdownView].forEach {
+        [navigationBar, missionTitleLabel, memberStackView, dueDateView, assignButton, dropdownView].forEach {
             view.addSubview($0)
         }
         
         [memberLabel, memberSelectionButton].forEach {
             memberStackView.addArrangedSubview($0)
-        }
-        
-        [dueDateLabel, dueDatePicker].forEach {
-            dueDateStackView.addArrangedSubview($0)
         }
     }
     
@@ -145,7 +128,7 @@ final class AssignMissionViewController: UIViewController {
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
-        dueDateStackView.snp.makeConstraints {
+        dueDateView.snp.makeConstraints {
             $0.top.equalTo(memberStackView.snp.bottom).offset(16)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
@@ -156,7 +139,7 @@ final class AssignMissionViewController: UIViewController {
         }
         
         memberSelectionButton.snp.makeConstraints {
-            $0.width.equalTo(140)
+            $0.width.equalTo(144)
         }
         
         dropdownView.snp.makeConstraints {
@@ -199,15 +182,6 @@ final class AssignMissionViewController: UIViewController {
                 assignButton.isEnabled = true // 미션 전달하기 버튼 활성화
                 dropdownView.isHidden = true
                 isDropdown = false
-            }
-            .disposed(by: disposeBag)
-        
-        // 사용자가 날짜 선택 시
-        dueDatePicker.rx.date
-            .asDriver(onErrorDriveWith: .empty())
-            .distinctUntilChanged()
-            .drive { [weak self] date in
-                self?.viewModel.action.accept(.didSelectDueDate(date))
             }
             .disposed(by: disposeBag)
         
@@ -274,14 +248,12 @@ final class AssignMissionViewController: UIViewController {
         isDropdown.toggle()
         
         if isDropdown {
-            memberSelectionButton.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray200)
             dropdownView.alpha = 0
             dropdownView.isHidden = false
             UIView.animate(withDuration: 0.25) { [weak self] in
                 self?.dropdownView.alpha = 1
             }
         } else {
-            memberSelectionButton.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray800)
             UIView.animate(withDuration: 0.25) { [weak self] in
                 self?.dropdownView.alpha = 0
             } completion: { [weak self] _ in

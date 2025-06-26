@@ -159,7 +159,7 @@ final class MissionCardCell: UICollectionViewCell {
 
     // MARK: - Methods
 
-    func configure(with mission: HomeReceivedMission) {
+    func configure(with mission: HomeMyMission) {
         categoryImageView.image = mission.category.image
         contentView.backgroundColor = mission.category.backgroundColor
         dateTag.updateText(with: mission.dueDate)

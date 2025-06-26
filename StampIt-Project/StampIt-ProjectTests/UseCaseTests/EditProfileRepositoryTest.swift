@@ -42,4 +42,14 @@ final class EditProfileRepositoryTest: EditProfileRepository {
             return Disposables.create()
         }
     }
+    
+    // 멤버 데이터 패치
+    func fetchMembers(ofGroup groupID: String) -> Observable<[Member]> {
+        return Observable.create { observer in
+            let members: [Member] = []
+            observer.on(.next(members))
+            observer.on(.completed)
+            return Disposables.create()
+        }
+    }
 }
