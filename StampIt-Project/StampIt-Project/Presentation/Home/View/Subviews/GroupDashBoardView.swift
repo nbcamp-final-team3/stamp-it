@@ -55,6 +55,7 @@ final class GroupDashboardView: UIView {
         setHierarchy()
         setConstraints()
         setDataSource()
+        bind()
     }
 
     required init?(coder: NSCoder) {
@@ -208,6 +209,14 @@ final class GroupDashboardView: UIView {
         dataSource?.apply(snapshot)
     }
 
+    // MARK: - Bind
+
+    private func bind() {
+        collectionView.rx
+            .setDelegate(self)
+            .disposed(by: disposeBag)
+    }
+
     // MARK: - Methods
 
     func setDefaultSelection() {
@@ -345,4 +354,13 @@ final class GroupDashboardView: UIView {
 
         return header
     }
+}
+
+extension GroupDashboardView: UICollectionViewDelegate {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    shouldSelectItemAt indexPath: IndexPath
+  ) -> Bool {
+      return indexPath.section == HomeSection.allCases.firstIndex(of: .memberFilter)!
+  }
 }
