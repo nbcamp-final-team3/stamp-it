@@ -171,7 +171,7 @@ final class EditProfileViewController: UIViewController {
         collectionView.snp.makeConstraints {
             $0.top.equalTo(profileImageLabel.snp.bottom).offset(8)
             $0.horizontalEdges.equalToSuperview().inset(16)
-            $0.height.equalTo(64)
+            $0.height.equalTo(60)
         }
         
         nicknameStackView.snp.makeConstraints {
