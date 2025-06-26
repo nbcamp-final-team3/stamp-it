@@ -40,7 +40,14 @@ final class StampBoardTab: UIView {
     // MARK: - Style Helper
     
     private func setStyle() {
-        backgroundColor = .red50
+        backgroundColor = .clear
+//        backgroundColor = .red50
+    }
+    
+    // MARK: - Delegate Helper
+    
+    func setCollectionViewDelegate(_ delegate: UICollectionViewDelegate) {
+        stickerBoardView.getCollectionView().delegate = delegate
     }
     
     // MARK: - DataSource Helper
@@ -49,7 +56,7 @@ final class StampBoardTab: UIView {
         stickerBoardDataSource = UICollectionViewDiffableDataSource(
             collectionView: stickerBoardView.getCollectionView(),
             cellProvider: { collectionView, indexPath, itemIdentifier in
-                guard let section = StampBoardSection(rawValue: indexPath.section) else { return .init() }
+                guard let section = StampBoardSection.from(indexPath.section) else { return .init() }
                 
                 switch section {
                 case .summary:
@@ -61,25 +68,29 @@ final class StampBoardTab: UIView {
                     if case let .summary(collected, completed) = itemIdentifier {
                         cell.configureItem(
                             currentSticker: "\(collected)",
-                            totalSticker: "\(StampBoardSection.defaultBoard.totalStamp)",
+                            totalSticker: "\(StampBoardSection.totalStamp)",
                             totalBoard: "\(completed)"
                         )
                     }
                     return cell
                     
-                case .defaultBoard:
+                case .page(let index):
+                    
                     let cell = collectionView.dequeueReusableCell(
                         withReuseIdentifier: StampCell.identifier,
                         for: indexPath
                     ) as! StampCell
                     
-                    if case let .stickers(stickers) = itemIdentifier {
-                        let backgroundBoard = StampBoardSection.defaultBoard.type.flatMap { $0 }
+                    if case let .sticker(stickers) = itemIdentifier {
+                        let backgroundBoard = StampBoardSection.page(index).type.flatMap { $0 }
+                        
                         if backgroundBoard.indices.contains(indexPath.item) {
                             cell.configureDashedLine(with: backgroundBoard[indexPath.item])
                         }
                         cell.configureStamp(with: stickers)
                     }
+                    
+                    cell.backgroundColor = StampBoard(rawValue: index)!.bgColor
                     return cell
                 }
             })

@@ -52,12 +52,13 @@ final class StampBoardCollectionView: UIView {
     
     private func createCompositionalLayout() -> UICollectionViewLayout {
         UICollectionViewCompositionalLayout { [weak self] sectionIndex, environment in
-            guard let section = StampBoardSection(rawValue: sectionIndex) else {
+            guard let section = StampBoardSection.from(sectionIndex) else {
                 return self?.createStampSummaryLayout()
             }
             switch section {
             case .summary: return self?.createStampSummaryLayout()
-            case .defaultBoard: return self?.createStampBoardLayout()
+            case .page:
+                return self?.createStampBoardLayout()
             }
         }
     }
@@ -119,7 +120,7 @@ final class StampBoardCollectionView: UIView {
         
         let isPortrait = UIScreen.main.bounds.height > UIScreen.main.bounds.width
         
-        section.orthogonalScrollingBehavior = .groupPagingCentered
+        section.orthogonalScrollingBehavior = .paging
         section.contentInsets = .init(
             top: 24,
             leading: isPortrait ? 36 : 45,

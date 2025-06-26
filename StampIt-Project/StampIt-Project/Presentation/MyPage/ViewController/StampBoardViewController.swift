@@ -124,3 +124,16 @@ final class StampBoardViewController: UIViewController {
         stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
     }
 }
+
+extension StampBoardViewController: UICollectionViewDelegate {
+    
+    /// 스크롤이 멈췄을 때
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        let offset = scrollView.contentOffset.x
+        let page = Int(round(offset / scrollView.frame.width))
+
+        // 예: 상위 뷰 색상 바꾸기
+        self.view.backgroundColor = .red // 최상위 VC
+        stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
+    }
+}
