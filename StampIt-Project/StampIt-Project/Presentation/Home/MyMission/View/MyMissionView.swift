@@ -128,7 +128,7 @@ final class MyMissionView: UIView {
         guard var snapshot = dataSource?.snapshot() else { return }
         let itemsToDelete = snapshot.itemIdentifiers(inSection: section)
         snapshot.deleteItems(itemsToDelete)
-        snapshot.appendItems(items)
+        snapshot.appendItems(items, toSection: section)
         dataSource?.apply(snapshot, animatingDifferences: false)
         noResultsView.isHidden = !items.isEmpty
     }
