@@ -147,7 +147,7 @@ final class HomeViewModel: ViewModelProtocol {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Mission]> in
               guard let self = self else { return .empty() }
-              return self.myMissionUseCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
+              return self.myMissionUseCase.fetchAssignedMissions(to: user.userID, ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }

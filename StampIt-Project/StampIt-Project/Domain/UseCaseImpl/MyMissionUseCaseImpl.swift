@@ -25,6 +25,17 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
             .map { $0.sorted { $0.createDate > $1.createDate } }
     }
 
+    func fetchAssignedMissions(to userID: String?, ofGroup groupID: String) -> Observable<[Mission]> {
+        homeRepository.fetchMissions(to: userID, by: nil, ofGroup: groupID)
+            .do { [weak self] missions in
+                self?.expirationService.handleExpiredMissions(missions, groupID: groupID)
+            }
+            .map { $0
+                .sorted { $0.createDate > $1.createDate }
+                .filter { $0.status == .assigned && $0.dueDate.isWithinNext(days: 6) }
+            }
+    }
+
     func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission> {
         homeRepository.updateMissionStatus(for: mission, ofGroup: groupID, to: status)
     }
