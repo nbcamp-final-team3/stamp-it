@@ -45,6 +45,13 @@ final class StampBoardViewController: UIViewController {
         bind()
     }
     
+    // TODO: fetchStickerCount addSnapshotListener 적용후 삭제 후, 테스트
+    // 화면이 나타날 때마다 데이터 새로고침
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.action.accept(.viewDidLoad)
+    }
+    
     // MARK: - Bind
     
     private func bind() {

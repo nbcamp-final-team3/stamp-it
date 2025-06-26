@@ -84,18 +84,18 @@ final class StampBoardViewModel: ViewModelProtocol {
                     pinNumbers.append(index)
                 }
                 
-                return Observable.from(pinNumbers)
-                    .flatMap { pinNumber in // Observable<[Sticker]>
-                        self.myPageUseCase.fetchStickersByPin(
-                            userId: user.userID,
-                            pinNumber: pinNumber
-                        )
+                let stickerObservables = pinNumbers.map { pinNumber in
+                    self.myPageUseCase.fetchStickersByPin(
+                        userId: user.userID,
+                        pinNumber: pinNumber
+                    )
+                }
+                
+                // TODO: fetchStickerCount addSnapshotListener 적용후 zip 테스트
+                return Observable.combineLatest(stickerObservables)
+                    .map { stickers in
+                        (count, stickers)
                     }
-                    .toArray() // Single<[[Sticker]]> : [Sticker] -> [[Sticker]]
-                    .map { (stickers: [[Sticker]]) in
-                        return (count, stickers)
-                    }
-                    .asObservable()
             }
             .observe(on: MainScheduler.instance)
             .subscribe(with: self) { owner, result in
