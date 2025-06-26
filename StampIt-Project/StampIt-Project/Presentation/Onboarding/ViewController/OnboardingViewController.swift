@@ -18,15 +18,27 @@ final class OnboardingViewController: UIViewController {
     private let disposeBag = DisposeBag()
     private var imageWidthConstraint: Constraint?
     private var imageHeightConstraint: Constraint?
+    private var previousPage: Int = 0 // 이전 페이지 추적
+    
+//    private let onboardingData: [(image: String, title: String?, desc: String?)] = [
+//        ("MascotCharacterSad", nil, "해도해도 끝나지 않는 집안일,\n혼자 하기 벅차지 않으세요?"),
+//        ("MascotCharacterGroup", nil, "구성원들과 미션을 주고 받으며\n집안일을 즐겁게 해보세요!"),
+//        ("MascotCharacterGroup", "함께하는 집안일,\nStamp It!", nil)
+//    ]
     
     private let onboardingData: [(image: String, title: String?, desc: String?)] = [
-        ("MascotCharacterSad", nil, "해도해도 끝나지 않는 집안일,\n혼자 하기 벅차지 않으세요?"),
-        ("MascotCharacterGroup", nil, "구성원들과 미션을 주고 받으며\n집안일을 즐겁게 해보세요!"),
-        ("MascotCharacterGroup", "함께하는 집안일,\nStamp It!", nil)
+        ("MascotCharacterSad", nil, "가족, 룸메이트, 친구들과 좋은 습관,\n같이 만들고 싶은데 쉽지 않죠?"),
+        ("MascotCharacterGroup", nil, "미션과 스탬프 보상으로 모두가\n즐겁게 습관을 만들어갈 수 있어요!"),
+        ("MascotCharacterGroup", "'Stamp it'으로 협력하는\n공동체 생활을 경험해보세요!", nil)
     ]
     
     // MARK: - UI Components
     private let pageControl = CustomPageControl()
+    
+    // 기존 imageView 대신 애니메이션 컨테이너 사용
+    private let animationContainer = UIView().then {
+        $0.backgroundColor = .clear
+    }
     
     private let imageView = UIImageView().then {
         $0.contentMode = .scaleAspectFit
@@ -73,47 +85,175 @@ final class OnboardingViewController: UIViewController {
         updateUI(state: viewModel.state)
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        startCurrentAnimation()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopCurrentAnimation()
+    }
+    
     // MARK: - Setup UI
     private func setupUI() {
         view.backgroundColor = .systemBackground
         pageControl.configure(numberOfPages: onboardingData.count, currentPage: 0)
         
-        [imageView, titleLabel, descLabel, pageControl, skipButton, actionButton].forEach {
+        animationContainer.addSubview(imageView)
+        [animationContainer, titleLabel, descLabel, pageControl, skipButton, actionButton].forEach {
             view.addSubview($0)
         }
     }
     
     private func setupConstraints() {
-        imageView.snp.makeConstraints {
+        animationContainer.snp.makeConstraints {
             $0.centerX.equalToSuperview()
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(150)
             self.imageWidthConstraint = $0.width.equalTo(160).constraint
             self.imageHeightConstraint = $0.height.equalTo(160).constraint
         }
         
+        imageView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
         titleLabel.snp.makeConstraints {
-            $0.top.equalTo(imageView.snp.bottom).offset(30)
+            $0.top.equalTo(animationContainer.snp.bottom).offset(30)
             $0.leading.trailing.equalToSuperview().inset(28)
         }
+        
         descLabel.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(10)
             $0.leading.trailing.equalToSuperview().inset(28)
         }
+        
         pageControl.snp.makeConstraints {
             $0.bottom.equalTo(actionButton.snp.top).offset(-32)
             $0.centerX.equalToSuperview()
             $0.height.equalTo(8)
         }
+        
         skipButton.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(5)
             $0.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(40)
         }
+        
         actionButton.snp.makeConstraints {
             $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-24)
             $0.leading.trailing.equalToSuperview().inset(24)
             $0.height.equalTo(56)
         }
+    }
+    
+    // MARK: - Animation Methods
+    private func setupFloatingAnimation() {
+        // 애니메이션이 없는 경우에만 시작
+        if imageView.layer.animation(forKey: "floating") == nil {
+            setupDefaultFloatingAnimation()
+        }
+    }
+    
+    private func setupDefaultFloatingAnimation() {
+        // 기본 둥둥 떠다니는 애니메이션
+        let floatingAnimation = CABasicAnimation(keyPath: "transform.translation.y")
+        floatingAnimation.fromValue = -10
+        floatingAnimation.toValue = 10
+        floatingAnimation.duration = 2.0
+        floatingAnimation.autoreverses = true
+        floatingAnimation.repeatCount = .infinity
+        floatingAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        imageView.layer.add(floatingAnimation, forKey: "floating")
+        
+        // 약간의 회전 애니메이션도 추가
+        let rotationAnimation = CABasicAnimation(keyPath: "transform.rotation")
+        rotationAnimation.fromValue = -0.05 // 약 3도
+        rotationAnimation.toValue = 0.05
+        rotationAnimation.duration = 3.0
+        rotationAnimation.autoreverses = true
+        rotationAnimation.repeatCount = .infinity
+        rotationAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        imageView.layer.add(rotationAnimation, forKey: "rotation")
+    }
+    
+    private func startCurrentAnimation() {
+        setupFloatingAnimation()
+    }
+    
+    private func stopCurrentAnimation() {
+        // 기본 애니메이션 정지
+        imageView.layer.removeAllAnimations()
+    }
+    
+    /// 이미지 전환 애니메이션 (첫 번째 → 두 번째 페이지만)
+    private func transitionToNewImage(_ newImageName: String) {
+        UIView.animate(withDuration: 0.2, animations: {
+            self.imageView.alpha = 0.0
+        }) { _ in
+            self.imageView.image = UIImage(named: newImageName)
+            UIView.animate(withDuration: 0.2) {
+                self.imageView.alpha = 1.0
+            }
+        }
+    }
+    
+    // MARK: - UI 업데이트
+    private func updateUI(state: OnboardingState) {
+        let data = onboardingData[state.currentPage]
+        let currentPage = state.currentPage
+        
+        // 페이지별 이미지 크기 최적화
+        switch state.currentPage {
+        case 0: // 첫 번째 페이지 - 슬픈 캐릭터 (단일)
+            imageWidthConstraint?.update(offset: 180)
+            imageHeightConstraint?.update(offset: 200)
+            
+        case 1, 2: // 두 번째, 세 번째 페이지 - 그룹 캐릭터들
+            imageWidthConstraint?.update(offset: 280)
+            imageHeightConstraint?.update(offset: 200)
+        default:
+            imageWidthConstraint?.update(offset: 200)
+            imageHeightConstraint?.update(offset: 200)
+        }
+            
+        // 타이틀/설명 분기
+        if let title = data.title {
+            let attributed = NSMutableAttributedString(string: title)
+            if let range = title.range(of: "Stamp It!") {
+                let nsRange = NSRange(range, in: title)
+                attributed.addAttribute(.font, value: UIFont.pretendard(size: 20, weight: .bold), range: nsRange)
+            }
+            titleLabel.attributedText = attributed
+            descLabel.text = nil
+            descLabel.isHidden = true
+        } else {
+            titleLabel.text = nil
+            descLabel.text = data.desc
+            descLabel.isHidden = false
+        }
+        
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
+            self.view.layoutIfNeeded()
+        } completion: { _ in
+            // 레이아웃 완료 후 애니메이션 시작
+            self.setupFloatingAnimation()
+        }
+        
+        // 첫 번째 → 두 번째 페이지 이동 시에만 페이드 애니메이션 적용
+        if previousPage == 0 && currentPage == 1 {
+            transitionToNewImage(data.image)
+        } else {
+            // 다른 페이지 전환은 즉시 이미지 변경
+            imageView.image = UIImage(named: data.image)
+        }
+        previousPage = currentPage  // 이전 페이지 업데이트
+        
+        pageControl.setCurrentPage(state.currentPage, animated: true)
+        let isLast = state.currentPage == onboardingData.count - 1
+        actionButton.updateProceed(isFinalStep: isLast)
     }
     
     // MARK: - Bindings
@@ -133,7 +273,6 @@ final class OnboardingViewController: UIViewController {
             .disposed(by: disposeBag)
     }
     
-    /// 뷰모델의 상태 변화와 완료 이벤트를 바인딩
     private func bindViewModel() {
         viewModel.onStateChange = { [weak self] state in
             self?.updateUI(state: state)
@@ -143,58 +282,12 @@ final class OnboardingViewController: UIViewController {
         }
     }
     
-    // MARK: - UI 업데이트
-    /// 뷰모델 상태에 따라 UI를 업데이트
-    private func updateUI(state: OnboardingState) {
-        let data = onboardingData[state.currentPage]
-        imageView.image = UIImage(named: data.image)
-        
-        // 페이지별 이미지 크기 최적화
-        switch state.currentPage {
-        case 0: // 첫 번째 페이지 - 슬픈 캐릭터 (단일)
-            imageWidthConstraint?.update(offset: 180)
-            imageHeightConstraint?.update(offset: 200)
-            
-        case 1, 2: // 두 번째, 세 번째 페이지 - 그룹 캐릭터들
-            imageWidthConstraint?.update(offset: 280)
-            imageHeightConstraint?.update(offset: 200)
-        default:
-            imageWidthConstraint?.update(offset: 200)
-            imageHeightConstraint?.update(offset: 200)
-        }
-        
-        // 타이틀/설명 분기
-        if let title = data.title {
-            let attributed = NSMutableAttributedString(string: title)
-            // "Stamp It!"만 Bold로 처리
-            if let range = title.range(of: "Stamp It!") {
-                let nsRange = NSRange(range, in: title)
-                attributed.addAttribute(.font, value: UIFont.pretendard(size: 20, weight: .bold), range: nsRange)
-            }
-            titleLabel.attributedText = attributed
-            descLabel.text = nil
-            descLabel.isHidden = true
-        } else {
-            titleLabel.text = nil
-            descLabel.text = data.desc
-            descLabel.isHidden = false
-        }
-        
-        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
-            self.view.layoutIfNeeded()
-        }
-        
-        pageControl.setCurrentPage(state.currentPage, animated: true)
-        let isLast = state.currentPage == onboardingData.count - 1
-        actionButton.updateProceed(isFinalStep: isLast)
-    }
-    
     // MARK: - 온보딩 완료 처리
-    /// 온보딩 완료 후 로그인 화면으로 전환
     private func completeOnboardingAndGoToLogin() {
+        stopCurrentAnimation() // 애니메이션 정리
         UserDefaults.standard.set(true, forKey: "hasOnboarded")
         let loginVC = DIContainer.shared.makeLoginViewController()
-        // windowScene iOS 15+ 권장 방식 사용
+        
         if let windowScene = UIApplication.shared.connectedScenes
             .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
            let window = windowScene.windows.first {
