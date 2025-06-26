@@ -73,6 +73,13 @@ final class MemberManageOptionViewController: UIViewController {
             }
             .disposed(by: disposeBag)
 
+        viewModel.state.showConfirmationAlert
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, type in
+                owner.showConfirmationAlert(for: type)
+            }
+            .disposed(by: disposeBag)
+
         viewModel.state.dismiss
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, type in
@@ -80,5 +87,41 @@ final class MemberManageOptionViewController: UIViewController {
                 owner.dismiss(animated: true)
             }
             .disposed(by: disposeBag)
+    }
+    
+    // MARK: - Alert Methods
+    
+    private func showConfirmationAlert(for type: MemberManageOptionType) {
+        let (title, confirmTitle) = getAlertInfo(for: type)
+        
+        let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+        
+        let confirmAction = UIAlertAction(title: confirmTitle, style: .default) { [weak self] _ in
+            self?.viewModel.confirmAction()
+        }
+        
+        let cancelAction = UIAlertAction(title: "취소", style: .cancel)
+        
+        alert.addAction(confirmAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+    
+    private func getAlertInfo(for type: MemberManageOptionType) -> (title: String, confirmTitle: String) {
+        let memberNickname = viewModel.getMemberNickname()
+        
+        switch type {
+        case .leaderMandate:
+            return (
+                title: "\(memberNickname)을(를)\n 그룹 리더로 위임할까요?",
+                confirmTitle: "위임하기"
+            )
+        case .exportMember:
+            return (
+                title: "\(memberNickname)을(를)\n 그룹에서 내보낼까요?",
+                confirmTitle: "내보내기"
+            )
+        }
     }
 }
