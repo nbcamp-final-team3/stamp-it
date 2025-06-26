@@ -97,7 +97,7 @@ final class MissionListViewController: UIViewController {
         
         searchBar.snp.makeConstraints {
             $0.top.equalTo(navigationBar.snp.bottom)
-            $0.horizontalEdges.equalToSuperview()
+            $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges).inset(8)
         }
         
         collectionView.snp.makeConstraints {
