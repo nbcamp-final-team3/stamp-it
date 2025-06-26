@@ -29,4 +29,9 @@ struct EditProfileUseCaseImpl: EditProfileUseCase {
     func updateProfileImage(userId: String, groupId: String, imageName: String) -> Observable<Void> {
         editProfileRepositoryImpl.updateProfileImage(userId: userId, groupId: groupId, imageName: imageName)
     }
+    
+    // 멤버 데이터 패치
+    func fetchMembers(ofGroup groupID: String) -> Observable<[Member]> {
+        editProfileRepositoryImpl.fetchMembers(ofGroup: groupID)
+    }
 }
