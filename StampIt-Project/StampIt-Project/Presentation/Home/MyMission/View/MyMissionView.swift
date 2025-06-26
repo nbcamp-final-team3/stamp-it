@@ -175,6 +175,13 @@ final class MyMissionView: UIView {
         section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
         return section
     }
+
+    func setDefaultSelection() {
+        let section = MyMissionSection.allCases.firstIndex(of: .filter)!
+        guard collectionView.numberOfItems(inSection: section) > 0 else { return }
+        let indexPath = IndexPath(item: 0, section: section)
+        collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+    }
 }
 
 extension MyMissionView: UICollectionViewDelegate {

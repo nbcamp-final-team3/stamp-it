@@ -44,6 +44,7 @@ final class HomeViewController: UIViewController {
     }
 
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         viewModel.action.accept(.viewWillAppear)
     }
 
@@ -174,9 +175,7 @@ final class HomeViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
                 owner.homeView.updateSnapshot(withItems: items, toSection: .memberFilter)
-                if owner.viewModel.state.selectedFilter.value == nil {
-                    owner.homeView.setDefaultSelection()
-                }
+                owner.homeView.setDefaultSelection()
             }
             .disposed(by: disposeBag)
 

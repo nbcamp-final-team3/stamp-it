@@ -220,6 +220,7 @@ final class GroupDashboardView: UIView {
 
     func setDefaultSelection() {
         let section = HomeSection.allCases.firstIndex(of: .memberFilter)!
+        guard collectionView.numberOfItems(inSection: section) > 0 else { return }
         let indexPath = IndexPath(item: 0, section: section)
         collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
     }

@@ -37,7 +37,6 @@ final class HomeViewModel: ViewModelProtocol {
         let rankedMembers = PublishRelay<[HomeItem]>()
         let myMissions = BehaviorRelay<[HomeItem]>(value: [])
         let memberFilter = BehaviorRelay<[HomeItem]>(value: [])
-        let selectedFilter = BehaviorRelay<String?>(value: nil)
         let memberMissionsForDisplay = PublishRelay<[HomeItem]>()
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
