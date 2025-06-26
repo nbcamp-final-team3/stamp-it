@@ -38,6 +38,7 @@ struct DueDateView: View {
                         .cornerRadius(6)
                 }
             }
+            .padding(.bottom)
             
             DatePicker("", selection: $selectedDate, in: Date()..., displayedComponents: [.date])
                 .datePickerStyle(.graphical)

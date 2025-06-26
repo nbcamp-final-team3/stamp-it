@@ -28,7 +28,7 @@ final class AssignMissionViewController: UIViewController {
     // 멤버 선택 버튼
     private lazy var memberSelectionButton = UIButton().then {
         $0.titleLabel?.numberOfLines = 1
-        $0.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray800)
+        $0.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray200)
         $0.addTarget(self, action: #selector(dropdown), for: .touchUpInside)
     }
     
@@ -248,14 +248,12 @@ final class AssignMissionViewController: UIViewController {
         isDropdown.toggle()
         
         if isDropdown {
-            memberSelectionButton.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray200)
             dropdownView.alpha = 0
             dropdownView.isHidden = false
             UIView.animate(withDuration: 0.25) { [weak self] in
                 self?.dropdownView.alpha = 1
             }
         } else {
-            memberSelectionButton.configuration = configureButton(title: "멤버 선택하기", titleColor: .gray800)
             UIView.animate(withDuration: 0.25) { [weak self] in
                 self?.dropdownView.alpha = 0
             } completion: { [weak self] _ in
