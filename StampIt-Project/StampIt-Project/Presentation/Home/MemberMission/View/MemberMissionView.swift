@@ -119,7 +119,7 @@ final class MemberMissionView: UIView {
         UICollectionViewCompositionalLayout { [weak self] section, environment in
             guard let self else { return nil }
 
-            let section = MyMissionSection.allCases[section]
+            let section = MemberMissionSection.allCases[section]
 
             switch section {
             case .mission:

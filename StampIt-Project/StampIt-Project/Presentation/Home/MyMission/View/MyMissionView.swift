@@ -28,6 +28,7 @@ final class MyMissionView: UIView {
         frame: .zero,
         collectionViewLayout: createLayout()
     ).then {
+        $0.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.reuseIdentifier)
         $0.register(
             AssignedMissionCell.self,
             forCellWithReuseIdentifier: AssignedMissionCell.identifier
@@ -82,6 +83,16 @@ final class MyMissionView: UIView {
     private func setDataSource() {
         dataSource = .init(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
+            case .status(let status):
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: FilterCell.reuseIdentifier,
+                    for: indexPath
+                ) as! FilterCell
+
+                cell.configure(title: status.displayTitle)
+
+                return cell
+
             case .mission(let mission):
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: AssignedMissionCell.identifier,
@@ -129,6 +140,8 @@ final class MyMissionView: UIView {
             let section = MyMissionSection.allCases[section]
 
             switch section {
+            case .filter:
+                return .createFilterSection()
             case .mission:
                 return createMissionSection()
             }
