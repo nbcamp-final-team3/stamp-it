@@ -19,7 +19,7 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     enum Action {
         case viewDidLoad
-        case selectFilter(MissionStatus?)
+        case selectFilter(Int)
         case didTapStatusButton(MyMissionItem)
         case didTapCompleteCancelButton
         case didTapBackButton
@@ -27,7 +27,7 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let missionFilter = PublishRelay<[MyMissionItem]>()
+        let missionFilter = BehaviorRelay<[MyMissionItem]>(value: [])
         let filteredMissions = BehaviorRelay<[MyMissionItem]>(value: [])
         let completedMissionTitle = BehaviorRelay<String>(value: "")
         let isShowStickerReceived = PublishRelay<Bool>()
@@ -66,8 +66,8 @@ final class MyMissionViewModel: ViewModelProtocol {
                 switch action {
                 case .viewDidLoad:
                     owner.fetchMissions()
-                case .selectFilter(let status):
-                    owner.updateMyMissions(status: status)
+                case .selectFilter(let index):
+                    owner.updateMyMissions(index: index)
                 case .didTapStatusButton(let item):
                     let missionID = item.mission!.missionID
                     owner.handleMissionCompleteButtonTapped(missionID: missionID)
@@ -172,10 +172,11 @@ final class MyMissionViewModel: ViewModelProtocol {
         state.isShowStickerReceived.accept(false)
     }
 
-    private func updateMyMissions(status: MissionStatus?) {
-        let filteredMissions = status == .none
+    private func updateMyMissions(index: Int) {
+        let item = state.missionFilter.value[index]
+        let filteredMissions = item.status!.status == .none
             ? myMissions
-            : myMissions.filter { $0.status == status }
+            : myMissions.filter { $0.status == item.status!.status }
 
         let items = mapper
             .map(myMissions: filteredMissions, member: memberCache)
