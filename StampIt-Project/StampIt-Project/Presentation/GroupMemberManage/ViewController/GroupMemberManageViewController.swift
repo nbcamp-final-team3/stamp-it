@@ -116,7 +116,7 @@ final class GroupMemberManageViewController: UIViewController {
                         self?.viewModel.action.accept(.didTapCardOptionButton(memberId: item.id))
                     }
                 })
-                .disposed(by: self.disposeBag)
+                .disposed(by: cell.disposeBag)
             
             return cell
         }
