@@ -143,7 +143,7 @@ final class GroupMemberCardCell: UICollectionViewCell {
     func configure(with item: GroupMemberManageViewModel.Item, at indexPath: IndexPath) {
         self.indexPath = indexPath
         nameLabel.text = item.name
-        dateLabel.text = "가입일: 0000년 00월 00일" // 실제 데이터로 교체
-        // profileImageView.image = ... // 실제 이미지로 교체
+        dateLabel.text = item.date
+        profileImageView.image = item.image
     }
 }
