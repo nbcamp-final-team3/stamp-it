@@ -50,7 +50,7 @@ final class StampBoardViewController: UIViewController {
     private func bind() {
         Observable.combineLatest(
             viewModel.state.stickerSummary,
-            viewModel.state.stickers
+            viewModel.state.stickersByPage
         )
         .bind(with: self) { owner, combined in
             let (summary, stickers) = combined
@@ -96,21 +96,30 @@ final class StampBoardViewController: UIViewController {
     
     private func updateSnapshot(
         summary: (collected: Int, completed: Int),
-        stickers: [Sticker]
+        stickers: [[Sticker]]
     ) {
+        let maxPage = stickers.count
+        
+        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
+
+        /// Item & Section For Summary Section
         let summaryItem: [StampBoardItem] = [
             .summary(
                 collected: summary.collected,
                 completed: summary.completed
             )
         ]
-        
-        let stickerItems: [StampBoardItem] = stickers.map { .stickers($0) }
-        
-        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
-        snapshot.appendSections([.summary, .defaultBoard])
+        snapshot.appendSections([.summary])
         snapshot.appendItems(summaryItem, toSection: .summary)
-        snapshot.appendItems(stickerItems, toSection: .defaultBoard)
+        
+        /// Item & Section For StampBoard
+        for index in 0..<maxPage {
+            snapshot.appendSections([.page(index)])
+            snapshot.appendItems(
+                stickers[index].map { .sticker($0) },
+                toSection: .page(index)
+            )
+        }
         
         stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
     }

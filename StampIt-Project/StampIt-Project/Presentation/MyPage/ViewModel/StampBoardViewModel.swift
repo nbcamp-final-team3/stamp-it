@@ -24,7 +24,6 @@ final class StampBoardViewModel: ViewModelProtocol {
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let stickers = BehaviorRelay<[Sticker]>(value: .init())
         let stickersByPage = BehaviorRelay<[[Sticker]]>(value: .init())
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
         let stickerSummary = BehaviorRelay<(collected: Int, completed: Int)>(value: (.zero, .zero))
