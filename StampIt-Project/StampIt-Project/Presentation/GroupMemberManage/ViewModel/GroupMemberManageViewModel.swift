@@ -146,6 +146,11 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
                 owner.state.showSuccess.accept(message)
                 owner.state.isLoading.accept(false)
                 
+                // 리더 위임인 경우 isLeader 상태를 false로 변경
+                if type == .leaderMandate {
+                    owner.state.isLeader.accept(false)
+                }
+                
                 // 멤버 목록 새로고침 시그널 emit
                 owner.state.shouldRefreshMembers.accept(())
             } onError: { owner, error in
