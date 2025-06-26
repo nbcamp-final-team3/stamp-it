@@ -169,9 +169,9 @@ final class OnboardingViewController: UIViewController {
         
         // 약간의 회전 애니메이션도 추가
         let rotationAnimation = CABasicAnimation(keyPath: "transform.rotation")
-        rotationAnimation.fromValue = -0.05 // 약 3도
+        rotationAnimation.fromValue = -0.05 // 약 2도
         rotationAnimation.toValue = 0.05
-        rotationAnimation.duration = 3.0
+        rotationAnimation.duration = 2.0
         rotationAnimation.autoreverses = true
         rotationAnimation.repeatCount = .infinity
         rotationAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
