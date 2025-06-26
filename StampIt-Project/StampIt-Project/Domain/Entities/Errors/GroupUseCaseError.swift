@@ -11,8 +11,6 @@ import Foundation
 /// 그룹 관리 UseCase에서 발생하는 에러 정의
 enum GroupUseCaseError: Error {
     case notAuthorized                  // 권한 없음 (리더가 아님)
-    case cannotDelegateToSelf           // 자기 자신에게 리더 위임 불가
-    case cannotExportSelf               // 자기 자신을 내보내기 불가
     
     // Repository 에러들
     case authenticationFailed(String)   // 인증 실패
@@ -32,10 +30,6 @@ enum GroupUseCaseError: Error {
         switch self {
         case .notAuthorized:
             return "리더만 사용할 수 있는 기능입니다."
-        case .cannotDelegateToSelf:
-            return "자기 자신에게 리더 위임을 할 수 없습니다."
-        case .cannotExportSelf:
-            return "자기 자신을 내보낼 수 없습니다."
         case .authenticationFailed(let message):
             return "인증 실패: \(message)"
         case .userNotFound:
@@ -45,9 +39,41 @@ enum GroupUseCaseError: Error {
         case .dataProcessingFailed(let message):
             return "데이터 처리 실패: \(message)"
         case .networkFailed(let message):
-            return "네트워크 오류: \(message)"
+            return "네트워크 실패: \(message)"
         case .uiFailed(let message):
             return "화면 오류: \(message)"
+        case .groupIsFull:
+            return "그룹 정원이 가득 찼습니다."
+        case .onlyOneGroup:
+            return "유저는 그룹을 하나만 가질 수 있음"
+        case .noInviteCode:
+            return "초대 코드가 없는 오류"
+        case .expiredInviteCode:
+            return "초대 만료 오류"
+        case .alreadyInGroup:
+            return "이미 그룹에 있는 경우"
+        case .unknownError:
+            return "알 수 없는 오류가 발생했습니다"
+        }
+    }
+    
+    /// UI에서 사용자에게 표시할 친화적 메시지
+    var userFriendlyMessage: String {
+        switch self {
+        case .notAuthorized:
+            return "리더만 사용할 수 있는 기능입니다."
+        case .authenticationFailed(_):
+            return "로그인에 실패했습니다. 다시 시도해주세요."
+        case .userNotFound:
+            return "사용자 정보를 불러올 수 없습니다."
+        case .userNotInGroup:
+            return "그룹 정보를 찾을 수 없습니다."
+        case .dataProcessingFailed(_):
+            return "데이터 처리 중 오류가 발생했습니다."
+        case .networkFailed(_):
+            return "네트워크 연결을 확인해주세요."
+        case .uiFailed(_):
+            return "화면 표시 중 오류가 발생했습니다."
         case .groupIsFull:
             return "그룹 정원이 가득 찼습니다."
         case .onlyOneGroup:
@@ -59,21 +85,17 @@ enum GroupUseCaseError: Error {
         case .alreadyInGroup:
             return "이미 그룹에 존재합니다."
         case .unknownError:
-            return "알 수 없는 오류가 발생했습니다"
+            return "예상치 못한 오류가 발생했습니다."
         }
     }
     
-    /// UI에서 사용자에게 표시할 친화적 메시지
-    var userFriendlyMessage: String {
+    /// 토스트 메시지용 텍스트
+    var toastMessage: String {
         switch self {
         case .notAuthorized:
             return "리더만 사용할 수 있는 기능입니다."
-        case .cannotDelegateToSelf:
-            return "자기 자신에게 리더 위임을 할 수 없습니다."
-        case .cannotExportSelf:
-            return "자기 자신을 내보낼 수 없습니다."
         case .authenticationFailed(_):
-            return "로그인에 실패했습니다. 다시 시도해주세요."
+            return "로그인에 실패했습니다."
         case .userNotFound:
             return "사용자 정보를 불러올 수 없습니다."
         case .userNotInGroup:
