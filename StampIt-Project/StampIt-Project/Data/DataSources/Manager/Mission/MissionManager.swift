@@ -243,12 +243,12 @@ final class MissionManager: MissionManagerProtocol {
             result = result.whereField("assignedBy", in: assignerIds)
         }
         
-        if let isCompleted = missionQuery.isCompleted {
-            result = result.whereField("isCompleted", isEqualTo: isCompleted)
+        if let status = missionQuery.status {
+            result = result.whereField("status", isEqualTo: status)
         }
         
         if let createdAfter = missionQuery.createdAfter {
-            result = result.whereField("createdAt", isGreaterThan: Timestamp(date: createdAfter))
+            result = result.whereField("createDate", isGreaterThan: Timestamp(date: createdAfter))
         }
         
         if let dueDate = missionQuery.dueDate {
@@ -273,7 +273,7 @@ final class MissionManager: MissionManagerProtocol {
         return observeList(query: .byGroup(groupId))
     }
     
-    /// 할당된 미션 목록 조회
+    /// 할당된 미션 목록 조회 (전체)
     func fetchMissions(to assigneeId: String?, by assignerId: String?, ofGroup groupId: String) -> Observable<[MissionFirestore]> {
         let query: MissionQuery
         
@@ -285,6 +285,12 @@ final class MissionManager: MissionManagerProtocol {
             query = .byGroup(groupId)
         }
         
+        return observeList(query: query)
+    }
+    
+    /// 할당된 미완료 미션만 조회 (홈화면용)
+    func fetchIncompleteMissions(to assigneeId: String, ofGroup groupId: String) -> Observable<[MissionFirestore]> {
+        let query = MissionQuery.incompleteByAssignee(assigneeId, groupId: groupId)
         return observeList(query: query)
     }
     
