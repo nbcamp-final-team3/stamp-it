@@ -15,3 +15,19 @@ struct Member {
     let joinedAt: Date
     let isLeader: Bool
 }
+
+// MARK: - Member to User 변환
+extension Member {
+    func toUser(groupId: String, groupName: String) -> User {
+        return User(
+            userID: self.userID,
+            nickname: self.nickname,
+            profileImage: self.profileImage,
+            boards: [], // 빈 배열로 초기화
+            groupID: groupId,
+            groupName: groupName,
+            isLeader: self.isLeader,
+            joinedGroupAt: self.joinedAt
+        )
+    }
+}

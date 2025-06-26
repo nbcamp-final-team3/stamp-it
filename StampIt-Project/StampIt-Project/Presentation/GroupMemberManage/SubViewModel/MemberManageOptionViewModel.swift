@@ -29,10 +29,13 @@ final class MemberManageOptionViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
+    
+    private let memberNickname: String
 
     // MARK: - Init
 
-    init() {
+    init(memberNickname: String) {
+        self.memberNickname = memberNickname
         bind()
     }
 
@@ -45,7 +48,7 @@ final class MemberManageOptionViewModel: ViewModelProtocol {
                 case .didTapOptionCard(let type):
                     owner.toggleSelection(type)
                 case .didTapConfirmButton:
-                    owner.dismissVC()
+                    owner.confirmAction()
                 }
             }
             .disposed(by: disposeBag)
@@ -64,10 +67,14 @@ final class MemberManageOptionViewModel: ViewModelProtocol {
         let isEnabled = state.selectedOption.value != nil
         state.isEnabledConfirmButton.accept(isEnabled)
     }
-
-    private func dismissVC() {
+    
+    func confirmAction() {
         guard let selectedType = state.selectedOption.value else { return }
         state.dismiss.accept(selectedType)
+    }
+    
+    func getMemberNickname() -> String {
+        return memberNickname
     }
 }
 

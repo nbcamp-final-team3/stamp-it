@@ -13,4 +13,5 @@ protocol AccountManageRepositoryProtocol {
     func deleteAccount() -> Observable<Void>
     func getGroupMemberCount(groupId: String) -> Observable<Int>
     func leaveGroup() -> Observable<User>
+    func exportMember(member: User) -> Observable<User>
 }

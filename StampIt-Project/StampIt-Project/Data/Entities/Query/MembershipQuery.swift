@@ -25,6 +25,10 @@ struct MembershipQuery {
         return MembershipQuery(membershipIds: nil, groupIds: nil, userIds: [userId], isLeaderOnly: nil, joinedAfter: nil, orderBy: nil, limit: nil)
     }
     
+    static func byGroupIdAndUserId(groupId: String, userId: String) -> MembershipQuery {
+        return MembershipQuery(membershipIds: nil, groupIds: [groupId], userIds: [userId], isLeaderOnly: nil, joinedAfter: nil, orderBy: nil, limit: nil)
+    }
+    
     static func leaders() -> MembershipQuery {
         return MembershipQuery(membershipIds: nil, groupIds: nil, userIds: nil, isLeaderOnly: true, joinedAfter: nil, orderBy: nil, limit: nil)
     }
