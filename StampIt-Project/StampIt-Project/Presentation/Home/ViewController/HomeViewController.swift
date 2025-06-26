@@ -174,6 +174,9 @@ final class HomeViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
                 owner.homeView.updateSnapshot(withItems: items, toSection: .memberFilter)
+                if owner.viewModel.state.selectedFilter.value == nil {
+                    owner.homeView.setDefaultSelection()
+                }
             }
             .disposed(by: disposeBag)
 

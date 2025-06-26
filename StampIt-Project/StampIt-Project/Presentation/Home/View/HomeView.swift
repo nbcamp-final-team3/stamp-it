@@ -114,4 +114,8 @@ final class HomeView: UIView {
         groupOrganizationView.isHidden = !showGroupOrganizationView
         groupDashboardView.isHidden = showGroupOrganizationView
     }
+
+    func setDefaultSelection() {
+        groupDashboardView.setDefaultSelection()
+    }
 }

@@ -55,7 +55,6 @@ final class GroupDashboardView: UIView {
         setHierarchy()
         setConstraints()
         setDataSource()
-        bind()
     }
 
     required init?(coder: NSCoder) {
@@ -209,12 +208,13 @@ final class GroupDashboardView: UIView {
         dataSource?.apply(snapshot)
     }
 
-    // MARK: - Bind
-
-    private func bind() {
-    }
-
     // MARK: - Methods
+
+    func setDefaultSelection() {
+        let section = HomeSection.allCases.firstIndex(of: .memberFilter)!
+        let indexPath = IndexPath(item: 0, section: section)
+        collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+    }
 
     private func createLayout() -> UICollectionViewLayout {
         UICollectionViewCompositionalLayout { [weak self] section, environment in
@@ -328,7 +328,7 @@ final class GroupDashboardView: UIView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 6
-        section.contentInsets = .init(top: 0, leading: 16, bottom: 12, trailing: 16)
+        section.contentInsets = .init(top: 0, leading: 16, bottom: 36, trailing: 16)
         return section
     }
 
