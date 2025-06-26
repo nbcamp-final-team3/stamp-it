@@ -29,6 +29,7 @@ final class MyMissionView: UIView {
         frame: .zero,
         collectionViewLayout: createLayout()
     ).then {
+        $0.backgroundColor = .clear
         $0.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.reuseIdentifier)
         $0.register(
             AssignedMissionCell.self,
@@ -61,8 +62,8 @@ final class MyMissionView: UIView {
 
     private func setHierarchy() {
         [
-            collectionView,
             noResultsView,
+            collectionView,
         ].forEach { addSubview($0) }
     }
 

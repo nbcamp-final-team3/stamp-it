@@ -106,8 +106,9 @@ final class FilterCell: UICollectionViewCell {
         if let titleWeight {
             label.font = .pretendard(size: 14, weight: titleWeight)
         }
-        
-        stackView.backgroundColor = backgroundColor
+
+        // 스크롤 후 다시 올라왔을 때 선택여부에 따라 UI 업데이트
+        updateCell()
     }
     
     private func updateCell() {
