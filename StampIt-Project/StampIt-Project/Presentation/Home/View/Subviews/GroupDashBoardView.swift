@@ -225,7 +225,8 @@ final class GroupDashboardView: UIView {
             case .myMission:
                 return createMyMissionSection()
             case .memberFilter:
-                return .createFilterSection(withHeader: makeHeaderLayout())
+                let insets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16)
+                return .createFilterSection(withHeader: makeHeaderLayout(), insets: insets)
             case .memberMission:
                 return createSendMissionSection()
             }
@@ -251,11 +252,13 @@ final class GroupDashboardView: UIView {
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
         let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = .init(top: 16, leading: 16, bottom: 36, trailing: 16)
 
         if withHeader {
             let header = makeHeaderLayout()
             section.boundarySupplementaryItems = [header]
+            section.contentInsets = .init(top: 16, leading: 16, bottom: 36, trailing: 16)
+        } else {
+            section.contentInsets = .init(top: 8, leading: 16, bottom: 36, trailing: 16)
         }
 
         return section
@@ -319,7 +322,7 @@ final class GroupDashboardView: UIView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 6
-        section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
+        section.contentInsets = .init(top: 0, leading: 16, bottom: 12, trailing: 16)
         return section
     }
 
