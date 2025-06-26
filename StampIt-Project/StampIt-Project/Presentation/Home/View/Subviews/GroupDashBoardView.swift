@@ -20,6 +20,7 @@ final class GroupDashboardView: UIView {
     let didTapMissionCompleteButton = PublishRelay<HomeItem>()
     let didTapMoreMyMissionButton = PublishRelay<Void>()
     let didTapMoreMemberMissionButton = PublishRelay<Void>()
+    let selectMember = PublishRelay<String?>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
 
@@ -113,6 +114,12 @@ final class GroupDashboardView: UIView {
                 ) as! FilterCell
 
                 cell.configure(title: nickname, isMediumSize: false)
+
+                cell.selectFilter
+                    .bind(with: self, onNext: { owner, text in
+                        owner.selectMember.accept(text)
+                    })
+                    .disposed(by: cell.disposeBag)
 
                 return cell
 

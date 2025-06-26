@@ -17,6 +17,7 @@ final class HomeView: UIView {
     let didTapMissionCompleteButton = PublishRelay<HomeItem>()
     let didTapMoreMyMissionButton = PublishRelay<Void>()
     let didTapMoreMemberMissionButton = PublishRelay<Void>()
+    let selectMember = PublishRelay<String?>()
     let username = PublishRelay<String>()
     let groupName = PublishRelay<String>()
 
@@ -88,6 +89,10 @@ final class HomeView: UIView {
 
         groupDashboardView.didTapMoreMemberMissionButton
             .bind(to: didTapMoreMemberMissionButton)
+            .disposed(by: disposeBag)
+
+        groupDashboardView.selectMember
+            .bind(to: selectMember)
             .disposed(by: disposeBag)
 
         username
