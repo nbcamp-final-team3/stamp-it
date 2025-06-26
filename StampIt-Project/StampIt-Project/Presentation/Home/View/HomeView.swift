@@ -17,6 +17,7 @@ final class HomeView: UIView {
     let didTapMissionCompleteButton = PublishRelay<HomeItem>()
     let didTapMoreMyMissionButton = PublishRelay<Void>()
     let didTapMoreMemberMissionButton = PublishRelay<Void>()
+    let selectMember = PublishRelay<String?>()
     let username = PublishRelay<String>()
     let groupName = PublishRelay<String>()
 
@@ -90,6 +91,10 @@ final class HomeView: UIView {
             .bind(to: didTapMoreMemberMissionButton)
             .disposed(by: disposeBag)
 
+        groupDashboardView.selectMember
+            .bind(to: selectMember)
+            .disposed(by: disposeBag)
+
         username
             .bind(to: groupDashboardView.username)
             .disposed(by: disposeBag)
@@ -108,5 +113,9 @@ final class HomeView: UIView {
     func toggleView(showGroupOrganizationView: Bool) {
         groupOrganizationView.isHidden = !showGroupOrganizationView
         groupDashboardView.isHidden = showGroupOrganizationView
+    }
+
+    func setDefaultSelection() {
+        groupDashboardView.setDefaultSelection()
     }
 }

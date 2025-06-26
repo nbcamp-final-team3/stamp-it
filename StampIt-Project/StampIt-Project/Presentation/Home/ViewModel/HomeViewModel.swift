@@ -27,7 +27,7 @@ final class HomeViewModel: ViewModelProtocol {
         case didTapMissonCompleteButton(HomeItem)
         case didTapCompleteCancelButton
         case didTapMoreMyMissions
-        case didSelectReceivedMember(memberID: String)
+        case didSelectReceivedMember(String?)
         case didTapMoreMemberMissions
     }
 
@@ -36,6 +36,8 @@ final class HomeViewModel: ViewModelProtocol {
         let isShowGroupOrganizationView = PublishRelay<Bool>()
         let rankedMembers = PublishRelay<[HomeItem]>()
         let myMissions = BehaviorRelay<[HomeItem]>(value: [])
+        let memberFilter = BehaviorRelay<[HomeItem]>(value: [])
+        let selectedFilter = BehaviorRelay<String?>(value: nil)
         let memberMissionsForDisplay = PublishRelay<[HomeItem]>()
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
@@ -86,15 +88,15 @@ final class HomeViewModel: ViewModelProtocol {
                 case .didReceiveInvitationType(let type):
                     owner.handleInvitation(type: type)
                 case .didTapMissonCompleteButton(let item):
-                    let missionID = item.received!.missionID
+                    let missionID = item.myMission!.missionID
                     owner.handleMissionCompleteButtonTapped(missionID: missionID)
-                    owner.state.completedMissionTitle.accept(item.received!.title)
+                    owner.state.completedMissionTitle.accept(item.myMission!.title)
                 case .didTapCompleteCancelButton:
                     owner.cancelMissionComplete()
                 case .didTapMoreMyMissions:
                     owner.state.isPushMyMissionVC.accept(())
-                case .didSelectReceivedMember(memberID: let id):
-                    owner.updateMemberMissions(memberID: id)
+                case .didSelectReceivedMember(nickname: let nickname):
+                    owner.updateMemberMissions(nickname: nickname)
                 case .didTapMoreMemberMissions:
                     owner.state.isPushMemberMissionVC.accept(())
                 }
@@ -120,17 +122,23 @@ final class HomeViewModel: ViewModelProtocol {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Member]> in
               guard let self = self else { return .empty() }
-              return self.rankingUseCase.fetchRanking(ofGroup: user.groupID)
+              return rankingUseCase.fetchRanking(ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] members in
               guard let self = self else { return }
 
               state.isShowGroupOrganizationView.accept(members.count == 1)
 
-              self.memberCache = Dictionary(uniqueKeysWithValues: members.map { ($0.userID, $0) })
+              // 멤버 정보 캐싱 후 매핑하여 랭킹 섹션에 아이템 렌더링하기
+              memberCache = Dictionary(uniqueKeysWithValues: members.map { ($0.userID, $0) })
               let userID = state.user.value?.userID ?? ""
               let items = memberMapper.map(members: members, userID: userID)
-              self.state.rankedMembers.accept(items)
+              state.rankedMembers.accept(items)
+
+              let memberNicknames = members
+                  .filter { $0.userID != userID }
+                  .map { HomeItem.memberFilter(title: $0.nickname) }
+              state.memberFilter.accept([.memberFilter(title: "전체보기")] + memberNicknames)
           })
           .disposed(by: disposeBag)
     }
@@ -139,7 +147,7 @@ final class HomeViewModel: ViewModelProtocol {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Mission]> in
               guard let self = self else { return .empty() }
-              return self.myMissionUseCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
+              return self.myMissionUseCase.fetchAssignedMissions(to: user.userID, ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
@@ -169,11 +177,12 @@ final class HomeViewModel: ViewModelProtocol {
           .disposed(by: disposeBag)
     }
 
-    /// 멤버 ID가 nil이면 전체, 값이 있으면 해당 멤버에게 전달한 미션만 필터링하여 최근 전달한 4개를 accept
-    private func updateMemberMissions(memberID: String?) {
-        let filteredMissions = memberID
-            .map { id in memberMissions.filter { $0.assignedTo == memberID } }
-            ?? memberMissions
+    /// 멤버 닉네임으로 들어온 값이 "전체보기" 이면 전체, 값이 있으면 해당 멤버에게 전달한 미션만 필터링하여 최근 전달한 4개를 accept
+    private func updateMemberMissions(nickname: String?) {
+        let memberID = memberCache.values.first(where: { $0.nickname == nickname })?.userID
+        let filteredMissions = memberID != nil
+            ? memberMissions.filter { $0.assignedTo == memberID }
+            : memberMissions
         let first4 = Array(filteredMissions.prefix(4))
         let homeItems = missionMapper
             .map(memberMission: first4, member: memberCache)
@@ -225,7 +234,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// UI에서 미션 제거
     private func removeMissionItem(missionID: String) {
         let missions = state.myMissions.value
-        let updated = missions.filter { $0.received!.missionID != missionID }
+        let updated = missions.filter { $0.myMission!.missionID != missionID }
         state.myMissions.accept(updated)
     }
 

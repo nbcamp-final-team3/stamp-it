@@ -26,9 +26,9 @@ final class MissionExpirationServiceImpl: MissionExpirationService {
 
     private func getExpiredMissions(_ missions: [Mission]) -> [Mission] {
         return missions.filter {
-            let dueDay = Calendar.current.component(.day, from: $0.dueDate)
-            let today = Calendar.current.component(.day, from: Date())
-            return $0.status == .assigned && dueDay < today
+            let startOfToday = Calendar.current.startOfDay(for: Date())
+            let startOfDueDate = Calendar.current.startOfDay(for: $0.dueDate)
+            return $0.status == .assigned && startOfDueDate < startOfToday
         }
     }
 }

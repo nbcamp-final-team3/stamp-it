@@ -137,6 +137,11 @@ final class HomeViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        homeView.selectMember
+            .map { HomeViewModel.Action.didSelectReceivedMember($0) }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.user
             .asDriver()
             .drive(with: self) { owner, user in
@@ -163,6 +168,16 @@ final class HomeViewController: UIViewController {
         viewModel.state.isPushMyMissionVC
             .asDriver(onErrorDriveWith: .empty())
             .drive(onNext: pushMyMissionVC)
+            .disposed(by: disposeBag)
+
+        viewModel.state.memberFilter
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.homeView.updateSnapshot(withItems: items, toSection: .memberFilter)
+                if owner.viewModel.state.selectedFilter.value == nil {
+                    owner.homeView.setDefaultSelection()
+                }
+            }
             .disposed(by: disposeBag)
 
         viewModel.state.memberMissionsForDisplay

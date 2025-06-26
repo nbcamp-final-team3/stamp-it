@@ -20,6 +20,7 @@ final class GroupDashboardView: UIView {
     let didTapMissionCompleteButton = PublishRelay<HomeItem>()
     let didTapMoreMyMissionButton = PublishRelay<Void>()
     let didTapMoreMemberMissionButton = PublishRelay<Void>()
+    let selectMember = PublishRelay<String?>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
 
@@ -37,6 +38,7 @@ final class GroupDashboardView: UIView {
         $0.showsVerticalScrollIndicator = false
         $0.register(MemberCompactCell.self, forCellWithReuseIdentifier: MemberCompactCell.identifier)
         $0.register(MissionCardCell.self, forCellWithReuseIdentifier: MissionCardCell.identifier)
+        $0.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.reuseIdentifier)
         $0.register(AssignedMissionCell.self, forCellWithReuseIdentifier: AssignedMissionCell.identifier)
         $0.register(PlaceholderCell.self, forCellWithReuseIdentifier: PlaceholderCell.identifier)
         $0.register(
@@ -105,6 +107,22 @@ final class GroupDashboardView: UIView {
 
                 return cell
 
+            case .memberFilter(let nickname):
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: FilterCell.reuseIdentifier,
+                    for: indexPath
+                ) as! FilterCell
+
+                cell.configure(title: nickname, isMediumSize: false)
+
+                cell.selectFilter
+                    .bind(with: self, onNext: { owner, text in
+                        owner.selectMember.accept(text)
+                    })
+                    .disposed(by: cell.disposeBag)
+
+                return cell
+
             case .memberMission(let mission):
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: AssignedMissionCell.identifier,
@@ -121,9 +139,7 @@ final class GroupDashboardView: UIView {
                     for: indexPath
                 ) as! PlaceholderCell
 
-                if let text = section.placeholderText {
-                    cell.configure(with: text)
-                }
+                cell.configure(with: section.placeholderText)
 
                 return cell
             }
@@ -142,9 +158,6 @@ final class GroupDashboardView: UIView {
             let section = HomeSection.allCases[indexPath.section]
 
             switch section {
-            case .ranking:
-                return nil
-
             case .myMission:
                 header.configure(title: "내 미션")
                 username
@@ -156,7 +169,7 @@ final class GroupDashboardView: UIView {
                     .bind(to: didTapMoreMyMissionButton)
                     .disposed(by: header.disposeBag)
 
-            case .memberMission:
+            case .memberFilter:
                 header.configure(title: "멤버 미션")
 
                 Observable
@@ -169,6 +182,8 @@ final class GroupDashboardView: UIView {
                 header.didTapMoreMissionButton
                     .bind(to: didTapMoreMemberMissionButton)
                     .disposed(by: header.disposeBag)
+            default:
+                return nil
             }
 
             return header
@@ -197,22 +212,36 @@ final class GroupDashboardView: UIView {
     // MARK: - Bind
 
     private func bind() {
+        collectionView.rx
+            .setDelegate(self)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods
+
+    func setDefaultSelection() {
+        let section = HomeSection.allCases.firstIndex(of: .memberFilter)!
+        let indexPath = IndexPath(item: 0, section: section)
+        collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+    }
 
     private func createLayout() -> UICollectionViewLayout {
         UICollectionViewCompositionalLayout { [weak self] section, environment in
             guard let self else { return nil }
 
             let section = HomeSection.allCases[section]
-            if isOnlyPlaceholder(inSection: section) { return createEmptySection() }
+            if isOnlyPlaceholder(inSection: section) {
+                return createEmptySection(withHeader: section == .myMission)
+            }
 
             switch section {
             case .ranking:
                 return createRankingSection()
             case .myMission:
                 return createMyMissionSection()
+            case .memberFilter:
+                let insets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16)
+                return .createFilterSection(withHeader: makeHeaderLayout(), insets: insets)
             case .memberMission:
                 return createSendMissionSection()
             }
@@ -224,9 +253,7 @@ final class GroupDashboardView: UIView {
         return item?.count == 1 && item?.first == .placeholder(section)
     }
 
-    private func createEmptySection() -> NSCollectionLayoutSection {
-        let header = makeHeaderLayout()
-
+    private func createEmptySection(withHeader: Bool = false) -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
             heightDimension: .fractionalHeight(1)
@@ -240,8 +267,15 @@ final class GroupDashboardView: UIView {
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 
         let section = NSCollectionLayoutSection(group: group)
-        section.contentInsets = .init(top: 16, leading: 16, bottom: 36, trailing: 16)
-        section.boundarySupplementaryItems = [header]
+
+        if withHeader {
+            let header = makeHeaderLayout()
+            section.boundarySupplementaryItems = [header]
+            section.contentInsets = .init(top: 16, leading: 16, bottom: 36, trailing: 16)
+        } else {
+            section.contentInsets = .init(top: 8, leading: 16, bottom: 36, trailing: 16)
+        }
+
         return section
     }
 
@@ -289,8 +323,6 @@ final class GroupDashboardView: UIView {
     }
 
     private func createSendMissionSection() -> NSCollectionLayoutSection {
-        let header = makeHeaderLayout()
-
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
             heightDimension: .estimated(80)
@@ -305,8 +337,7 @@ final class GroupDashboardView: UIView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 6
-        section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
-        section.boundarySupplementaryItems = [header]
+        section.contentInsets = .init(top: 0, leading: 16, bottom: 36, trailing: 16)
         return section
     }
 
@@ -323,4 +354,13 @@ final class GroupDashboardView: UIView {
 
         return header
     }
+}
+
+extension GroupDashboardView: UICollectionViewDelegate {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    shouldSelectItemAt indexPath: IndexPath
+  ) -> Bool {
+      return indexPath.section == HomeSection.allCases.firstIndex(of: .memberFilter)!
+  }
 }
