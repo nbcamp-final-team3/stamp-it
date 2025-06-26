@@ -1,5 +1,5 @@
 //
-//  CategoryCell.swift
+//  FilterCell.swift
 //  StampIt-Project
 //
 //  Created by 권순욱 on 6/10/25.
@@ -9,15 +9,15 @@ import UIKit
 import SnapKit
 import Then
 
-final class CategoryCell: UICollectionViewCell {
-    static let reuseIdentifier = "CategoryCell"
-    
+final class FilterCell: UICollectionViewCell {
+    static let reuseIdentifier = "FilterCell"
+
     private let imageView = UIImageView().then {
         $0.contentMode = .scaleAspectFit
     }
     
     private let label = UILabel().then {
-        $0.font = .pretendard(size: 12, weight: .regular)
+        $0.font = .pretendard(size: 14, weight: .semibold)
         $0.textColor = .gray400
         $0.textAlignment = .center
     }
@@ -25,9 +25,10 @@ final class CategoryCell: UICollectionViewCell {
     private let stackView = UIStackView().then {
         $0.axis = .horizontal
         $0.alignment = .center
-        $0.spacing = 0
+        $0.spacing = 3.5
         $0.isLayoutMarginsRelativeArrangement = true
-        $0.layoutMargins = UIEdgeInsets(top: 2, left: 4, bottom: 2, right: 4)
+        // image 있을 때 마진 값
+        $0.layoutMargins = UIEdgeInsets(top: 6, left: 8, bottom: 6, right: 8)
     }
     
     // 셀이 선택되면 셀 스타일을 업데이트
@@ -56,7 +57,7 @@ final class CategoryCell: UICollectionViewCell {
             stackView.addArrangedSubview($0)
         }
         
-        contentView.layer.cornerRadius = 10
+        contentView.layer.cornerRadius = 8
         contentView.layer.masksToBounds = true
         contentView.layer.borderWidth = 1
         contentView.layer.borderColor = UIColor.gray200.cgColor
@@ -68,7 +69,11 @@ final class CategoryCell: UICollectionViewCell {
         }
         
         imageView.snp.makeConstraints {
-            $0.width.height.equalTo(24)
+            $0.width.height.equalTo(20)
+        }
+
+        label.snp.makeConstraints {
+            $0.height.equalTo(20)
         }
     }
     
@@ -79,18 +84,27 @@ final class CategoryCell: UICollectionViewCell {
     ///   - titleColor: 타이틀 색깔
     ///   - titleWeight: 타이틀 굵기
     ///   - backgroundColor: 스택 뷰 배경색깔
-    func configure(image: UIImage? = nil, title: String? = nil, titleColor: UIColor? = nil, titleWeight: UIFont.Weight? = nil, backgroundColor: UIColor? = nil) {
+    func configure(image: UIImage? = nil, title: String? = nil, titleColor: UIColor? = nil, titleWeight: UIFont.Weight? = nil, backgroundColor: UIColor? = nil, isMediumSize: Bool = true) {
         if let image {
             imageView.image = image
+            stackView.layoutMargins.left = 8
+            stackView.layoutMargins.right = 8
         } else {
             imageView.isHidden = true
+            stackView.layoutMargins.left = 12
+            stackView.layoutMargins.right = 12
         }
-        
+
+        stackView.layoutMargins.top = isMediumSize ? 6 : 4
+        stackView.layoutMargins.bottom = isMediumSize ? 6 : 4
+
         label.text = title
-        label.textColor = titleColor
-        
+        if let titleColor {
+            label.textColor = titleColor
+        }
+
         if let titleWeight {
-            label.font = .pretendard(size: 12, weight: titleWeight)
+            label.font = .pretendard(size: 14, weight: titleWeight)
         }
         
         stackView.backgroundColor = backgroundColor

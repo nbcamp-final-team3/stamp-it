@@ -37,7 +37,7 @@ final class GroupDashboardView: UIView {
         $0.showsVerticalScrollIndicator = false
         $0.register(MemberCompactCell.self, forCellWithReuseIdentifier: MemberCompactCell.identifier)
         $0.register(MissionCardCell.self, forCellWithReuseIdentifier: MissionCardCell.identifier)
-        $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
+        $0.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.reuseIdentifier)
         $0.register(AssignedMissionCell.self, forCellWithReuseIdentifier: AssignedMissionCell.identifier)
         $0.register(PlaceholderCell.self, forCellWithReuseIdentifier: PlaceholderCell.identifier)
         $0.register(
@@ -108,11 +108,11 @@ final class GroupDashboardView: UIView {
 
             case .memberFilter(let nickname):
                 let cell = collectionView.dequeueReusableCell(
-                    withReuseIdentifier: CategoryCell.reuseIdentifier,
+                    withReuseIdentifier: FilterCell.reuseIdentifier,
                     for: indexPath
-                ) as! CategoryCell
+                ) as! FilterCell
 
-                cell.configure(title: nickname)
+                cell.configure(title: nickname, isMediumSize: false)
 
                 return cell
 

@@ -31,7 +31,7 @@ final class MissionListViewController: UIViewController {
     }
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
-        $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
+        $0.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.reuseIdentifier)
         $0.isScrollEnabled = false
     }
     
@@ -226,11 +226,11 @@ final class MissionListViewController: UIViewController {
         dataSource = DataSource(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
             case .all:
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
-                cell.configure(title: "전체보기", titleColor: .white, titleWeight: .bold, backgroundColor: .red400)
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.reuseIdentifier, for: indexPath) as! FilterCell
+                cell.configure(title: "전체보기", titleColor: .white, backgroundColor: .red400)
                 return cell
             case .category(let category):
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.reuseIdentifier, for: indexPath) as! FilterCell
                 cell.configure(image: category.image, title: category.title, titleColor: .gray400, backgroundColor: .white)
                 return cell
             }
