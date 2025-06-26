@@ -106,7 +106,7 @@ final class GroupMemberManageViewController: UIViewController {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GroupMemberCardCell.reuseIdentifier, for: indexPath) as! GroupMemberCardCell
             cell.configure(with: item, at: indexPath)
 
-            cell.optionButtonTapped
+            let disposable = cell.optionButtonTapped
                 .subscribe(onNext: { [weak self] _ in
                     if item.isCurrentUser {
                         // 자기 자신인 경우 토스트 메시지 표시
@@ -116,12 +116,14 @@ final class GroupMemberManageViewController: UIViewController {
                         self?.viewModel.action.accept(.didTapCardOptionButton(memberId: item.id))
                     }
                 })
-                .disposed(by: cell.disposeBag)
-            
+            cell.dispose(disposable: disposable)
+
             return cell
         }
     }
 
+
+  
     private func bind() {
         // 네비게이션바 뒤로가기 버튼
         navigationBar.backTapped
