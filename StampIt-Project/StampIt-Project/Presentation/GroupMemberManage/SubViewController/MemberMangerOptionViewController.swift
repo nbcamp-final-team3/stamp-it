@@ -73,18 +73,10 @@ final class MemberManageOptionViewController: UIViewController {
             }
             .disposed(by: disposeBag)
 
-        viewModel.state.showConfirmationAlert
-            .asDriver(onErrorDriveWith: .empty())
-            .drive(with: self) { owner, type in
-                owner.showConfirmationAlert(for: type)
-            }
-            .disposed(by: disposeBag)
-
         viewModel.state.dismiss
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, type in
-                owner.didTapConfirmButton.accept(type)
-                owner.dismiss(animated: true)
+                owner.showConfirmationAlert(for: type)
             }
             .disposed(by: disposeBag)
     }
@@ -97,7 +89,8 @@ final class MemberManageOptionViewController: UIViewController {
         let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
         
         let confirmAction = UIAlertAction(title: confirmTitle, style: .default) { [weak self] _ in
-            self?.viewModel.confirmAction()
+            self?.didTapConfirmButton.accept(type)
+            self?.dismiss(animated: true)
         }
         
         let cancelAction = UIAlertAction(title: "취소", style: .cancel)

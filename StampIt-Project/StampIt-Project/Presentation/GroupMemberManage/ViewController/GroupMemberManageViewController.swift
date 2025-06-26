@@ -19,6 +19,7 @@ final class GroupMemberManageViewController: UIViewController {
     private let viewModel: GroupMemberManageViewModel
     private let disposeBag = DisposeBag()
     private var dataSource: UICollectionViewDiffableDataSource<GroupMemberManageViewModel.Section, GroupMemberManageViewModel.Item>?
+    private let toastView = ToastView()
 
     // MARK: - UI
 
@@ -106,26 +107,19 @@ final class GroupMemberManageViewController: UIViewController {
             cell.configure(with: item, at: indexPath)
 
             cell.optionButtonTapped
-                .map { _ in GroupMemberManageViewModel.Action.didTapCardOptionButton }
-                .bind(to: self.viewModel.action)
+                .subscribe(onNext: { [weak self] _ in
+                    if item.isCurrentUser {
+                        // 자기 자신인 경우 토스트 메시지 표시
+                        self?.showToastMessage(message: "자기 자신에게는 적용할 수 없습니다.", type: .failure)
+                    } else {
+                        // 다른 멤버인 경우 옵션 시트 표시
+                        self?.viewModel.action.accept(.didTapCardOptionButton(memberId: item.id))
+                    }
+                })
                 .disposed(by: self.disposeBag)
             
             return cell
         }
-        
-        // 테스트 데이터 추가
-        var snapshot = NSDiffableDataSourceSnapshot<GroupMemberManageViewModel.Section, GroupMemberManageViewModel.Item>()
-        snapshot.appendSections([.main])
-
-        // TODO: 실제 DB에서 데이터 받아오면 삭제 예정
-        let testItems = [
-            GroupMemberManageViewModel.Item(id: "1", name: "김철수"),
-            GroupMemberManageViewModel.Item(id: "2", name: "이영희"),
-            GroupMemberManageViewModel.Item(id: "3", name: "박민수")
-        ]
-        
-        snapshot.appendItems(testItems, toSection: .main)
-        dataSource?.apply(snapshot, animatingDifferences: false)
     }
 
     private func bind() {
@@ -139,46 +133,74 @@ final class GroupMemberManageViewController: UIViewController {
         // 옵션 시트 표시
         viewModel.state.showOptionSheet
             .asDriver(onErrorDriveWith: .empty())
-            .drive(with: self) { owner, _ in
-                owner.showMemberManageOptionSheet()
+            .drive(with: self) { owner, memberId in
+                owner.showMemberManageOptionSheet(memberId: memberId)
             }
             .disposed(by: disposeBag)
 
-        // 리더 위임 처리
-        viewModel.state.isLeaderMandate
+        // 토스트 메시지 표시 (에러 및 성공 메시지 통합)
+        viewModel.state.showToast
             .asDriver(onErrorDriveWith: .empty())
-            .drive(with: self) { owner, _ in
-                owner.handleLeaderMandate()
+            .drive(with: self) { owner, message in
+                owner.showToastMessage(message: message, type: .failure)
             }
             .disposed(by: disposeBag)
 
-        // 멤버 내보내기 처리
-        viewModel.state.isMemberExport
+        // 성공 메시지 표시 (토스트로 변경)
+        viewModel.state.showSuccess
             .asDriver(onErrorDriveWith: .empty())
-            .drive(with: self) { owner, _ in
-                owner.handleMemberExport()
+            .drive(with: self) { owner, message in
+                owner.showToastMessage(message: message, type: .success)
             }
             .disposed(by: disposeBag)
+
+        // 멤버 목록 업데이트
+        viewModel.state.members
+            .asDriver()
+            .drive(with: self) { owner, members in
+                owner.updateMembersList(members: members)
+            }
+            .disposed(by: disposeBag)
+
+        // 초기 데이터 로드
+        viewModel.action.accept(.viewDidLoad)
     }
 
-    private func handleLeaderMandate() {
-        // 리더 위임 로직 구현
-        print("리더 위임 처리")
-        // TODO: 실제 리더 위임 로직 구현
+    private func updateMembersList(members: [Member]) {
+        var snapshot = NSDiffableDataSourceSnapshot<GroupMemberManageViewModel.Section, GroupMemberManageViewModel.Item>()
+        snapshot.appendSections([.main])
+
+        // 현재 사용자 정보 가져오기
+        let currentUserId = viewModel.getCurrentUserId()
+
+        let items = members.map { member in
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy년 MM월 dd일"
+            let formattedDate = dateFormatter.string(from: member.joinedAt)
+            
+            return GroupMemberManageViewModel.Item(
+                id: member.userID, 
+                name: member.nickname,
+                date: "그룹 가입일: \(formattedDate)",
+                image: UIImage(named: member.profileImage ?? "profileImage1"),
+                isCurrentUser: member.userID == currentUserId
+            )
+        }
+        
+        snapshot.appendItems(items, toSection: .main)
+        dataSource?.apply(snapshot, animatingDifferences: true)
     }
 
-    private func handleMemberExport() {
-        // 멤버 내보내기 로직 구현
-        print("멤버 내보내기 처리")
-        // TODO: 실제 멤버 내보내기 로직 구현
-    }
-
-    private func showMemberManageOptionSheet() {
-        let vm = MemberManageOptionViewModel()
+    private func showMemberManageOptionSheet(memberId: String) {
+        // 해당 멤버의 정보 찾기
+        let targetMember = viewModel.state.members.value.first { $0.userID == memberId }
+        let memberNickname = targetMember?.nickname ?? "멤버"
+        
+        let vm = MemberManageOptionViewModel(memberNickname: memberNickname)
         let vc = MemberManageOptionViewController(viewModel: vm)
 
         vc.didTapConfirmButton
-            .map { GroupMemberManageViewModel.Action.didReceiveMemberManageType($0) }
+            .map { GroupMemberManageViewModel.Action.didReceiveMemberManageType($0, memberId: memberId) }
             .bind(to: viewModel.action)
             .disposed(by: vc.disposeBag)
 
@@ -198,6 +220,10 @@ final class GroupMemberManageViewController: UIViewController {
             sheet.preferredCornerRadius = 32
         }
         present(vc, animated: true)
+    }
+
+    private func showToastMessage(message: String, type: ToastType = .failure) {
+        toastView.show(in: view, message: message, type: type)
     }
 
 }
