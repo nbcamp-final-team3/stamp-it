@@ -115,7 +115,7 @@ final class AssignMissionViewModel: ViewModelProtocol {
         
         missionUseCaseImpl.fetchMembers(ofGroup: user.groupID)
             .subscribe { [weak self] members in
-                let filteredMembers = members.filter { $0.nickname != user.nickname }
+                let filteredMembers = members.filter { $0.userID != user.userID }
                 self?.state.members.accept(filteredMembers)
             } onError: { error in
                 print(error)

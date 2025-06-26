@@ -16,7 +16,7 @@ final class EditProfileRepositoryImpl: EditProfileRepository {
     init(
             userManager: UserManager,
             groupManager: GroupManager,
-            membershipManager: MembershipManager,
+            membershipManager: MembershipManager
         ) {
             self.userManager = userManager
             self.groupManager = groupManager
@@ -84,4 +84,12 @@ final class EditProfileRepositoryImpl: EditProfileRepository {
                     return Observable.error(error)
                 }
         }
+    
+    // 멤버 데이터 패치
+    func fetchMembers(ofGroup groupID: String) -> Observable<[Member]> {
+        return membershipManager.fetchMembers(groupId: groupID)
+            .map { memberships in
+                memberships.map { $0.toDomainModel() }
+            }
+    }
 }
