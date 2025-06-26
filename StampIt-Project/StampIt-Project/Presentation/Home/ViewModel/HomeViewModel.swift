@@ -36,6 +36,8 @@ final class HomeViewModel: ViewModelProtocol {
         let isShowGroupOrganizationView = PublishRelay<Bool>()
         let rankedMembers = PublishRelay<[HomeItem]>()
         let myMissions = BehaviorRelay<[HomeItem]>(value: [])
+        let memberFilter = BehaviorRelay<[HomeItem]>(value: [])
+        let selectedFilter = BehaviorRelay<String?>(value: nil)
         let memberMissionsForDisplay = PublishRelay<[HomeItem]>()
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
@@ -120,17 +122,23 @@ final class HomeViewModel: ViewModelProtocol {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Member]> in
               guard let self = self else { return .empty() }
-              return self.rankingUseCase.fetchRanking(ofGroup: user.groupID)
+              return rankingUseCase.fetchRanking(ofGroup: user.groupID)
           }
           .subscribe(onNext: { [weak self] members in
               guard let self = self else { return }
 
               state.isShowGroupOrganizationView.accept(members.count == 1)
 
-              self.memberCache = Dictionary(uniqueKeysWithValues: members.map { ($0.userID, $0) })
+              // 멤버 정보 캐싱 후 매핑하여 랭킹 섹션에 아이템 렌더링하기
+              memberCache = Dictionary(uniqueKeysWithValues: members.map { ($0.userID, $0) })
               let userID = state.user.value?.userID ?? ""
               let items = memberMapper.map(members: members, userID: userID)
-              self.state.rankedMembers.accept(items)
+              state.rankedMembers.accept(items)
+
+              let memberNicknames = members
+                  .filter { $0.userID != userID }
+                  .map { HomeItem.memberFilter(title: $0.nickname) }
+              state.memberFilter.accept([.memberFilter(title: "전체보기")] + memberNicknames)
           })
           .disposed(by: disposeBag)
     }

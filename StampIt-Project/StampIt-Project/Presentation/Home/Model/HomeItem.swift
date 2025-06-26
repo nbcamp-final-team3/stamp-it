@@ -30,7 +30,7 @@ extension HomeSection {
 enum HomeItem: Hashable {
     case member(HomeMember)
     case myMission(HomeMyMission)
-    case memberFilter(nickname: String)
+    case memberFilter(title: String)
     case memberMission(HomeMemberMission)
     case placeholder(HomeSection)
 

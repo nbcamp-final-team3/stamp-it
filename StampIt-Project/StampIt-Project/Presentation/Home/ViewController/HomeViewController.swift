@@ -165,6 +165,13 @@ final class HomeViewController: UIViewController {
             .drive(onNext: pushMyMissionVC)
             .disposed(by: disposeBag)
 
+        viewModel.state.memberFilter
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.homeView.updateSnapshot(withItems: items, toSection: .memberFilter)
+            }
+            .disposed(by: disposeBag)
+
         viewModel.state.memberMissionsForDisplay
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in

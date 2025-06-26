@@ -185,7 +185,6 @@ final class GroupDashboardView: UIView {
         guard let dataSource else { return }
         var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
         snapshot.appendSections(HomeSection.allCases)
-        snapshot.appendItems([.memberFilter(nickname: "전체보기"), .memberFilter(nickname: "단단")], toSection: .memberFilter)
         dataSource.apply(snapshot)
     }
 
