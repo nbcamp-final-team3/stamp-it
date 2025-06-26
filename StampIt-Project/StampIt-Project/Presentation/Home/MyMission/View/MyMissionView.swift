@@ -16,6 +16,7 @@ final class MyMissionView: UIView {
     // MARK: - Actions
 
     let didTapStatusButton = PublishRelay<MyMissionItem>()
+    let selectFilter = PublishRelay<MissionStatus?>()
 
     // MARK: - Properties
 
@@ -91,6 +92,12 @@ final class MyMissionView: UIView {
 
                 cell.configure(title: status.displayTitle)
 
+                cell.selectFilter
+                    .bind(with: self, onNext: { owner, _ in
+                        owner.selectFilter.accept(item.status!.status)
+                    })
+                    .disposed(by: cell.disposeBag)
+
                 return cell
 
             case .mission(let mission):
@@ -120,6 +127,9 @@ final class MyMissionView: UIView {
     // MARK: - Bind
 
     private func bind() {
+        collectionView.rx
+            .setDelegate(self)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods
@@ -166,4 +176,13 @@ final class MyMissionView: UIView {
         section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
         return section
     }
+}
+
+extension MyMissionView: UICollectionViewDelegate {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    shouldSelectItemAt indexPath: IndexPath
+  ) -> Bool {
+      return indexPath.section == MyMissionSection.allCases.firstIndex(of: .filter)!
+  }
 }

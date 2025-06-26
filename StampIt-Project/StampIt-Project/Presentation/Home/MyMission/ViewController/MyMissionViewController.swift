@@ -92,6 +92,11 @@ final class MyMissionViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        myMissionView.selectFilter
+            .map { MyMissionViewModel.Action.selectFilter($0) }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         toastView.didTapCancelButton
             .map { MyMissionViewModel.Action.didTapCompleteCancelButton }
             .bind(to: viewModel.action)

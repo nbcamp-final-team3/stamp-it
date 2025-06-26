@@ -19,7 +19,7 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     enum Action {
         case viewDidLoad
-        case selectFilter(MissionStatus)
+        case selectFilter(MissionStatus?)
         case didTapStatusButton(MyMissionItem)
         case didTapCompleteCancelButton
         case didTapBackButton
@@ -173,9 +173,10 @@ final class MyMissionViewModel: ViewModelProtocol {
     }
 
     private func updateMyMissions(status: MissionStatus?) {
-        let filteredMissions = status != nil
-            ? myMissions.filter { $0.status == status }
-            : myMissions
+        let filteredMissions = status == .none
+            ? myMissions
+            : myMissions.filter { $0.status == status }
+
         let items = mapper
             .map(myMissions: filteredMissions, member: memberCache)
             .map { MyMissionItem.mission($0) }
