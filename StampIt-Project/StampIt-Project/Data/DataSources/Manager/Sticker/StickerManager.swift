@@ -195,32 +195,32 @@ final class StickerManager: StickerManagerProtocol {
     private func applyQueryConditions(_ query: FirebaseFirestore.Query, query stickerQuery: StickerQuery) -> FirebaseFirestore.Query {
         var result = query
         
-        if let stickerIds = stickerQuery.stickerIds, !stickerIds.isEmpty {
-            result = result.whereField("stickerId", in: stickerIds)
+        if let stickerId = stickerQuery.stickerId, !stickerId.isEmpty {
+            result = result.whereField("stickerId", in: stickerId)
         }
         
-        if let userIds = stickerQuery.userIds, !userIds.isEmpty {
-            result = result.whereField("userId", in: userIds)
+        if let userId = stickerQuery.userId, !userId.isEmpty {
+            result = result.whereField("userId", in: userId)
         }
         
-        if let groupIds = stickerQuery.groupIds, !groupIds.isEmpty {
-            result = result.whereField("groupId", in: groupIds)
+        if let groupId = stickerQuery.groupId, !groupId.isEmpty {
+            result = result.whereField("groupId", in: groupId)
         }
         
-        if let months = stickerQuery.months, !months.isEmpty {
-            result = result.whereField("month", in: months)
+        if let month = stickerQuery.month, !month.isEmpty {
+            result = result.whereField("month", in: month)
         }
         
-        if let pinNumbers = stickerQuery.pinNumbers, !pinNumbers.isEmpty {
-            result = result.whereField("pinNumber", in: pinNumbers)
+        if let pinNumber = stickerQuery.pinNumber, !pinNumber.isEmpty {
+            result = result.whereField("pinNumber", in: pinNumber)
         }
         
-        if let types = stickerQuery.types, !types.isEmpty {
-            result = result.whereField("type", in: types)
+        if let type = stickerQuery.type, !type.isEmpty {
+            result = result.whereField("type", in: type)
         }
         
-        if let createdAfter = stickerQuery.createdAfter {
-            result = result.whereField("createdAt", isGreaterThan: Timestamp(date: createdAfter))
+        if let createdAt = stickerQuery.createdAt {
+            result = result.whereField("createdAt", isGreaterThan: Timestamp(date: createdAt))
         }
         
         if let orderBy = stickerQuery.orderBy {
@@ -292,6 +292,16 @@ final class StickerManager: StickerManagerProtocol {
     func fetchStickerCount(userId: String) -> Observable<Int> {
         return fetchList(query: .byUser(userId))
             .map { $0.count }
+            .distinctUntilChanged()
+            .debounce(.milliseconds(300), scheduler: MainScheduler.instance)
+    }
+    
+    /// 실시간 카운트(스티커 추가/삭제 실시간 반영)
+    func observeStickerCount(userId: String) -> Observable<Int> {
+        return observeList(query: .byUserAndDescCreatedAfter(userId))
+            .map { $0.count }
+            .distinctUntilChanged()
+            .debounce(.milliseconds(300), scheduler: MainScheduler.instance)
     }
     
     /// 특정 그룹의 모든 스티커 조회 (그룹 랭킹용-홈)
@@ -307,13 +317,13 @@ final class StickerManager: StickerManagerProtocol {
     /// 특정 그룹에서 사용자 스티커 삭제 (그룹 탈퇴용)
     func deleteUserStickers(userId: String, groupId: String) -> Observable<Void> {
         return fetchList(query: StickerQuery(
-            stickerIds: nil,
-            userIds: [userId],
-            groupIds: [groupId],
-            months: nil,
-            pinNumbers: nil,
-            types: nil,
-            createdAfter: nil,
+            stickerId: nil,
+            userId: [userId],
+            groupId: [groupId],
+            month: nil,
+            pinNumber: nil,
+            type: nil,
+            createdAt: nil,
             orderBy: nil,
             limit: nil
         ))
@@ -332,13 +342,13 @@ final class StickerManager: StickerManagerProtocol {
     /// 사용자의 모든 스티커 삭제 (서비스 탈퇴용)
     func deleteUserStickers(userId: String) -> Observable<Void> {
         return fetchList(query: StickerQuery(
-            stickerIds: nil,
-            userIds: [userId],
-            groupIds: nil,  // 모든 그룹
-            months: nil,
-            pinNumbers: nil,
-            types: nil,
-            createdAfter: nil,
+            stickerId: nil,
+            userId: [userId],
+            groupId: nil,  // 모든 그룹
+            month: nil,
+            pinNumber: nil,
+            type: nil,
+            createdAt: nil,
             orderBy: nil,
             limit: nil
         ))
