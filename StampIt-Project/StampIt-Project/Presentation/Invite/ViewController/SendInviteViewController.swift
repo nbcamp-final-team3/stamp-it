@@ -154,17 +154,44 @@ final class SendInviteViewController: UIViewController{
 
     // MARK: - Bind
     private func bindViewModel() {
+        // 데이터 바인딩
+        bindInviteCode()
+        bindCopyAction()
+        bindCopySuccess()
+        bindNavigation()
+        bindMessages()
+    }
+
+    private func bindInviteCode() {
         viewModel.state.inviteCode
             .bind(to: inviteCodeLabel.rx.text)
             .disposed(by: disposeBag)
+    }
 
+    private func bindCopyAction() {
+        copyButton.rx.tap
+            .map{SendInviteViewModel.Action.copyButtonTapped }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+    }
+
+    private func bindCopySuccess() {
         // 복사 성공 시그널을 구독하여 실제 클립보드 복사 처리
         viewModel.state.copySuccess
             .subscribe(onNext: { code in
                 UIPasteboard.general.string = code
             })
             .disposed(by: disposeBag)
+    }
 
+    private func bindNavigation() {
+        navigationBar.backTapped
+            .bind(with: self) { owner, _ in
+                owner.navigationController?.popViewController(animated: true)
+            }.disposed(by: disposeBag)
+    }
+
+    private func bindMessages() {
         viewModel.state.showMessage
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] (type, message) in
@@ -174,20 +201,26 @@ final class SendInviteViewController: UIViewController{
                 toastView.show(in: self.view, message: message, type: type)
             })
             .disposed(by: disposeBag)
-
-        copyButton.rx.tap
-            .map{SendInviteViewModel.Action.copyButtonTapped }
-            .bind(to: viewModel.action)
-            .disposed(by: disposeBag)
-
-        navigationBar.backTapped
-            .bind(with: self) { owner, _ in
-                owner.navigationController?.popViewController(animated: true)
-            }.disposed(by: disposeBag)
-
     }
 
+    // MARK: - Error Handling
+    private func handleError(_ error: Error) {
+        let message = error.localizedDescription
+        viewModel.state.showMessage.accept((.failure, message))
+    }
+    
+    // MARK: - Utility Methods
+    private func handleCopyInviteCode() {
+        // 복사 관련 추가 로직이 필요한 경우
+        print("Copy invite code handled")
+    }
+
+    private func processCopyRequest() {
+        // 복사 요청 처리 로직이 필요한 경우
+        print("Copy request processed")
+    }
 }
+
     // MARK: - UINavigationControllerDelegate
 
 extension SendInviteViewController: UIGestureRecognizerDelegate {
