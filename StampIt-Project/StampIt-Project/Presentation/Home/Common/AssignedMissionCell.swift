@@ -235,8 +235,8 @@ final class AssignedMissionCell: UICollectionViewCell {
         categoryImageView.image = mission.category.image
         nameTag.updateText(with: "to." + mission.assignee)
         dateTag.updateText(with: "~" + mission.dueDate)
-        if mission.isOverdue { dateTag.updateTextColor(.gray200) }
-        daysLeftLabel.text = mission.daysLeft
+        dateTag.updateTextColor(mission.isOverdue ? .gray200 : .gray400)
+        daysLeftLabel.text = mission.daysBefore
         titleLabel.text = mission.title
         updateStatusView(for: mission.status)
         updateContentStackViewConstraints()
@@ -249,7 +249,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         newTag.isHidden = !(mission.isNew ?? false)
         nameTag.updateText(with: "from." + mission.assigner)
         dateTag.updateText(with: "~" + mission.dueDate)
-        if mission.isOverdue { dateTag.updateTextColor(.gray200) }
+        dateTag.updateTextColor(mission.isOverdue ? .gray200 : .gray400)
         titleLabel.text = mission.title
         statusButton.updateStatus(to: mission.status)
         updateContentStackViewConstraints()
