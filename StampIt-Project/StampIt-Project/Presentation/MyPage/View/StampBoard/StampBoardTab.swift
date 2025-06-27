@@ -45,8 +45,8 @@ final class StampBoardTab: UIView {
     
     // MARK: - Delegate Helper
     
-    func setCollectionViewDelegate(_ delegate: UICollectionViewDelegate) {
-        stickerBoardView.getCollectionView().delegate = delegate
+    func setScrollDelegate(_ delegate: StampBoardScrollDelegate) {
+        stickerBoardView.scrollDelegate = delegate
     }
     
     // MARK: - DataSource Helper

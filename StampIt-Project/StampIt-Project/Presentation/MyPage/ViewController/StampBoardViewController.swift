@@ -41,7 +41,6 @@ final class StampBoardViewController: UIViewController {
         setHierarchy()
         setLayout()
         setDelegate()
-        setDataSource()
         bind()
     }
     
@@ -92,13 +91,9 @@ final class StampBoardViewController: UIViewController {
     // MARK: - Delegate Helper
     
     private func setDelegate() {
+        stampBoardView.setScrollDelegate(self)
     }
-
-    // MARK: - DataSource Helper
     
-    private func setDataSource() {
-    }
-
     // MARK: - Snapshot
     
     private func updateSnapshot(
@@ -133,15 +128,10 @@ final class StampBoardViewController: UIViewController {
     }
 }
 
-extension StampBoardViewController: UICollectionViewDelegate {
-    
-    /// 스크롤이 멈췄을 때
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        let offset = scrollView.contentOffset.x
-        let page = Int(round(offset / scrollView.frame.width))
-
-        // 예: 상위 뷰 색상 바꾸기
-        self.view.backgroundColor = .red // 최상위 VC
+extension StampBoardViewController: StampBoardScrollDelegate {
+    func didScrollToPage(_ page: Int) {
+        self.view.backgroundColor = .red
         stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
+        print("✅ Scrolled to page \(page)")
     }
 }

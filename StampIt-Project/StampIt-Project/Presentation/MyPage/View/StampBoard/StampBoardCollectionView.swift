@@ -11,6 +11,10 @@ import SnapKit
 
 final class StampBoardCollectionView: UIView {
     
+    // MARK: - Properties
+    
+    weak var scrollDelegate: StampBoardScrollDelegate?
+    
     // MARK: - UI Components
     
     private lazy var collectionView = UICollectionView(
@@ -130,6 +134,14 @@ final class StampBoardCollectionView: UIView {
             bottom: 30,
             trailing: isPortrait ? StickerType.imageSize / 3 : -45
         )
+        
+        /// 수평 페이징 변화 감지
+        section.visibleItemsInvalidationHandler = { [weak self] visibleItems, offset, environment in
+            let page = Int(
+                round(offset.x / environment.container.contentSize.width)
+            )
+            self?.scrollDelegate?.didScrollToPage(page)
+        }
         
         return section
     }
