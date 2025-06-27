@@ -50,7 +50,7 @@ final class GroupMemberCardCell: UICollectionViewCell {
     }
 
     private let dateLabel = UILabel().then {
-        $0.font = .pretendard(size: 13, weight: .regular)
+        $0.font = .pretendard(size: 14, weight: .regular)
         $0.textColor = .gray500
         $0.numberOfLines = 1
         $0.lineBreakMode = .byTruncatingTail
