@@ -91,7 +91,7 @@ final class MyMissionView: UIView {
                     for: indexPath
                 ) as! FilterCell
 
-                cell.configure(title: status.displayTitle)
+                cell.configure(title: status.displayTitle, isMediumSize: false)
 
                 return cell
 
@@ -151,7 +151,8 @@ final class MyMissionView: UIView {
 
             switch section {
             case .filter:
-                return .createFilterSection()
+                let insets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+                return .createFilterSection(insets: insets)
             case .mission:
                 return createMissionSection()
             }
@@ -173,7 +174,7 @@ final class MyMissionView: UIView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 6
-        section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
+        section.contentInsets = .init(top: 8, leading: 16, bottom: 12, trailing: 16)
         return section
     }
 
