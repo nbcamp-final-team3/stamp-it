@@ -27,7 +27,7 @@ final class StampBoardCollectionView: UIView {
         $0.showsVerticalScrollIndicator = false
         $0.isPagingEnabled = true
         $0.alwaysBounceVertical = false
-        $0.alwaysBounceHorizontal = true
+        $0.alwaysBounceHorizontal = false
         $0.decelerationRate = .fast // 페이지 스냅감 향상
     }
     
