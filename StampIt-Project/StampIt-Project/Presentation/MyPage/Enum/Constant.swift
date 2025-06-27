@@ -11,6 +11,16 @@ import UIKit
 
 extension StickerType {
     static let imageSize: CGFloat = 53
+    
+    static func from(_ index: Int) -> StickerType {
+        switch index {
+        case 0: return .stampRed
+        case 1: return .stampBlue
+        case 2: return .stampYellow
+        case 3: return .stampPurple
+        default: return .stampGray
+        }
+    }
 }
 
 // MARK: - MyPage

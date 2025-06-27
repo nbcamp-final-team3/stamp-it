@@ -130,7 +130,6 @@ final class StampBoardViewController: UIViewController {
 
 extension StampBoardViewController: StampBoardScrollDelegate {
     func didScrollToPage(_ page: Int) {
-        self.view.backgroundColor = .red
         stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
         print("✅ Scrolled to page \(page)")
     }

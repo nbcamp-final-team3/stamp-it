@@ -74,19 +74,22 @@ final class StampBoardTab: UIView {
                     return cell
                     
                 case .page:
-                    
                     let cell = collectionView.dequeueReusableCell(
                         withReuseIdentifier: StampCell.identifier,
                         for: indexPath
                     ) as! StampCell
                     
-                    if case let .sticker(stickers) = itemIdentifier {
+                    if case let .sticker(sticker) = itemIdentifier {
+                        /// .page 섹션 하나 안에 셀 (페이징된 모든 스티커 아이템) 을 다 그려서 30 단위로 indexPath.item 증가
+                        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
+                        
                         let backgroundBoard = StampBoardSection.page.type.flatMap { $0 }
                         
-                        if backgroundBoard.indices.contains(indexPath.item) {
-                            cell.configureDashedLine(with: backgroundBoard[indexPath.item])
+                        if backgroundBoard.indices.contains(itemIndexInPage) {
+                            cell.configureDashedLine(with: backgroundBoard[itemIndexInPage])
                         }
-                        cell.configureStamp(with: stickers)
+                        
+                        cell.configureStamp(with: sticker)
                     }
                     return cell
                 }
