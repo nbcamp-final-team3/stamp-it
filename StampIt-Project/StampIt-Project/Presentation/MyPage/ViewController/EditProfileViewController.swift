@@ -211,6 +211,8 @@ final class EditProfileViewController: UIViewController {
     
     private func setNavigationBar() {        
         navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
     
     private func setButtonAction() {
@@ -446,5 +448,12 @@ extension EditProfileViewController {
     
     enum Item: Hashable {
         case image(String)
+    }
+}
+
+extension EditProfileViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
+        return navigationController?.viewControllers.count ?? 0 > 1
     }
 }
