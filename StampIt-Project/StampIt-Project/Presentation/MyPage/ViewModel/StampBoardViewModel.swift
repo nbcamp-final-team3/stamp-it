@@ -69,7 +69,7 @@ final class StampBoardViewModel: ViewModelProtocol {
         guard let user = state.user.value else { return }
         
         /// stickerSummary, stickers 가 동시에 변경
-        myPageUseCase.fetchStickerCount(userId: user.userID)
+        myPageUseCase.observeStickerCount(userId: user.userID)
             .flatMapLatest { [weak self] count -> Observable<(Int, [[Sticker]])> in
                 guard let self else { return .empty() }
                 
