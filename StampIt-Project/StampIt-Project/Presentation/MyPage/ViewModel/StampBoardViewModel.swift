@@ -76,12 +76,17 @@ final class StampBoardViewModel: ViewModelProtocol {
                 let completedBoard = Int(count / StampBoardSection.totalStamp)
                 let currentPinNumber = completedBoard + 1
                 
-                let minPage = currentPinNumber > StampBoard.totalPage ? currentPinNumber - StampBoard.totalPage : currentPinNumber
+                let minPage = currentPinNumber > StampBoard.totalPage ? currentPinNumber - StampBoard.totalPage + 1 : 1
                 
                 var pinNumbers: [Int] = .init()
                 
-                for index in stride(from: currentPinNumber, through: minPage, by: -1) {
-                    pinNumbers.append(index)
+                // pinNumber 기준 : Firestore pinNumber
+                for pinNumber in stride(
+                    from: currentPinNumber,
+                    through: minPage,
+                    by: -1
+                ) {
+                    pinNumbers.append(pinNumber)
                 }
                 
                 let stickerObservables = pinNumbers.map { pinNumber in
@@ -93,8 +98,27 @@ final class StampBoardViewModel: ViewModelProtocol {
                 
                 // TODO: fetchStickerCount addSnapshotListener 적용후 zip 테스트
                 return Observable.combineLatest(stickerObservables)
-                    .map { stickers in
-                        (count, stickers)
+                    .map { stickerLists in
+                        var formattedStickers: [[Sticker]] = .init()
+                        for (index, stickers) in stickerLists.enumerated() {
+                            formattedStickers.append(
+                                stickers.map {
+                                    Sticker(
+                                        userID: $0.userID,
+                                        stickerID: $0.stickerID,
+                                        title: $0.title,
+                                        description: $0.description,
+                                        imageURL: $0.imageURL,
+                                        type: StickerType.from(index),
+                                        createdAt: $0.createdAt,
+                                        maxStickers: $0.maxStickers,
+                                        pinNumber: $0.pinNumber,
+                                        assignedBy: $0.assignedBy
+                                    )
+                                }
+                            )
+                        }
+                        return (count, formattedStickers)
                     }
             }
             .observe(on: MainScheduler.instance)
