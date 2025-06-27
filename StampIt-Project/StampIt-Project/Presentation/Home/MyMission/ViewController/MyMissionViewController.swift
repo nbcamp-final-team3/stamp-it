@@ -109,11 +109,17 @@ final class MyMissionViewController: UIViewController {
             }
             .disposed(by: disposeBag)
 
-        viewModel.state.missionFilter
+        viewModel.state.missionFilters
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
                 owner.myMissionView.updateSnapshot(withItems: items, toSection: .filter)
-                owner.myMissionView.setDefaultSelection()
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.selectedFilter
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, index in
+                owner.myMissionView.setFilterSelection(index: index)
             }
             .disposed(by: disposeBag)
 

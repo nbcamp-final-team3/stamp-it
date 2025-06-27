@@ -27,8 +27,9 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let missionFilter = BehaviorRelay<[MyMissionItem]>(value: [])
+        let missionFilters = BehaviorRelay<[MyMissionItem]>(value: [])
         let filteredMissions = BehaviorRelay<[MyMissionItem]>(value: [])
+        let selectedFilter = BehaviorRelay<Int>(value: 0)
         let completedMissionTitle = BehaviorRelay<String>(value: "")
         let isShowStickerReceived = PublishRelay<Bool>()
         let isPopVC = PublishRelay<Void>()
@@ -67,7 +68,8 @@ final class MyMissionViewModel: ViewModelProtocol {
                 case .viewDidLoad:
                     owner.fetchMissions()
                 case .selectFilter(let index):
-                    owner.updateMyMissions(index: index)
+                    owner.state.selectedFilter.accept(index)
+                    owner.filterMyMissions(index: index)
                 case .didTapStatusButton(let item):
                     let missionID = item.mission!.missionID
                     owner.handleMissionCompleteButtonTapped(missionID: missionID)
@@ -93,6 +95,13 @@ final class MyMissionViewModel: ViewModelProtocol {
                 guard let self else { return [] }
                 return mapper.map(myMissions: $0, member: memberCache)
                     .map { MyMissionItem.mission($0) }
+                    .filter {
+                        // 미션완료 시 새로 미션을 fetch하기 때문에 필터링 유지
+                        let missionFilter = self.state.missionFilters.value
+                        let selectedFilter = missionFilter[self.state.selectedFilter.value].status!
+                        guard selectedFilter.status != .none else { return true }
+                        return $0.mission!.status == selectedFilter.status
+                    }
             }
             .bind(to: state.filteredMissions)
             .disposed(by: disposeBag)
@@ -107,7 +116,8 @@ final class MyMissionViewModel: ViewModelProtocol {
             return MyMissionItem.status(.init(status: status, count: count))
         }
 
-        state.missionFilter.accept(filter)
+        state.missionFilters.accept(filter)
+        state.selectedFilter.accept(state.selectedFilter.value)
     }
 
     /// 미션 완료 바인딩
@@ -172,11 +182,11 @@ final class MyMissionViewModel: ViewModelProtocol {
         state.isShowStickerReceived.accept(false)
     }
 
-    private func updateMyMissions(index: Int) {
-        let item = state.missionFilter.value[index]
-        let filteredMissions = item.status!.status == .none
+    private func filterMyMissions(index: Int) {
+        let filter = state.missionFilters.value[index]
+        let filteredMissions = filter.status!.status == .none
             ? myMissions
-            : myMissions.filter { $0.status == item.status!.status }
+            : myMissions.filter { $0.status == filter.status!.status }
 
         let items = mapper
             .map(myMissions: filteredMissions, member: memberCache)

@@ -178,10 +178,10 @@ final class MyMissionView: UIView {
         return section
     }
 
-    func setDefaultSelection() {
+    func setFilterSelection(index: Int) {
         let section = MyMissionSection.allCases.firstIndex(of: .filter)!
         guard collectionView.numberOfItems(inSection: section) > 0 else { return }
-        let indexPath = IndexPath(item: 0, section: section)
+        let indexPath = IndexPath(item: index, section: section)
         collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
     }
 }
