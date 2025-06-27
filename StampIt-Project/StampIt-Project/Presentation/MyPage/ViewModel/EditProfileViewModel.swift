@@ -21,6 +21,7 @@ final class EditProfileViewModel: ViewModelProtocol {
     struct State {
         var user = BehaviorRelay<User?>(value: nil)
         var isUserDataChanged = BehaviorRelay<Bool>(value: false)
+        var nicknameError = BehaviorRelay<String?>(value: nil)
     }
     
     var action = PublishRelay<Action>()
@@ -35,13 +36,38 @@ final class EditProfileViewModel: ViewModelProtocol {
     private var newGroupName: String?
     private var newProfileImageName: String?
     
-    // 유저 정보 중 하나라도 바뀌면 true
-    // 임시 저장 변수(예: newNickname)가 nil이면 아직 바꾸려 시도하지 않은 것이므로 기존 정보와 동일하다고 가정
+    private var _members: [Member] = [] // 닉네임 중복 체크를 위한 멤버 데이터
+    
+    private var isNicknameDuplicated: Bool {
+        guard let user = state.user.value else { return false }
+        
+        let others = _members.filter { $0.userID != user.userID }
+        if others.contains(where: { $0.nickname == newNickname }) {
+            return true
+        }
+        
+        return false
+    }
+    
     private var isUserDataChanged: Bool {
         guard let user = state.user.value else { return false }
-        return (newNickname ?? user.nickname) != user.nickname ||
-               (newGroupName ?? user.groupName) != user.groupName ||
-               (newProfileImageName ?? user.profileImage) != user.profileImage
+        
+        // 닉네임, 그룹명 빈 값("") 허용 안함
+        if newNickname == "" || newGroupName == "" { return false }
+        
+        // 닉네임 글자수 최대 5자
+        if let newNickname, newNickname.count > 5 { return false }
+        
+        // 닉네임 중복 검사
+        if isNicknameDuplicated { return false }
+        
+        // 유저 정보 중 하나라도 바뀌면 true
+        // 임시 저장 변수(예: newNickname)가 nil이면 아직 바꾸려 시도하지 않은 것이므로 기존 정보와 동일하다고 가정
+        if let newNickname, newNickname != user.nickname { return true }
+        if let newGroupName, newGroupName != user.groupName { return true }
+        if let newProfileImageName, newProfileImageName != user.profileImage { return true }
+        
+        return false
     }
     
     init(user: User, editProfileUseCaseImpl: EditProfileUseCase) {
@@ -64,8 +90,7 @@ final class EditProfileViewModel: ViewModelProtocol {
                 case .onAppear:
                     print("on appear")
                 case .nicknameChanged(let nickname):
-                    newNickname = nickname
-                    state.isUserDataChanged.accept(isUserDataChanged)
+                    changeNickname(nickname)
                 case .groupNameChanged(let groupName):
                     newGroupName = groupName
                     state.isUserDataChanged.accept(isUserDataChanged)
@@ -75,6 +100,36 @@ final class EditProfileViewModel: ViewModelProtocol {
                 case .didTapEditButton:
                     updateUserData()
                 }
+            }
+            .disposed(by: disposeBag)
+    }
+    
+    // 닉네임 변경
+    private func changeNickname(_ nickname: String) {
+        // 글자수 체크(5자리 이하만 가능)
+        if nickname.count > 5 {
+            state.nicknameError.accept("닉네임은 5자까지 가능해요")
+            
+            newNickname = nickname
+            state.isUserDataChanged.accept(isUserDataChanged)
+            return
+        }
+        
+        // 멤버 정보 패치 -> 멤버 중 동일 닉네임이 있는지 체크
+        guard let user = state.user.value else { return }
+        editProfileUseCaseImpl.fetchMembers(ofGroup: user.groupID)
+            .subscribe { [weak self] members in
+                guard let self else { return }
+                
+                _members = members
+                newNickname = nickname
+                state.isUserDataChanged.accept(isUserDataChanged)
+                
+                if isNicknameDuplicated {
+                    state.nicknameError.accept("다른 멤버가 사용중인 닉네임이에요")
+                }
+            } onError: { error in
+                print(error)
             }
             .disposed(by: disposeBag)
     }

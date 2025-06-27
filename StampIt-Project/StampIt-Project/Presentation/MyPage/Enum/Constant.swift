@@ -7,9 +7,9 @@
 
 import Foundation
 
-enum TabType: String {
-    case stampBoard
-    case profile
+enum TabType: Int {
+    case stampBoard = 0
+    case profile = 1
     
     var title: String {
         switch self {
@@ -61,6 +61,7 @@ enum MyPage {
         static let fontSizeSmall: CGFloat = 14
         static let fontSizeMedium: CGFloat = 16
         static let vStackSpacing: CGFloat = 6
+        static let height: CGFloat = 72
     }
 }
 

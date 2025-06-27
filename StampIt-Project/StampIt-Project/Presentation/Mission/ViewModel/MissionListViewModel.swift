@@ -5,7 +5,7 @@
 //  Created by 권순욱 on 6/4/25.
 //
 
-import UIKit
+import Foundation
 import RxSwift
 import RxRelay
 
@@ -21,7 +21,6 @@ final class MissionListViewModel: ViewModelProtocol {
         var missions = BehaviorRelay<[SampleMission]>(value: []) // 뷰에 반영되는 샘플 미션 데이터
         var searchText = BehaviorRelay<String>(value: "")
         var selectedCategory = BehaviorRelay<MissionCategory?>(value: nil)
-        var snapshot = BehaviorRelay<NSDiffableDataSourceSnapshot<Section, Item>?>(value: nil)
     }
     
     var action = PublishRelay<Action>()
@@ -38,8 +37,6 @@ final class MissionListViewModel: ViewModelProtocol {
         bind()
         
         bindFilterMisson()
-        
-        updateSnapshot()
     }
     
     private func bind() {
@@ -111,32 +108,5 @@ final class MissionListViewModel: ViewModelProtocol {
             }
             .bind(to: state.missions)
             .disposed(by: disposeBag)
-    }
-    
-    // 컬렉션 뷰 스냅샷 업데이트
-    private func updateSnapshot() {
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
-        snapshot.appendSections([.category])
-        
-        var items: [Item] = []
-        items.append(.all)
-        MissionCategory.allCases.forEach {
-            items.append(.category($0))
-        }
-        snapshot.appendItems(items)
-        
-        state.snapshot.accept(snapshot)
-    }
-}
-
-// 컬렉션 뷰 섹션/아이템 정의
-extension MissionListViewModel {
-    enum Section: Hashable {
-        case category
-    }
-    
-    enum Item: Hashable {
-        case all
-        case category(MissionCategory)
     }
 }

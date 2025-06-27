@@ -34,6 +34,14 @@ final class CompletionStateButton: UIControl {
 
     private let titleLabel = UILabel().then {
         $0.font = .pretendard(size: 14, weight: .semibold)
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
+
+    override var intrinsicContentSize: CGSize {
+        let viewSize = containerStackView.intrinsicContentSize
+        let width = viewSize.width + 8 * 2
+        let height = viewSize.height + 4.5 * 2
+        return CGSize(width: width, height: height)
     }
 
     // MARK: - Init

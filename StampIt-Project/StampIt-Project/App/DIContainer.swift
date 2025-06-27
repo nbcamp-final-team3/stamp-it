@@ -6,46 +6,94 @@
 //
 
 import UIKit
-import Foundation
 
 // MARK: - 의존성 주입 컨테이너
 final class DIContainer {
 
     // MARK: - Managers (Infrastructure Layer)
-    lazy var authManager: AuthManagerProtocol = {
-        return AuthManager()
-    }()
+    lazy var authManager: AuthManagerProtocol = AuthManager()
+    lazy var userManager: UserManager = UserManager()
+    lazy var groupManager: GroupManager = GroupManager()
+    lazy var membershipManager: MembershipManager = MembershipManager()
+    lazy var missionManager: MissionManager = MissionManager()
+    lazy var stickerManager: StickerManager = StickerManager()
 
-    lazy var firestoreManager: FirestoreManagerProtocol = {
-        return FirestoreManager()
-    }()
 
     // MARK: - Repositories (Data Layer)
     lazy var authRepository: AuthRepositoryProtocol = {
         return AuthRepository(
             authManager: authManager,
-            firestoreManager: firestoreManager
+            userManager: userManager,
+            groupManager: groupManager,
+            membershipManager: membershipManager,
+            missionManager: missionManager,
+            stickerManager: stickerManager
         )
     }()
 
     lazy var homeRepository: HomeRepositoryProtocol = {
-        return HomeRepository(manager: firestoreManager)
+        return HomeRepository(
+            membershipManager: membershipManager,
+            stickerManager: stickerManager,
+            missionManager: missionManager
+        )
     }()
 
     lazy var myPageRepository: MyPageRepository = {
-        return MyPageRepositoryImpl(firestoreManager: firestoreManager)
+        return MyPageRepositoryImpl(stickerManager: stickerManager)
     }()
 
     lazy var inviteRepository: InviteRepository = {
-        return InviteRepositoryImpl(firestoreManager: firestoreManager)
+        return InviteRepositoryImpl(
+            groupManager: groupManager,
+            membershipManager: membershipManager,
+            userManager: userManager
+        )
     }()
-    
+
     lazy var missionRepository: MissionRepository = {
-        return MissionRepositoryImpl(firestoreManager: firestoreManager, authRepository: authRepository)
+        return MissionRepositoryImpl(
+            missionManager: missionManager,
+            membershipManager: membershipManager,
+            authRepository: authRepository
+        )
     }()
-    
+
     lazy var editProfileRepository: EditProfileRepository = {
-        return EditProfileRepositoryImpl(firestoreManager: firestoreManager)
+        return EditProfileRepositoryImpl(
+            userManager: userManager,
+            groupManager: groupManager,
+            membershipManager: membershipManager
+        )
+    }()
+
+    lazy var groupManageRepository: GroupManageRepository = {
+        return GroupManageRepositoryImpl(
+            groupManager: groupManager,
+            userManager: userManager,
+            membershipManager: membershipManager
+        )
+    }()
+
+    lazy var accountManageRepository: AccountManageRepositoryProtocol = {
+        return AccountManageRepository(
+            authManager: authManager,
+            userManager: userManager,
+            groupManager: groupManager,
+            membershipManager: membershipManager,
+            missionManager: missionManager,
+            stickerManager: stickerManager,
+            authRepository: authRepository as! AuthRepository,
+            mapToRepositoryError: { error in
+                return RepositoryError.unknownError
+            }
+        )
+    }()
+
+    // MARK: - Services
+
+    lazy var missionExpirationService: MissionExpirationService = {
+        return MissionExpirationServiceImpl(homeRepository: homeRepository)
     }()
 
     // MARK: - Use Cases (Domain Layer)
@@ -53,11 +101,11 @@ final class DIContainer {
         return LoginUseCase(authRepository: authRepository)
     }()
 
-    lazy var homeUseCase: HomeUseCaseProtocol = {
-        return HomeUseCase(authRepository: authRepository, homeRepository: homeRepository)
+    lazy var rankingUseCase: RankingUseCaseProtocol = {
+        return RankingUseCase(authRepository: authRepository, homeRepository: homeRepository)
     }()
 
-    lazy var myPageUseCase: MyPageUseCase = {
+    lazy var myPageUseCase: MyPageUseCaseProtocol = {
         return MyPageUseCaseImpl(
             authRepository: authRepository,
             mypageRepository: myPageRepository
@@ -65,11 +113,17 @@ final class DIContainer {
     }()
 
     lazy var myMissionUseCase: MyMissionUseCaseProtocol = {
-        return MyMissionUseCaseImpl(homeRepository: homeRepository)
+        return MyMissionUseCaseImpl(
+            homeRepository: homeRepository,
+            expirationService: missionExpirationService
+        )
     }()
 
     lazy var memberMissionUseCase: MemberMissionUseCaseProtocol = {
-        return MemberMissionUseCaseImpl(homeRepository: homeRepository)
+        return MemberMissionUseCaseImpl(
+            homeRepository: homeRepository,
+            expirationService: missionExpirationService
+        )
     }()
 
     lazy var missionUseCase: MissionUseCase = {
@@ -84,11 +138,22 @@ final class DIContainer {
     }()
 
     lazy var accountManageUseCase: AccountManageUseCaseProtocol = {
-        return AccountManageUseCase(authRepository: authRepository)
+        return AccountManageUseCase(
+            accountManageRepository: accountManageRepository,
+            authRepository: authRepository
+        )
     }()
     
     lazy var editProfileUseCase: EditProfileUseCase = {
         return EditProfileUseCaseImpl(editProfileRepositoryImpl: editProfileRepository)
+    }()
+    
+    lazy var groupManageUseCase: GroupManageUseCase = {
+        return GroupManageUseCaseImpl(
+            authRepository: authRepository,
+            groupManageRepository: groupManageRepository,
+            accountManageRepository: accountManageRepository, inviteRepository: inviteRepository
+        )
     }()
     
     // MARK: - ViewModels (Domain Layer)
@@ -97,14 +162,28 @@ final class DIContainer {
     }
 
     func makeHomeViewModel() -> HomeViewModel {
-        return HomeViewModel(useCase: homeUseCase)
+        return HomeViewModel(
+            rankingUseCase: rankingUseCase,
+            myMissionUseCase: myMissionUseCase,
+            memberMissionUseCase: memberMissionUseCase,
+            memberMapper: MemberMapper(),
+            missionMapper: MissionMapper(),
+        )
     }
-
-    func makeMyPageViewModel() -> MyPageViewModel {
-        return MyPageViewModel(
+    
+    func makeStampBoardViewModel() -> StampBoardViewModel {
+        return StampBoardViewModel(myPageUseCase: myPageUseCase)
+    }
+    
+    func makeProfileViewModel() -> ProfileViewModel {
+        return ProfileViewModel(
             myPageUseCase: myPageUseCase,
             accountManageUseCase: accountManageUseCase
         )
+    }
+    
+    func makeMyPageViewModel() -> MyPageViewModel {
+        return MyPageViewModel()
     }
 
     func makeOnboardingViewModel() -> OnboardingViewModel {
@@ -112,11 +191,21 @@ final class DIContainer {
     }
 
     func makeMyMissionViewModel(user: User, memberCache: [String: Member]) -> MyMissionViewModel {
-        return MyMissionViewModel(user: user, memberCache: memberCache, useCase: myMissionUseCase)
+        return MyMissionViewModel(
+            user: user,
+            memberCache: memberCache,
+            useCase: myMissionUseCase,
+            mapper: MissionMapper(),
+        )
     }
 
     func makeMemberMissionViewModel(user: User, memberCache: [String: Member]) -> MemberMissionViewModel {
-        return MemberMissionViewModel(user: user, memberCache: memberCache, useCase: memberMissionUseCase)
+        return MemberMissionViewModel(
+            user: user,
+            memberCache: memberCache,
+            useCase: memberMissionUseCase,
+            mapper: MissionMapper(),
+        )
     }
     
     func makeMissionListViewModel() -> MissionListViewModel {
@@ -135,6 +224,10 @@ final class DIContainer {
         return EditProfileViewModel(user: user, editProfileUseCaseImpl: editProfileUseCase)
     }
 
+    func makeGroupMemberManageViewModel() -> GroupMemberManageViewModel {
+        return GroupMemberManageViewModel(groupManageUseCase: groupManageUseCase)
+    }
+
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
@@ -148,7 +241,20 @@ final class DIContainer {
 
     func makeMyPageViewController() -> MyPageViewController {
         let viewModel = makeMyPageViewModel()
-        return MyPageViewController(viewModel: viewModel, container: self)
+        return MyPageViewController(
+            viewModel: viewModel,
+            container: self
+        )
+    }
+    
+    func makeStampBoardViewController() -> StampBoardViewController {
+        let viewModel = makeStampBoardViewModel()
+        return StampBoardViewController(viewModel: viewModel)
+    }
+    
+    func makeProfileViewController() -> ProfileViewController {
+        let viewModel = makeProfileViewModel()
+        return ProfileViewController(viewModel: viewModel, container: self)
     }
     
     func makeOnboardingViewController() -> OnboardingViewController {
@@ -186,6 +292,11 @@ final class DIContainer {
         return EditProfileViewController(viewModel: viewModel)
     }
     
+    func makeGroupMemberManageViewController() -> GroupMemberManageViewController {
+        let viewModel = makeGroupMemberManageViewModel()
+        return GroupMemberManageViewController(viewModel: viewModel)
+    }
+
     // MARK: - Singleton
     static let shared = DIContainer()
     private init() {}

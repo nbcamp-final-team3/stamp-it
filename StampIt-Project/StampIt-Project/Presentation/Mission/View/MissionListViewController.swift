@@ -12,6 +12,8 @@ import SnapKit
 import Then
 
 final class MissionListViewController: UIViewController {
+    typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
+    
     private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))
     
     private let searchBar = UISearchBar().then {
@@ -24,12 +26,14 @@ final class MissionListViewController: UIViewController {
     
     private lazy var tableView = UITableView().then {
         $0.register(MissionListCell.self, forCellReuseIdentifier: MissionListCell.reuseIdentifier)
+        $0.separatorColor = .gray50
         $0.keyboardDismissMode = .onDrag
         $0.delegate = self
     }
     
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
-        $0.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
+        $0.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.reuseIdentifier)
+        $0.isScrollEnabled = false
     }
     
     private let noResultsView = NoResultsView().then {
@@ -44,7 +48,7 @@ final class MissionListViewController: UIViewController {
     private let viewModel: MissionListViewModel
     private let disposeBag = DisposeBag()
     
-    private var dataSource: UICollectionViewDiffableDataSource<MissionListViewModel.Section, MissionListViewModel.Item>?
+    private var dataSource: DataSource?
     
     init(viewModel: MissionListViewModel) {
         self.viewModel = viewModel
@@ -65,6 +69,7 @@ final class MissionListViewController: UIViewController {
         setNavigationBar()
         
         configureDataSource()
+        updateSnapshot()
         
         bind()
         
@@ -87,18 +92,18 @@ final class MissionListViewController: UIViewController {
     private func setConstraints() {
         navigationBar.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
-            $0.directionalHorizontalEdges.equalToSuperview()
+            $0.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
         }
         
         searchBar.snp.makeConstraints {
             $0.top.equalTo(navigationBar.snp.bottom)
-            $0.horizontalEdges.equalToSuperview()
+            $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges).inset(8)
         }
         
         collectionView.snp.makeConstraints {
             $0.top.equalTo(searchBar.snp.bottom).offset(8)
             $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges)
-            $0.height.equalTo(36)
+            $0.height.equalTo(32)
         }
         
         tableView.snp.makeConstraints {
@@ -110,6 +115,8 @@ final class MissionListViewController: UIViewController {
     
     private func setNavigationBar() {
         navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
     
     private func bind() {
@@ -118,15 +125,6 @@ final class MissionListViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(tableView.rx.items(cellIdentifier: MissionListCell.reuseIdentifier, cellType: MissionListCell.self)) { (_, element, cell) in
                 cell.configure(with: element.title)
-            }
-            .disposed(by: disposeBag)
-        
-        // 컬렉션 뷰 스냅샷 변경 시 뷰 반영
-        viewModel.state.snapshot
-            .asDriver(onErrorDriveWith: .empty())
-            .drive { [weak self] snapshot in
-                guard let self, let snapshot, let dataSource else { return }
-                dataSource.apply(snapshot, animatingDifferences: true)
             }
             .disposed(by: disposeBag)
         
@@ -218,19 +216,7 @@ final class MissionListViewController: UIViewController {
     // 컬렉션 뷰 레이아웃 설정
     private func createLayout() -> UICollectionViewLayout {
         let layout = UICollectionViewCompositionalLayout { _, _ in
-            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
-                                                  heightDimension: .fractionalHeight(1))
-            let item = NSCollectionLayoutItem(layoutSize: itemSize)
-            
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.2),
-                                                   heightDimension: .absolute(32))
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-            
-            let section = NSCollectionLayoutSection(group: group)
-            section.interGroupSpacing = 8
-            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
-            section.orthogonalScrollingBehavior = .continuous
-            return section
+            return .createFilterSection()
         }
         
         return layout
@@ -238,18 +224,33 @@ final class MissionListViewController: UIViewController {
     
     // 컬렉션 뷰 데이터소스 설정
     private func configureDataSource() {
-        dataSource = UICollectionViewDiffableDataSource<MissionListViewModel.Section, MissionListViewModel.Item>(collectionView: collectionView) { collectionView, indexPath, item in
+        dataSource = DataSource(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
             case .all:
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
-                cell.configure(title: "전체보기", titleColor: .white, titleWeight: .bold, backgroundColor: .red400)
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.reuseIdentifier, for: indexPath) as! FilterCell
+                cell.configure(title: "전체보기", titleColor: .white, backgroundColor: .red400)
                 return cell
             case .category(let category):
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.reuseIdentifier, for: indexPath) as! FilterCell
                 cell.configure(image: category.image, title: category.title, titleColor: .gray400, backgroundColor: .white)
                 return cell
             }
         }
+    }
+    
+    // 컬렉션 뷰 스냅샷 업데이트
+    private func updateSnapshot() {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+        snapshot.appendSections([.category])
+        
+        var items: [Item] = []
+        items.append(.all)
+        MissionCategory.allCases.forEach {
+            items.append(.category($0))
+        }
+        snapshot.appendItems(items)
+        
+        dataSource?.apply(snapshot, animatingDifferences: true)
     }
 }
 
@@ -267,5 +268,24 @@ extension MissionListViewController: UITableViewDelegate {
             return 0
         }
         return 16
+    }
+}
+
+extension MissionListViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
+        return navigationController?.viewControllers.count ?? 0 > 1
+    }
+}
+
+// 컬렉션 뷰 섹션/아이템 정의
+extension MissionListViewController {
+    enum Section: Hashable {
+        case category
+    }
+    
+    enum Item: Hashable {
+        case all
+        case category(MissionCategory)
     }
 }

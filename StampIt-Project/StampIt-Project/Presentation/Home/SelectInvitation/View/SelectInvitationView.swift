@@ -48,9 +48,13 @@ final class SelectInvitationView: UIView {
         $0.spacing = 12
     }
 
-    private let sendOptionCard = OptionSelectionCard(type: .send)
+    private let sendOptionCard = OptionSelectionCard().then {
+        $0.configure(title: InvitationType.send.title, subtitle: InvitationType.send.description)
+    }
 
-    private let receiveOptionCard = OptionSelectionCard(type: .receive)
+    private let receiveOptionCard = OptionSelectionCard().then {
+        $0.configure(title: InvitationType.receive.title, subtitle: InvitationType.receive.description)
+    }
 
     private let confirmButton = DefaultButton(type: .confirm).then {
         $0.isEnabled = false

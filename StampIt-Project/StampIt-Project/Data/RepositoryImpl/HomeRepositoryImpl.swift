@@ -10,18 +10,26 @@ import RxSwift
 import FirebaseFirestore
 
 final class HomeRepository: HomeRepositoryProtocol {
-    private let manager: FirestoreManagerProtocol
+    private let membershipManager: MembershipManager
+        private let stickerManager: StickerManager
+        private let missionManager: MissionManager
 
-    init(manager: FirestoreManagerProtocol) {
-        self.manager = manager
-    }
+        init(
+            membershipManager: MembershipManager,
+            stickerManager: StickerManager,
+            missionManager: MissionManager
+        ) {
+            self.membershipManager = membershipManager
+            self.stickerManager = stickerManager
+            self.missionManager = missionManager
+        }
 
     func fetchGroupMembers(ofGroup groupID: String) -> Observable<[Member]> {
         let thisMonth = Date().toYearMonthString()
         return Observable.combineLatest(
-            manager.fetchMembers(groupId: groupID)
+            membershipManager.fetchMembers(groupId: groupID)
                 .map { $0.map { $0.toDomainModel() } },
-            manager.fetchGroupStickers(groupId: groupID, month: thisMonth)
+            stickerManager.fetchGroupStickers(groupId: groupID, month: thisMonth)
                 .map { $0.map { $0.toDomainModel() } }
         )
         .map { members, stickers in
@@ -41,7 +49,7 @@ final class HomeRepository: HomeRepositoryProtocol {
     }
 
     func fetchStickers(ofGroup groupID: String, month: String) -> Observable<[Sticker]> {
-        manager.fetchGroupStickers(groupId: groupID, month: month)
+        stickerManager.fetchGroupStickers(groupId: groupID, month: month)
             .map { $0.map { $0.toDomainModel() } }
     }
 
@@ -50,13 +58,14 @@ final class HomeRepository: HomeRepositoryProtocol {
         by assignerID: String?,
         ofGroup groupID: String
     ) -> Observable<[Mission]> {
-        manager.fetchMissions(to: assigneeID, by: assignerID, ofGroup: groupID)
+        missionManager.fetchMissions(to: assigneeID, by: assignerID, ofGroup: groupID)
             .map { $0.map { $0.toDomainModel() } }
     }
     
     func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission> {
         let updated = MissionFirestore(
             missionId: mission.missionID,
+            groupId: groupID,
             title: mission.title,
             assignedBy: mission.assignedBy,
             assignedTo: mission.assignedTo,
@@ -66,10 +75,9 @@ final class HomeRepository: HomeRepositoryProtocol {
             status: status.rawValue,
             // TODO: 커스텀 타입 추가 시 도메인 모델 변경
             missionType: MissionFirestore.MissionType.app.rawValue,
-            createdAt: Timestamp(date: mission.createDate)
         )
 
-        return manager.updateMission(groupId: groupID, mission: updated)
+        return missionManager.updateMission(groupId: groupID, mission: updated)
             .map { $0.toDomainModel() }
     }
 
@@ -81,12 +89,13 @@ final class HomeRepository: HomeRepositoryProtocol {
         stickerType: String,
         assignedBy: String
     ) -> Observable<Void> {
-        manager.createStickerFromMission(
+        stickerManager.createStickerFromMission(
             userId: userId,
             groupId: groupId,
             missionTitle: missionTitle,
             maxStickers: maxSticker,
             stickerType: stickerType,
+            missionId: UUID().uuidString,
             assignedBy: assignedBy
         )
     }

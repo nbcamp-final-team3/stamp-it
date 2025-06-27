@@ -9,27 +9,29 @@ import Foundation
 
 enum HomeSection: Hashable, CaseIterable {
     case ranking
-    case receivedMission
-    case sendedMission
+    case myMission
+    case memberFilter
+    case memberMission
 }
 
 extension HomeSection {
-    var placeholderText: String? {
+    var placeholderText: String {
         switch self {
-        case .ranking:
-            return nil
-        case .receivedMission:
+        case .myMission:
             return "아직 부여된 미션이 없어요!"
-        case .sendedMission:
+        case .memberMission:
             return "아직 전달한 미션이 없어요!"
+        default:
+            return ""
         }
     }
 }
 
 enum HomeItem: Hashable {
     case member(HomeMember)
-    case received(HomeReceivedMission)
-    case sended(HomeSendedMission)
+    case myMission(HomeMyMission)
+    case memberFilter(title: String)
+    case memberMission(HomeMemberMission)
     case placeholder(HomeSection)
 
     var member: HomeMember? {
@@ -40,17 +42,33 @@ enum HomeItem: Hashable {
         }
     }
 
-    var received: HomeReceivedMission? {
-        if case .received(let mission) = self {
+    var myMission: HomeMyMission? {
+        if case .myMission(let mission) = self {
             return mission
         } else {
             return nil
         }
     }
 
-    var sended: HomeSendedMission? {
-        if case .sended(let mission) = self {
+    var memberFilter: String? {
+        if case .memberFilter(let nickname) = self {
+            return nickname
+        } else {
+            return nil
+        }
+    }
+
+    var memberMission: HomeMemberMission? {
+        if case .memberMission(let mission) = self {
             return mission
+        } else {
+            return nil
+        }
+    }
+
+    var placeholder: HomeSection? {
+        if case .placeholder(let section) = self {
+            return section
         } else {
             return nil
         }
@@ -65,7 +83,7 @@ struct HomeMember: Hashable {
     let profileImage: String?
 }
 
-struct HomeReceivedMission: Hashable {
+struct HomeMyMission: Hashable {
     let missionID: String
     let title: String
     let category: MissionCategory
@@ -74,9 +92,22 @@ struct HomeReceivedMission: Hashable {
     let isNew: Bool?
     let isOverdue: Bool
     let status: MissionStatus
+
+    func makeCopyCompleted() -> HomeMyMission {
+        .init(
+            missionID: self.missionID,
+            title: self.title,
+            category: self.category,
+            dueDate: self.dueDate,
+            assigner: self.assigner,
+            isNew: self.isNew,
+            isOverdue: self.isOverdue,
+            status: .completed
+        )
+    }
 }
 
-struct HomeSendedMission: Hashable {
+struct HomeMemberMission: Hashable {
     let missionID: String
     let title: String
     let category: MissionCategory
