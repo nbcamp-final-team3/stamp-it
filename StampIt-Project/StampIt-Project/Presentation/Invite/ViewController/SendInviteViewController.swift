@@ -158,12 +158,12 @@ final class SendInviteViewController: UIViewController{
             .bind(to: inviteCodeLabel.rx.text)
             .disposed(by: disposeBag)
 
-        viewModel.state.inviteCode
+        // 복사 성공 시그널을 구독하여 실제 클립보드 복사 처리
+        viewModel.state.copySuccess
             .subscribe(onNext: { code in
                 UIPasteboard.general.string = code
             })
             .disposed(by: disposeBag)
-
 
         viewModel.state.showMessage
             .observe(on: MainScheduler.instance)
@@ -174,7 +174,6 @@ final class SendInviteViewController: UIViewController{
                 toastView.show(in: self.view, message: message, type: type)
             })
             .disposed(by: disposeBag)
-
 
         copyButton.rx.tap
             .map{SendInviteViewModel.Action.copyButtonTapped }
