@@ -42,6 +42,7 @@ final class MyMissionViewModel: ViewModelProtocol {
     var state = State()
     private var memberCache: [String: Member] = [:]
     private var myMissions = [Mission]()
+    private var pendingMissions = [String]()
     private var pendingCommits = DisposeBag()
 
     // MARK: - Init
@@ -97,13 +98,19 @@ final class MyMissionViewModel: ViewModelProtocol {
             .map { [weak self] in
                 guard let self else { return [] }
                 return mapper.map(myMissions: $0, member: memberCache)
-                    .map { MyMissionItem.mission($0) }
                     .filter {
                         // 미션완료 시 새로 미션을 fetch하기 때문에 필터링 유지
                         let missionFilter = self.state.missionFilters.value
                         let selectedFilter = missionFilter[self.state.selectedFilter.value].status!
                         guard selectedFilter.status != .none else { return true }
-                        return $0.mission!.status == selectedFilter.status
+                        return $0.status == selectedFilter.status
+                    }
+                    .map { mission in
+                        if self.pendingMissions.contains(mission.missionID) {
+                            return MyMissionItem.mission(mission.makeCopyCompleted())
+                        } else {
+                            return MyMissionItem.mission(mission)
+                        }
                     }
             }
             .bind(to: state.filteredMissions)
@@ -131,6 +138,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         guard let user = state.user.value else { return }
         updateMissionItem(missionID: missionID)
         state.isShowStickerReceived.accept(true)
+        pendingMissions.append(missionID)
 
         // cancelMissionComplete() 호출 시 dispose되는 Observable
         Observable<Void>.just(())
@@ -139,6 +147,7 @@ final class MyMissionViewModel: ViewModelProtocol {
                 guard let self else { return .empty() }
                 let missionToUpdate = updateMissionCache(missionID: missionID)
                 guard let mission = missionToUpdate else { return .empty() }
+                pendingMissions.remove(at: pendingMissions.firstIndex(of: missionID)!)
                 return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
             .flatMap { [weak self] mission -> Observable<Void> in
@@ -178,6 +187,7 @@ final class MyMissionViewModel: ViewModelProtocol {
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     private func cancelMissionComplete() {
         pendingCommits = DisposeBag()
+        pendingMissions = []
         let index = state.selectedFilter.value
         filterMyMissions(index: index)
         state.isShowStickerReceived.accept(false)

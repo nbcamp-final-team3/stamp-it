@@ -55,6 +55,7 @@ final class HomeViewModel: ViewModelProtocol {
     var memberCache = [String: Member]() // 멤버 정보 저장
     private var myMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
     private var memberMissions = [Mission]()
+    private var pendingMissions = [String]()
     private var pendingCommits = DisposeBag()
 
     // MARK: - Init
@@ -153,7 +154,13 @@ final class HomeViewModel: ViewModelProtocol {
               self.myMissions = missions
               let items = self.missionMapper
                   .map(myMissions: missions, member: memberCache)
-                  .map { HomeItem.myMission($0) }
+                  .compactMap { mission -> HomeItem? in
+                      if self.pendingMissions.contains(mission.missionID) {
+                          return nil
+                      } else {
+                          return HomeItem.myMission(mission)
+                      }
+                  }
               self.state.myMissions.accept(items)
           })
           .disposed(by: disposeBag)
@@ -213,6 +220,7 @@ final class HomeViewModel: ViewModelProtocol {
         guard let user = state.user.value else { return }
         removeMissionItem(missionID: missionID)
         state.isShowStickerReceived.accept(true)
+        pendingMissions.append(missionID)
 
         // cancelMissionComplete() 호출 시 dispose되는 Observable
         Observable<Void>.just(())
@@ -221,6 +229,7 @@ final class HomeViewModel: ViewModelProtocol {
                 guard let self else { return .empty() }
                 let removedMission = removeMissionCache(missionID: missionID)
                 guard let mission = removedMission else { return .empty() }
+                pendingMissions.remove(at: pendingMissions.firstIndex(of: missionID)!)
                 return myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
             .flatMap { [weak self] mission -> Observable<Void> in
@@ -247,6 +256,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     func cancelMissionComplete() {
         pendingCommits = DisposeBag()
+//        pendingMissions = []
         let cachedMissions = missionMapper
             .map(myMissions: myMissions, member: memberCache)
             .map { HomeItem.myMission($0) }
