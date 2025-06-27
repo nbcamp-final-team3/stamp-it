@@ -88,8 +88,11 @@ final class MyMissionViewModel: ViewModelProtocol {
         guard let user = state.user.value else { return }
         useCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
             .do { [weak self] myMissions in
-                self?.myMissions = myMissions
-                self?.setMissionFilters(missions: myMissions)
+                guard let self else { return }
+                if self.myMissions.count < myMissions.count {
+                    self.myMissions = myMissions
+                }
+                setMissionFilters(missions: myMissions)
             }
             .map { [weak self] in
                 guard let self else { return [] }
@@ -175,10 +178,8 @@ final class MyMissionViewModel: ViewModelProtocol {
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     private func cancelMissionComplete() {
         pendingCommits = DisposeBag()
-        let cachedMissions = mapper
-            .map(myMissions: myMissions, member: memberCache)
-            .map { MyMissionItem.mission($0) }
-        state.filteredMissions.accept(cachedMissions)
+        let index = state.selectedFilter.value
+        filterMyMissions(index: index)
         state.isShowStickerReceived.accept(false)
     }
 
