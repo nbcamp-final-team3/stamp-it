@@ -59,7 +59,7 @@ extension MissionMapper {
 
     /// 몇 일 전에 받은 미션인지 계산하여 0일 전이면 오늘로 표기
     private func daysBefore(from createDate: Date) -> String {
-        let dayDiff = createDate.daysFromToday()
+        let dayDiff = createDate.daysFromToday(absoluteValue: true)
         return dayDiff == 0 ? "오늘" : "\(dayDiff)일 전"
     }
 
