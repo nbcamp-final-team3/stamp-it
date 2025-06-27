@@ -63,9 +63,9 @@ enum MyPageMenu: CaseIterable {
 
 // MARK: - StampBoard Section
 
-enum StampBoardSection: Hashable {
+enum StampBoardSection: Int, Hashable {
     case summary
-    case page(Int)
+    case page
     
     var type: [[StampCellType]] {
         switch self {
@@ -85,14 +85,6 @@ enum StampBoardSection: Hashable {
     static var column: Int { 5 }
     
     static var totalStamp: Int { 30 }
-    
-    static func from(_ sectionIndex: Int) -> StampBoardSection? {
-        switch sectionIndex {
-        case 0: return .summary
-        case 1...: return .page(sectionIndex - 1)
-        default: return nil
-        }
-    }
 }
 
 // MARK: - StampBoard Item

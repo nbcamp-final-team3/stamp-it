@@ -119,12 +119,13 @@ final class StampBoardViewController: UIViewController {
         snapshot.appendSections([.summary])
         snapshot.appendItems(summaryItem, toSection: .summary)
         
+        snapshot.appendSections([.page])
+        
         /// Item & Section For StampBoard
         for index in 0..<maxPage {
-            snapshot.appendSections([.page(index)])
             snapshot.appendItems(
                 stickers[index].map { .sticker($0) },
-                toSection: .page(index)
+                toSection: .page
             )
         }
         

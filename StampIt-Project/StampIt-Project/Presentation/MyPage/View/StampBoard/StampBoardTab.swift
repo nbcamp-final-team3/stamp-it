@@ -41,7 +41,6 @@ final class StampBoardTab: UIView {
     
     private func setStyle() {
         backgroundColor = .clear
-//        backgroundColor = .red50
     }
     
     // MARK: - Delegate Helper
@@ -56,7 +55,7 @@ final class StampBoardTab: UIView {
         stickerBoardDataSource = UICollectionViewDiffableDataSource(
             collectionView: stickerBoardView.getCollectionView(),
             cellProvider: { collectionView, indexPath, itemIdentifier in
-                guard let section = StampBoardSection.from(indexPath.section) else { return .init() }
+                guard let section = StampBoardSection(rawValue: indexPath.section) else { return .init() }
                 
                 switch section {
                 case .summary:
@@ -74,7 +73,7 @@ final class StampBoardTab: UIView {
                     }
                     return cell
                     
-                case .page(let index):
+                case .page:
                     
                     let cell = collectionView.dequeueReusableCell(
                         withReuseIdentifier: StampCell.identifier,
@@ -82,15 +81,13 @@ final class StampBoardTab: UIView {
                     ) as! StampCell
                     
                     if case let .sticker(stickers) = itemIdentifier {
-                        let backgroundBoard = StampBoardSection.page(index).type.flatMap { $0 }
+                        let backgroundBoard = StampBoardSection.page.type.flatMap { $0 }
                         
                         if backgroundBoard.indices.contains(indexPath.item) {
                             cell.configureDashedLine(with: backgroundBoard[indexPath.item])
                         }
                         cell.configureStamp(with: stickers)
                     }
-                    
-                    cell.backgroundColor = StampBoard(rawValue: index)!.bgColor
                     return cell
                 }
             })

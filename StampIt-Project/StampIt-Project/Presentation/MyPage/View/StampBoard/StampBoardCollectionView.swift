@@ -22,6 +22,9 @@ final class StampBoardCollectionView: UIView {
         $0.backgroundColor = .clear
         $0.showsVerticalScrollIndicator = false
         $0.isPagingEnabled = true
+        $0.alwaysBounceVertical = false
+        $0.alwaysBounceHorizontal = true
+        $0.decelerationRate = .fast // 페이지 스냅감 향상
     }
     
     // MARK: - Initializer, Deinit, requiered
@@ -52,13 +55,13 @@ final class StampBoardCollectionView: UIView {
     
     private func createCompositionalLayout() -> UICollectionViewLayout {
         UICollectionViewCompositionalLayout { [weak self] sectionIndex, environment in
-            guard let section = StampBoardSection.from(sectionIndex) else {
+            guard let section = StampBoardSection(rawValue: sectionIndex) else {
                 return self?.createStampSummaryLayout()
             }
+            
             switch section {
             case .summary: return self?.createStampSummaryLayout()
-            case .page:
-                return self?.createStampBoardLayout()
+            case .page: return self?.createStampBoardLayout()
             }
         }
     }
