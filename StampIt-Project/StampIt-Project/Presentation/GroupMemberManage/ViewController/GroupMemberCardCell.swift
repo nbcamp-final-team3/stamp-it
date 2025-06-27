@@ -18,8 +18,17 @@ final class GroupMemberCardCell: UICollectionViewCell {
     let optionButtonTapped = PublishRelay<IndexPath>()
 
     // MARK: - Properties
-    private let disposeBag = DisposeBag()
+    private var disposeBag = DisposeBag()
     private var indexPath: IndexPath?
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        self.disposeBag = DisposeBag()
+    }
+
+    func dispose(disposable: Disposable) {
+        disposeBag.insert(disposable)
+      }
 
     // MARK: - UI
     private let profileImageView = UIImageView().then {
@@ -141,9 +150,15 @@ final class GroupMemberCardCell: UICollectionViewCell {
 
     // MARK: - Configure
     func configure(with item: GroupMemberManageViewModel.Item, at indexPath: IndexPath) {
+        // 셀 재사용 시 이전 구독들을 해제
+//        disposeBag = DisposeBag()
+        
         self.indexPath = indexPath
         nameLabel.text = item.name
         dateLabel.text = item.date
         profileImageView.image = item.image
+        
+        // 새로운 구독 설정
+//        bind()
     }
 }
