@@ -30,7 +30,7 @@ final class HomeViewController: UIViewController {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -227,7 +227,15 @@ final class HomeViewController: UIViewController {
             .disposed(by: vc.disposeBag)
 
         if let sheet = vc.sheetPresentationController {
-            sheet.detents = [.medium()]
+            // SafeArea의 25%만 올라오는 custom detent 생성
+            let customDetent = UISheetPresentationController.Detent.custom(
+                resolver: { context in
+                    let calculated = context.maximumDetentValue * 0.35
+                    return max(calculated, 388)
+                }
+            )
+
+            sheet.detents = [customDetent]
             sheet.prefersGrabberVisible = true
             sheet.preferredCornerRadius = 32
         }

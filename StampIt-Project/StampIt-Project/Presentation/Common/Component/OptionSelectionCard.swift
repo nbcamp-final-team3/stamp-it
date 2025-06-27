@@ -22,7 +22,8 @@ final class OptionSelectionCard: UIControl {
     }
 
     // MARK: - UIComponent
-
+    
+    //옵션 카드 자체적으로 타입을 만들엇 히든 처리
     private let labelStackView = UIStackView().then {
         $0.axis = .vertical
         $0.spacing = 2
@@ -44,18 +45,42 @@ final class OptionSelectionCard: UIControl {
     }
 
     // MARK: - Init
-
-    init(type: InvitationType) {
+    // 재사용 가능하도록 init은 아무것도 안받고 configure 메서드 만들어서 타이틀 / 서브 타이틀 받게끔
+    init() {
         super.init(frame: .zero)
         setStyles()
         setHierarchy()
         setConstraints()
-        titleLabel.text = type.title
-        subtitleLabel.text = type.description
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Configure
+    func configure(title: String, subtitle: String? = nil) {
+        titleLabel.text = title
+        subtitleLabel.text = subtitle
+        subtitleLabel.isHidden = subtitle == nil
+        
+        // 제약조건 업데이트
+        updateCardConstraints()
+    }
+    
+    // MARK: - Update Constraints
+    private func updateCardConstraints() {
+        // 기존 제약조건 제거 후 새로운 제약조건 설정
+        labelStackView.snp.removeConstraints()
+        labelStackView.snp.makeConstraints {
+            $0.directionalHorizontalEdges.equalToSuperview().inset(16)
+
+            // subtitle이 nil일 때 더 큰 vertical inset 설정
+            if subtitleLabel.isHidden {
+                $0.verticalEdges.equalToSuperview().inset(20)
+            } else {
+                $0.verticalEdges.equalToSuperview().inset(12)
+            }
+        }
     }
 
     // MARK: - Set Styles

@@ -67,6 +67,14 @@ final class DIContainer {
         )
     }()
 
+    lazy var groupManageRepository: GroupManageRepository = {
+        return GroupManageRepositoryImpl(
+            groupManager: groupManager,
+            userManager: userManager,
+            membershipManager: membershipManager
+        )
+    }()
+
     lazy var accountManageRepository: AccountManageRepositoryProtocol = {
         return AccountManageRepository(
             authManager: authManager,
@@ -140,6 +148,14 @@ final class DIContainer {
         return EditProfileUseCaseImpl(editProfileRepositoryImpl: editProfileRepository)
     }()
     
+    lazy var groupManageUseCase: GroupManageUseCase = {
+        return GroupManageUseCaseImpl(
+            authRepository: authRepository,
+            groupManageRepository: groupManageRepository,
+            accountManageRepository: accountManageRepository, inviteRepository: inviteRepository
+        )
+    }()
+    
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -208,8 +224,8 @@ final class DIContainer {
         return EditProfileViewModel(user: user, editProfileUseCaseImpl: editProfileUseCase)
     }
 
-    func makeMemberDeleteViewModel() -> MemberDeleteViewModel {
-        return MemberDeleteViewModel()
+    func makeGroupMemberManageViewModel() -> GroupMemberManageViewModel {
+        return GroupMemberManageViewModel(groupManageUseCase: groupManageUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)
@@ -276,9 +292,9 @@ final class DIContainer {
         return EditProfileViewController(viewModel: viewModel)
     }
     
-    func makeMemberDeleteViewController() -> MemberDeleteViewController {
-        let viewModel = makeMemberDeleteViewModel()
-        return MemberDeleteViewController(viewModel: viewModel)
+    func makeGroupMemberManageViewController() -> GroupMemberManageViewController {
+        let viewModel = makeGroupMemberManageViewModel()
+        return GroupMemberManageViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton

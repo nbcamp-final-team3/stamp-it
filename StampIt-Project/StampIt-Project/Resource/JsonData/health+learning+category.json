@@ -1,0 +1,604 @@
+[
+    {
+        "missionId": "health_001",
+        "title": "함께 실내 스트레칭 10분 하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_002",
+        "title": "서로 돌아가며 마사지 해주기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_003",
+        "title": "공원이나 동네 한 바퀴 산책하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_004",
+        "title": "건강한 식단으로 한 끼 요리하고 함께 먹기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_005",
+        "title": "운동 영상 보며 따라 하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_006",
+        "title": "수분 섭취 체크하고 목표량 채우기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_007",
+        "title": "집안일 하며 30분 이상 몸 움직이기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_008",
+        "title": "걷기 목표 설정하고 같이 달성해보기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_009",
+        "title": "하루 건강 실천 항목 정하고 서로 점검해주기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_010",
+        "title": "간단한 명상이나 호흡 운동 함께 해보기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_011",
+        "title": "함께 계단 오르내리기 운동하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_012",
+        "title": "서로의 운동 자세 교정해주기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_013",
+        "title": "건강 검진 일정 함께 잡기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_014",
+        "title": "금연/금주 목표 함께 세우고 응원하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_015",
+        "title": "체중이나 체성분 측정하고 기록하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_016",
+        "title": "함께 헬스장이나 수영장 가기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_017",
+        "title": "건강한 간식 만들어서 나눠먹기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_018",
+        "title": "서로의 수면 패턴 개선 도와주기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_019",
+        "title": "함께 등산이나 하이킹 가기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_020",
+        "title": "건강 관련 다큐멘터리 함께 시청하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_021",
+        "title": "함께 자전거 타기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_022",
+        "title": "서로의 스트레스 지수 체크하고 관리하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_023",
+        "title": "건강한 생활습관 체크리스트 만들기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_024",
+        "title": "함께 요가 클래스 참여하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_025",
+        "title": "서로의 건강 목표 설정하고 응원하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_026",
+        "title": "함께 댄스 운동하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_027",
+        "title": "건강 앱 함께 사용하고 기록 공유하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_028",
+        "title": "함께 농구나 배드민턴 같은 구기운동 하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_029",
+        "title": "서로의 영양제나 건강보조식품 정보 공유하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_030",
+        "title": "함께 근력운동 루틴 만들기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_031",
+        "title": "건강한 디톡스 차 함께 마시기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_032",
+        "title": "서로의 운동 동기 부여해주기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_033",
+        "title": "함께 플랭크 챌린지하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_034",
+        "title": "건강한 아침 루틴 함께 만들기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_035",
+        "title": "함께 마라톤 대회 참가 계획 세우기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_036",
+        "title": "서로의 건강 상태 체크하고 조언하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_037",
+        "title": "함께 태극권이나 기공 배우기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_038",
+        "title": "건강한 점심 도시락 함께 준비하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_039",
+        "title": "함께 운동 장비 구매하고 사용법 익히기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_040",
+        "title": "서로의 운동 기록 공유하고 격려하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_041",
+        "title": "함께 건강한 저녁 식단 계획하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_042",
+        "title": "서로의 자세 교정 도와주기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_043",
+        "title": "함께 건강 세미나나 강의 참석하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_044",
+        "title": "건강한 수면 환경 함께 조성하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_045",
+        "title": "함께 건강 관련 책 읽고 토론하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_046",
+        "title": "서로의 운동 파트너 되어주기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_047",
+        "title": "함께 건강한 주스나 스무디 만들기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_048",
+        "title": "건강 목표 달성 시 함께 축하하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_049",
+        "title": "함께 건강한 취미 활동 시작하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    {
+        "missionId": "health_050",
+        "title": "서로의 건강 일기 작성하고 공유하기",
+        "missionType": "앱제공",
+        "category": "건강운동"
+    },
+    
+    {
+        "missionId": "study_001",
+        "title": "책 한 권 읽고 감상 나누기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_002",
+        "title": "각자 읽은 책 소개하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_003",
+        "title": "30분 독서 시간 함께 갖기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_004",
+        "title": "공부 계획표 함께 세우고 공유하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_005",
+        "title": "좋은 문장 필사하고 눈에 잘 보이게 붙여두기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_006",
+        "title": "교양 영상 하나 보고 느낀 점 이야기 나누기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_007",
+        "title": "공부 공간 정리하고 분위기 바꾸기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_008",
+        "title": "퀴즈나 단어 맞히기 게임 즐기기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_009",
+        "title": "서로에게 새로 배운 지식 설명해주기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_010",
+        "title": "하나의 주제로 각자 글 써서 함께 읽기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_011",
+        "title": "함께 도서관 가서 공부하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_012",
+        "title": "서로의 독서 목표 설정하고 응원하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_013",
+        "title": "함께 온라인 강의 수강하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_014",
+        "title": "독서 노트 작성법 공유하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_015",
+        "title": "함께 북클럽 만들어 운영하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_016",
+        "title": "서로의 학습 진도 체크하고 격려하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_017",
+        "title": "함께 서점 탐방하고 책 추천하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_018",
+        "title": "독서 감상문 쓰고 서로 피드백하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_019",
+        "title": "함께 새로운 언어 공부하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_020",
+        "title": "서로의 공부 방법 공유하고 개선하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_021",
+        "title": "함께 시나 소설 낭독하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_022",
+        "title": "학습 일정표 함께 만들고 실천하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_023",
+        "title": "함께 박물관이나 과학관 견학하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_024",
+        "title": "서로의 관심 분야 책 추천해주기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_025",
+        "title": "함께 독서 토론회 참여하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_026",
+        "title": "학습 목표 달성 시 함께 축하하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_027",
+        "title": "함께 작가 강연회나 북토크 참석하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_028",
+        "title": "서로의 독서 속도 향상 도와주기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_029",
+        "title": "함께 창작 글쓰기 도전하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_030",
+        "title": "독서 환경 개선하고 공간 꾸미기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_031",
+        "title": "함께 팟캐스트나 오디오북 듣기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_032",
+        "title": "서로의 학습 스타일 파악하고 조언하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_033",
+        "title": "함께 독서 챌린지 참여하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_034",
+        "title": "책 내용을 요약해서 서로 발표하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_035",
+        "title": "함께 문학 작품 분석하고 토론하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_036",
+        "title": "서로의 독서 취향 분석하고 공유하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_037",
+        "title": "함께 학습 앱 활용하고 경험 나누기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_038",
+        "title": "독서 기록장 작성하고 서로 확인하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_039",
+        "title": "함께 역사나 과학 다큐멘터리 시청하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_040",
+        "title": "서로의 집중력 향상 방법 공유하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_041",
+        "title": "함께 인문학 강좌 수강하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_042",
+        "title": "독서 마라톤 함께 도전하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_043",
+        "title": "함께 시사 이슈 토론하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_044",
+        "title": "서로의 학습 동기 부여해주기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_045",
+        "title": "함께 전자책 리더기 활용법 익히기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_046",
+        "title": "독서 습관 형성 계획 함께 세우기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_047",
+        "title": "함께 철학이나 심리학 책 읽고 토론하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_048",
+        "title": "서로의 학습 성과 축하하고 격려하기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_049",
+        "title": "함께 독서 모임이나 스터디 그룹 만들기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    },
+    {
+        "missionId": "study_050",
+        "title": "서로의 지식 공유 시간 마감일 전까지 정기적으로 갖기",
+        "missionType": "앱제공",
+        "category": "독서학습"
+    }
+]
+ 

@@ -56,4 +56,36 @@ enum RepositoryError: Error {
             return "이미 그룹에 존재합니다."
         }
     }
+    
+    /// 토스트 메시지용 텍스트
+    var toastMessage: String {
+        switch self {
+        case .authenticationFailed(_):
+            return "로그인에 실패했습니다."
+        case .userNotFound:
+            return "사용자 정보를 불러올 수 없습니다."
+        case .userNotInGroup:
+            return "그룹 정보를 찾을 수 없습니다."
+        case .dataError(_):
+            return "데이터 처리 중 오류가 발생했습니다."
+        case .networkError(_):
+            return "네트워크 연결을 확인해주세요."
+        case .uiError(_):
+            return "화면 표시 중 오류가 발생했습니다."
+        case .unknownError:
+            return "예상치 못한 오류가 발생했습니다."
+        case .permissionDenied(_):
+            return "권한이 부족합니다."
+        case .groupIsFull:
+            return "그룹 정원이 가득 찼습니다."
+        case .onlyOneGroup:
+            return "기존 그룹을 탈퇴해 주세요."
+        case .noInviteCode:
+            return "초대 코드를 확인 할 수 없습니다."
+        case .expiredInviteCode:
+            return "초대 코드가 만료됐습니다."
+        case .alreadyInGroup:
+            return "이미 그룹에 존재합니다."
+        }
+    }
 }

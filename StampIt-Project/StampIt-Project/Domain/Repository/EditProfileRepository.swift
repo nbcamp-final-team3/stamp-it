@@ -31,4 +31,9 @@ protocol EditProfileRepository {
     ///   - imageName: 새로운 이미지 에셋 이름
     /// - Returns: Observable(Void)
     func updateProfileImage(userId: String, groupId: String, imageName: String) -> Observable<Void>
+    
+    /// 멤버 데이터 패치
+    /// - Parameter groupID: getCurrentUser() 또는 getCurrentGroupID()를 호출하여 groupID를 얻을 수 있음
+    /// - Returns: 도메인 레이어 멤버 모델
+    func fetchMembers(ofGroup groupID: String) -> Observable<[Member]>
 }
