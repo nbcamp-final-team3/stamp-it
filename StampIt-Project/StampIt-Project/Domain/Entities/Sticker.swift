@@ -23,4 +23,7 @@ struct Sticker: Hashable {
 enum StickerType: String, Hashable {
     case stampGray
     case stampRed
+    case stampBlue
+    case stampYellow
+    case stampPurple
 }
