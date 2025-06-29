@@ -15,10 +15,19 @@ import RxCocoa
 /// 그룹 초대 코드 입력 화면
 final class ReceiveInviteViewController: UIViewController {
 
+    // MARK: - Constants
+    private enum Constants {
+        static let keyboardOffset: CGFloat = 40
+        static let toastDelay: TimeInterval = 0.3
+        static let animationDuration: TimeInterval = 0.2
+        static let rootTransitionDuration: TimeInterval = 0.15
+    }
+
     // MARK: - properties
 
     private let viewModel: ReceiveInviteViewModel
     private let disposeBag = DisposeBag()
+    private var isKeyboardVisible = false
 
     init(viewModel: ReceiveInviteViewModel) {
         self.viewModel = viewModel
@@ -60,6 +69,7 @@ final class ReceiveInviteViewController: UIViewController {
         $0.autocorrectionType = .no
         $0.autocapitalizationType = .none
         $0.clearButtonMode = .whileEditing
+        $0.enablesReturnKeyAutomatically = true
     }
 
     private let stackView = UIStackView().then {
@@ -79,14 +89,14 @@ final class ReceiveInviteViewController: UIViewController {
 
     private let enterButton = DefaultButton(type: .enter)
 
-
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         setupLayout()
         bindViewModel()
         setupNavigation()
+        setupKeyboardDismiss()
+        setupKeyboardNotifications()
         textField.delegate = self
 
     }
@@ -152,13 +162,22 @@ final class ReceiveInviteViewController: UIViewController {
 
     // MARK: - Bind
     private func bindViewModel() {
-
+        bindTextField()
+        bindEnterButton()
+        bindNavigation()
+        bindMessages()
+        bindInviteCompletion()
+    }
+    
+    private func bindTextField() {
         textField.rx.text.orEmpty
             .distinctUntilChanged()
             .map { ReceiveInviteViewModel.Action.codeChanged($0) }
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
-
+    }
+    
+    private func bindEnterButton() {
         enterButton.rx.tap
             .map { ReceiveInviteViewModel.Action.enterButtonTapped }
             .bind(to: viewModel.action)
@@ -167,22 +186,40 @@ final class ReceiveInviteViewController: UIViewController {
         viewModel.state.isEnterButtonEnabled
             .bind(to: enterButton.rx.isEnabled)
             .disposed(by: disposeBag)
-
+    }
+    
+    private func bindNavigation() {
         navigationBar.backTapped
             .bind(with: self) { owner, _ in
                 owner.navigationController?.popViewController(animated: true)
             }.disposed(by: disposeBag)
-
+    }
+    
+    private func bindMessages() {
         viewModel.state.showMessage
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] (type, message) in
                 guard let self = self else { return }
-                let toastView = ToastView()
-
-                toastView.show(in: self.view, message: message, type: type)
+                
+                // 키보드가 올라와 있으면 먼저 내리기
+                if self.isKeyboardVisible {
+                    self.textField.resignFirstResponder()
+                    
+                    // 키보드가 완전히 내려간 후 토스트 표시
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Constants.toastDelay) {
+                        let toastView = ToastView()
+                        toastView.show(in: self.view, message: message, type: type)
+                    }
+                } else {
+                    // 키보드가 내려가 있으면 바로 토스트 표시
+                    let toastView = ToastView()
+                    toastView.show(in: self.view, message: message, type: type)
+                }
             })
             .disposed(by: disposeBag)
-
+    }
+    
+    private func bindInviteCompletion() {
         viewModel.state.didCompleteInvite
             .bind(with: self) { owner, _ in
                 let container = DIContainer.shared
@@ -191,13 +228,73 @@ final class ReceiveInviteViewController: UIViewController {
                 let tabBarController = MainTabBarController(container: container)
                 tabBarController.selectedIndex = 0
 
-                WindowTransitionManager.shared.changeRootViewController(to: tabBarController, duration: 0.15)
+                WindowTransitionManager.shared.changeRootViewController(to: tabBarController, duration: Constants.rootTransitionDuration)
                 // 현재 navigation stack에서 pop
                 owner.navigationController?.popToRootViewController(animated: true)
-                //스택에 쌓인 루트 뷰를 안보여주고 없애는 법
-
             }
             .disposed(by: disposeBag)
+    }
+
+    private func setupKeyboardDismiss() {
+        let tapGesture = UITapGestureRecognizer()
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+        
+        tapGesture.rx.event
+            .subscribe(onNext: { [weak self] _ in
+                self?.dismissKeyboard()
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+
+    private func setupKeyboardNotifications() {
+        NotificationCenter.default.rx.notification(UIResponder.keyboardWillShowNotification)
+            .subscribe(onNext: { [weak self] notification in
+                self?.handleKeyboardWillShow(notification)
+            })
+            .disposed(by: disposeBag)
+        
+        NotificationCenter.default.rx.notification(UIResponder.keyboardWillHideNotification)
+            .subscribe(onNext: { [weak self] notification in
+                self?.handleKeyboardWillHide(notification)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func handleKeyboardWillShow(_ notification: Notification) {
+        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+              let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+            return
+        }
+        
+        isKeyboardVisible = true
+        
+        let keyboardTopY = keyboardFrame.minY
+        let buttonBottomY = enterButton.frame.maxY
+        
+        // 버튼이 키보드에 가려지는 경우만 이동
+        if buttonBottomY > keyboardTopY {
+            let offset = buttonBottomY - keyboardTopY + Constants.keyboardOffset
+            UIView.animate(withDuration: duration) {
+                self.view.transform = CGAffineTransform(translationX: 0, y: -offset)
+            }
+        }
+    }
+
+    private func handleKeyboardWillHide(_ notification: Notification) {
+        guard let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+            return
+        }
+        
+        isKeyboardVisible = false
+        
+        UIView.animate(withDuration: duration) {
+            self.view.transform = .identity
+        }
     }
 }
 
@@ -206,7 +303,7 @@ extension ReceiveInviteViewController: UITextFieldDelegate {
 
     /// axis를 vertical로 변경
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        UIView.animate(withDuration: 0.2) {
+        UIView.animate(withDuration: Constants.animationDuration) {
             self.stackView.axis = .vertical
             self.stackView.spacing = 5
             self.stackView.alignment = .fill
@@ -220,7 +317,7 @@ extension ReceiveInviteViewController: UITextFieldDelegate {
     /// axis를 horizontal로 변경
     func textFieldDidEndEditing(_ textField: UITextField) {
         if textField.text?.isEmpty ?? true {
-            UIView.animate(withDuration: 0.2) {
+            UIView.animate(withDuration: Constants.animationDuration) {
                 self.stackView.axis = .horizontal
                 self.stackView.spacing = 8
                 self.stackView.alignment = .center
