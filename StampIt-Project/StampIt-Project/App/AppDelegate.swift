@@ -10,6 +10,8 @@ import CoreData
 import FirebaseCore
 import FirebaseFirestore
 import GoogleSignIn
+import FirebaseMessaging
+import UserNotifications
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -21,6 +23,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // Firestore 네트워크 설정 개선
         configureFirestore()
+        
+        // 푸시 알림 권한 요청
+        application.registerForRemoteNotifications()
+
+        // FCM 델리게이트 설정
+        Messaging.messaging().delegate = self
+        UNUserNotificationCenter.current().delegate = self
         
         // Google Sign-In 설정
         configureGoogleSignIn()
@@ -111,4 +120,50 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
     }
+}
+
+// MARK: - MessagingDelegate
+extension AppDelegate: MessagingDelegate {
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        guard let fcmToken = fcmToken else { return }
+        print("FCM 토큰: \(fcmToken)")
+        UserDefaults.standard.set(fcmToken, forKey: "FCMToken")
+    }
+}
+
+// MARK: - UNUserNotificationCenterDelegate
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    
+    // 앱이 실행 중일 때 알림 표시
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound])
+    }
+    
+    // 알림 탭했을 때
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        
+        // 미션 데이터가 있으면 처리
+        if let missionData = userInfo["mission"] as? [String: Any] {
+            let mission = Mission(
+                missionID: missionData["missionID"] as? String ?? UUID().uuidString,
+                title: missionData["title"] as? String ?? "새 미션",
+                assignedTo: "me",
+                assignedBy: missionData["assignedBy"] as? String ?? "누군가",
+                createDate: Date(),
+                dueDate: Date(),
+                status: .assigned,
+                imageURL: "",
+                category: .chore
+            )
+            
+            NotificationCenter.default.post(name: .newMissionReceived, object: mission)
+        }
+        
+        completionHandler()
+    }
+}
+
+extension Notification.Name {
+    static let newMissionReceived = Notification.Name("newMissionReceived")
 }
