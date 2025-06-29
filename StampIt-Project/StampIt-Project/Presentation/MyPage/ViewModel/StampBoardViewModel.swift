@@ -96,24 +96,24 @@ final class StampBoardViewModel: ViewModelProtocol {
                     )
                 }
                 
-                // TODO: fetchStickerCount addSnapshotListener 적용후 zip 테스트
                 return Observable.combineLatest(stickerObservables)
                     .map { stickerLists in
                         var formattedStickers: [[Sticker]] = .init()
-                        for (index, stickers) in stickerLists.enumerated() {
+                        for (page, stickers) in stickerLists.enumerated() {
                             formattedStickers.append(
-                                stickers.map {
+                                stickers.enumerated().map { (index, sticker) in
                                     Sticker(
-                                        userID: $0.userID,
-                                        stickerID: $0.stickerID,
-                                        title: $0.title,
-                                        description: $0.description,
-                                        imageURL: $0.imageURL,
-                                        type: StickerType.from(index),
-                                        createdAt: $0.createdAt,
-                                        maxStickers: $0.maxStickers,
-                                        pinNumber: $0.pinNumber,
-                                        assignedBy: $0.assignedBy
+                                        userID: sticker.userID,
+                                        stickerID: sticker.stickerID,
+                                        title: sticker.title,
+                                        description: sticker.description,
+                                        imageURL: sticker.imageURL,
+                                        type: StickerType.from(page),
+//                                        type: index.isMultiple(of: 2) ? StickerType.stampBlue : StickerType.stampYellow,
+                                        createdAt: sticker.createdAt,
+                                        maxStickers: sticker.maxStickers,
+                                        pinNumber: sticker.pinNumber,
+                                        assignedBy: sticker.assignedBy
                                     )
                                 }
                             )
