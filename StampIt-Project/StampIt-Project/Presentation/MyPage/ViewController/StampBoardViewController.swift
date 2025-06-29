@@ -44,13 +44,6 @@ final class StampBoardViewController: UIViewController {
         bind()
     }
     
-    // TODO: fetchStickerCount addSnapshotListener 적용후 삭제 후, 테스트
-    // 화면이 나타날 때마다 데이터 새로고침
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        viewModel.action.accept(.viewDidLoad)
-    }
-    
     // MARK: - Bind
     
     private func bind() {
@@ -58,9 +51,11 @@ final class StampBoardViewController: UIViewController {
             viewModel.state.stickerSummary,
             viewModel.state.stickersByPage
         )
+        .observe(on: MainScheduler.instance)
         .bind(with: self) { owner, combined in
             let (summary, stickers) = combined
             owner.updateSnapshot(summary: summary, stickers: stickers)
+            owner.stampBoardView.footerPageRelay.accept(summary.completed + 1)
         }.disposed(by: disposeBag)
     }
     
@@ -84,7 +79,8 @@ final class StampBoardViewController: UIViewController {
     
     private func setLayout() {
         stampBoardView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.top.directionalHorizontalEdges.equalToSuperview()
+            $0.bottom.equalTo(view.safeAreaLayoutGuide)
         }
     }
     
@@ -125,12 +121,15 @@ final class StampBoardViewController: UIViewController {
         }
         
         stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
+        
+        stampBoardView.getCollectionView().layoutIfNeeded()
     }
 }
 
 extension StampBoardViewController: StampBoardScrollDelegate {
     func didScrollToPage(_ page: Int) {
+        /// 배경색 변경
         stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
-        print("✅ Scrolled to page \(page)")
+        stampBoardView.updateFooterPage(to: page)
     }
 }

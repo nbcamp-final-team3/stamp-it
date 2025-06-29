@@ -16,7 +16,10 @@ final class StampBoardTab: UIView {
     // MARK: - Properties
     
     var stickerBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
-    let stickerSummary = BehaviorRelay<(collectedSticker: Int, completedBoard: Int)>(value: (.zero, .zero))
+    
+    private weak var footerView: PageControlFooterView?
+    
+    let footerPageRelay = BehaviorRelay<(Int)>(value: (.zero))
     let disposeBag = DisposeBag()
 
     // MARK: - UI Components
@@ -31,6 +34,7 @@ final class StampBoardTab: UIView {
         setHierarchy()
         setLayout()
         setDataSource()
+        setFooter()
     }
     
     required init?(coder: NSCoder) {
@@ -47,6 +51,11 @@ final class StampBoardTab: UIView {
     
     func setScrollDelegate(_ delegate: StampBoardScrollDelegate) {
         stickerBoardView.scrollDelegate = delegate
+    }
+    
+    // TODO: 사용후 필요한 메소드만 getter 로 생성
+    func getCollectionView() -> UICollectionView {
+        stickerBoardView.getCollectionView()
     }
     
     // MARK: - DataSource Helper
@@ -85,6 +94,7 @@ final class StampBoardTab: UIView {
                         
                         let backgroundBoard = StampBoardSection.page.type.flatMap { $0 }
                         
+                        print("**itemIndexInPage: \(itemIndexInPage)")
                         if backgroundBoard.indices.contains(itemIndexInPage) {
                             cell.configureDashedLine(with: backgroundBoard[itemIndexInPage])
                         }
@@ -95,6 +105,46 @@ final class StampBoardTab: UIView {
                 }
             })
         stickerBoardView.setDataSource(stickerBoardDataSource)
+    }
+    
+    private func setFooter() {
+        stickerBoardDataSource.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
+            
+            let sections = StampBoardSection.allCases
+            
+            if sections[indexPath.section] == .page {
+                guard kind == UICollectionView.elementKindSectionFooter,
+                      let self else {
+                    return UICollectionReusableView()
+                }
+                
+                let footer = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: kind,
+                    withReuseIdentifier: PageControlFooterView.identifier,
+                    for: indexPath
+                ) as! PageControlFooterView
+                
+                self.footerView = footer
+                
+                footerPageRelay
+                    .distinctUntilChanged { $0 == $1 }
+                    .bind(with: self) { owner, page in
+                        footer.configure(
+                            numberOfPages: page,
+                            currentPage: .zero
+                        )
+                    }
+                    .disposed(by: disposeBag)
+                
+                return footer
+            }
+            
+            return UICollectionReusableView()
+        }
+    }
+    
+    func updateFooterPage(to page: Int) {
+        footerView?.setCurrentPage(page)
     }
     
     // MARK: - Hierarchy Helper

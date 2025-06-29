@@ -8,6 +8,8 @@
 import UIKit
 import Then
 import SnapKit
+import RxSwift
+import RxCocoa
 
 final class StampBoardCollectionView: UIView {
     
@@ -15,20 +17,38 @@ final class StampBoardCollectionView: UIView {
     
     weak var scrollDelegate: StampBoardScrollDelegate?
     
+    private let disposeBag = DisposeBag()
+    
     // MARK: - UI Components
     
     private lazy var collectionView = UICollectionView(
         frame: .zero,
         collectionViewLayout: createCompositionalLayout()
     ).then {
-        $0.register(SummaryCell.self, forCellWithReuseIdentifier: SummaryCell.identifier)
-        $0.register(StampCell.self, forCellWithReuseIdentifier: StampCell.identifier)
+        $0.register(
+            SummaryCell.self,
+            forCellWithReuseIdentifier: SummaryCell.identifier
+        )
+        $0.register(
+            StampCell.self,
+            forCellWithReuseIdentifier: StampCell.identifier
+        )
+        $0.register(
+            PageControlFooterView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+            withReuseIdentifier: PageControlFooterView.identifier
+        )
         $0.backgroundColor = .clear
         $0.showsVerticalScrollIndicator = false
         $0.isPagingEnabled = true
         $0.alwaysBounceVertical = false
         $0.alwaysBounceHorizontal = false
-        $0.decelerationRate = .fast // 페이지 스냅감 향상
+        $0.decelerationRate = .fast
+    }
+    
+    private let stackView = UIStackView().then {
+        $0.axis = .vertical
+        $0.spacing = 16
     }
     
     // MARK: - Initializer, Deinit, requiered
@@ -37,14 +57,29 @@ final class StampBoardCollectionView: UIView {
         super.init(frame: frame)
         setHierarchy()
         setLayout()
+        bind()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Bind
+    
+    private func bind() {
+        /// 스크롤이 끝나고 완전히 멈췄을 때 방출되는 ControlEvent
+        collectionView.rx.didEndDecelerating
+            .withLatestFrom(collectionView.rx.contentOffset)
+            .map { Int($0.x / UIScreen.main.bounds.width) }
+            .distinctUntilChanged()
+            .bind(with: self) { owner, page in
+                
+            }.disposed(by: disposeBag)
+    }
+    
     // MARK: - Setter & Getter
     
+    // TODO: 사용후 필요한 메소드만 getter 로 생성
     func getCollectionView() -> UICollectionView {
         collectionView
     }
@@ -123,15 +158,25 @@ final class StampBoardCollectionView: UIView {
             subitems: Array(repeating: horizontalGroup, count: 6)
         )
         
+        let footerSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .absolute(30)
+        )
+        let footer = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: footerSize,
+            elementKind: UICollectionView.elementKindSectionFooter,
+            alignment: .bottom)
+        
         let section = NSCollectionLayoutSection(group: verticalGroup)
         
         let isPortrait = UIScreen.main.bounds.height > UIScreen.main.bounds.width
         
         section.orthogonalScrollingBehavior = .paging
+        section.boundarySupplementaryItems = [footer]
         section.contentInsets = .init(
             top: 24,
             leading: isPortrait ? 36 : 45,
-            bottom: 30,
+            bottom: 0,
             trailing: isPortrait ? StickerType.imageSize / 3 : -45
         )
         
@@ -142,7 +187,6 @@ final class StampBoardCollectionView: UIView {
             )
             self?.scrollDelegate?.didScrollToPage(page)
         }
-        
         return section
     }
     
@@ -150,15 +194,20 @@ final class StampBoardCollectionView: UIView {
     
     private func setHierarchy() {
         [
-            collectionView
+            stackView
         ]
             .forEach { addSubview($0) }
+        
+        [
+            collectionView,
+        ]
+            .forEach { stackView.addArrangedSubview($0) }
     }
 
     // MARK: - Layout Helper
     
     private func setLayout() {
-        collectionView.snp.makeConstraints {
+        stackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
     }
