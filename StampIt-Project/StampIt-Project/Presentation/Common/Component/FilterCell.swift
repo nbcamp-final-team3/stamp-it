@@ -8,13 +8,9 @@
 import UIKit
 import SnapKit
 import Then
-import RxSwift
-import RxRelay
 
 final class FilterCell: UICollectionViewCell {
     static let reuseIdentifier = "FilterCell"
-    let selectFilter = PublishRelay<String?>()
-    var disposeBag = DisposeBag()
 
     private let imageView = UIImageView().then {
         $0.contentMode = .scaleAspectFit
@@ -39,9 +35,6 @@ final class FilterCell: UICollectionViewCell {
     override var isSelected: Bool {
         didSet {
             updateCell()
-            if isSelected {
-                selectFilter.accept(label.text)
-            }
         }
     }
     
@@ -68,8 +61,6 @@ final class FilterCell: UICollectionViewCell {
         contentView.layer.masksToBounds = true
         contentView.layer.borderWidth = 1
         contentView.layer.borderColor = UIColor.gray200.cgColor
-
-        disposeBag = DisposeBag()
     }
     
     private func setConstraints() {
@@ -115,8 +106,9 @@ final class FilterCell: UICollectionViewCell {
         if let titleWeight {
             label.font = .pretendard(size: 14, weight: titleWeight)
         }
-        
-        stackView.backgroundColor = backgroundColor
+
+        // 스크롤 후 다시 올라왔을 때 선택여부에 따라 UI 업데이트
+        updateCell()
     }
     
     private func updateCell() {

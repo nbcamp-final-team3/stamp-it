@@ -17,7 +17,7 @@ final class HomeView: UIView {
     let didTapMissionCompleteButton = PublishRelay<HomeItem>()
     let didTapMoreMyMissionButton = PublishRelay<Void>()
     let didTapMoreMemberMissionButton = PublishRelay<Void>()
-    let selectMember = PublishRelay<String?>()
+    let selectMember = PublishRelay<Int>()
     let username = PublishRelay<String>()
     let groupName = PublishRelay<String>()
 

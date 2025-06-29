@@ -27,7 +27,7 @@ final class HomeViewModel: ViewModelProtocol {
         case didTapMissonCompleteButton(HomeItem)
         case didTapCompleteCancelButton
         case didTapMoreMyMissions
-        case didSelectReceivedMember(String?)
+        case didSelectReceivedMember(Int)
         case didTapMoreMemberMissions
     }
 
@@ -37,7 +37,6 @@ final class HomeViewModel: ViewModelProtocol {
         let rankedMembers = PublishRelay<[HomeItem]>()
         let myMissions = BehaviorRelay<[HomeItem]>(value: [])
         let memberFilter = BehaviorRelay<[HomeItem]>(value: [])
-        let selectedFilter = BehaviorRelay<String?>(value: nil)
         let memberMissionsForDisplay = PublishRelay<[HomeItem]>()
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
@@ -56,6 +55,7 @@ final class HomeViewModel: ViewModelProtocol {
     var memberCache = [String: Member]() // 멤버 정보 저장
     private var myMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
     private var memberMissions = [Mission]()
+    private var pendingMissions = [String]()
     private var pendingCommits = DisposeBag()
 
     // MARK: - Init
@@ -95,8 +95,8 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.cancelMissionComplete()
                 case .didTapMoreMyMissions:
                     owner.state.isPushMyMissionVC.accept(())
-                case .didSelectReceivedMember(nickname: let nickname):
-                    owner.updateMemberMissions(nickname: nickname)
+                case .didSelectReceivedMember(let index):
+                    owner.updateMemberMissions(index: index)
                 case .didTapMoreMemberMissions:
                     owner.state.isPushMemberMissionVC.accept(())
                 }
@@ -154,7 +154,13 @@ final class HomeViewModel: ViewModelProtocol {
               self.myMissions = missions
               let items = self.missionMapper
                   .map(myMissions: missions, member: memberCache)
-                  .map { HomeItem.myMission($0) }
+                  .compactMap { mission -> HomeItem? in
+                      if self.pendingMissions.contains(mission.missionID) {
+                          return nil
+                      } else {
+                          return HomeItem.myMission(mission)
+                      }
+                  }
               self.state.myMissions.accept(items)
           })
           .disposed(by: disposeBag)
@@ -178,7 +184,8 @@ final class HomeViewModel: ViewModelProtocol {
     }
 
     /// 멤버 닉네임으로 들어온 값이 "전체보기" 이면 전체, 값이 있으면 해당 멤버에게 전달한 미션만 필터링하여 최근 전달한 4개를 accept
-    private func updateMemberMissions(nickname: String?) {
+    private func updateMemberMissions(index: Int) {
+        let nickname = state.memberFilter.value[index].memberFilter!
         let memberID = memberCache.values.first(where: { $0.nickname == nickname })?.userID
         let filteredMissions = memberID != nil
             ? memberMissions.filter { $0.assignedTo == memberID }
@@ -213,6 +220,7 @@ final class HomeViewModel: ViewModelProtocol {
         guard let user = state.user.value else { return }
         removeMissionItem(missionID: missionID)
         state.isShowStickerReceived.accept(true)
+        pendingMissions.append(missionID)
 
         // cancelMissionComplete() 호출 시 dispose되는 Observable
         Observable<Void>.just(())
@@ -221,6 +229,7 @@ final class HomeViewModel: ViewModelProtocol {
                 guard let self else { return .empty() }
                 let removedMission = removeMissionCache(missionID: missionID)
                 guard let mission = removedMission else { return .empty() }
+                pendingMissions.remove(at: pendingMissions.firstIndex(of: missionID)!)
                 return myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             }
             .flatMap { [weak self] mission -> Observable<Void> in
@@ -247,6 +256,7 @@ final class HomeViewModel: ViewModelProtocol {
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     func cancelMissionComplete() {
         pendingCommits = DisposeBag()
+//        pendingMissions = []
         let cachedMissions = missionMapper
             .map(myMissions: myMissions, member: memberCache)
             .map { HomeItem.myMission($0) }
