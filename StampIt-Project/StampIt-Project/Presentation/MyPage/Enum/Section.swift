@@ -63,7 +63,7 @@ enum MyPageMenu: CaseIterable {
 
 // MARK: - StampBoard Section
 
-enum StampBoardSection: Int, Hashable {
+enum StampBoardSection: Int, Hashable, CaseIterable {
     case summary
     case page
     
