@@ -113,6 +113,7 @@ final class EditProfileViewController: UIViewController {
     }
     
     deinit {
+        NotificationCenter.default.removeObserver(self)
         print("editProfileViewController deinit")
     }
     
@@ -132,6 +133,9 @@ final class EditProfileViewController: UIViewController {
         bind()
         
         setupSelectedProfileImage()
+        
+        setupKeyboardNotification()
+        setTapGesture()
         
         viewModel.action.accept(.onAppear)
     }
@@ -207,6 +211,8 @@ final class EditProfileViewController: UIViewController {
     
     private func setNavigationBar() {        
         navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
     
     private func setButtonAction() {
@@ -383,6 +389,55 @@ final class EditProfileViewController: UIViewController {
         navigationController?.popViewController(animated: true)
         print("dismiss")
     }
+    
+    // 키보드 올라왔을 때 버튼 가리는 현상 방지
+    private func setupKeyboardNotification() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(keyboardWillShow(_:)),
+                                               name: UIResponder.keyboardWillShowNotification,
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(keyboardWillHide(_:)),
+                                               name: UIResponder.keyboardWillHideNotification,
+                                               object: nil)
+    }
+    
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval else { return }
+        
+        let keyboardTopY = keyboardFrame.origin.y
+        let buttonBottomY = editButton.convert(editButton.bounds, to: view.window).maxY
+        
+        // 버튼이 키보드에 가려지는 경우만 이동
+        if buttonBottomY > keyboardTopY {
+            let offset = buttonBottomY - keyboardTopY + 16
+            UIView.animate(withDuration: duration) {
+                self.view.transform = CGAffineTransform(translationX: 0, y: -offset)
+            }
+        }
+    }
+    
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval else { return }
+        
+        UIView.animate(withDuration: duration) {
+            self.view.transform = .identity
+        }
+    }
+    
+    // 화면을 아무데나 터치하면 키보드 내려감
+    private func setTapGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
 }
 
 // 컬렉션 뷰 섹션/아이템 정의
@@ -393,5 +448,12 @@ extension EditProfileViewController {
     
     enum Item: Hashable {
         case image(String)
+    }
+}
+
+extension EditProfileViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
+        return navigationController?.viewControllers.count ?? 0 > 1
     }
 }
