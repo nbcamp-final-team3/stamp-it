@@ -84,7 +84,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
     private func setMembers() {
         guard let user = state.user.value else { return }
         let allMembersItem = MemberMissionItem.allMember(image: .mascotGroup, title: "전체")
-        let members = Array(memberCache.values)
+        let members = Array(memberCache.values.filter { $0.userID != user.userID })
         let memberItems = memberMapper
             .map(members: members, userID: user.userID)
             .map { MemberMissionItem.member($0) }
