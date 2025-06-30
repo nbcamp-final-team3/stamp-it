@@ -43,7 +43,8 @@ final class PageControlFooterView: UICollectionReusableView {
     
     private func setLayout() {
         pageControl.snp.makeConstraints {
-            $0.center.equalToSuperview()
+            $0.top.equalToSuperview().offset(10)
+            $0.centerX.equalToSuperview()
             $0.height.equalTo(10)
         }
     }

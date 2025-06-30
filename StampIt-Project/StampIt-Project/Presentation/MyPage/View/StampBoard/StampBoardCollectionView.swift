@@ -40,7 +40,6 @@ final class StampBoardCollectionView: UIView {
         )
         $0.backgroundColor = .clear
         $0.showsVerticalScrollIndicator = false
-        $0.isPagingEnabled = true
         $0.alwaysBounceVertical = false
         $0.alwaysBounceHorizontal = false
         $0.decelerationRate = .fast
@@ -86,9 +85,9 @@ final class StampBoardCollectionView: UIView {
     }
 
     // MARK: - CompositionalLayout
-    
+
     private func createCompositionalLayout() -> UICollectionViewLayout {
-        UICollectionViewCompositionalLayout { [weak self] sectionIndex, environment in
+        let layout = UICollectionViewCompositionalLayout { [weak self] sectionIndex, environment in
             guard let section = StampBoardSection(rawValue: sectionIndex) else {
                 return self?.createStampSummaryLayout()
             }
@@ -98,6 +97,14 @@ final class StampBoardCollectionView: UIView {
             case .page: return self?.createStampBoardLayout()
             }
         }
+        
+        layout.collectionView?.contentInset = .init(
+            top: 0,
+            left: 0,
+            bottom: 100,
+            right: 0
+        )
+        return layout
     }
     
     private func createStampSummaryLayout() -> NSCollectionLayoutSection {
@@ -161,6 +168,13 @@ final class StampBoardCollectionView: UIView {
             layoutSize: footerSize,
             elementKind: UICollectionView.elementKindSectionFooter,
             alignment: .bottom
+        )
+        
+        footer.contentInsets = .init(
+            top: 0,
+            leading: 0,
+            bottom: 85,
+            trailing: 0
         )
         
         let section = NSCollectionLayoutSection(group: verticalGroup)
