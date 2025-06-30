@@ -26,6 +26,7 @@ final class MemberMissionView: UIView {
         frame: .zero,
         collectionViewLayout: createLayout()
     ).then {
+        $0.backgroundView = noResultsView
         $0.register(
             MemberCompactCell.self,
             forCellWithReuseIdentifier: MemberCompactCell.identifier
@@ -61,7 +62,6 @@ final class MemberMissionView: UIView {
 
     private func setHierarchy() {
         [
-            noResultsView,
             collectionView,
         ].forEach { addSubview($0) }
     }
@@ -72,10 +72,6 @@ final class MemberMissionView: UIView {
         collectionView.snp.makeConstraints { make in
             make.top.equalTo(safeAreaLayoutGuide)
             make.directionalHorizontalEdges.bottom.equalToSuperview()
-        }
-
-        noResultsView.snp.makeConstraints { make in
-            make.edges.equalTo(collectionView)
         }
     }
 
