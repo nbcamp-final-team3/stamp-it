@@ -12,8 +12,9 @@ import RxRelay
 final class MemberMissionViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
-    private let useCase: MemberMissionUseCaseProtocol
-    private let mapper: MissionMapping
+    private let missionUseCase: MemberMissionUseCaseProtocol
+    private let memberMapper: MemberMapping
+    private let missionMapper: MissionMapping
 
     // MARK: - Action & State
 
@@ -25,6 +26,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
+        let members = BehaviorRelay<[MemberMissionItem]>(value: [])
         let missions = BehaviorRelay<[MemberMissionItem]>(value: [])
         let isPopVC = PublishRelay<Void>()
         let isMoveToMissionTap = PublishRelay<Void>()
@@ -43,12 +45,14 @@ final class MemberMissionViewModel: ViewModelProtocol {
         user: User,
         memberCache: [String: Member],
         useCase: MemberMissionUseCaseProtocol,
-        mapper: MissionMapping,
+        memberMapper: MemberMapper,
+        missionMapper: MissionMapping,
     ) {
-        self.useCase = useCase
+        self.missionUseCase = useCase
         state.user.accept(user)
         self.memberCache = memberCache
-        self.mapper = mapper
+        self.memberMapper = memberMapper
+        self.missionMapper = missionMapper
         bind()
     }
 
@@ -59,6 +63,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
             .subscribe(with: self) { owner, action in
                 switch action {
                 case .viewDidLoad:
+                    owner.setMembers()
                     owner.fetchMissions()
                 case .didTapSendMission:
                     owner.state.isMoveToMissionTap.accept(())
@@ -69,13 +74,23 @@ final class MemberMissionViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
 
+    /// 소속 그룹의 멤버 불러오기
+    private func setMembers() {
+        guard let user = state.user.value else { return }
+        let members = Array(memberCache.values)
+        var items = memberMapper
+            .map(members: members, userID: user.userID)
+            .map { MemberMissionItem.member($0) }
+        state.members.accept(items)
+    }
+
     /// 유저가 그룹 구성원에게 할당한 미션 바인딩
     private func fetchMissions() {
         guard let user = state.user.value else { return }
-        useCase.fetchMissions(by: user.userID, ofGroup: user.groupID)
+        missionUseCase.fetchMissions(by: user.userID, ofGroup: user.groupID)
             .map { [weak self] in
                 guard let self else { return [] }
-                return mapper.map(memberMission: $0, member: memberCache)
+                return missionMapper.map(memberMission: $0, member: memberCache)
                     .map { MemberMissionItem.mission($0) }
             }
             .bind(to: state.missions)

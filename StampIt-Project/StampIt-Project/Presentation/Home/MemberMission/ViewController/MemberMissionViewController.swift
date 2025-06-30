@@ -90,6 +90,13 @@ final class MemberMissionViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        viewModel.state.members
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.memberMissionView.updateSnapshot(withItems: items, toSection: .filter)
+            }
+            .disposed(by: disposeBag)
+
         viewModel.state.missions
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
