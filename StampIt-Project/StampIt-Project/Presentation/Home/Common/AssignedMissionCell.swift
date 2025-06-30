@@ -108,9 +108,6 @@ final class AssignedMissionCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         disposeBag = DisposeBag()
-        setStyles()
-        setHierarchy()
-        setConstraints()
         bind()
     }
 
