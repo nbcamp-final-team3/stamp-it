@@ -46,11 +46,6 @@ final class StampBoardCollectionView: UIView {
         $0.decelerationRate = .fast
     }
     
-    private let stackView = UIStackView().then {
-        $0.axis = .vertical
-        $0.spacing = 16
-    }
-    
     // MARK: - Initializer, Deinit, requiered
     
     override init(frame: CGRect) {
@@ -165,14 +160,16 @@ final class StampBoardCollectionView: UIView {
         let footer = NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: footerSize,
             elementKind: UICollectionView.elementKindSectionFooter,
-            alignment: .bottom)
+            alignment: .bottom
+        )
         
         let section = NSCollectionLayoutSection(group: verticalGroup)
         
         let isPortrait = UIScreen.main.bounds.height > UIScreen.main.bounds.width
         
-        section.orthogonalScrollingBehavior = .paging
+        section.orthogonalScrollingBehavior = .groupPagingCentered
         section.boundarySupplementaryItems = [footer]
+        section.interGroupSpacing = 30
         section.contentInsets = .init(
             top: 24,
             leading: isPortrait ? 36 : 45,
@@ -194,20 +191,15 @@ final class StampBoardCollectionView: UIView {
     
     private func setHierarchy() {
         [
-            stackView
+            collectionView
         ]
             .forEach { addSubview($0) }
-        
-        [
-            collectionView,
-        ]
-            .forEach { stackView.addArrangedSubview($0) }
     }
 
     // MARK: - Layout Helper
     
     private func setLayout() {
-        stackView.snp.makeConstraints {
+        collectionView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
     }
