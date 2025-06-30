@@ -8,7 +8,6 @@
 import Foundation
 import RxSwift
 import RxCocoa
-import UIKit
 
 final class GroupMemberManageViewModel: ViewModelProtocol {
 
@@ -31,14 +30,28 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
         let isLoading = BehaviorRelay<Bool>(value: false)
         let members = BehaviorRelay<[Member]>(value: [])
         let shouldRefreshMembers = PublishRelay<Void>()
+        
+        //State 업데이트 메서드 추가
+        mutating func updateWithGroupData(_ data: GroupMemberManageData) {
+            isLeader.accept(data.isLeader)
+            members.accept(data.members)
+            isLoading.accept(false)
+        }
+        
+        mutating func setLoading(_ loading: Bool) {
+            isLoading.accept(loading)
+        }
+        
+        mutating func showError(_ message: String) {
+            showToast.accept(message)
+            isLoading.accept(false)
+        }
     }
 
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
-    let state = State()
-    
-    // 주형: 추가
-    private var currentGroupId: String = ""
+    var state = State()
+
     private var currentUserId: String = ""
 
     init(groupManageUseCase: GroupManageUseCase) {
@@ -69,24 +82,21 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
     }
     
     private func loadInitialData() {
-        state.isLoading.accept(true)
-        
+        state.setLoading(true)
+
         groupManageUseCase.loadGroupMemberManageData()
             .subscribe(with: self) { owner, data in
                 owner.currentUserId = data.currentUser.userID
-                owner.state.isLeader.accept(data.isLeader)
-                owner.state.members.accept(data.members)
-                owner.state.isLoading.accept(false)
+                owner.state.updateWithGroupData(data)
             } onError: { owner, error in
                 let errorMessage = owner.getToastMessage(from: error)
-                owner.state.showToast.accept(errorMessage)
-                owner.state.isLoading.accept(false)
+                owner.state.showError(errorMessage)
             }
             .disposed(by: disposeBag)
     }
 
     private func handleMemberState(type: MemberManageOptionType, memberId: String) {
-        state.isLoading.accept(true)
+        state.setLoading(true)
         
         let operation: Observable<Void>
         
@@ -101,7 +111,7 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
             .subscribe(with: self) { owner, _ in
                 let message = type == .leaderMandate ? "리더 위임이 완료되었습니다." : "멤버가 내보내졌습니다."
                 owner.state.showSuccess.accept(message)
-                owner.state.isLoading.accept(false)
+                owner.state.setLoading(false)
                 
                 // 리더 위임인 경우 isLeader 상태를 false로 변경
                 if type == .leaderMandate {
@@ -112,8 +122,7 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
                 owner.state.shouldRefreshMembers.accept(())
             } onError: { owner, error in
                 let errorMessage = owner.getToastMessage(from: error)
-                owner.state.showToast.accept(errorMessage)
-                owner.state.isLoading.accept(false)
+                owner.state.showError(errorMessage)
             }
             .disposed(by: disposeBag)
     }
@@ -124,7 +133,7 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
                 owner.state.members.accept(members)
             } onError: { owner, error in
                 let errorMessage = owner.getToastMessage(from: error)
-                owner.state.showToast.accept(errorMessage)
+                owner.state.showError(errorMessage)
             }
             .disposed(by: disposeBag)
     }
@@ -160,6 +169,24 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
     func getCurrentUserId() -> String {
         return currentUserId
     }
+
+    func createItems(from members: [Member]) -> [Item] {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy년 MM월 dd일"
+        
+        return members.map { member in
+            let formattedDate = dateFormatter.string(from: member.joinedAt)
+            
+            return Item(
+                id: member.userID,
+                name: member.nickname,
+                date: "그룹 가입일: \(formattedDate)",
+                imageName: member.profileImage,  // 이미지 이름만 전달
+                isCurrentUser: member.userID == currentUserId,
+                isLeader: member.isLeader
+            )
+        }
+    }
 }
 
 extension GroupMemberManageViewModel {
@@ -167,11 +194,13 @@ extension GroupMemberManageViewModel {
         case main
     }
 
+    // UIKit 의존성 제거
     struct Item: Hashable {
         let id: String
         let name: String
         let date: String
-        let image: UIImage?
+        let imageName: String?  // UIImage 대신 이미지 이름 사용
         let isCurrentUser: Bool
+        let isLeader: Bool
     }
 }
