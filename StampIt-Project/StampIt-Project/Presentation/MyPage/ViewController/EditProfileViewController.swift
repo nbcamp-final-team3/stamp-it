@@ -51,6 +51,11 @@ final class EditProfileViewController: UIViewController {
         $0.spacing = 4
     }
     
+    private let nicknameErrorLabel = UILabel().then {
+        $0.font = .pretendard(size: 12, weight: .regular)
+        $0.textColor = .red400
+    }
+    
     private let groupNameLabel = UILabel().then {
         $0.text = "그룹명"
         $0.font = .pretendard(size: 14, weight: .regular)
@@ -82,8 +87,6 @@ final class EditProfileViewController: UIViewController {
     }
     
     private let editButton = DefaultButton(type: .modify)
-    
-    private let toastView = ToastView()
     
     private let viewModel: EditProfileViewModel
     private let disposeBag = DisposeBag()
@@ -145,6 +148,7 @@ final class EditProfileViewController: UIViewController {
          profileImageLabel,
          collectionView,
          nicknameStackView,
+         nicknameErrorLabel,
          groupNameStackView,
          alertMessageLabel,
          editButton]
@@ -176,6 +180,11 @@ final class EditProfileViewController: UIViewController {
         nicknameTextField.snp.makeConstraints {
             $0.horizontalEdges.equalToSuperview()
             $0.height.equalTo(72)
+        }
+        
+        nicknameErrorLabel.snp.makeConstraints {
+            $0.top.equalTo(nicknameStackView.snp.bottom).offset(4)
+            $0.leading.equalToSuperview().offset(24)
         }
         
         groupNameStackView.snp.makeConstraints {
@@ -239,7 +248,10 @@ final class EditProfileViewController: UIViewController {
             .distinctUntilChanged()
             .skip(1)
             .drive { [weak self] in
-                self?.viewModel.action.accept(.nicknameChanged($0))
+                guard let self else { return }
+                
+                nicknameErrorLabel.text = ""
+                viewModel.action.accept(.nicknameChanged($0))
             }
             .disposed(by: disposeBag)
         
@@ -248,8 +260,7 @@ final class EditProfileViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .skip(1)
             .drive { [weak self] message in
-                guard let self, let message else { return }
-                toastView.show(in: view, duration: 3, message: message, type: .failure)
+                self?.nicknameErrorLabel.text = message
             }
             .disposed(by: disposeBag)
         
