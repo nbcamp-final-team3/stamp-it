@@ -40,7 +40,22 @@ final class StampBoardTab: UIView {
     // MARK: - Style Helper
     
     private func setStyle() {
-        backgroundColor = .red50
+        backgroundColor = .clear
+    }
+    
+    // MARK: - Delegate Helper
+    
+    func setScrollDelegate(_ delegate: StampBoardScrollDelegate) {
+        stickerBoardView.scrollDelegate = delegate
+    }
+    
+    func setCollectionViewDelegate(_ delegate: UICollectionViewDelegate) {
+        stickerBoardView.setCollectionViewDelegate(delegate)
+    }
+    
+    // TODO: 사용후 필요한 메소드만 getter 로 생성
+    func getCollectionView() -> UICollectionView {
+        stickerBoardView.getCollectionView()
     }
     
     // MARK: - DataSource Helper

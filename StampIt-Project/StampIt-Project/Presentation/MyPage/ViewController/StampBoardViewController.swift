@@ -85,6 +85,8 @@ final class StampBoardViewController: UIViewController {
     // MARK: - Delegate Helper
     
     private func setDelegate() {
+        stampBoardView.setScrollDelegate(self)
+        stampBoardView.setCollectionViewDelegate(self)
     }
 
     // MARK: - DataSource Helper
@@ -113,5 +115,19 @@ final class StampBoardViewController: UIViewController {
         snapshot.appendItems(stickerItems, toSection: .defaultBoard)
         
         stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
+    }
+}
+
+extension StampBoardViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let stampInfoVC = StampInfoViewController()
+        stampInfoVC.modalPresentationStyle = .custom
+        
+        stampInfoVC.closeButtonTapped
+            .subscribe(with: self) { owner, _ in
+                owner.dismiss(animated: true)
+            }.disposed(by: disposeBag)
+        
+        self.present(stampInfoVC, animated: true)
     }
 }
