@@ -38,4 +38,11 @@ struct SampleMission: Decodable {
             throw DecodingError.dataCorruptedError(forKey: .category, in: container, debugDescription: "Unknown category: \(categoryString)")
         }
     }
+    
+    init(missionId: String, title: String, description: String?, category: MissionCategory) {
+        self.missionId = missionId
+        self.title = title
+        self.description = description
+        self.category = category
+    }
 }

@@ -16,6 +16,16 @@ final class MissionListViewController: UIViewController {
     
     private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))
     
+    private lazy var addButton = UIButton().then {
+        var configuration = UIButton.Configuration.filled()
+        configuration.baseBackgroundColor = .gray50
+        configuration.baseForegroundColor = .red400
+        configuration.cornerStyle = .capsule
+        configuration.image = UIImage(systemName: "plus")
+        $0.configuration = configuration
+        $0.addTarget(self, action: #selector(addCustomMission), for: .touchUpInside)
+    }
+    
     private let searchBar = UISearchBar().then {
         $0.searchBarStyle = .minimal
         $0.placeholder = "검색어를 입력해주세요"
@@ -84,6 +94,8 @@ final class MissionListViewController: UIViewController {
     private func prepareSubviews() {
         view.backgroundColor = .white
         
+        navigationBar.addSubview(addButton)
+        
         [navigationBar, searchBar, collectionView, tableView].forEach {
             view.addSubview($0)
         }
@@ -93,6 +105,11 @@ final class MissionListViewController: UIViewController {
         navigationBar.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
             $0.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
+        }
+        
+        addButton.snp.makeConstraints {
+            $0.centerY.equalToSuperview()
+            $0.trailing.equalToSuperview().offset(-16)
         }
         
         searchBar.snp.makeConstraints {
@@ -251,6 +268,17 @@ final class MissionListViewController: UIViewController {
         snapshot.appendItems(items)
         
         dataSource?.apply(snapshot, animatingDifferences: true)
+    }
+    
+    // 커스텀 미션 생성
+    @objc private func addCustomMission() {
+        let viewModel = AssignMissionViewModel(missionUseCaseImpl: DIContainer.shared.missionUseCase)
+        viewModel.onSuccess = { [weak self] in
+            guard let self else { return }
+            toastView.show(in: view, duration: 3, message: "미션이 전달되었어요", type: .success)
+        }
+        let viewController = AssignMissionViewController(viewModel: viewModel)
+        navigationController?.pushViewController(viewController, animated: true)
     }
 }
 

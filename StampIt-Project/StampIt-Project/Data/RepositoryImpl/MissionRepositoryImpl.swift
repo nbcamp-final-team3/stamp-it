@@ -67,6 +67,8 @@ final class MissionRepositoryImpl: MissionRepository {
                 return "health"
             case .learning:
                 return "learning"
+            case .custom:
+                return "custom"
             }
         }()
         
