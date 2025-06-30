@@ -83,6 +83,16 @@ final class MemberMissionView: UIView {
     private func setDataSource() {
         dataSource = .init(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
+            case .allMember(let image, let title):
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: MemberCompactCell.identifier,
+                    for: indexPath
+                ) as! MemberCompactCell
+
+                cell.configureNormalCell(image: image, title: title)
+
+                return cell
+
             case .member(let member):
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: MemberCompactCell.identifier,

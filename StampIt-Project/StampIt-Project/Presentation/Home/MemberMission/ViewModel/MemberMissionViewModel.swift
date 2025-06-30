@@ -77,11 +77,12 @@ final class MemberMissionViewModel: ViewModelProtocol {
     /// 소속 그룹의 멤버 불러오기
     private func setMembers() {
         guard let user = state.user.value else { return }
+        let allMembersItem = MemberMissionItem.allMember(image: .mascotGroup, title: "전체")
         let members = Array(memberCache.values)
-        var items = memberMapper
+        let memberItems = memberMapper
             .map(members: members, userID: user.userID)
             .map { MemberMissionItem.member($0) }
-        state.members.accept(items)
+        state.members.accept([allMembersItem] + memberItems)
     }
 
     /// 유저가 그룹 구성원에게 할당한 미션 바인딩
