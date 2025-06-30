@@ -67,7 +67,7 @@ final class ReceiveInviteViewController: UIViewController {
         $0.borderStyle = .none
         $0.backgroundColor = .clear
         $0.autocorrectionType = .no
-        $0.autocapitalizationType = .none
+        $0.autocapitalizationType = .allCharacters
         $0.clearButtonMode = .whileEditing
         $0.enablesReturnKeyAutomatically = true
     }
