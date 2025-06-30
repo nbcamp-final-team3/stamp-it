@@ -88,6 +88,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
         let memberItems = memberMapper
             .map(members: members, userID: user.userID)
             .map { MemberMissionItem.member($0) }
+            .sorted { $0.member!.nickname < $1.member!.nickname }
 
         state.members.accept([allMembersItem] + memberItems)
     }
