@@ -83,13 +83,6 @@ final class StampBoardCollectionView: UIView {
             case .page: return self?.createStampBoardLayout()
             }
         }
-        
-        layout.collectionView?.contentInset = .init(
-            top: 0,
-            left: 0,
-            bottom: 100,
-            right: 0
-        )
         return layout
     }
     
@@ -156,12 +149,7 @@ final class StampBoardCollectionView: UIView {
             alignment: .bottom
         )
         
-        footer.contentInsets = .init(
-            top: 0,
-            leading: 0,
-            bottom: 85,
-            trailing: 0
-        )
+        footer.contentInsets.bottom = 85
         
         let section = NSCollectionLayoutSection(group: verticalGroup)
         
