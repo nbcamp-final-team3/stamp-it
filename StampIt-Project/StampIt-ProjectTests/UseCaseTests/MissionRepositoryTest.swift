@@ -81,6 +81,8 @@ final class MissionRepositoryTest: MissionRepository {
                 return "health"
             case .learning:
                 return "learning"
+            case .custom:
+                return "custom"
             }
         }()
         
@@ -95,7 +97,7 @@ final class MissionRepositoryTest: MissionRepository {
             dueDate: Timestamp(date: mission.dueDate),
             category: category,
             status: MissionFirestore.Status.assigned.rawValue,
-            missionType: MissionFirestore.MissionType.app.rawValue,
+            missionType: MissionFirestore.MissionType.app.rawValue
         )
         return Observable.create { _ in
             print("""

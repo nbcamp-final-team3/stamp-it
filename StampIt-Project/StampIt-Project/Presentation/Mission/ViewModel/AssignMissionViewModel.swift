@@ -58,7 +58,7 @@ final class AssignMissionViewModel: ViewModelProtocol {
         if let mission {
             state.mission.accept(mission)
         } else {
-            let mission = SampleMission(missionId: "", title: "", description: nil, category: .chore)
+            let mission = SampleMission(missionId: "", title: "", description: nil, category: .custom)
             state.mission.accept(mission)
         }
         

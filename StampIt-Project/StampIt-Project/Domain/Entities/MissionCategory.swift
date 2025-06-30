@@ -12,4 +12,5 @@ enum MissionCategory: String, CaseIterable, Decodable {
     case communication
     case health
     case learning
+    case custom
 }
