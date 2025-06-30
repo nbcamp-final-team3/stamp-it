@@ -51,24 +51,10 @@ final class StampBoardCollectionView: UIView {
         super.init(frame: frame)
         setHierarchy()
         setLayout()
-        bind()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: - Bind
-    
-    private func bind() {
-        /// 스크롤이 끝나고 완전히 멈췄을 때 방출되는 ControlEvent
-        collectionView.rx.didEndDecelerating
-            .withLatestFrom(collectionView.rx.contentOffset)
-            .map { Int($0.x / UIScreen.main.bounds.width) }
-            .distinctUntilChanged()
-            .bind(with: self) { owner, page in
-                
-            }.disposed(by: disposeBag)
     }
     
     // MARK: - Setter & Getter
