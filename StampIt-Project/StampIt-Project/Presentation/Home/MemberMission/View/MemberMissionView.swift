@@ -16,6 +16,7 @@ final class MemberMissionView: UIView {
     // MARK: - Properties
 
     let didTapSendMissionButton = PublishRelay<Void>()
+    let selectFilter = PublishRelay<Int>()
     private let disposeBag = DisposeBag()
     private var dataSource: UICollectionViewDiffableDataSource<MemberMissionSection, MemberMissionItem>?
 
@@ -60,8 +61,8 @@ final class MemberMissionView: UIView {
 
     private func setHierarchy() {
         [
-            collectionView,
             noResultsView,
+            collectionView,
         ].forEach { addSubview($0) }
     }
 
@@ -123,6 +124,15 @@ final class MemberMissionView: UIView {
     // MARK: - Bind
 
     private func bind() {
+        collectionView.rx
+            .setDelegate(self)
+            .disposed(by: disposeBag)
+
+        collectionView.rx.itemSelected
+            .map { $0.item }
+            .bind(to: selectFilter)
+            .disposed(by: disposeBag)
+
         noResultsView.didTapSendMissionButton
             .bind(to: didTapSendMissionButton)
             .disposed(by: disposeBag)
@@ -194,4 +204,13 @@ final class MemberMissionView: UIView {
         section.contentInsets = .init(top: 8, leading: 16, bottom: 12, trailing: 16)
         return section
     }
+}
+
+extension MemberMissionView: UICollectionViewDelegate {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    shouldSelectItemAt indexPath: IndexPath
+  ) -> Bool {
+      return indexPath.section == MemberMissionSection.allCases.firstIndex(of: .filter)!
+  }
 }
