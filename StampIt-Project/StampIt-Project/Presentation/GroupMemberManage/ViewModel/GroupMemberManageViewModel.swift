@@ -37,6 +37,7 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     let state = State()
     
+    // 주형: 추가
     private var currentGroupId: String = ""
     private var currentUserId: String = ""
 
@@ -70,22 +71,11 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
     private func loadInitialData() {
         state.isLoading.accept(true)
         
-        groupManageUseCase.getCurrentUser()
-            .flatMap { [weak self] optionalUser -> Observable<(User, [Member])> in
-                guard let self = self, let user = optionalUser else {
-                    return Observable.error(RepositoryError.userNotFound)
-                }
-                
-                self.currentGroupId = user.groupID
-                self.currentUserId = user.userID
-                self.state.isLeader.accept(user.isLeader)
-                
-                return self.groupManageUseCase.fetchGroupMembers(groupId: user.groupID)
-                    .map { members in (user, members) }
-            }
-            .subscribe(with: self) { owner, userAndMembers in
-                let (_, members) = userAndMembers
-                owner.state.members.accept(members)
+        groupManageUseCase.loadGroupMemberManageData()
+            .subscribe(with: self) { owner, data in
+                owner.currentUserId = data.currentUser.userID
+                owner.state.isLeader.accept(data.isLeader)
+                owner.state.members.accept(data.members)
                 owner.state.isLoading.accept(false)
             } onError: { owner, error in
                 let errorMessage = owner.getToastMessage(from: error)
@@ -104,40 +94,7 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
         case .leaderMandate:
             operation = groupManageUseCase.delegateLeader(to: memberId)
         case .exportMember:
-            // memberId로 Member를 찾고 User로 변환
-            let member = state.members.value.first { $0.userID == memberId }
-            guard let targetMember = member else {
-                state.showToast.accept("멤버를 찾을 수 없습니다.")
-                state.isLoading.accept(false)
-                return
-            }
-            
-            // 현재 사용자 정보에서 그룹 정보 가져오기
-            groupManageUseCase.getCurrentUser()
-                .flatMap { [weak self] optionalUser -> Observable<User> in
-                    guard let self = self, let currentUser = optionalUser else {
-                        return Observable.error(RepositoryError.userNotFound)
-                    }
-                    
-                    // Member를 User로 변환
-                    let targetUser = targetMember.toUser(
-                        groupId: currentUser.groupID,
-                        groupName: currentUser.groupName
-                    )
-                    
-                    return self.groupManageUseCase.exportMember(member: targetUser)
-                }
-                .subscribe(with: self) { owner, exportedUser in
-                    owner.state.showSuccess.accept("멤버가 내보내졌습니다.")
-                    owner.state.isLoading.accept(false)
-                    owner.state.shouldRefreshMembers.accept(())
-                } onError: { owner, error in
-                    let errorMessage = owner.getToastMessage(from: error)
-                    owner.state.showToast.accept(errorMessage)
-                    owner.state.isLoading.accept(false)
-                }
-                .disposed(by: disposeBag)
-            return
+            operation = groupManageUseCase.exportMember(memberId: memberId)
         }
         
         operation
@@ -162,7 +119,7 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
     }
     
     private func refreshMembers() {
-        groupManageUseCase.fetchGroupMembers(groupId: currentGroupId)
+        groupManageUseCase.refreshMembers()
             .subscribe(with: self) { owner, members in
                 owner.state.members.accept(members)
             } onError: { owner, error in
