@@ -8,10 +8,12 @@
 import Foundation
 
 enum MemberMissionSection: Hashable, CaseIterable {
+    case filter
     case mission
 }
 
 enum MemberMissionItem: Hashable {
+    case member(HomeMember)
     case mission(HomeMemberMission)
 
     var mission: HomeMemberMission? {

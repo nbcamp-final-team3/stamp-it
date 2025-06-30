@@ -26,6 +26,10 @@ final class MemberMissionView: UIView {
         collectionViewLayout: createLayout()
     ).then {
         $0.register(
+            MemberCompactCell.self,
+            forCellWithReuseIdentifier: MemberCompactCell.identifier
+        )
+        $0.register(
             AssignedMissionCell.self,
             forCellWithReuseIdentifier: AssignedMissionCell.identifier
         )
@@ -79,6 +83,16 @@ final class MemberMissionView: UIView {
     private func setDataSource() {
         dataSource = .init(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
+            case .member(let member):
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: MemberCompactCell.identifier,
+                    for: indexPath
+                ) as! MemberCompactCell
+
+                cell.configureCell(with: member, type: .normal)
+
+                return cell
+
             case .mission(let mission):
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: AssignedMissionCell.identifier,
@@ -122,12 +136,36 @@ final class MemberMissionView: UIView {
             let section = MemberMissionSection.allCases[section]
 
             switch section {
+            case .filter:
+                return createFilterSection()
             case .mission:
                 return createMissionSection()
             }
         }
     }
 
+    /// 멤버 필터 섹션 레이아웃 생성 메서드
+    private func createFilterSection() -> NSCollectionLayoutSection {
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .fractionalHeight(1)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .absolute(60),
+            heightDimension: .absolute(85)
+        )
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 12
+        section.orthogonalScrollingBehavior = .continuous
+        section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
+        return section
+    }
+
+    /// 미션 섹션 레이아웃 생성 메서드
     private func createMissionSection() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
@@ -143,7 +181,7 @@ final class MemberMissionView: UIView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 6
-        section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
+        section.contentInsets = .init(top: 8, leading: 16, bottom: 12, trailing: 16)
         return section
     }
 }
