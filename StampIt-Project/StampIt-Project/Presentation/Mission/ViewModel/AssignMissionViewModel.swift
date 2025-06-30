@@ -12,6 +12,7 @@ import RxRelay
 final class AssignMissionViewModel: ViewModelProtocol {
     enum Action {
         case onAppear
+        case didFillOutTitle(String)
         case didSelectMember(Member)
         case didSelectDueDate(Date)
         case didTapAssignButton
@@ -22,6 +23,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
         var members = BehaviorRelay<[Member]>(value: [])
         var selectedMember = BehaviorRelay<Member?>(value: nil)
         var dueDate = BehaviorRelay<Date>(value: Date())
+        var canSubmit = BehaviorRelay<Bool>(value: false)
+        var customMissionTitle = BehaviorRelay<String?>(value: nil)
     }
     
     var action = PublishRelay<Action>()
@@ -31,16 +34,33 @@ final class AssignMissionViewModel: ViewModelProtocol {
     
     var onSuccess: (() -> Void)? // 새로운 미션이 생성되어 파이어베이스까지 저장 완료되었을 때 호출
     
-    private let mission: SampleMission
     private let missionUseCaseImpl: MissionUseCase
     private var user: User?
     
+    private var canSubmit: Bool {
+        // 멤버 선택이 안되어 있으면 false
+        if state.selectedMember.value == nil { return false }
+        
+        // 만약 커스텀 미션이 아니라면(샘플 미션이라면) 멤버 선택은 이미 되어 있으므로 true
+        if let mission = state.mission.value, !mission.title.isEmpty { return true }
+        
+        // 만약 커스텀 미션이고, 미션 제목을 입력했다면 true
+        if let title = state.customMissionTitle.value, !title.isEmpty { return true }
+        
+        return false
+    }
+    
     init(
-        mission: SampleMission,
+        mission: SampleMission? = nil,
         selectedMember: Member? = nil,
         missionUseCaseImpl: MissionUseCase
     ) {
-        self.mission = mission
+        if let mission {
+            state.mission.accept(mission)
+        } else {
+            let mission = SampleMission(missionId: "", title: "", description: nil, category: .custom)
+            state.mission.accept(mission)
+        }
         
         // 홈 화면에서 특정 멤버가 선택된 상태에서 미션 화면으로 진입할 때 사용
         if let selectedMember {
@@ -65,11 +85,14 @@ final class AssignMissionViewModel: ViewModelProtocol {
                 
                 switch input {
                 case .onAppear:
-                    state.mission.accept(mission)
                     loadMembers()
                     print("mission: \(String(describing: state.mission.value?.title)), members count: \(state.members.value.count)")
+                case .didFillOutTitle(let title):
+                    state.customMissionTitle.accept(title)
+                    state.canSubmit.accept(canSubmit)
                 case .didSelectMember(let member):
                     state.selectedMember.accept(member)
+                    state.canSubmit.accept(canSubmit)
                     print("selected member: \(member)")
                 case .didSelectDueDate(let date):
                     state.dueDate.accept(date)
@@ -131,16 +154,18 @@ final class AssignMissionViewModel: ViewModelProtocol {
             return Observable.error(NSError(domain: "user data is nil.", code: 0, userInfo: nil))
         }
         
+        let title = state.customMissionTitle.value ?? state.mission.value!.title
+        
         let mission = Mission(
             missionID: UUID().uuidString,
-            title: mission.title,
+            title: title,
             assignedTo: member.userID,
             assignedBy: user.userID,
             createDate: Date(),
             dueDate: dueDate,
             status: MissionStatus.assigned,
             imageURL: "",
-            category: mission.category)
+            category: state.mission.value!.category)
         
         return missionUseCaseImpl.createMission(groupId: user.groupID, mission: mission)
     }

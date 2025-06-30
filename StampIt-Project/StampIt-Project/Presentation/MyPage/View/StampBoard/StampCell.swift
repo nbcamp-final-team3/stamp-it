@@ -26,6 +26,12 @@ final class StampCell: UICollectionViewCell {
     private let horizontalLine = DashedLine(direction: .horizontal)
     private let verticalLine = DashedLine(direction: .vertical)
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        configureDashedLine(with: .none)
+        stampImageView.image = nil
+    }
+    
     // MARK: - Initializer, Deinit, requiered
     
     override init(frame: CGRect) {

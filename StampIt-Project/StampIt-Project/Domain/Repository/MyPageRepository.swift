@@ -10,5 +10,5 @@ import RxSwift
 
 protocol MyPageRepository {
     func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[Sticker]>
-    func fetchStickerCount(userId: String) -> Observable<Int>
+    func observeStickerCount(userId: String) -> Observable<Int>
 }

@@ -24,7 +24,7 @@ final class StampBoardViewModel: ViewModelProtocol {
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let stickers = BehaviorRelay<[Sticker]>(value: [])
+        let stickersByPage = BehaviorRelay<[[Sticker]]>(value: .init())
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
         let stickerSummary = BehaviorRelay<(collected: Int, completed: Int)>(value: (.zero, .zero))
     }
@@ -69,25 +69,63 @@ final class StampBoardViewModel: ViewModelProtocol {
         guard let user = state.user.value else { return }
         
         /// stickerSummary, stickers 가 동시에 변경
-        myPageUseCase.fetchStickerCount(userId: user.userID)
-            .flatMapLatest { [weak self] count -> Observable<(Int, [Sticker])> in
+        myPageUseCase.observeStickerCount(userId: user.userID)
+            .flatMapLatest { [weak self] count -> Observable<(Int, [[Sticker]])> in
                 guard let self else { return .empty() }
                 
-                let completedBoard = Int(count / StampBoardSection.defaultBoard.totalStamp)
-                let pinNumber = completedBoard + 1
+                let completedBoard = Int(count / StampBoardSection.totalStamp)
+                let currentPinNumber = completedBoard + 1
                 
-                return self.myPageUseCase.fetchStickersByPin(
-                    userId: user.userID,
-                    pinNumber: pinNumber
-                ).map { stickers in
-                    return (count, stickers)
+                let minPage = currentPinNumber > StampBoard.totalPage ? currentPinNumber - StampBoard.totalPage + 1 : 1
+                
+                var pinNumbers: [Int] = .init()
+                
+                // pinNumber 기준 : Firestore pinNumber
+                for pinNumber in stride(
+                    from: currentPinNumber,
+                    through: minPage,
+                    by: -1
+                ) {
+                    pinNumbers.append(pinNumber)
                 }
+                
+                let stickerObservables = pinNumbers.map { pinNumber in
+                    self.myPageUseCase.fetchStickersByPin(
+                        userId: user.userID,
+                        pinNumber: pinNumber
+                    )
+                }
+                
+                return Observable.combineLatest(stickerObservables)
+                    .map { stickerLists in
+                        var formattedStickers: [[Sticker]] = .init()
+                        for (page, stickers) in stickerLists.enumerated() {
+                            formattedStickers.append(
+                                stickers.enumerated().map { (index, sticker) in
+                                    Sticker(
+                                        userID: sticker.userID,
+                                        stickerID: sticker.stickerID,
+                                        title: sticker.title,
+                                        description: sticker.description,
+                                        imageURL: sticker.imageURL,
+                                        type: StickerType.from(page),
+//                                        type: index.isMultiple(of: 2) ? StickerType.stampBlue : StickerType.stampYellow,
+                                        createdAt: sticker.createdAt,
+                                        maxStickers: sticker.maxStickers,
+                                        pinNumber: sticker.pinNumber,
+                                        assignedBy: sticker.assignedBy
+                                    )
+                                }
+                            )
+                        }
+                        return (count, formattedStickers)
+                    }
             }
             .observe(on: MainScheduler.instance)
             .subscribe(with: self) { owner, result in
                 let (count, stickers) = result
                 
-                let totalSticker = StampBoardSection.defaultBoard.totalStamp
+                let totalSticker = StampBoardSection.totalStamp
                 let collectedSticker = Int(count % totalSticker)
                 let completedBoard = Int(count / totalSticker)
                 
@@ -102,25 +140,30 @@ final class StampBoardViewModel: ViewModelProtocol {
             }.disposed(by: disposeBag)
     }
     
-    private func updateStickerZigzag(_ stickers: [Sticker]) {
-        let zigzagged = makeZigzagOrder(
-            from: stickers,
-            columns: StampBoardSection.defaultBoard.column
-        )
-        state.stickers.accept(zigzagged)
+    private func updateStickerZigzag(_ stickers: [[Sticker]]) {
+        let zigzagged: [[Sticker]] = stickers.map {
+            makeZigzagOrder(
+                from: $0,
+                columns: StampBoardSection.column
+            )
+        }
+        state.stickersByPage.accept(zigzagged)
     }
     
     private func makeZigzagOrder(from stickers: [Sticker], columns: Int) -> [Sticker] {
-        let totalStickerCount = StampBoardSection.defaultBoard.totalStamp
+        let totalStickerCount = StampBoardSection.totalStamp
         let totalStickers: [Sticker] = {
             (0..<totalStickerCount).map { index in
+                
+                /// Empty stickers 배열 일 때 default stamp 생성
                 if stickers.count == .zero {
-                    return Sticker(userID: "", stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1, assignedBy: "")
+                    return makeEmptySticker()
                 } else {
+                    /// stickers 배열이 1 이상, totalStickerCount 이하 일 경우
                     if index < stickers.count {
                         return stickers[index]
                     } else {
-                        return Sticker(userID: "", stickerID: "\(UUID())", title: "", description: "", imageURL: "", type: .stampGray, createdAt: Date(), maxStickers: 30, pinNumber: 1, assignedBy: "")
+                        return makeEmptySticker()
                     }
                 }
             }
@@ -135,5 +178,23 @@ final class StampBoardViewModel: ViewModelProtocol {
             index.isMultiple(of: 2) ? row : row.reversed()
         }
         return ordered
+    }
+    
+    private func makeEmptySticker() -> Sticker {
+        
+        // TODO: type 체크
+        
+        Sticker(
+            userID: "",
+            stickerID: "\(UUID())",
+            title: "",
+            description: "",
+            imageURL: "",
+            type: .stampGray,
+            createdAt: Date(),
+            maxStickers: 30,
+            pinNumber: state.stickerSummary.value.completed,
+            assignedBy: ""
+        )
     }
 }

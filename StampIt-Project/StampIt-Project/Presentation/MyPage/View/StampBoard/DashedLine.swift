@@ -7,7 +7,7 @@
 
 import UIKit
 
-enum DashdLineDirection {
+enum DashedLineDirection {
     case horizontal
     case vertical
 }
@@ -16,7 +16,7 @@ final class DashedLine: UIView {
     
     // MARK: - Properties
     
-    private let direction: DashdLineDirection
+    private let direction: DashedLineDirection
     
     // MARK: - UI Components
     
@@ -24,7 +24,7 @@ final class DashedLine: UIView {
     
     // MARK: - Initializer, Deinit, requiered
     
-    init(direction: DashdLineDirection) {
+    init(direction: DashedLineDirection) {
         self.direction = direction
         super.init(frame: .zero)
         setHierarchy()
