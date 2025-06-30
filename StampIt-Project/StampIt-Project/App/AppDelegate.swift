@@ -21,20 +21,43 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Firebase 설정
         FirebaseApp.configure()
         
-        // Firestore 네트워크 설정 개선
-        configureFirestore()
-        
-        // 푸시 알림 권한 요청
-        application.registerForRemoteNotifications()
-
         // FCM 델리게이트 설정
         Messaging.messaging().delegate = self
+        Messaging.messaging().isAutoInitEnabled = true
+
+        // UNUserNotificationCenter 델리게이트 설정
         UNUserNotificationCenter.current().delegate = self
+        
+        // 알림 권한 요청
+        requestNotificationPermission()
+        
+        // Firestore 네트워크 설정 개선
+        configureFirestore()
         
         // Google Sign-In 설정
         configureGoogleSignIn()
         
         return true
+    }
+    
+    // 알림 권한 요청
+    private func requestNotificationPermission() {
+        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+        UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
+            print("🔔 알림 권한: \(granted ? "허용됨" : "거부됨")")
+            
+            if let error = error {
+                print("❌ 알림 권한 요청 에러: \(error)")
+                return
+            }
+            
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                    print("📱 APNS 등록 요청됨")
+                }
+            }
+        }
     }
     
     // MARK: - Firestore 네트워크 오류 처리
@@ -122,48 +145,68 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 
-// MARK: - MessagingDelegate
-extension AppDelegate: MessagingDelegate {
-    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        guard let fcmToken = fcmToken else { return }
-        print("FCM 토큰: \(fcmToken)")
-        UserDefaults.standard.set(fcmToken, forKey: "FCMToken")
-    }
-}
-
 // MARK: - UNUserNotificationCenterDelegate
 extension AppDelegate: UNUserNotificationCenterDelegate {
     
-    // 앱이 실행 중일 때 알림 표시
-    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .sound])
+    // APNS 토큰 등록 성공
+    func application(_ application: UIApplication,
+                    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        print("✅ APNS Token 등록 성공")
+        
+        // ⭐ 중요: FCM에 APNS 토큰 설정
+        Messaging.messaging().apnsToken = deviceToken
+        
+        // FCM 토큰 요청
+        Messaging.messaging().token { token, error in
+            if let error = error {
+                print("❌ FCM 토큰 가져오기 실패: \(error)")
+            } else if let token = token {
+                print("🔥 FCM Token: \(token)")
+                UserDefaults.standard.set(token, forKey: "FCMToken")
+            }
+        }
     }
     
-    // 알림 탭했을 때
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        let userInfo = response.notification.request.content.userInfo
-        
-        // 미션 데이터가 있으면 처리
-        if let missionData = userInfo["mission"] as? [String: Any] {
-            let mission = Mission(
-                missionID: missionData["missionID"] as? String ?? UUID().uuidString,
-                title: missionData["title"] as? String ?? "새 미션",
-                assignedTo: "me",
-                assignedBy: missionData["assignedBy"] as? String ?? "누군가",
-                createDate: Date(),
-                dueDate: Date(),
-                status: .assigned,
-                imageURL: "",
-                category: .chore
-            )
-            
-            NotificationCenter.default.post(name: .newMissionReceived, object: mission)
-        }
-        
+    // APNS 토큰 등록 실패
+    func application(_ application: UIApplication,
+                    didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("❌ APNS 등록 실패: \(error)")
+    }
+    
+    // 포그라운드에서 알림 표시
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                               willPresent notification: UNNotification,
+                               withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        print("📱 포그라운드 알림 수신됨")
+        completionHandler([.banner, .badge, .sound])
+    }
+    
+    // 알림 탭했을 때 처리
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                               didReceive response: UNNotificationResponse,
+                               withCompletionHandler completionHandler: @escaping () -> Void) {
+        print("👆 알림 탭됨: \(response.notification.request.content.userInfo)")
         completionHandler()
     }
 }
 
-extension Notification.Name {
-    static let newMissionReceived = Notification.Name("newMissionReceived")
+// MARK: - MessagingDelegate
+extension AppDelegate: MessagingDelegate {
+    
+    // FCM 토큰 갱신 시 호출
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        print("🔥 FCM Token 갱신됨: \(fcmToken ?? "없음")")
+        
+        if let token = fcmToken {
+            UserDefaults.standard.set(token, forKey: "FCMToken")
+            
+            // NotificationCenter로 토큰 전달
+            let dataDict: [String: String] = ["token": token]
+            NotificationCenter.default.post(
+                name: Notification.Name("FCMToken"),
+                object: nil,
+                userInfo: dataDict
+            )
+        }
+    }
 }

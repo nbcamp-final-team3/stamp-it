@@ -18,8 +18,8 @@ struct MissionNotification {
     let mission: Mission
 }
 
-enum NotificationType {
-    case missionReceived
-    case missionCompleted
-    case missionReminder
+enum NotificationType: String {
+    case missionAssigned = "mission_assigned"
+    case missionCompleted = "mission_completed"
+    case missionReminder = "mission_reminder"
 }

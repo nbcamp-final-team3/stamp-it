@@ -6,5 +6,9 @@
 	<array>
 		<string>Default</string>
 	</array>
+<key>aps-environment</key>
+<string>development</string>
+<key>com.apple.developer.usernotifications.communication</key>
+<true/>
 </dict>
 </plist>
