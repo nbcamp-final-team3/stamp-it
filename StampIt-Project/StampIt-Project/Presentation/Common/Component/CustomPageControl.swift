@@ -27,8 +27,8 @@ final class CustomPageControl: UIView {
     private let indicatorSpacing: CGFloat = 8
     
     // MARK: - Colors
-    private let activeColor = UIColor(named: "red400")
-    private let inactiveColor = UIColor(named: "red200")
+    private var activeColor = UIColor(named: "red400")
+    private var inactiveColor = UIColor(named: "red200")
     
     // MARK: - Init
     override init(frame: CGRect) {
@@ -55,20 +55,23 @@ final class CustomPageControl: UIView {
     }
     
     // MARK: - Public Methods
-    func configure(numberOfPages: Int, currentPage: Int = 0) {
+    func configure(numberOfPages: Int, currentPage: Int = 0, isWithColor: Bool = true) {
         self.numberOfPages = numberOfPages
         self.currentPage = currentPage
+        if !isWithColor { updateIndicatorsColor(with: currentPage) }
         createIndicators()
         updateIndicators()
     }
     
-    func setCurrentPage(_ page: Int, animated: Bool = true) {
+    func setCurrentPage(_ page: Int, animated: Bool = true, isWithColor: Bool = true) {
         guard page >= 0 && page < numberOfPages else { return }
+        
         self.currentPage = page
         
         if animated {
             UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
                 self.updateIndicators()
+                if !isWithColor { self.updateIndicatorsColor(with: page) }
                 self.layoutIfNeeded()
             }
         } else {
@@ -108,5 +111,10 @@ final class CustomPageControl: UIView {
             indicator.backgroundColor = color
             indicator.layer.cornerRadius = size.height / 2
         }
+    }
+    
+    private func updateIndicatorsColor(with index: Int) {
+        self.activeColor = StampBoard(rawValue: index)?.pageBar
+        self.inactiveColor = .gray100
     }
 }

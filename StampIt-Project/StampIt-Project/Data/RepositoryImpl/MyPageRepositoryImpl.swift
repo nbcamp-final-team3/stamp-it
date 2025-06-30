@@ -22,7 +22,6 @@ final class MyPageRepositoryImpl: MyPageRepository {
             }
     }
     
-    func fetchStickerCount(userId: String) -> Observable<Int> {
-        return stickerManager.fetchStickerCount(userId: userId)
+    func observeStickerCount(userId: String) -> Observable<Int> {    return stickerManager.observeStickerCount(userId: userId)
     }
 }

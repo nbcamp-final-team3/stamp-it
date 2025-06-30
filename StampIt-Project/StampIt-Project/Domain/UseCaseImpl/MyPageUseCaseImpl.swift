@@ -29,7 +29,7 @@ final class MyPageUseCaseImpl: MyPageUseCaseProtocol {
         mypageRepository.fetchStickersByPin(userId: userId, pinNumber: pinNumber)
     }
     
-    func fetchStickerCount(userId: String) -> Observable<Int> {
-        mypageRepository.fetchStickerCount(userId: userId)
+    func observeStickerCount(userId: String) -> Observable<Int> {
+        mypageRepository.observeStickerCount(userId: userId)
     }
 }

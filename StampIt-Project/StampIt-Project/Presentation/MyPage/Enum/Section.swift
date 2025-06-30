@@ -5,6 +5,8 @@
 //  Created by kingj on 6/9/25.
 //
 
+// MARK: - MyPage Profile Section
+
 enum MyPageProfileSection: CaseIterable {
     case groupMember
     case groupService
@@ -25,6 +27,8 @@ enum MyPageProfileSection: CaseIterable {
         }
     }
 }
+
+// MARK: - MyPage Menu
 
 enum MyPageMenu: CaseIterable {
     case MemberManage
@@ -57,13 +61,15 @@ enum MyPageMenu: CaseIterable {
     }
 }
 
-enum StampBoardSection: Int, Hashable {
+// MARK: - StampBoard Section
+
+enum StampBoardSection: Int, Hashable, CaseIterable {
     case summary
-    case defaultBoard
+    case page
     
     var type: [[StampCellType]] {
         switch self {
-        case .defaultBoard:
+        case .page:
             return [
                 [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
                 [.both, .horizontal, .horizontal, .horizontal, .none],
@@ -72,32 +78,26 @@ enum StampBoardSection: Int, Hashable {
                 [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
                 [.horizontal, .horizontal, .horizontal, .horizontal, .none],
             ]
-        default: return []
+        default: return .init()
         }
     }
     
-    var column: Int {
-        switch self {
-        case .defaultBoard: return 5
-        default: return 0
-        }
-    }
+    static var column: Int { 5 }
     
-    var totalStamp: Int {
-        switch self {
-        case .defaultBoard: return 30
-        default: return 0
-        }
-    }
+    static var totalStamp: Int { 30 }
 }
+
+// MARK: - StampBoard Item
 
 enum StampBoardItem: Hashable {
     case summary(collected: Int, completed: Int)
-    case stickers(Sticker)
+    case sticker(Sticker)
 }
 
 
-/// Dashed Line 기준
+// MARK: - Stamp Cell Type
+
+/// Dashed Line 방향 기준
 enum StampCellType: Hashable {
     case horizontal
     case vertical

@@ -41,7 +41,6 @@ final class StampBoardViewController: UIViewController {
         setHierarchy()
         setLayout()
         setDelegate()
-        setDataSource()
         bind()
     }
     
@@ -50,11 +49,13 @@ final class StampBoardViewController: UIViewController {
     private func bind() {
         Observable.combineLatest(
             viewModel.state.stickerSummary,
-            viewModel.state.stickers
+            viewModel.state.stickersByPage
         )
+        .observe(on: MainScheduler.instance)
         .bind(with: self) { owner, combined in
             let (summary, stickers) = combined
             owner.updateSnapshot(summary: summary, stickers: stickers)
+            owner.stampBoardView.footerPageRelay.accept(summary.completed + 1)
         }.disposed(by: disposeBag)
     }
     
@@ -78,40 +79,57 @@ final class StampBoardViewController: UIViewController {
     
     private func setLayout() {
         stampBoardView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.top.directionalHorizontalEdges.equalToSuperview()
+            $0.bottom.equalTo(view.safeAreaLayoutGuide)
         }
     }
     
     // MARK: - Delegate Helper
     
     private func setDelegate() {
+        stampBoardView.setScrollDelegate(self)
     }
-
-    // MARK: - DataSource Helper
     
-    private func setDataSource() {
-    }
-
     // MARK: - Snapshot
     
     private func updateSnapshot(
         summary: (collected: Int, completed: Int),
-        stickers: [Sticker]
+        stickers: [[Sticker]]
     ) {
+        let maxPage = stickers.count
+        
+        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
+
+        /// Item & Section For Summary Section
         let summaryItem: [StampBoardItem] = [
             .summary(
                 collected: summary.collected,
                 completed: summary.completed
             )
         ]
-        
-        let stickerItems: [StampBoardItem] = stickers.map { .stickers($0) }
-        
-        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
-        snapshot.appendSections([.summary, .defaultBoard])
+        snapshot.appendSections([.summary])
         snapshot.appendItems(summaryItem, toSection: .summary)
-        snapshot.appendItems(stickerItems, toSection: .defaultBoard)
+        
+        snapshot.appendSections([.page])
+        
+        /// Item & Section For StampBoard
+        for index in 0..<maxPage {
+            snapshot.appendItems(
+                stickers[index].map { .sticker($0) },
+                toSection: .page
+            )
+        }
         
         stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
+        
+        stampBoardView.getCollectionView().layoutIfNeeded()
+    }
+}
+
+extension StampBoardViewController: StampBoardScrollDelegate {
+    func didScrollToPage(_ page: Int) {
+        /// 배경색 변경
+        stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
+        stampBoardView.updateFooterPage(to: page)
     }
 }
