@@ -33,7 +33,7 @@ final class EditProfileViewController: UIViewController {
         $0.textColor = .gray400
     }
     
-    private let nicknameTextField = UITextField().then {
+    private let nicknameTextField = EditProfileTextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
         $0.textColor = .gray300
         $0.layer.cornerRadius = 16
@@ -41,12 +41,7 @@ final class EditProfileViewController: UIViewController {
         $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.borderWidth = 1
         $0.clearButtonMode = .whileEditing
-        
-        // placeholder 관련
         $0.placeholder = "닉네임"
-        let leftView = UIView(frame: CGRect(x: 0, y: 0, width: 24, height: 0))
-        $0.leftView = leftView
-        $0.leftViewMode = .always
     }
     
     // nicknameLabel + nicknameTextField
@@ -62,7 +57,7 @@ final class EditProfileViewController: UIViewController {
         $0.textColor = .gray400
     }
     
-    private let groupNameTextField = UITextField().then {
+    private let groupNameTextField = EditProfileTextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
         $0.textColor = .gray300
         $0.layer.cornerRadius = 16
@@ -70,12 +65,7 @@ final class EditProfileViewController: UIViewController {
         $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.borderWidth = 1
         $0.clearButtonMode = .whileEditing
-        
-        // placeholder 관련
         $0.placeholder = "그룹명"
-        let leftView = UIView(frame: CGRect(x: 0, y: 0, width: 24, height: 0))
-        $0.leftView = leftView
-        $0.leftViewMode = .always
     }
     
     // groupNameLabel + groupNameTextField
