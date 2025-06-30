@@ -16,7 +16,10 @@ final class StampBoardTab: UIView {
     // MARK: - Properties
     
     var stickerBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
-    let stickerSummary = BehaviorRelay<(collectedSticker: Int, completedBoard: Int)>(value: (.zero, .zero))
+    
+    private weak var footerView: PageControlFooterView?
+    
+    let footerPageRelay = BehaviorRelay<(Int)>(value: (.zero))
     let disposeBag = DisposeBag()
 
     // MARK: - UI Components
@@ -31,6 +34,7 @@ final class StampBoardTab: UIView {
         setHierarchy()
         setLayout()
         setDataSource()
+        setFooter()
     }
     
     required init?(coder: NSCoder) {
@@ -76,29 +80,75 @@ final class StampBoardTab: UIView {
                     if case let .summary(collected, completed) = itemIdentifier {
                         cell.configureItem(
                             currentSticker: "\(collected)",
-                            totalSticker: "\(StampBoardSection.defaultBoard.totalStamp)",
+                            totalSticker: "\(StampBoardSection.totalStamp)",
                             totalBoard: "\(completed)"
                         )
                     }
                     return cell
                     
-                case .defaultBoard:
+                case .page:
                     let cell = collectionView.dequeueReusableCell(
                         withReuseIdentifier: StampCell.identifier,
                         for: indexPath
                     ) as! StampCell
                     
-                    if case let .stickers(stickers) = itemIdentifier {
-                        let backgroundBoard = StampBoardSection.defaultBoard.type.flatMap { $0 }
-                        if backgroundBoard.indices.contains(indexPath.item) {
-                            cell.configureDashedLine(with: backgroundBoard[indexPath.item])
+                    if case let .sticker(sticker) = itemIdentifier {
+                        /// .page 섹션 하나 안에 셀 (페이징된 모든 스티커 아이템) 을 다 그려서 30 단위로 indexPath.item 증가
+                        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
+                        
+                        let backgroundBoard = StampBoardSection.page.type.flatMap { $0 }
+                        
+                        print("**itemIndexInPage: \(itemIndexInPage)")
+                        if backgroundBoard.indices.contains(itemIndexInPage) {
+                            cell.configureDashedLine(with: backgroundBoard[itemIndexInPage])
                         }
-                        cell.configureStamp(with: stickers)
+                        
+                        cell.configureStamp(with: sticker)
                     }
                     return cell
                 }
             })
         stickerBoardView.setDataSource(stickerBoardDataSource)
+    }
+    
+    private func setFooter() {
+        stickerBoardDataSource.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
+            
+            let sections = StampBoardSection.allCases
+            
+            if sections[indexPath.section] == .page {
+                guard kind == UICollectionView.elementKindSectionFooter,
+                      let self else {
+                    return UICollectionReusableView()
+                }
+                
+                let footer = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: kind,
+                    withReuseIdentifier: PageControlFooterView.identifier,
+                    for: indexPath
+                ) as! PageControlFooterView
+                
+                self.footerView = footer
+                
+                footerPageRelay
+                    .distinctUntilChanged { $0 == $1 }
+                    .bind(with: self) { owner, page in
+                        footer.configure(
+                            numberOfPages: page,
+                            currentPage: .zero
+                        )
+                    }
+                    .disposed(by: disposeBag)
+                
+                return footer
+            }
+            
+            return UICollectionReusableView()
+        }
+    }
+    
+    func updateFooterPage(to page: Int) {
+        footerView?.setCurrentPage(page)
     }
     
     // MARK: - Hierarchy Helper
