@@ -102,6 +102,13 @@ final class MemberMissionViewController: UIViewController {
             }
             .disposed(by: disposeBag)
 
+        viewModel.state.selectedMember
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, index in
+                owner.memberMissionView.setFilterSelection(index: index)
+            }
+            .disposed(by: disposeBag)
+
         viewModel.state.missions
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in

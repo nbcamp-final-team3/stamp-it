@@ -149,6 +149,13 @@ final class MemberMissionView: UIView {
         noResultsView.isHidden = !items.isEmpty
     }
 
+    func setFilterSelection(index: Int) {
+        let section = MemberMissionSection.allCases.firstIndex(of: .filter)!
+        guard collectionView.numberOfItems(inSection: section) > 0 else { return }
+        let indexPath = IndexPath(item: index, section: section)
+        collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+    }
+
     private func createLayout() -> UICollectionViewLayout {
         UICollectionViewCompositionalLayout { [weak self] section, environment in
             guard let self else { return nil }

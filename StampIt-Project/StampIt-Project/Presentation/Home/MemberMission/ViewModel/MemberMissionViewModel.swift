@@ -29,6 +29,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
         let user = BehaviorRelay<User?>(value: nil)
         let members = BehaviorRelay<[MemberMissionItem]>(value: [])
         let missions = BehaviorRelay<[MemberMissionItem]>(value: [])
+        let selectedMember = BehaviorRelay<Int>(value: 0)
         let isPopVC = PublishRelay<Void>()
         let isMoveToMissionTap = PublishRelay<Void>()
     }
@@ -71,6 +72,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
                     owner.state.isMoveToMissionTap.accept(())
                 case .selectFilter(let index):
                     owner.filterMissions(index: index)
+                    owner.state.selectedMember.accept(index)
                 case .didTapBackButton:
                     owner.state.isPopVC.accept(())
                 }
@@ -86,6 +88,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
         let memberItems = memberMapper
             .map(members: members, userID: user.userID)
             .map { MemberMissionItem.member($0) }
+
         state.members.accept([allMembersItem] + memberItems)
     }
 
