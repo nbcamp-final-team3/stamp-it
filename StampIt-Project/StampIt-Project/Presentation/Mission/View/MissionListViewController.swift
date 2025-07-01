@@ -18,9 +18,8 @@ final class MissionListViewController: UIViewController {
     
     private lazy var addButton = UIButton().then {
         var configuration = UIButton.Configuration.filled()
-        configuration.baseBackgroundColor = .gray50
+        configuration.baseBackgroundColor = .clear
         configuration.baseForegroundColor = .red400
-        configuration.cornerStyle = .capsule
         configuration.image = UIImage(systemName: "plus")
         $0.configuration = configuration
         $0.addTarget(self, action: #selector(addCustomMission), for: .touchUpInside)

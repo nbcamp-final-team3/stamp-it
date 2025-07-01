@@ -17,7 +17,7 @@ final class AssignMissionViewController: UIViewController {
     
     private let missionTitleTextField = UITextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
-        $0.placeholder = "미션 제목을 입력하세요"
+        $0.placeholder = "미션 내용"
     }
     
     private let memberLabel = UILabel().then {
