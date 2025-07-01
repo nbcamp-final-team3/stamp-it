@@ -13,12 +13,12 @@ import FirebaseAuth
 
 final class AccountManageRepository: AccountManageRepositoryProtocol {
 
-    private let authManager: AuthManagerProtocol
-    private let userManager: UserManager
-    private let groupManager: GroupManager
-    private let membershipManager: MembershipManager
-    private let missionManager: MissionManager
-    private let stickerManager: StickerManager
+    private let authManager: any AuthManagerProtocol
+    private let userManager: any UserManagerProtocol
+    private let groupManager: any GroupManagerProtocol
+    private let membershipManager: any MembershipManagerProtocol
+    private let missionManager: any MissionManagerProtocol
+    private let stickerManager: any StickerManagerProtocol
 
     private let authRepository: AuthRepositoryProtocol
 
@@ -27,13 +27,13 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
 
     // 의존성 주입
     init(
-        authManager: AuthManagerProtocol,
-        userManager: UserManager,
-        groupManager: GroupManager,
-        membershipManager: MembershipManager,
-        missionManager: MissionManager,
-        stickerManager: StickerManager,
-        authRepository: AuthRepository,
+        authManager: any AuthManagerProtocol,
+        userManager: any UserManagerProtocol,
+        groupManager: any GroupManagerProtocol,
+        membershipManager: any MembershipManagerProtocol,
+        missionManager: any MissionManagerProtocol,
+        stickerManager: any StickerManagerProtocol,
+        authRepository: any AuthRepositoryProtocol,
         mapToRepositoryError: @escaping (Error) -> RepositoryError
     ) {
         self.authManager = authManager
