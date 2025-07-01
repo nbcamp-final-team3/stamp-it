@@ -139,8 +139,15 @@ final class MissionListViewController: UIViewController {
         // 미션 샘플 데이터를 테이블 뷰에 표시
         viewModel.state.missions
             .asDriver(onErrorDriveWith: .empty())
-            .drive(tableView.rx.items(cellIdentifier: MissionListCell.reuseIdentifier, cellType: MissionListCell.self)) { (_, element, cell) in
-                cell.configure(with: element.title)
+            .drive(tableView.rx.items(cellIdentifier: MissionListCell.reuseIdentifier, cellType: MissionListCell.self)) { [weak self] (_, element, cell) in
+                guard let self else { return }
+                
+                let favorites = viewModel.state.favorites.value
+                if favorites.contains(element.missionId) {
+                    cell.configure(with: element.title, isFavorite: true)
+                } else {
+                    cell.configure(with: element.title, isFavorite: false)
+                }
             }
             .disposed(by: disposeBag)
         
@@ -289,6 +296,16 @@ extension MissionListViewController: UITableViewDelegate {
             return 0
         }
         return 16
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let favoriteAction = UIContextualAction(style: .normal, title: nil) { [weak self] _, _, completion in
+            self?.viewModel.action.accept(.toggleFavorite(indexPath))
+            completion(true)
+        }
+        favoriteAction.image = UIImage(systemName: "star")
+        favoriteAction.backgroundColor = .gray200
+        return UISwipeActionsConfiguration(actions: [favoriteAction])
     }
 }
 
