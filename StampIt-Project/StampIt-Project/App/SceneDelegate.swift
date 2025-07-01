@@ -31,14 +31,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                     preferredStyle: .alert
                 )
                 let updateAction = UIAlertAction(title: "업데이트 하러가기", style: .default) { _ in
-                    if let url = URL(string: "itms-apps://itunes.apple.com/app/id6747178558") {
-                        DispatchQueue.main.async {
-                            UIApplication.shared.open(url, options: [:], completionHandler: { success in
-                                if !success {
-                                    print("잠시 후 다시 시도해주세요.")
-                                }
-                            })
-                        }
+                    guard let url = URL(string: "itms-apps://itunes.apple.com/app/id6747178558") else { return }
+                    DispatchQueue.main.async {
+                        UIApplication.shared.open(url, options: [:], completionHandler: { success in
+                            if !success {
+                                print("잠시 후 다시 시도해주세요.")
+                            }
+                        })
                     }
                 }
                 alert.addAction(updateAction)
