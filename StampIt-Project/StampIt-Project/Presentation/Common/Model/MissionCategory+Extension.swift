@@ -34,7 +34,7 @@ extension MissionCategory {
         case .learning:
                 .learning
         case .custom:
-                .mascotRed
+                .custom
         }
     }
 
@@ -49,7 +49,7 @@ extension MissionCategory {
         case .learning:
                 .purple100
         case .custom:
-                .gray50
+                .D_7_F_4_DC
         }
     }
 }
