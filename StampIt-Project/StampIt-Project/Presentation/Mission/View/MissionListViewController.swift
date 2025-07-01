@@ -258,13 +258,7 @@ final class MissionListViewController: UIViewController {
     private func updateSnapshot() {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.category])
-        
-        var items: [Item] = []
-        items.append(.all)
-        MissionCategory.allCases.forEach {
-            items.append(.category($0))
-        }
-        snapshot.appendItems(items)
+        snapshot.appendItems([.all, .category(.chore), .category(.communication), .category(.health), .category(.learning)])
         
         dataSource?.apply(snapshot, animatingDifferences: true)
     }
