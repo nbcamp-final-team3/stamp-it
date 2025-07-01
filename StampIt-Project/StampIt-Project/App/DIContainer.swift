@@ -204,7 +204,8 @@ final class DIContainer {
             user: user,
             memberCache: memberCache,
             useCase: memberMissionUseCase,
-            mapper: MissionMapper(),
+            memberMapper: MemberMapper(),
+            missionMapper: MissionMapper(),
         )
     }
     

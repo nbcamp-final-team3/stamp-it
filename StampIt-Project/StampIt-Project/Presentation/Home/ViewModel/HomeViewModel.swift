@@ -132,7 +132,9 @@ final class HomeViewModel: ViewModelProtocol {
               // 멤버 정보 캐싱 후 매핑하여 랭킹 섹션에 아이템 렌더링하기
               memberCache = Dictionary(uniqueKeysWithValues: members.map { ($0.userID, $0) })
               let userID = state.user.value?.userID ?? ""
-              let items = memberMapper.map(members: members, userID: userID)
+              let items = memberMapper
+                  .map(members: members, userID: userID)
+                  .map { HomeItem.member($0) }
               state.rankedMembers.accept(items)
 
               let memberNicknames = members

@@ -8,5 +8,5 @@
 import Foundation
 
 protocol MemberMapping {
-    func map(members: [Member], userID: String) -> [HomeItem]
+    func map(members: [Member], userID: String) -> [HomeMember]
 }
