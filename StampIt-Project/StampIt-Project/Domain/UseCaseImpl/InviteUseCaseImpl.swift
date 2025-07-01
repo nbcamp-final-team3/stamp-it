@@ -162,4 +162,19 @@ final class InviteUseCaseImpl: InviteUseCase {
                 return group.inviteCode
             }
     }
+
+    /// 다인 그룹 입장 시 확인이 필요한지 확인하는 메서드
+    func checkIfConfirmationNeeded(inviteCode: String) -> Observable<Bool> {
+        return getCurrentUser()
+            .flatMap { [weak self] optionalUser -> Observable<Int> in
+                guard let self = self, let user = optionalUser else {
+                    return Observable.error(RepositoryError.userNotFound)
+                }
+                return self.fetchGroupMemberCount(groupId: user.groupID)
+            }
+            .map { currentGroupMemberCount in
+                // 현재 그룹이 다인 그룹(2명 이상)인 경우 확인 필요
+                return currentGroupMemberCount > 1
+            }
+    }
 }
