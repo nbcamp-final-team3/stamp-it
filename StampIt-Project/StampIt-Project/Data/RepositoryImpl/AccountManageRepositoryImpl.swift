@@ -538,8 +538,8 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         maxRetries: Int
     ) -> Observable<Void> {
         return Observable.zip(
-            missionManager.deleteUserMissions(userId: userId, groupId: currentGroupId),
-            stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
+            missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId), // 받은 미션만 삭제
+            stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)      // 그룹과 관련된 본인 스티커 삭제
         )
         .map { _ in () }
         .retry(maxRetries)
@@ -548,7 +548,6 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
             return Observable.error(GroupExitError.dataCleanupFailed(error.localizedDescription))
         }
     }
-
 
     /// 롤백 시도 (베스트 에포트) (새로운 DB 구조 반영)
     private func attemptRollback(
