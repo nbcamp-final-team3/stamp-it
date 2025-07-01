@@ -87,6 +87,7 @@ final class HomeRepository: HomeRepositoryProtocol {
         missionTitle: String,
         maxSticker: Int,
         stickerType: String,
+        missionId: String,
         assignedBy: String
     ) -> Observable<Void> {
         stickerManager.createStickerFromMission(
@@ -95,7 +96,7 @@ final class HomeRepository: HomeRepositoryProtocol {
             missionTitle: missionTitle,
             maxStickers: maxSticker,
             stickerType: stickerType,
-            missionId: UUID().uuidString,
+            missionId: missionId,
             assignedBy: assignedBy
         )
     }
