@@ -15,7 +15,9 @@ final class InviteRepositoryImpl: InviteRepository {
     // TODO: 사용자 데이터 정리
     // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
     // 🔧 필요시 주석 해제하여 활성화
+    // ⚡ 업데이트: Observable.zip을 사용하여 미션과 스티커를 동시에 삭제
 //    private let missionManager: MissionManager
+//    private let stickerManager: StickerManager
     
     init(
         groupManager: GroupManager,
@@ -24,7 +26,9 @@ final class InviteRepositoryImpl: InviteRepository {
         // TODO: 사용자 데이터 정리
         // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
         // 🔧 필요시 주석 해제하여 활성화
-        // missionManager: MissionManager
+        // ⚡ 업데이트: Observable.zip을 사용하여 미션과 스티커를 동시에 삭제
+        // missionManager: MissionManager,
+        // stickerManager: StickerManager
     ) {
         self.groupManager = groupManager
         self.membershipManager = membershipManager
@@ -32,7 +36,9 @@ final class InviteRepositoryImpl: InviteRepository {
         // TODO: 사용자 데이터 정리
         // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
         // 🔧 필요시 주석 해제하여 활성화
+        // ⚡ 업데이트: Observable.zip을 사용하여 미션과 스티커를 동시에 삭제
         // self.missionManager = missionManager
+        // self.stickerManager = stickerManager
     }
     
     
@@ -98,12 +104,17 @@ final class InviteRepositoryImpl: InviteRepository {
     // TODO: 사용자 데이터 정리 (재시도 로직 포함)
     // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
     // 🔧 필요시 주석 해제하여 활성화
-//    func cleanupUserDataWithRetry(userId: String, groupId: String, maxRetries: Int) -> Observable<Void> {
-//        return missionManager.deleteUserMissions(userId: userId, groupId: groupId)
-//            .retry(maxRetries)
-//            .timeout(.seconds(5), scheduler: MainScheduler.instance)
-//            .catch { error in
-//                return Observable.error(RepositoryError.dataError("사용자 데이터 정리 실패: \(error.localizedDescription)"))
-//            }
+    // ⚡ 업데이트: Observable.zip을 사용하여 미션과 스티커를 동시에 삭제
+//    func cleanupUserDataWithRetry(userId: String, currentGroupId: String, maxRetries: Int) -> Observable<Void> {
+//        return Observable.zip(
+//            missionManager.deleteUserMissions(userId: userId, groupId: currentGroupId),
+//            stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
+//        )
+//        .map { _ in () }
+//        .retry(maxRetries)
+//        .timeout(.seconds(5), scheduler: MainScheduler.instance)
+//        .catch { error in
+//            return Observable.error(RepositoryError.dataError("사용자 데이터 정리 실패: \(error.localizedDescription)"))
+//        }
 //    }
 }
