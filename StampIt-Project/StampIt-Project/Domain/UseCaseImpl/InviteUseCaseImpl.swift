@@ -127,19 +127,18 @@ final class InviteUseCaseImpl: InviteUseCase {
                 // TODO: 사용자 데이터 정리: 다인 그룹에서 탈퇴하는 경우
                 // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
                 // 🔧 필요시 주석 해제하여 활성화
-                // ⚡ 업데이트: Observable.zip을 사용하여 미션과 스티커를 동시에 삭제
-//                    .flatMap { [weak self] _ -> Observable<Void> in
-//                        guard let self = self else { return .empty() }
-//                        if oldGroupMemberCount > 1 {
-//                            return self.inviteRepository.cleanupUserDataWithRetry(
-//                                userId: user.userID,
-//                                currentGroupId: oldGroupId,
-//                                maxRetries: 3
-//                            )
-//                        } else {
-//                            return .just(())
-//                        }
-//                    }
+                    .flatMap { [weak self] _ -> Observable<Void> in
+                        guard let self = self else { return .empty() }
+                        if oldGroupMemberCount > 1 {
+                            return self.inviteRepository.cleanupUserDataWithRetry(
+                                userId: user.userID,
+                                currentGroupId: oldGroupId,
+                                maxRetries: 3
+                            )
+                        } else {
+                            return .just(())
+                        }
+                    }
                     .flatMap {
                         self.fetchInvite(inviteCode: inviteCode)
                     }

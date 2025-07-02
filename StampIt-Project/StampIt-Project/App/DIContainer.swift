@@ -47,13 +47,12 @@ final class DIContainer {
         return InviteRepositoryImpl(
             groupManager: groupManager,
             membershipManager: membershipManager,
-            userManager: userManager
+            userManager: userManager,
             // TODO: 사용자 데이터 정리
             // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
             // 🔧 필요시 주석 해제하여 활성화
-            // ⚡ 업데이트: Observable.zip을 사용하여 미션과 스티커를 동시에 삭제
-            // missionManager: missionManager,
-            // stickerManager: stickerManager
+             missionManager: missionManager,
+             stickerManager: stickerManager
         )
     }()
 
