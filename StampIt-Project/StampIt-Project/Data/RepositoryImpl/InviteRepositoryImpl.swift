@@ -103,15 +103,15 @@ final class InviteRepositoryImpl: InviteRepository {
     // 🔧 필요시 주석 해제하여 활성화
     // ⚡ 업데이트: Observable.zip을 사용하여 미션과 스티커를 동시에 삭제
     func cleanupUserDataWithRetry(userId: String, currentGroupId: String, maxRetries: Int) -> Observable<Void> {
-        return Observable.zip(
-            missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId),
-            stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
-        )
-        .map { _ in () }
-        .retry(maxRetries)
-        .timeout(.seconds(5), scheduler: MainScheduler.instance)
-        .catch { error in
-            return Observable.error(RepositoryError.dataError("사용자 데이터 정리 실패: \(error.localizedDescription)"))
-        }
+        return stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
+                    .retry(maxRetries)
+                    .flatMap { _ in
+                        return self.missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId)
+                            .retry(maxRetries)
+                    }
+                    .timeout(.seconds(5), scheduler: MainScheduler.instance)
+                    .catch { error in
+                        return Observable.error(GroupExitError.dataCleanupFailed(error.localizedDescription))
+                    }
     }
 }
