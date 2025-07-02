@@ -206,7 +206,11 @@ final class StickerManager: StickerManagerProtocol {
         if let groupId = stickerQuery.groupId, !groupId.isEmpty {
             result = result.whereField("groupId", in: groupId)
         }
-        
+
+        if let missionId = stickerQuery.missionId, !missionId.isEmpty {
+            result = result.whereField("missionId", in: missionId)
+        }
+
         if let month = stickerQuery.month, !month.isEmpty {
             result = result.whereField("month", in: month)
         }
@@ -313,13 +317,29 @@ final class StickerManager: StickerManagerProtocol {
     func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]> {
         return observeList(query: .byUser(userId))
     }
-    
+
+    /// 특정 미션에 대한 스티커 삭제 (미션완료 취소용)
+    func deleteSticker(missionId: String) -> Observable<Void> {
+        return fetchList(query: .byMission(missionId))
+            .flatMap { [weak self] stickers -> Observable<Void> in
+                guard let self = self else {
+                    return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
+                }
+
+                let deleteObservables = stickers.map { sticker in
+                    self.delete(id: sticker.documentID)
+                }
+                return Observable.zip(deleteObservables).map { _ in () }
+            }
+    }
+
     /// 특정 그룹에서 사용자 스티커 삭제 (그룹 탈퇴용)
     func deleteUserStickers(userId: String, groupId: String) -> Observable<Void> {
         return fetchList(query: StickerQuery(
             stickerId: nil,
             userId: [userId],
             groupId: [groupId],
+            missionId: nil,
             month: nil,
             pinNumber: nil,
             type: nil,
@@ -345,6 +365,7 @@ final class StickerManager: StickerManagerProtocol {
             stickerId: nil,
             userId: [userId],
             groupId: nil,  // 모든 그룹
+            missionId: nil,
             month: nil,
             pinNumber: nil,
             type: nil,

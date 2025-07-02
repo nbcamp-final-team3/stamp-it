@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import Then
 
-final class CompletionStateButton: UIControl {
+final class MissionStateButton: UIControl {
 
     // MARK: - Properties
 
@@ -111,7 +111,7 @@ final class CompletionStateButton: UIControl {
     }
 }
 
-extension CompletionStateButton {
+extension MissionStateButton {
     private var borderWidth: CGFloat {
         switch status {
         case .assigned, .failed: 0

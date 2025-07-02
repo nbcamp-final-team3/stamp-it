@@ -85,7 +85,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         $0.textAlignment = .right
     }
 
-    private let statusButton = CompletionStateButton(status: .assigned)
+    private let statusButton = MissionStateButton(status: .assigned)
 
     private let separatorView = UIView().then {
         $0.backgroundColor = .gray50
