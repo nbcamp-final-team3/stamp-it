@@ -11,12 +11,12 @@ import UIKit
 final class DIContainer {
 
     // MARK: - Managers (Infrastructure Layer)
-    lazy var authManager: AuthManagerProtocol = AuthManager()
-    lazy var userManager: UserManager = UserManager()
-    lazy var groupManager: GroupManager = GroupManager()
-    lazy var membershipManager: MembershipManager = MembershipManager()
-    lazy var missionManager: MissionManager = MissionManager()
-    lazy var stickerManager: StickerManager = StickerManager()
+    lazy var authManager: any AuthManagerProtocol = AuthManager()
+    lazy var userManager: any UserManagerProtocol = UserManager()
+    lazy var groupManager: any GroupManagerProtocol = GroupManager()
+    lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
+    lazy var missionManager: any MissionManagerProtocol = MissionManager()
+    lazy var stickerManager: any StickerManagerProtocol = StickerManager()
 
 
     // MARK: - Repositories (Data Layer)
@@ -88,7 +88,7 @@ final class DIContainer {
             membershipManager: membershipManager,
             missionManager: missionManager,
             stickerManager: stickerManager,
-            authRepository: authRepository as! AuthRepository,
+            authRepository: authRepository,
             mapToRepositoryError: { error in
                 return RepositoryError.unknownError
             }
@@ -209,7 +209,8 @@ final class DIContainer {
             user: user,
             memberCache: memberCache,
             useCase: memberMissionUseCase,
-            mapper: MissionMapper(),
+            memberMapper: MemberMapper(),
+            missionMapper: MissionMapper(),
         )
     }
     

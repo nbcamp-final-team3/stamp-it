@@ -10,14 +10,14 @@ import RxSwift
 import FirebaseFirestore
 
 final class HomeRepository: HomeRepositoryProtocol {
-    private let membershipManager: MembershipManager
-        private let stickerManager: StickerManager
-        private let missionManager: MissionManager
+    private let membershipManager: any MembershipManagerProtocol
+        private let stickerManager: any StickerManagerProtocol
+        private let missionManager: any MissionManagerProtocol
 
         init(
-            membershipManager: MembershipManager,
-            stickerManager: StickerManager,
-            missionManager: MissionManager
+            membershipManager: any MembershipManagerProtocol,
+            stickerManager: any StickerManagerProtocol,
+            missionManager: any MissionManagerProtocol
         ) {
             self.membershipManager = membershipManager
             self.stickerManager = stickerManager
@@ -87,6 +87,7 @@ final class HomeRepository: HomeRepositoryProtocol {
         missionTitle: String,
         maxSticker: Int,
         stickerType: String,
+        missionId: String,
         assignedBy: String
     ) -> Observable<Void> {
         stickerManager.createStickerFromMission(
@@ -95,7 +96,7 @@ final class HomeRepository: HomeRepositoryProtocol {
             missionTitle: missionTitle,
             maxStickers: maxSticker,
             stickerType: stickerType,
-            missionId: UUID().uuidString,
+            missionId: missionId,
             assignedBy: assignedBy
         )
     }

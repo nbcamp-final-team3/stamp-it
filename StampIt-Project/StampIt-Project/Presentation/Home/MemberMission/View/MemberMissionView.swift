@@ -16,6 +16,7 @@ final class MemberMissionView: UIView {
     // MARK: - Properties
 
     let didTapSendMissionButton = PublishRelay<Void>()
+    let selectFilter = PublishRelay<Int>()
     private let disposeBag = DisposeBag()
     private var dataSource: UICollectionViewDiffableDataSource<MemberMissionSection, MemberMissionItem>?
 
@@ -25,6 +26,11 @@ final class MemberMissionView: UIView {
         frame: .zero,
         collectionViewLayout: createLayout()
     ).then {
+        $0.backgroundView = noResultsView
+        $0.register(
+            MemberCompactCell.self,
+            forCellWithReuseIdentifier: MemberCompactCell.identifier
+        )
         $0.register(
             AssignedMissionCell.self,
             forCellWithReuseIdentifier: AssignedMissionCell.identifier
@@ -57,7 +63,6 @@ final class MemberMissionView: UIView {
     private func setHierarchy() {
         [
             collectionView,
-            noResultsView,
         ].forEach { addSubview($0) }
     }
 
@@ -68,10 +73,6 @@ final class MemberMissionView: UIView {
             make.top.equalTo(safeAreaLayoutGuide)
             make.directionalHorizontalEdges.bottom.equalToSuperview()
         }
-
-        noResultsView.snp.makeConstraints { make in
-            make.edges.equalTo(collectionView)
-        }
     }
 
     // MARK: - Set DataSource
@@ -79,6 +80,26 @@ final class MemberMissionView: UIView {
     private func setDataSource() {
         dataSource = .init(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
+            case .allMember(let image, let title):
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: MemberCompactCell.identifier,
+                    for: indexPath
+                ) as! MemberCompactCell
+
+                cell.configureNormalCell(image: image, title: title)
+
+                return cell
+
+            case .member(let member):
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: MemberCompactCell.identifier,
+                    for: indexPath
+                ) as! MemberCompactCell
+
+                cell.configureCell(with: member, type: .normal)
+
+                return cell
+
             case .mission(let mission):
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: AssignedMissionCell.identifier,
@@ -99,6 +120,15 @@ final class MemberMissionView: UIView {
     // MARK: - Bind
 
     private func bind() {
+        collectionView.rx
+            .setDelegate(self)
+            .disposed(by: disposeBag)
+
+        collectionView.rx.itemSelected
+            .map { $0.item }
+            .bind(to: selectFilter)
+            .disposed(by: disposeBag)
+
         noResultsView.didTapSendMissionButton
             .bind(to: didTapSendMissionButton)
             .disposed(by: disposeBag)
@@ -110,9 +140,16 @@ final class MemberMissionView: UIView {
         guard var snapshot = dataSource?.snapshot() else { return }
         let itemsToDelete = snapshot.itemIdentifiers(inSection: section)
         snapshot.deleteItems(itemsToDelete)
-        snapshot.appendItems(items)
+        snapshot.appendItems(items, toSection: section)
         dataSource?.apply(snapshot, animatingDifferences: false)
         noResultsView.isHidden = !items.isEmpty
+    }
+
+    func setFilterSelection(index: Int) {
+        let section = MemberMissionSection.allCases.firstIndex(of: .filter)!
+        guard collectionView.numberOfItems(inSection: section) > 0 else { return }
+        let indexPath = IndexPath(item: index, section: section)
+        collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
     }
 
     private func createLayout() -> UICollectionViewLayout {
@@ -122,12 +159,36 @@ final class MemberMissionView: UIView {
             let section = MemberMissionSection.allCases[section]
 
             switch section {
+            case .filter:
+                return createFilterSection()
             case .mission:
                 return createMissionSection()
             }
         }
     }
 
+    /// 멤버 필터 섹션 레이아웃 생성 메서드
+    private func createFilterSection() -> NSCollectionLayoutSection {
+        let itemSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .fractionalHeight(1)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .absolute(60),
+            heightDimension: .absolute(85)
+        )
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 12
+        section.orthogonalScrollingBehavior = .continuous
+        section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
+        return section
+    }
+
+    /// 미션 섹션 레이아웃 생성 메서드
     private func createMissionSection() -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
@@ -143,7 +204,16 @@ final class MemberMissionView: UIView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 6
-        section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
+        section.contentInsets = .init(top: 8, leading: 16, bottom: 12, trailing: 16)
         return section
     }
+}
+
+extension MemberMissionView: UICollectionViewDelegate {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    shouldSelectItemAt indexPath: IndexPath
+  ) -> Bool {
+      return indexPath.section == MemberMissionSection.allCases.firstIndex(of: .filter)!
+  }
 }

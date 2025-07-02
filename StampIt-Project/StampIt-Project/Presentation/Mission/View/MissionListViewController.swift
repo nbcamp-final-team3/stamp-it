@@ -18,10 +18,8 @@ final class MissionListViewController: UIViewController {
     
     private lazy var addButton = UIButton().then {
         var configuration = UIButton.Configuration.filled()
-        configuration.baseBackgroundColor = .gray50
-        configuration.baseForegroundColor = .red400
-        configuration.cornerStyle = .capsule
-        configuration.image = UIImage(systemName: "plus")
+        configuration.baseBackgroundColor = .clear
+        configuration.image = UIImage(named: "addButton")
         $0.configuration = configuration
         $0.addTarget(self, action: #selector(addCustomMission), for: .touchUpInside)
     }
@@ -259,13 +257,7 @@ final class MissionListViewController: UIViewController {
     private func updateSnapshot() {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.category])
-        
-        var items: [Item] = []
-        items.append(.all)
-        MissionCategory.allCases.forEach {
-            items.append(.category($0))
-        }
-        snapshot.appendItems(items)
+        snapshot.appendItems([.all, .category(.chore), .category(.communication), .category(.health), .category(.learning)])
         
         dataSource?.apply(snapshot, animatingDifferences: true)
     }

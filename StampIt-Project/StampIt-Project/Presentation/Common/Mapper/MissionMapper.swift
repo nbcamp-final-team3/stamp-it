@@ -12,7 +12,7 @@ final class MissionMapper: MissionMapping {
     /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     func map(myMissions missions: [Mission], member: [String : Member]) -> [HomeMyMission] {
         missions.map { mission in
-            let assigner = member[mission.assignedBy]?.nickname ?? mission.assignedBy
+            let assigner = member[mission.assignedBy]?.nickname ?? "탈퇴한 멤버"
             let homeMission = HomeMyMission(
                 missionID: mission.missionID,
                 title: mission.title,
@@ -30,7 +30,7 @@ final class MissionMapper: MissionMapping {
     /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     func map(memberMission missions: [Mission], member: [String : Member]) -> [HomeMemberMission] {
         missions.map { mission in
-            let assignee = member[mission.assignedTo]?.nickname ?? ""
+            let assignee = member[mission.assignedTo]?.nickname ?? "탈퇴한 멤버"
             let isOverdue = isOverdue(from: mission.dueDate)
             let daysBefore = daysBefore(from: mission.createDate)
             let homeMission = HomeMemberMission(

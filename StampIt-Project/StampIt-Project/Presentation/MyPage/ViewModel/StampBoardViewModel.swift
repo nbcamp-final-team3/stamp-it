@@ -105,14 +105,14 @@ final class StampBoardViewModel: ViewModelProtocol {
                                     Sticker(
                                         userID: sticker.userID,
                                         stickerID: sticker.stickerID,
-                                        title: sticker.title,
-                                        description: sticker.description,
-                                        imageURL: sticker.imageURL,
+                                        groupId: sticker.groupId,
+                                        month: sticker.month,
                                         type: StickerType.from(page),
 //                                        type: index.isMultiple(of: 2) ? StickerType.stampBlue : StickerType.stampYellow,
-                                        createdAt: sticker.createdAt,
-                                        maxStickers: sticker.maxStickers,
                                         pinNumber: sticker.pinNumber,
+                                        createdAt: sticker.createdAt,
+                                        missionId: sticker.month,
+                                        maxStickers: sticker.maxStickers,
                                         assignedBy: sticker.assignedBy
                                     )
                                 }
@@ -187,13 +187,13 @@ final class StampBoardViewModel: ViewModelProtocol {
         Sticker(
             userID: "",
             stickerID: "\(UUID())",
-            title: "",
-            description: "",
-            imageURL: "",
+            groupId: "",
+            month: "",
             type: .stampGray,
-            createdAt: Date(),
-            maxStickers: 30,
             pinNumber: state.stickerSummary.value.completed,
+            createdAt: Date(),
+            missionId: "",
+            maxStickers: 30,
             assignedBy: ""
         )
     }

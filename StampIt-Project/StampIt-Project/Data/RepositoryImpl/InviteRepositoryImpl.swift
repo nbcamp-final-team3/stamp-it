@@ -9,24 +9,20 @@ import Foundation
 import RxSwift
 
 final class InviteRepositoryImpl: InviteRepository {
-    private let groupManager: GroupManager
-    private let membershipManager: MembershipManager
-    private let userManager: UserManager
-    // TODO: 사용자 데이터 정리
+    private let groupManager: any GroupManagerProtocol
+    private let membershipManager: any MembershipManagerProtocol
+    private let userManager: any UserManagerProtocol
     // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
-    // 🔧 필요시 주석 해제하여 활성화
     private let missionManager: MissionManager
     private let stickerManager: StickerManager
     
     init(
-        groupManager: GroupManager,
-        membershipManager: MembershipManager,
-        userManager: UserManager,
-        // TODO: 사용자 데이터 정리
-        // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
-        // 🔧 필요시 주석 해제하여 활성화
+        groupManager: any GroupManagerProtocol,
+        membershipManager: any MembershipManagerProtocol,
+        userManager: any UserManagerProtocol
          missionManager: MissionManager,
          stickerManager: StickerManager
+        // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
     ) {
         self.groupManager = groupManager
         self.membershipManager = membershipManager

@@ -17,7 +17,7 @@ final class AssignMissionViewController: UIViewController {
     
     private let missionTitleTextField = UITextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
-        $0.placeholder = "미션 제목을 입력하세요"
+        $0.placeholder = "미션 내용"
     }
     
     private let memberLabel = UILabel().then {
@@ -98,6 +98,10 @@ final class AssignMissionViewController: UIViewController {
         bind()
         
         viewModel.action.accept(.onAppear)
+        
+        if viewModel.state.mission.value?.category == .custom {
+            navigationBar.updateNavigationTitle("커스텀 미션 전달하기")
+        }
     }
     
     private func prepareSubviews() {
