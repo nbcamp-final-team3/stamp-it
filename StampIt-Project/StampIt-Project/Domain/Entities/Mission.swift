@@ -18,6 +18,16 @@ struct Mission: Equatable {
     let imageURL: String
     let category: MissionCategory
 
+    var isOverdue: Bool {
+        dueDate.daysFromToday() < 0
+    }
+
+    var isNew: Bool {
+        let today = Calendar.current.dateComponents([.day], from: Date())
+        let created = Calendar.current.dateComponents([.day], from: createDate)
+        return today.day == created.day
+    }
+
     func makeCopyCompleted() -> Mission {
         .init(
             missionID: self.missionID,
