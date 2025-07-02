@@ -31,6 +31,7 @@ protocol HomeRepositoryProtocol {
         missionTitle: String,
         maxSticker: Int,
         stickerType: String,
+        missionId: String,
         assignedBy: String
     ) -> Observable<Void>
 }
