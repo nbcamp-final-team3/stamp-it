@@ -16,6 +16,8 @@ extension UILabel {
         let style = NSMutableParagraphStyle()
         style.minimumLineHeight = lineHeight
         style.maximumLineHeight = lineHeight
+        style.alignment = self.textAlignment
+        style.lineBreakMode = self.lineBreakMode
 
         // 2) baselineOffset 계산 (lineHeight 과 실제 폰트 높이 차이의 절반)
         let offset = (lineHeight - font.lineHeight) / 2
