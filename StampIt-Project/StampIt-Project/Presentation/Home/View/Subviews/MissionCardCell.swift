@@ -32,9 +32,9 @@ final class MissionCardCell: UICollectionViewCell {
         $0.spacing = 4
     }
 
-    private let dateTag = TagView(type: .filledLightSmall)
+    private let dateTag = TagView(type: .filledLight)
 
-    private let assignerTag = TagView(type: .filledLightSmall)
+    private let assignerTag = TagView(type: .filledLight)
 
     private let titleLabel = UILabel().then {
         $0.font = .pretendard(size: 18, weight: .regular)

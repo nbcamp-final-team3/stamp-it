@@ -69,10 +69,6 @@ final class StampBoardCollectionView: UIView {
     ) {
         collectionView.dataSource = dataSource
     }
-    
-    func setCollectionViewDelegate(_ delegate: UICollectionViewDelegate) {
-        collectionView.delegate = delegate
-    }
 
     // MARK: - CompositionalLayout
 
