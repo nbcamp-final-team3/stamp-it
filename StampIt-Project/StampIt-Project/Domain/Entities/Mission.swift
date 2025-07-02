@@ -23,7 +23,7 @@ struct Mission: Equatable {
     }
 
     var isCancelableCompleted: Bool {
-        status == .completed && isOverdue
+        status == .completed && !isOverdue
     }
 
     var isNew: Bool {

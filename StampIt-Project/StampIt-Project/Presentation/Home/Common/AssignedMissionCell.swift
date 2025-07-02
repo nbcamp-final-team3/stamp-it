@@ -85,7 +85,9 @@ final class AssignedMissionCell: UICollectionViewCell {
         $0.textAlignment = .right
     }
 
-    private let statusButton = MissionStateButton(status: .assigned)
+    private let statusButton = MissionStateButton(status: .assigned).then {
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
 
     private let separatorView = UIView().then {
         $0.backgroundColor = .gray50
