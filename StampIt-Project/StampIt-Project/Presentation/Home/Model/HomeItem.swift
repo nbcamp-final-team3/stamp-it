@@ -115,5 +115,5 @@ struct HomeMemberMission: Hashable {
     let assignee: String
     let status: MissionStatus
     let isOverdue: Bool
-    let daysLeft: String
+    let daysBefore: String
 }

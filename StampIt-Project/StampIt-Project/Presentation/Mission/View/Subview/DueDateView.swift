@@ -32,8 +32,8 @@ struct DueDateView: View {
                     Text(formattedDate)
                         .font(.custom("Pretendard", size: 16))
                         .foregroundColor(.gray800)
+                        .frame(width: 144)
                         .padding(.vertical, 7)
-                        .padding(.horizontal, 14)
                         .background(.gray25)
                         .cornerRadius(6)
                 }

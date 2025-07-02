@@ -12,20 +12,24 @@ import RxRelay
 final class MemberMissionViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
-    private let useCase: MemberMissionUseCaseProtocol
-    private let mapper: MissionMapping
+    private let missionUseCase: MemberMissionUseCaseProtocol
+    private let memberMapper: MemberMapping
+    private let missionMapper: MissionMapping
 
     // MARK: - Action & State
 
     enum Action {
         case viewDidLoad
         case didTapBackButton
+        case selectFilter(Int)
         case didTapSendMission
     }
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
+        let members = BehaviorRelay<[MemberMissionItem]>(value: [])
         let missions = BehaviorRelay<[MemberMissionItem]>(value: [])
+        let selectedMember = BehaviorRelay<Int>(value: 0)
         let isPopVC = PublishRelay<Void>()
         let isMoveToMissionTap = PublishRelay<Void>()
     }
@@ -36,6 +40,7 @@ final class MemberMissionViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     var state = State()
     private var memberCache: [String: Member] = [:]
+    private var missionCache: [Mission] = []
 
     // MARK: - Init
 
@@ -43,12 +48,14 @@ final class MemberMissionViewModel: ViewModelProtocol {
         user: User,
         memberCache: [String: Member],
         useCase: MemberMissionUseCaseProtocol,
-        mapper: MissionMapping,
+        memberMapper: MemberMapper,
+        missionMapper: MissionMapping,
     ) {
-        self.useCase = useCase
+        self.missionUseCase = useCase
         state.user.accept(user)
         self.memberCache = memberCache
-        self.mapper = mapper
+        self.memberMapper = memberMapper
+        self.missionMapper = missionMapper
         bind()
     }
 
@@ -59,9 +66,13 @@ final class MemberMissionViewModel: ViewModelProtocol {
             .subscribe(with: self) { owner, action in
                 switch action {
                 case .viewDidLoad:
+                    owner.setMembers()
                     owner.fetchMissions()
                 case .didTapSendMission:
                     owner.state.isMoveToMissionTap.accept(())
+                case .selectFilter(let index):
+                    owner.filterMissions(index: index)
+                    owner.state.selectedMember.accept(index)
                 case .didTapBackButton:
                     owner.state.isPopVC.accept(())
                 }
@@ -69,16 +80,49 @@ final class MemberMissionViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
 
+    /// 소속 그룹의 멤버 불러오기
+    private func setMembers() {
+        guard let user = state.user.value else { return }
+        let allMembersItem = MemberMissionItem.allMember(image: .mascotGroup, title: "전체")
+        let members = Array(memberCache.values.filter { $0.userID != user.userID })
+        let memberItems = memberMapper
+            .map(members: members, userID: user.userID)
+            .map { MemberMissionItem.member($0) }
+            .sorted { $0.member!.nickname < $1.member!.nickname }
+
+        state.members.accept([allMembersItem] + memberItems)
+    }
+
     /// 유저가 그룹 구성원에게 할당한 미션 바인딩
     private func fetchMissions() {
         guard let user = state.user.value else { return }
-        useCase.fetchMissions(by: user.userID, ofGroup: user.groupID)
-            .map { [weak self] in
+        missionUseCase.fetchMissions(by: user.userID, ofGroup: user.groupID)
+            .map { [weak self] missions in
                 guard let self else { return [] }
-                return mapper.map(memberMission: $0, member: memberCache)
+                missionCache = missions
+                return missionMapper
+                    .map(memberMission: missions, member: memberCache)
                     .map { MemberMissionItem.mission($0) }
             }
             .bind(to: state.missions)
             .disposed(by: disposeBag)
+    }
+
+    private func filterMissions(index: Int) {
+        let filter = state.members.value[index]
+
+        var filteredMissions: [Mission] = []
+        switch filter {
+        case .allMember(_, _):
+            filteredMissions = missionCache
+        case .member(let member):
+            filteredMissions = missionCache.filter { $0.assignedTo == member.memberID }
+        default: break
+        }
+
+        let items = missionMapper
+            .map(memberMission: filteredMissions, member: memberCache)
+            .map { MemberMissionItem.mission($0) }
+        state.missions.accept(items)
     }
 }

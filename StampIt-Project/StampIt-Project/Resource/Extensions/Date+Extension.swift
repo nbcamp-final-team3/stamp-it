@@ -33,4 +33,15 @@ extension Date {
         guard let end = calendar.date(byAdding: .day, value: days, to: start) else { return false }
         return (start ... end).contains(startOfDay)
     }
+
+    /// 오늘로부터 일 수 차이 계산
+    func daysFromToday(absoluteValue: Bool = false) -> Int {
+        let calendar = Calendar.current
+        let todayStart = calendar.startOfDay(for: Date())
+        let dateStart = calendar.startOfDay(for: self)
+
+        let dayDiff = calendar.dateComponents([.day], from: todayStart, to: dateStart).day ?? 0
+
+        return absoluteValue ? abs(dayDiff) : dayDiff
+    }
 }

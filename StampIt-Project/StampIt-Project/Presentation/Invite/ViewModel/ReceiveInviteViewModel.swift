@@ -18,6 +18,8 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     enum Action {
         case codeChanged(String)
         case enterButtonTapped
+        case confirmGroupExit
+        case cancelGroupExit
     }
 
     struct State {
@@ -25,6 +27,7 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
         let isEnterButtonEnabled = BehaviorRelay<Bool>(value: false)
         let showMessage = PublishRelay<(ToastType, String)>()
         let didCompleteInvite = PublishRelay<Void>()
+        let showGroupExitConfirmation = PublishRelay<String>() // 다인 그룹 탈퇴 확인 알림
     }
 
     // MARK: - Properties
@@ -34,6 +37,9 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     let state = State()
 
     private let useCase: InviteUseCase
+    
+    // 중복 실행 방지를 위한 플래그
+    private var isProcessingInvite = false
 
     // MARK: - Init
 
@@ -41,8 +47,6 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
         self.useCase = useCase
         bindActions()
     }
-
-
 
     // MARK: - Bind
 
@@ -57,36 +61,93 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
                     self.state.isEnterButtonEnabled.accept(!code.isEmpty)
 
                 case .enterButtonTapped:
+                    // 🎯 입장하기 버튼 클릭 시에만 다인 그룹 확인 로직 실행
                     self.handleEnterButtonTapped()
+                    
+                case .confirmGroupExit:
+                    // ✅ 확인 알림에서 "입장하기" 클릭 시 실제 그룹 이동 실행
+                    self.handleConfirmGroupExit()
+                    
+                case .cancelGroupExit:
+                    // ❌ 취소 시 아무것도 하지 않음 (다시 입장하기 버튼 클릭 가능)
+                    break
                 }
             })
             .disposed(by: disposeBag)
     }
 
+    /// 🎯 입장하기 버튼 클릭 시 호출되는 메서드
+    /// 다인 그룹인지 확인하여 분기 처리
     private func handleEnterButtonTapped() {
+        // 중복 실행 방지
+        guard !isProcessingInvite else { return }
+        
         let code = state.inviteCode.value
-
+        
+        // 먼저 다인 그룹인지 확인
+        useCase.checkIfConfirmationNeeded(inviteCode: code)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] needsConfirmation in
+                guard let self = self else { return }
+                
+                if needsConfirmation {
+                    // 🔍 다인 그룹인 경우 확인 알림 표시
+                    self.state.showGroupExitConfirmation.accept(code)
+                } else {
+                    // 🚀 1인 그룹인 경우 바로 입장
+                    self.processInviteAcceptance(code: code)
+                }
+            }, onError: { [weak self] error in
+                self?.isProcessingInvite = false
+                self?.handleError(error)
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    /// ✅ 확인 알림에서 "입장하기" 클릭 시 호출되는 메서드
+    /// 실제 그룹 이동 로직 실행
+    private func handleConfirmGroupExit() {
+        // 중복 실행 방지
+        guard !isProcessingInvite else { return }
+        
+        let code = state.inviteCode.value
+        processInviteAcceptance(code: code)
+    }
+    
+    /// 🚀 실제 그룹 입장 처리 메서드
+    /// UseCase의 acceptInvite 호출하여 그룹 이동 실행
+    private func processInviteAcceptance(code: String) {
+        // 중복 실행 방지
+        guard !isProcessingInvite else { return }
+        isProcessingInvite = true
+        
         useCase.acceptInvite(inviteCode: code)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] invite in
+                self?.isProcessingInvite = false
                 self?.state.showMessage.accept((.success, "초대 완료!"))
-                // MAKR: - 초대 완료가 됐을때 VC에 발행
+                // MARK: - 초대 완료가 됐을때 VC에 발행
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     self?.state.didCompleteInvite.accept(())
                 }
             }, onError: { [weak self] error in
-                print("[DEBUG] error:", error)
-                print("[DEBUG] error type:", type(of: error))
-                let message: String
-
-                if let repoError = error as? RepositoryError {
-                    message = repoError.localizedDescription
-                } else {
-                    message = "코드를 재확인 해주세요."
-                }
-
-                self?.state.showMessage.accept((.failure, message))
+                self?.isProcessingInvite = false
+                self?.handleError(error)
             })
             .disposed(by: disposeBag)
+    }
+    
+    private func handleError(_ error: Error) {
+        print("[DEBUG] error:", error)
+        print("[DEBUG] error type:", type(of: error))
+        let message: String
+
+        if let repoError = error as? RepositoryError {
+            message = repoError.localizedDescription
+        } else {
+            message = "코드를 재확인 해주세요."
+        }
+
+        state.showMessage.accept((.failure, message))
     }
 }

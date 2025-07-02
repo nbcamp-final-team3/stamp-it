@@ -12,7 +12,7 @@ final class MissionMapper: MissionMapping {
     /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     func map(myMissions missions: [Mission], member: [String : Member]) -> [HomeMyMission] {
         missions.map { mission in
-            let assigner = member[mission.assignedBy]?.nickname ?? mission.assignedBy
+            let assigner = member[mission.assignedBy]?.nickname ?? "탈퇴한 멤버"
             let homeMission = HomeMyMission(
                 missionID: mission.missionID,
                 title: mission.title,
@@ -20,7 +20,7 @@ final class MissionMapper: MissionMapping {
                 dueDate: mission.dueDate.toMonthDayString(),
                 assigner: assigner,
                 isNew: isNew(createDate: mission.createDate),
-                isOverdue: formatOverdueAndDays(from: mission.dueDate).isOverdue,
+                isOverdue: isOverdue(from: mission.dueDate),
                 status: mission.status
             )
             return homeMission
@@ -30,8 +30,9 @@ final class MissionMapper: MissionMapping {
     /// [Mission]를 컬렉션뷰에서 사용하는 [HomeItem]으로 매핑
     func map(memberMission missions: [Mission], member: [String : Member]) -> [HomeMemberMission] {
         missions.map { mission in
-            let assignee = member[mission.assignedTo]?.nickname ?? ""
-            let (isOverdue, daysLeft) = formatOverdueAndDays(from: mission.dueDate)
+            let assignee = member[mission.assignedTo]?.nickname ?? "탈퇴한 멤버"
+            let isOverdue = isOverdue(from: mission.dueDate)
+            let daysBefore = daysBefore(from: mission.createDate)
             let homeMission = HomeMemberMission(
                 missionID: mission.missionID,
                 title: mission.title,
@@ -40,7 +41,7 @@ final class MissionMapper: MissionMapping {
                 assignee: assignee,
                 status: mission.status,
                 isOverdue: isOverdue,
-                daysLeft: daysLeft
+                daysBefore: daysBefore
             )
             return homeMission
         }
@@ -50,17 +51,16 @@ final class MissionMapper: MissionMapping {
 // MARK: - Helper Methods
 
 extension MissionMapper {
-    private func formatOverdueAndDays(from dueDate: Date) -> (isOverdue: Bool, daysLeft: String) {
-        let cal = Calendar.current
-        let todayStart = cal.startOfDay(for: Date())
-        let dueStart = cal.startOfDay(for: dueDate)
+    /// 만료 체크
+    private func isOverdue(from dueDate: Date) -> Bool {
+        let dayDiff = dueDate.daysFromToday()
+        return dayDiff < 0
+    }
 
-        let dayDiff = cal.dateComponents([.day], from: todayStart, to: dueStart).day ?? 0
-
-        let isOverdue = dayDiff < 0
-        let daysLeft = dayDiff == 0 ? "오늘" : "\(dayDiff)일 전"
-
-        return (isOverdue, daysLeft)
+    /// 몇 일 전에 받은 미션인지 계산하여 0일 전이면 오늘로 표기
+    private func daysBefore(from createDate: Date) -> String {
+        let dayDiff = createDate.daysFromToday(absoluteValue: true)
+        return dayDiff == 0 ? "오늘" : "\(dayDiff)일 전"
     }
 
     private func isNew(createDate: Date) -> Bool {

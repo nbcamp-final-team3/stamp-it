@@ -14,4 +14,16 @@ protocol GroupManageRepository {
     
     /// 그룹 멤버 목록 가져오기
     func fetchGroupMembers(groupId: String) -> Observable<[Member]>
+    
+    /// 특정 그룹의 리더 조회
+    func fetchGroupLeader(groupId: String) -> Observable<Member?>
+    
+    /// 특정 그룹의 특정 멤버 조회
+    func fetchMember(groupId: String, userId: String) -> Observable<Member?>
+    
+    /// 그룹의 모든 멤버 조회 (쿼리 기반)
+    func fetchMembersByGroup(groupId: String) -> Observable<[Member]>
+    
+    /// 멤버 정보 업데이트
+    func updateMemberRole(groupId: String, userId: String, isLeader: Bool) -> Observable<Void>
 }

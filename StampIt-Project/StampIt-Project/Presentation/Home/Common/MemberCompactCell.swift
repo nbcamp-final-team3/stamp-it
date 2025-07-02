@@ -133,6 +133,12 @@ final class MemberCompactCell: UICollectionViewCell {
         handleRank(rank: member.rank)
     }
 
+    func configureNormalCell(image: UIImage, title: String) {
+        self.type = .normal
+        profileImageView.image = image
+        nameLabel.text = title
+    }
+
     private func handleRank(rank: Int) {
         if 1...3 ~= rank {
             rankBadgeImageView.image = rank == 1 ? .first : rank == 2 ? .second : .third

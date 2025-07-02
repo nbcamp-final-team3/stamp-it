@@ -168,7 +168,7 @@ extension MyPageViewController: UIPageViewControllerDelegate {
            let newVC = pageViewController.viewControllers?.first,
            let newIndex = viewControllers.firstIndex(of: newVC) {
             viewModel.action.accept(
-                .tabChanged(TabType(rawValue: newIndex) ?? .stampBoard)
+                .tabChanged(TabType(rawValue: newIndex)!)
             )
         }
     }

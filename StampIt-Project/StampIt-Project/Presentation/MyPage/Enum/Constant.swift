@@ -5,23 +5,25 @@
 //  Created by kingj on 6/9/25.
 //
 
-import Foundation
+import UIKit
 
-enum TabType: Int {
-    case stampBoard = 0
-    case profile = 1
+// MARK: - Sticker
+
+extension StickerType {
+    static let imageSize: CGFloat = 53
     
-    var title: String {
-        switch self {
-        case .stampBoard: return "스탬프판"
-        case .profile: return "프로필"
+    static func from(_ index: Int) -> StickerType {
+        switch index {
+        case 0: return .stampRed
+        case 1: return .stampBlue
+        case 2: return .stampYellow
+        case 3: return .stampPurple
+        default: return .stampGray
         }
     }
 }
 
-extension StickerType {
-    static let imageSize: CGFloat = 53
-}
+// MARK: - MyPage
 
 enum MyPage {
     enum Tab {
@@ -65,6 +67,20 @@ enum MyPage {
     }
 }
 
+enum TabType: Int {
+    case stampBoard = 0
+    case profile
+    
+    var title: String {
+        switch self {
+        case .profile: return "프로필"
+        case .stampBoard: return "스탬프판"
+        }
+    }
+}
+
+// MARK: - Navigation
+
 enum Navigation {
     static let fontSize: CGFloat = 24
     static let height: Double = 68
@@ -75,4 +91,35 @@ enum Navigation {
     static let appLogo: String = "AppLogo"
     static let appLogoWidth: CGFloat = 125
     static let appLogoHeight: CGFloat = 42
+}
+
+// MARK: - StampBoard
+
+
+
+enum StampBoard: Int {
+    case red = 0
+    case blue
+    case yellow
+    case purple
+    
+    var bgColor: UIColor {
+        switch self {
+        case .red: return .red50
+        case .blue: return .blue50
+        case .yellow: return .yellow50
+        case .purple: return .purple50
+        }
+    }
+    
+    var pageBar: UIColor {
+        switch self {
+        case .red: return .red200
+        case .blue: return .blue200
+        case .yellow: return .yellow200
+        case .purple: return .purple200
+        }
+    }
+    
+    static var totalPage: Int { 4 }
 }

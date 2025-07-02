@@ -10,17 +10,20 @@ import Foundation
 struct Sticker: Hashable {
     let userID: String
     let stickerID: String
-    let title: String
-    let description: String
-    let imageURL: String
+    let groupId: String
+    let month: String
     let type: StickerType
-    let createdAt: Date
-    let maxStickers: Int
     let pinNumber: Int
+    let createdAt: Date
+    let missionId: String
+    let maxStickers: Int
     let assignedBy: String
 }
 
 enum StickerType: String, Hashable {
     case stampGray
     case stampRed
+    case stampBlue
+    case stampYellow
+    case stampPurple
 }

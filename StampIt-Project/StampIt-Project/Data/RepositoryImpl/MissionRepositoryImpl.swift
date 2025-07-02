@@ -10,14 +10,14 @@ import RxSwift
 import FirebaseCore
 
 final class MissionRepositoryImpl: MissionRepository {
-    private let missionManager: MissionManager
-    private let membershipManager: MembershipManager
-    private let authRepository: AuthRepositoryProtocol
+    private let missionManager: any MissionManagerProtocol
+    private let membershipManager: any MembershipManagerProtocol
+    private let authRepository: any AuthRepositoryProtocol
     
     init(
-        missionManager: MissionManager,
-        membershipManager: MembershipManager,
-        authRepository: AuthRepositoryProtocol
+        missionManager: any MissionManagerProtocol,
+        membershipManager: any MembershipManagerProtocol,
+        authRepository: any AuthRepositoryProtocol
     ) {
         self.missionManager = missionManager
         self.membershipManager = membershipManager
@@ -67,6 +67,8 @@ final class MissionRepositoryImpl: MissionRepository {
                 return "health"
             case .learning:
                 return "learning"
+            case .custom:
+                return "custom"
             }
         }()
         

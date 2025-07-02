@@ -20,7 +20,7 @@ final class GroupDashboardView: UIView {
     let didTapMissionCompleteButton = PublishRelay<HomeItem>()
     let didTapMoreMyMissionButton = PublishRelay<Void>()
     let didTapMoreMemberMissionButton = PublishRelay<Void>()
-    let selectMember = PublishRelay<String?>()
+    let selectMember = PublishRelay<Int>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
 
@@ -114,12 +114,6 @@ final class GroupDashboardView: UIView {
                 ) as! FilterCell
 
                 cell.configure(title: nickname, isMediumSize: false)
-
-                cell.selectFilter
-                    .bind(with: self, onNext: { owner, text in
-                        owner.selectMember.accept(text)
-                    })
-                    .disposed(by: cell.disposeBag)
 
                 return cell
 
@@ -215,12 +209,18 @@ final class GroupDashboardView: UIView {
         collectionView.rx
             .setDelegate(self)
             .disposed(by: disposeBag)
+
+        collectionView.rx.itemSelected
+            .map { $0.item }
+            .bind(to: selectMember)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods
 
     func setDefaultSelection() {
         let section = HomeSection.allCases.firstIndex(of: .memberFilter)!
+        guard collectionView.numberOfItems(inSection: section) > 0 else { return }
         let indexPath = IndexPath(item: 0, section: section)
         collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
     }

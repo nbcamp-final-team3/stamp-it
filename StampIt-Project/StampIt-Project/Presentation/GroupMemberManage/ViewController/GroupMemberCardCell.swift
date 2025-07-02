@@ -50,7 +50,7 @@ final class GroupMemberCardCell: UICollectionViewCell {
     }
 
     private let dateLabel = UILabel().then {
-        $0.font = .pretendard(size: 13, weight: .regular)
+        $0.font = .pretendard(size: 14, weight: .regular)
         $0.textColor = .gray500
         $0.numberOfLines = 1
         $0.lineBreakMode = .byTruncatingTail
@@ -70,6 +70,27 @@ final class GroupMemberCardCell: UICollectionViewCell {
     private let hStack = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 16
+        $0.alignment = .center
+    }
+
+    private let leaderBadgeContainer = UIView().then {
+        $0.backgroundColor = .F_2_F_2_F_2
+        $0.layer.cornerRadius = 8
+        $0.layer.masksToBounds = true
+    }
+
+    private let leaderBadgeLabel = UILabel().then {
+        $0.text = "그룹 리더"
+        $0.font = .pretendard(size: 12, weight: .regular)
+        $0.textColor = .black
+        $0.textAlignment = .center
+        $0.numberOfLines = 1
+        $0.lineBreakMode = .byClipping
+    }
+
+    private let nameHStack = UIStackView().then {
+        $0.axis = .horizontal
+        $0.spacing = 8
         $0.alignment = .center
     }
 
@@ -99,17 +120,21 @@ final class GroupMemberCardCell: UICollectionViewCell {
         [profileImageView, infoVstack]
             .forEach { hStack.addArrangedSubview($0) }
 
-        [nameLabel, dateLabel]
+        [nameHStack, dateLabel]
             .forEach { infoVstack.addArrangedSubview($0) }
 
-        nameLabel.snp.makeConstraints {
-            //여유 공간 확보?
-            $0.height.equalTo(16)
+        [leaderBadgeContainer, nameLabel]
+            .forEach { nameHStack.addArrangedSubview($0) }
+        
+        leaderBadgeContainer.addSubview(leaderBadgeLabel)
+
+        leaderBadgeLabel.snp.makeConstraints {
+            $0.edges.equalToSuperview().inset(UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8))
         }
 
-         infoVstack.snp.makeConstraints {
-             $0.centerY.equalTo(profileImageView.snp.centerY)
-         }
+        infoVstack.snp.makeConstraints {
+            $0.centerY.equalTo(profileImageView.snp.centerY)
+        }
 
         hStack.snp.makeConstraints {
             $0.top.leading.bottom.equalToSuperview().inset(16)
@@ -150,15 +175,25 @@ final class GroupMemberCardCell: UICollectionViewCell {
 
     // MARK: - Configure
     func configure(with item: GroupMemberManageViewModel.Item, at indexPath: IndexPath) {
-        // 셀 재사용 시 이전 구독들을 해제
-//        disposeBag = DisposeBag()
-        
         self.indexPath = indexPath
         nameLabel.text = item.name
         dateLabel.text = item.date
-        profileImageView.image = item.image
         
-        // 새로운 구독 설정
-//        bind()
+        if let imageName = item.imageName {
+            profileImageView.image = UIImage(named: imageName)
+        } else {
+            profileImageView.image = UIImage(named: "profileImage1")
+        }
+        
+        if item.isLeader {
+            if !nameHStack.arrangedSubviews.contains(leaderBadgeContainer) {
+                nameHStack.insertArrangedSubview(leaderBadgeContainer, at: 0)
+            }
+        } else {
+            if nameHStack.arrangedSubviews.contains(leaderBadgeContainer) {
+                nameHStack.removeArrangedSubview(leaderBadgeContainer)
+                leaderBadgeContainer.removeFromSuperview()
+            }
+        }
     }
 }

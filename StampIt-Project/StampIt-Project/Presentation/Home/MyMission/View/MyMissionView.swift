@@ -16,6 +16,7 @@ final class MyMissionView: UIView {
     // MARK: - Actions
 
     let didTapStatusButton = PublishRelay<MyMissionItem>()
+    let selectFilter = PublishRelay<Int>()
 
     // MARK: - Properties
 
@@ -28,6 +29,8 @@ final class MyMissionView: UIView {
         frame: .zero,
         collectionViewLayout: createLayout()
     ).then {
+        $0.backgroundColor = .clear
+        $0.register(FilterCell.self, forCellWithReuseIdentifier: FilterCell.reuseIdentifier)
         $0.register(
             AssignedMissionCell.self,
             forCellWithReuseIdentifier: AssignedMissionCell.identifier
@@ -59,8 +62,8 @@ final class MyMissionView: UIView {
 
     private func setHierarchy() {
         [
-            collectionView,
             noResultsView,
+            collectionView,
         ].forEach { addSubview($0) }
     }
 
@@ -82,6 +85,16 @@ final class MyMissionView: UIView {
     private func setDataSource() {
         dataSource = .init(collectionView: collectionView) { collectionView, indexPath, item in
             switch item {
+            case .status(let status):
+                let cell = collectionView.dequeueReusableCell(
+                    withReuseIdentifier: FilterCell.reuseIdentifier,
+                    for: indexPath
+                ) as! FilterCell
+
+                cell.configure(title: status.displayTitle, isMediumSize: false)
+
+                return cell
+
             case .mission(let mission):
                 let cell = collectionView.dequeueReusableCell(
                     withReuseIdentifier: AssignedMissionCell.identifier,
@@ -109,6 +122,14 @@ final class MyMissionView: UIView {
     // MARK: - Bind
 
     private func bind() {
+        collectionView.rx
+            .setDelegate(self)
+            .disposed(by: disposeBag)
+
+        collectionView.rx.itemSelected
+            .map { $0.item }
+            .bind(to: selectFilter)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods
@@ -117,7 +138,7 @@ final class MyMissionView: UIView {
         guard var snapshot = dataSource?.snapshot() else { return }
         let itemsToDelete = snapshot.itemIdentifiers(inSection: section)
         snapshot.deleteItems(itemsToDelete)
-        snapshot.appendItems(items)
+        snapshot.appendItems(items, toSection: section)
         dataSource?.apply(snapshot, animatingDifferences: false)
         noResultsView.isHidden = !items.isEmpty
     }
@@ -129,6 +150,9 @@ final class MyMissionView: UIView {
             let section = MyMissionSection.allCases[section]
 
             switch section {
+            case .filter:
+                let insets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+                return .createFilterSection(insets: insets)
             case .mission:
                 return createMissionSection()
             }
@@ -150,7 +174,23 @@ final class MyMissionView: UIView {
 
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 6
-        section.contentInsets = .init(top: 12, leading: 16, bottom: 12, trailing: 16)
+        section.contentInsets = .init(top: 8, leading: 16, bottom: 12, trailing: 16)
         return section
     }
+
+    func setFilterSelection(index: Int) {
+        let section = MyMissionSection.allCases.firstIndex(of: .filter)!
+        guard collectionView.numberOfItems(inSection: section) > 0 else { return }
+        let indexPath = IndexPath(item: index, section: section)
+        collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+    }
+}
+
+extension MyMissionView: UICollectionViewDelegate {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    shouldSelectItemAt indexPath: IndexPath
+  ) -> Bool {
+      return indexPath.section == MyMissionSection.allCases.firstIndex(of: .filter)!
+  }
 }

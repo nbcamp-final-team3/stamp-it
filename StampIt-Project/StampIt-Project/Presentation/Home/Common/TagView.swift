@@ -74,6 +74,7 @@ final class TagView: UIView {
 
     func updateText(with text: String) {
         label.text = text
+        invalidateIntrinsicContentSize()
     }
 
     func updateTextColor(_ color: UIColor) {

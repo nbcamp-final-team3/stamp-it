@@ -18,6 +18,8 @@ extension MissionCategory {
             "건강운동"
         case .learning:
             "독서학습"
+        case .custom:
+            "사용자정의"
         }
     }
 
@@ -31,6 +33,8 @@ extension MissionCategory {
                 .health
         case .learning:
                 .learning
+        case .custom:
+                .custom
         }
     }
 
@@ -44,6 +48,8 @@ extension MissionCategory {
                 .yellow100
         case .learning:
                 .purple100
+        case .custom:
+                .D_7_F_4_DC
         }
     }
 }

@@ -9,33 +9,37 @@ import Foundation
 
 // MARK: - StickerQuery 정의
 struct StickerQuery {
-    let stickerIds: [String]?
-    let userIds: [String]?
-    let groupIds: [String]?
-    let months: [String]?
-    let pinNumbers: [Int]?
-    let types: [String]?
-    let createdAfter: Date?
+    let stickerId: [String]?
+    let userId: [String]?
+    let groupId: [String]?
+    let month: [String]?
+    let pinNumber: [Int]?
+    let type: [String]?
+    let createdAt: Date?
     let orderBy: QueryOrder?
     let limit: Int?
     
     static func byUser(_ userId: String) -> StickerQuery {
-        return StickerQuery(stickerIds: nil, userIds: [userId], groupIds: nil, months: nil, pinNumbers: nil, types: nil, createdAfter: nil, orderBy: nil, limit: nil)
+        return StickerQuery(stickerId: nil, userId: [userId], groupId: nil, month: nil, pinNumber: nil, type: nil, createdAt: nil, orderBy: nil, limit: nil)
     }
     
     static func byUserAndMonth(_ userId: String, month: String) -> StickerQuery {
-        return StickerQuery(stickerIds: nil, userIds: [userId], groupIds: nil, months: [month], pinNumbers: nil, types: nil, createdAfter: nil, orderBy: nil, limit: nil)
+        return StickerQuery(stickerId: nil, userId: [userId], groupId: nil, month: [month], pinNumber: nil, type: nil, createdAt: nil, orderBy: nil, limit: nil)
     }
     
     static func byUserAndPin(_ userId: String, pinNumber: Int) -> StickerQuery {
-        return StickerQuery(stickerIds: nil, userIds: [userId], groupIds: nil, months: nil, pinNumbers: [pinNumber], types: nil, createdAfter: nil, orderBy: nil, limit: nil)
+        return StickerQuery(stickerId: nil, userId: [userId], groupId: nil, month: nil, pinNumber: [pinNumber], type: nil, createdAt: nil, orderBy: nil, limit: nil)
+    }
+    
+    static func byUserAndDescCreatedAfter(_ userId: String) -> StickerQuery {
+        return StickerQuery(stickerId: nil, userId: [userId], groupId: nil, month: nil, pinNumber: nil, type: nil, createdAt: nil, orderBy: QueryOrder(field: "createdAt", descending: false), limit: nil)
     }
     
     static func byGroup(_ groupId: String) -> StickerQuery {
-        return StickerQuery(stickerIds: nil, userIds: nil, groupIds: [groupId], months: nil, pinNumbers: nil, types: nil, createdAfter: nil, orderBy: nil, limit: nil)
+        return StickerQuery(stickerId: nil, userId: nil, groupId: [groupId], month: nil, pinNumber: nil, type: nil, createdAt: nil, orderBy: nil, limit: nil)
     }
     
     static func byGroupAndMonth(_ groupId: String, month: String) -> StickerQuery {
-        return StickerQuery(stickerIds: nil, userIds: nil, groupIds: [groupId], months: [month], pinNumbers: nil, types: nil, createdAfter: nil, orderBy: nil, limit: nil)
+        return StickerQuery(stickerId: nil, userId: nil, groupId: [groupId], month: [month], pinNumber: nil, type: nil, createdAt: nil, orderBy: nil, limit: nil)
     }
 }

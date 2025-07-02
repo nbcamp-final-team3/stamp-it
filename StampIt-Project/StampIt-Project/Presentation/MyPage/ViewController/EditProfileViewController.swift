@@ -33,7 +33,7 @@ final class EditProfileViewController: UIViewController {
         $0.textColor = .gray400
     }
     
-    private let nicknameTextField = UITextField().then {
+    private let nicknameTextField = EditProfileTextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
         $0.textColor = .gray300
         $0.layer.cornerRadius = 16
@@ -41,12 +41,7 @@ final class EditProfileViewController: UIViewController {
         $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.borderWidth = 1
         $0.clearButtonMode = .whileEditing
-        
-        // placeholder 관련
         $0.placeholder = "닉네임"
-        let leftView = UIView(frame: CGRect(x: 0, y: 0, width: 24, height: 0))
-        $0.leftView = leftView
-        $0.leftViewMode = .always
     }
     
     // nicknameLabel + nicknameTextField
@@ -56,13 +51,18 @@ final class EditProfileViewController: UIViewController {
         $0.spacing = 4
     }
     
+    private let nicknameErrorLabel = UILabel().then {
+        $0.font = .pretendard(size: 12, weight: .regular)
+        $0.textColor = .red400
+    }
+    
     private let groupNameLabel = UILabel().then {
         $0.text = "그룹명"
         $0.font = .pretendard(size: 14, weight: .regular)
         $0.textColor = .gray400
     }
     
-    private let groupNameTextField = UITextField().then {
+    private let groupNameTextField = EditProfileTextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
         $0.textColor = .gray300
         $0.layer.cornerRadius = 16
@@ -70,12 +70,7 @@ final class EditProfileViewController: UIViewController {
         $0.layer.borderColor = UIColor.gray200.cgColor
         $0.layer.borderWidth = 1
         $0.clearButtonMode = .whileEditing
-        
-        // placeholder 관련
         $0.placeholder = "그룹명"
-        let leftView = UIView(frame: CGRect(x: 0, y: 0, width: 24, height: 0))
-        $0.leftView = leftView
-        $0.leftViewMode = .always
     }
     
     // groupNameLabel + groupNameTextField
@@ -92,8 +87,6 @@ final class EditProfileViewController: UIViewController {
     }
     
     private let editButton = DefaultButton(type: .modify)
-    
-    private let toastView = ToastView()
     
     private let viewModel: EditProfileViewModel
     private let disposeBag = DisposeBag()
@@ -113,6 +106,7 @@ final class EditProfileViewController: UIViewController {
     }
     
     deinit {
+        NotificationCenter.default.removeObserver(self)
         print("editProfileViewController deinit")
     }
     
@@ -133,6 +127,9 @@ final class EditProfileViewController: UIViewController {
         
         setupSelectedProfileImage()
         
+        setupKeyboardNotification()
+        setTapGesture()
+        
         viewModel.action.accept(.onAppear)
     }
     
@@ -151,6 +148,7 @@ final class EditProfileViewController: UIViewController {
          profileImageLabel,
          collectionView,
          nicknameStackView,
+         nicknameErrorLabel,
          groupNameStackView,
          alertMessageLabel,
          editButton]
@@ -184,6 +182,11 @@ final class EditProfileViewController: UIViewController {
             $0.height.equalTo(72)
         }
         
+        nicknameErrorLabel.snp.makeConstraints {
+            $0.top.equalTo(nicknameStackView.snp.bottom).offset(4)
+            $0.leading.equalToSuperview().offset(24)
+        }
+        
         groupNameStackView.snp.makeConstraints {
             $0.top.equalTo(nicknameStackView.snp.bottom).offset(32)
             $0.horizontalEdges.equalToSuperview().inset(16)
@@ -207,6 +210,8 @@ final class EditProfileViewController: UIViewController {
     
     private func setNavigationBar() {        
         navigationController?.setNavigationBarHidden(true, animated: false)
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
     
     private func setButtonAction() {
@@ -243,7 +248,10 @@ final class EditProfileViewController: UIViewController {
             .distinctUntilChanged()
             .skip(1)
             .drive { [weak self] in
-                self?.viewModel.action.accept(.nicknameChanged($0))
+                guard let self else { return }
+                
+                nicknameErrorLabel.text = ""
+                viewModel.action.accept(.nicknameChanged($0))
             }
             .disposed(by: disposeBag)
         
@@ -252,8 +260,7 @@ final class EditProfileViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .skip(1)
             .drive { [weak self] message in
-                guard let self, let message else { return }
-                toastView.show(in: view, duration: 3, message: message, type: .failure)
+                self?.nicknameErrorLabel.text = message
             }
             .disposed(by: disposeBag)
         
@@ -383,6 +390,55 @@ final class EditProfileViewController: UIViewController {
         navigationController?.popViewController(animated: true)
         print("dismiss")
     }
+    
+    // 키보드 올라왔을 때 버튼 가리는 현상 방지
+    private func setupKeyboardNotification() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(keyboardWillShow(_:)),
+                                               name: UIResponder.keyboardWillShowNotification,
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(keyboardWillHide(_:)),
+                                               name: UIResponder.keyboardWillHideNotification,
+                                               object: nil)
+    }
+    
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval else { return }
+        
+        let keyboardTopY = keyboardFrame.origin.y
+        let buttonBottomY = editButton.convert(editButton.bounds, to: view.window).maxY
+        
+        // 버튼이 키보드에 가려지는 경우만 이동
+        if buttonBottomY > keyboardTopY {
+            let offset = buttonBottomY - keyboardTopY + 16
+            UIView.animate(withDuration: duration) {
+                self.view.transform = CGAffineTransform(translationX: 0, y: -offset)
+            }
+        }
+    }
+    
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval else { return }
+        
+        UIView.animate(withDuration: duration) {
+            self.view.transform = .identity
+        }
+    }
+    
+    // 화면을 아무데나 터치하면 키보드 내려감
+    private func setTapGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
 }
 
 // 컬렉션 뷰 섹션/아이템 정의
@@ -393,5 +449,12 @@ extension EditProfileViewController {
     
     enum Item: Hashable {
         case image(String)
+    }
+}
+
+extension EditProfileViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        // navigationController의 viewControllers가 2개 이상일 때만 pop 허용
+        return navigationController?.viewControllers.count ?? 0 > 1
     }
 }

@@ -92,6 +92,11 @@ final class MyMissionViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        myMissionView.selectFilter
+            .map { MyMissionViewModel.Action.selectFilter($0) }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         toastView.didTapCancelButton
             .map { MyMissionViewModel.Action.didTapCompleteCancelButton }
             .bind(to: viewModel.action)
@@ -104,7 +109,21 @@ final class MyMissionViewController: UIViewController {
             }
             .disposed(by: disposeBag)
 
-        viewModel.state.missions
+        viewModel.state.missionFilters
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.myMissionView.updateSnapshot(withItems: items, toSection: .filter)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.selectedFilter
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, index in
+                owner.myMissionView.setFilterSelection(index: index)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.filteredMissions
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
                 owner.myMissionView.updateSnapshot(withItems: items, toSection: .mission)

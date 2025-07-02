@@ -19,8 +19,7 @@ final class SendInviteViewModel: ViewModelProtocol {
     struct State {
         let inviteCode = BehaviorRelay<String>(value: "")
         let showMessage = PublishRelay<(ToastType, String)>()
-        let copyToClipboard = PublishRelay<String>()
-
+        let copySuccess = PublishRelay<String>()
     }
 
     // MARK: - Properties
@@ -56,7 +55,8 @@ final class SendInviteViewModel: ViewModelProtocol {
         useCase.getInviteCode()
             .subscribe(onNext: { [weak self] code in
                 guard let self = self else { return }
-                self.state.copyToClipboard.accept(code)
+                // 복사 성공 시 데이터 스트림 viewController로 전달
+                self.state.copySuccess.accept(code)
                 self.state.showMessage.accept((.success, "초대 코드가 복사되었습니다"))
             }, onError: { [weak self] error in
                 let message: String

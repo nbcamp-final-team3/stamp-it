@@ -15,8 +15,9 @@ import Then
 final class AssignMissionViewController: UIViewController {
     private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "미션 전달하기"))
     
-    private let missionTitleLabel = UILabel().then {
+    private let missionTitleTextField = UITextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
+        $0.placeholder = "미션 내용"
     }
     
     private let memberLabel = UILabel().then {
@@ -97,15 +98,20 @@ final class AssignMissionViewController: UIViewController {
         bind()
         
         viewModel.action.accept(.onAppear)
+        
+        if viewModel.state.mission.value?.category == .custom {
+            navigationBar.updateNavigationTitle("커스텀 미션 전달하기")
+        }
     }
     
     private func prepareSubviews() {
         view.backgroundColor = .white
         
         // dropdownView는 보여질 때 일부 화면이 가려지므로(예: dueDateStackView) 마지막에 서브 뷰로 추가
-        [navigationBar, missionTitleLabel, memberStackView, dueDateView, assignButton, dropdownView].forEach {
-            view.addSubview($0)
-        }
+        [navigationBar, missionTitleTextField, memberStackView, dueDateView, assignButton, dropdownView]
+            .forEach {
+                view.addSubview($0)
+            }
         
         [memberLabel, memberSelectionButton].forEach {
             memberStackView.addArrangedSubview($0)
@@ -118,13 +124,13 @@ final class AssignMissionViewController: UIViewController {
             $0.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
         }
         
-        missionTitleLabel.snp.makeConstraints {
+        missionTitleTextField.snp.makeConstraints {
             $0.top.equalTo(navigationBar.snp.bottom).offset(16)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
         memberStackView.snp.makeConstraints {
-            $0.top.equalTo(missionTitleLabel.snp.bottom).offset(24)
+            $0.top.equalTo(missionTitleTextField.snp.bottom).offset(24)
             $0.horizontalEdges.equalToSuperview().inset(16)
         }
         
@@ -158,7 +164,16 @@ final class AssignMissionViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive { [weak self] mission in
                 guard let self, let mission else { return }
-                missionTitleLabel.text = mission.title
+                missionTitleTextField.text = mission.title
+            }
+            .disposed(by: disposeBag)
+        
+        // 미션 제목 수정 시
+        missionTitleTextField.rx.text
+            .orEmpty
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] text in
+                self?.viewModel.action.accept(.didFillOutTitle(text))
             }
             .disposed(by: disposeBag)
         
@@ -179,9 +194,16 @@ final class AssignMissionViewController: UIViewController {
                 guard let self, let member else { return }
                 
                 memberSelectionButton.configuration = configureButton(title: member.nickname, titleColor: .gray800) // 버튼에 선택한 멤버 이름 표시
-                assignButton.isEnabled = true // 미션 전달하기 버튼 활성화
                 dropdownView.isHidden = true
                 isDropdown = false
+            }
+            .disposed(by: disposeBag)
+        
+        // 전달하기 버튼 활성화 여부
+        viewModel.state.canSubmit
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] isEnabled in
+                self?.assignButton.isEnabled = isEnabled
             }
             .disposed(by: disposeBag)
         
