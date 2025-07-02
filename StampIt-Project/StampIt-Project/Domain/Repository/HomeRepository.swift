@@ -34,4 +34,6 @@ protocol HomeRepositoryProtocol {
         missionId: String,
         assignedBy: String
     ) -> Observable<Void>
+
+    func deleteSticker(missionID: String) -> Observable<Void>
 }
