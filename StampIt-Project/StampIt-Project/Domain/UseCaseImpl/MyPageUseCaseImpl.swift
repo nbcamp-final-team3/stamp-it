@@ -21,6 +21,10 @@ final class MyPageUseCaseImpl: MyPageUseCaseProtocol {
         self.mypageRepository = mypageRepository
     }
     
+    func fetchUserOnce(userId: String) -> Observable<User?> {
+        mypageRepository.fetchUserOnce(userId: userId)
+    }
+    
     func fetchUser() -> Observable<User?> {
         authRepository.getCurrentUser()
     }

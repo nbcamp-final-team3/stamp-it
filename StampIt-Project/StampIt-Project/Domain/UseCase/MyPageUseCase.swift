@@ -9,6 +9,7 @@ import Foundation
 import RxSwift
 
 protocol MyPageUseCaseProtocol {
+    func fetchUserOnce(userId: String) -> Observable<User?>
     func fetchUser() -> Observable<User?>
     func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[Sticker]>
     func observeStickerCount(userId: String) -> Observable<Int>
