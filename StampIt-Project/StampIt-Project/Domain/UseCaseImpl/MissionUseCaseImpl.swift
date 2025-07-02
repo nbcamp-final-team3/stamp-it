@@ -34,4 +34,11 @@ struct MissionUseCaseImpl: MissionUseCase {
     func createMission(groupId: String, mission: Mission) -> Observable<Void> {
         missionRepositoryImpl.createMission(groupId: groupId, mission: mission)
     }
+    
+    // 미션 1개 패치
+    func fetchMission(with id: String) -> Observable<MissionUI?> {
+        missionRepositoryImpl.fetchMission(widh: id)
+            .map { $0?.toPresentation() }
+    }
+    
 }

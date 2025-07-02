@@ -28,4 +28,10 @@ protocol MissionRepository {
     ///   - mission: 도메인 레이어 Mission 모델
     /// - Returns: Observable(Void)
     func createMission(groupId: String, mission: Mission) -> Observable<Void>
+    
+    /// 미션 ID 로 패치
+    /// - Parameters:
+    ///   - id: 미션 ID
+    /// - Returns: 미션 1개
+    func fetchMission(widh id: String) -> Observable<Mission?>
 }
