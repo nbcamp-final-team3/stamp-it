@@ -102,6 +102,8 @@ final class AssignMissionViewController: UIViewController {
         if viewModel.state.mission.value?.category == .custom {
             navigationBar.updateNavigationTitle("커스텀 미션 전달하기")
         }
+        
+        setTapGesture()
     }
     
     private func prepareSubviews() {
@@ -287,5 +289,15 @@ final class AssignMissionViewController: UIViewController {
     // 전달하기 버튼 누르면 원래 화면으로 복귀
     private func dismiss() {
         navigationController?.popViewController(animated: true)
+    }
+    
+    private func setTapGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
 }
