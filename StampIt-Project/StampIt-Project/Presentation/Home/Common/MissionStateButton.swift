@@ -13,7 +13,7 @@ final class MissionStateButton: UIControl {
 
     // MARK: - Properties
 
-    private var status: MissionStatus {
+    private var status: Status {
         didSet {
             setStyles()
         }
@@ -46,7 +46,7 @@ final class MissionStateButton: UIControl {
 
     // MARK: - Init
 
-    init(status: MissionStatus) {
+    init(status: Status) {
         self.status = status
         super.init(frame: .zero)
         setStyles()
@@ -106,12 +106,29 @@ final class MissionStateButton: UIControl {
 
     // MARK: - Methods
 
-    func updateStatus(to status: MissionStatus) {
-        self.status = status
+    func updateStatus(to status: MissionStatus, _ isCancelable: Bool) {
+        self.status = Status(status, isCancelable)
     }
 }
 
 extension MissionStateButton {
+    enum Status: Equatable {
+        case assigned
+        case completed(isCancelable: Bool)
+        case failed
+
+        init(_ missionStatus: MissionStatus, _ isCancelable: Bool) {
+            switch missionStatus {
+            case .assigned:
+                self = .assigned
+            case .completed:
+                self = .completed(isCancelable: isCancelable)
+            case .failed:
+                self = .failed
+            }
+        }
+    }
+
     private var borderWidth: CGFloat {
         switch status {
         case .assigned, .failed: 0

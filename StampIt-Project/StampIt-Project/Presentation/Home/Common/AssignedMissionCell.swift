@@ -243,12 +243,12 @@ final class AssignedMissionCell: UICollectionViewCell {
         self.type = .received
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
-        newTag.isHidden = !(mission.isNew ?? false)
+        newTag.isHidden = !mission.isNew
         nameTag.updateText(with: "from." + mission.assigner)
         dateTag.updateText(with: "~" + mission.dueDate)
         dateTag.updateTextColor(mission.isOverdue ? .gray200 : .gray400)
         titleLabel.text = mission.title
-        statusButton.updateStatus(to: mission.status)
+        statusButton.updateStatus(to: mission.status, mission.isCancelableCompleted)
         updateContentStackViewConstraints()
     }
 

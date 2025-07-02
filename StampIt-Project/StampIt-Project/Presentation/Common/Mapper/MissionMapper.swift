@@ -21,6 +21,7 @@ final class MissionMapper: MissionMapping {
                 assigner: assigner,
                 isNew: mission.isNew,
                 isOverdue: mission.isOverdue,
+                isCancelableCompleted: mission.isCancelableCompleted,
                 status: mission.status
             )
             return homeMission
