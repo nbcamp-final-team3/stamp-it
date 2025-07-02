@@ -287,10 +287,10 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
                     return Observable.error(RepositoryError.unknownError)
                 }
 
-                // 💡 그룹 탈퇴 전용 검증
+                // 그룹 탈퇴 전용 검증
                 return self.validateGroupLeaving(currentUser: currentUser)
                     .flatMap { _ in
-                        // 💡 그룹 탈퇴 실행
+                        // 그룹 탈퇴 실행
                         return self.executeGroupLeaving(currentUser: currentUser)
                     }
             }
@@ -334,7 +334,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
                 return self.membershipManager.fetchList(query: .byGroup(currentUser.groupID))
                     .map { memberships in memberships.count }
                     .flatMap { memberCount -> Observable<Void> in
-                        // 💡 핵심: 1인 그룹은 그룹 탈퇴 차단
+                        // 핵심: 1인 그룹은 그룹 탈퇴 차단
                         if memberCount <= 1 {
                             return Observable.error(
                                 RepositoryError.dataError("계정 삭제를 원하신다면\n'서비스 탈퇴'를 이용해주세요.")
@@ -537,16 +537,16 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         currentGroupId: String,
         maxRetries: Int
     ) -> Observable<Void> {
-        return Observable.zip(
-            missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId), // 받은 미션만 삭제
-            stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)      // 그룹과 관련된 본인 스티커 삭제
-        )
-        .map { _ in () }
-        .retry(maxRetries)
-        .timeout(.seconds(5), scheduler: MainScheduler.instance)
-        .catch { error in
-            return Observable.error(GroupExitError.dataCleanupFailed(error.localizedDescription))
-        }
+        return missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId)
+            .retry(maxRetries)
+            .flatMap { _ in
+                return self.stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
+                    .retry(maxRetries)
+            }
+            .timeout(.seconds(5), scheduler: MainScheduler.instance)
+            .catch { error in
+                return Observable.error(GroupExitError.dataCleanupFailed(error.localizedDescription))
+            }
     }
 
     /// 롤백 시도 (베스트 에포트) (새로운 DB 구조 반영)
