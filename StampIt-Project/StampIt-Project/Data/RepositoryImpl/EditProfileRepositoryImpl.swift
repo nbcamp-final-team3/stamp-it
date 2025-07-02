@@ -9,14 +9,14 @@ import Foundation
 import RxSwift
 
 final class EditProfileRepositoryImpl: EditProfileRepository {
-    private let userManager: UserManager
-    private let groupManager: GroupManager
-    private let membershipManager: MembershipManager
+    private let userManager: any UserManagerProtocol
+    private let groupManager: any GroupManagerProtocol
+    private let membershipManager: any MembershipManagerProtocol
     
     init(
-            userManager: UserManager,
-            groupManager: GroupManager,
-            membershipManager: MembershipManager
+            userManager: any UserManagerProtocol,
+            groupManager: any GroupManagerProtocol,
+            membershipManager: any MembershipManagerProtocol
         ) {
             self.userManager = userManager
             self.groupManager = groupManager

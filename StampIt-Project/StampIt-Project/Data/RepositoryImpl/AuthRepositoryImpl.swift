@@ -16,22 +16,22 @@ final class AuthRepository: AuthRepositoryProtocol {
     private let authManager: AuthManagerProtocol
     
     // 각 매니저별로 분리된 의존성 (새로운 매니저 구조)
-    private let userManager: UserManager
-    private let groupManager: GroupManager
-    private let membershipManager: MembershipManager
-    private let missionManager: MissionManager
-    private let stickerManager: StickerManager
+    private let userManager: any UserManagerProtocol
+    private let groupManager: any GroupManagerProtocol
+    private let membershipManager: any MembershipManagerProtocol
+    private let missionManager: any MissionManagerProtocol
+    private let stickerManager: any StickerManagerProtocol
     
     private let disposeBag = DisposeBag()
     
     // MARK: - Init
     init(
         authManager: AuthManagerProtocol,
-        userManager: UserManager,
-        groupManager: GroupManager,
-        membershipManager: MembershipManager,
-        missionManager: MissionManager,
-        stickerManager: StickerManager
+        userManager: any UserManagerProtocol,
+        groupManager: any GroupManagerProtocol,
+        membershipManager: any MembershipManagerProtocol,
+        missionManager: any MissionManagerProtocol,
+        stickerManager: any StickerManagerProtocol
     ) {
         self.authManager = authManager
         self.userManager = userManager
@@ -230,17 +230,6 @@ final class AuthRepository: AuthRepositoryProtocol {
     }
     
     func addMember(groupId: String, member: GroupMembershipFirestore) -> Observable<Void> {
-        //        // member 컬렉션 삭제, membership 컬렉션 사용
-        //        let membership = GroupMembershipFirestore(
-        //            membershipId: "\(groupId)_\(member.userId)",
-        //            groupId: groupId,
-        //            userId: member.userId,
-        //            nickname: member.nickname,
-        //            profileImage: member.profileImage,
-        //            isLeader: member.isLeader,
-        //            joinedAt: member.joinedAt
-        //        )
-        //        return membershipManager.create(membership)
         return membershipManager.create(member)
     }
     

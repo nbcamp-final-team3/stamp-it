@@ -11,11 +11,11 @@ import FirebaseFirestore
 
 final class GroupManageRepositoryImpl: GroupManageRepository {
     
-    private let groupManager: GroupManager
-    private let userManager: UserManager
-    private let membershipManager: MembershipManager
+    private let groupManager: any GroupManagerProtocol
+    private let userManager: any UserManagerProtocol
+    private let membershipManager: any MembershipManagerProtocol
     
-    init(groupManager: GroupManager, userManager: UserManager, membershipManager: MembershipManager) {
+    init(groupManager: any GroupManagerProtocol, userManager: any UserManagerProtocol, membershipManager: any MembershipManagerProtocol) {
         self.groupManager = groupManager
         self.userManager = userManager
         self.membershipManager = membershipManager
