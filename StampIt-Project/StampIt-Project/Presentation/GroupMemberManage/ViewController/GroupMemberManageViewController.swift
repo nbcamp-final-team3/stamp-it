@@ -172,22 +172,8 @@ final class GroupMemberManageViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<GroupMemberManageViewModel.Section, GroupMemberManageViewModel.Item>()
         snapshot.appendSections([.main])
 
-        // 현재 사용자 정보 가져오기
-        let currentUserId = viewModel.getCurrentUserId()
-
-        let items = members.map { member in
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy년 MM월 dd일"
-            let formattedDate = dateFormatter.string(from: member.joinedAt)
-            
-            return GroupMemberManageViewModel.Item(
-                id: member.userID, 
-                name: member.nickname,
-                date: "그룹 가입일: \(formattedDate)",
-                image: UIImage(named: member.profileImage ?? "profileImage1"),
-                isCurrentUser: member.userID == currentUserId
-            )
-        }
+        // ViewModel의 createItems 메서드 사용
+        let items = viewModel.createItems(from: members)
         
         snapshot.appendItems(items, toSection: .main)
         dataSource?.apply(snapshot, animatingDifferences: true)
