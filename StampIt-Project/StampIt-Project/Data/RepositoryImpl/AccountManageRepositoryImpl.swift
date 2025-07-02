@@ -191,7 +191,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
             membershipManager.removeMember(groupId: groupId, userId: userId),
             userManager.delete(id: userId),
             stickerManager.deleteUserStickers(userId: userId),
-            missionManager.deleteUserMissions(userId: userId, groupId: groupId)
+            missionManager.deleteReceivedMissions(userId: userId, groupId: groupId)
         )
         .map { _ in () }
         .catch { error in
