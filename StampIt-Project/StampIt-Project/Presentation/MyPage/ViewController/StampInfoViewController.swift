@@ -142,12 +142,19 @@ final class StampInfoViewController: UIViewController {
             }.disposed(by: disposeBag)
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        missionTitle.preferredMaxLayoutWidth = missionTitle.frame.width
+    }
+    
     private func updateUI(with mission: MissionUI) {
         categoryTitle.updateText(with: mission.category.title)
+        
         missionTitle.setTextWithLineHeight(
             text: mission.title,
             lineHeight: 25
         )
+        
         completedDateValue.text = "\(mission.dueDate)"
         missionSenderValue.text = mission.assignedBy
     }
@@ -219,7 +226,7 @@ final class StampInfoViewController: UIViewController {
         }
         
         missionTitle.snp.makeConstraints {
-            $0.directionalHorizontalEdges.equalToSuperview().inset(60)
+            $0.directionalHorizontalEdges.equalToSuperview()
         }
         
         completedHStackView.snp.makeConstraints {
