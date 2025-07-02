@@ -32,7 +32,7 @@ struct Mission: Equatable {
         return today.day == created.day
     }
 
-    func makeCopyCompleted() -> Mission {
+    func makeCopy(status: MissionStatus) -> Mission {
         .init(
             missionID: self.missionID,
             title: self.title,
@@ -40,7 +40,7 @@ struct Mission: Equatable {
             assignedBy: self.assignedBy,
             createDate: self.createDate,
             dueDate: self.dueDate,
-            status: .completed,
+            status: status,
             imageURL: self.imageURL,
             category: self.category,
         )

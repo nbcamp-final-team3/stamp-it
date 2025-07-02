@@ -104,7 +104,6 @@ final class MyMissionView: UIView {
                 cell.configureAsReceived(with: mission)
 
                 cell.didTapStatusButton
-                    .filter { item.mission!.status == .assigned }
                     .bind(with: self) { owner, _ in
                         owner.didTapStatusButton.accept(item)
                     }
