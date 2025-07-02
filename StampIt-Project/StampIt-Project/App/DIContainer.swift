@@ -48,9 +48,7 @@ final class DIContainer {
             groupManager: groupManager,
             membershipManager: membershipManager,
             userManager: userManager,
-            // TODO: 사용자 데이터 정리
             // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
-            // 🔧 필요시 주석 해제하여 활성화
              missionManager: missionManager,
              stickerManager: stickerManager
         )

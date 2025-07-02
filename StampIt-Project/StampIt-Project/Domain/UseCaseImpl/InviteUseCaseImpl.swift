@@ -124,9 +124,7 @@ final class InviteUseCaseImpl: InviteUseCase {
                             profileImage: user.profileImage ?? "profileImage1"
                         )
                     }
-                // TODO: 사용자 데이터 정리: 다인 그룹에서 탈퇴하는 경우
                 // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
-                // 🔧 필요시 주석 해제하여 활성화
                     .flatMap { [weak self] _ -> Observable<Void> in
                         guard let self = self else { return .empty() }
                         if oldGroupMemberCount > 1 {

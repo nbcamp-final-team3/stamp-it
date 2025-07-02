@@ -13,23 +13,21 @@ final class InviteRepositoryImpl: InviteRepository {
     private let membershipManager: any MembershipManagerProtocol
     private let userManager: any UserManagerProtocol
     // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
-    private let missionManager: MissionManager
-    private let stickerManager: StickerManager
-    
+    private let missionManager: any MissionManagerProtocol
+    private let stickerManager: any StickerManagerProtocol
+
     init(
         groupManager: any GroupManagerProtocol,
         membershipManager: any MembershipManagerProtocol,
-        userManager: any UserManagerProtocol
-         missionManager: MissionManager,
-         stickerManager: StickerManager
+        userManager: any UserManagerProtocol,
+         missionManager: any MissionManagerProtocol,
+         stickerManager: any StickerManagerProtocol
         // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
     ) {
         self.groupManager = groupManager
         self.membershipManager = membershipManager
         self.userManager = userManager
-        // TODO: 사용자 데이터 정리
         // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
-        // 🔧 필요시 주석 해제하여 활성화
          self.missionManager = missionManager
          self.stickerManager = stickerManager
     }
@@ -93,11 +91,8 @@ final class InviteRepositoryImpl: InviteRepository {
             profileImage: profileImage
         )
     }
-    
-    // TODO: 사용자 데이터 정리 (재시도 로직 포함)
+
     // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
-    // 🔧 필요시 주석 해제하여 활성화
-    // ⚡ 업데이트: Observable.zip을 사용하여 미션과 스티커를 동시에 삭제
     func cleanupUserDataWithRetry(userId: String, currentGroupId: String, maxRetries: Int) -> Observable<Void> {
         return stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
                     .retry(maxRetries)
