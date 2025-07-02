@@ -55,11 +55,7 @@ final class StampBoardViewController: UIViewController {
         .bind(with: self) { owner, combined in
             let (summary, stickers) = combined
             owner.updateSnapshot(summary: summary, stickers: stickers)
-            
-            let page = summary.completed
-            owner.stampBoardView.footerPageRelay.accept(
-                page == .zero ? page : page + 1
-            )
+            owner.stampBoardView.footerPageRelay.accept(summary.completed + 1)
         }.disposed(by: disposeBag)
     }
     
@@ -92,7 +88,6 @@ final class StampBoardViewController: UIViewController {
     
     private func setDelegate() {
         stampBoardView.setScrollDelegate(self)
-        stampBoardView.setCollectionViewDelegate(self)
     }
     
     // MARK: - Snapshot
@@ -136,19 +131,5 @@ extension StampBoardViewController: StampBoardScrollDelegate {
         /// 배경색 변경
         stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
         stampBoardView.updateFooterPage(to: page)
-    }
-}
-
-extension StampBoardViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let stampInfoVC = StampInfoViewController()
-        stampInfoVC.modalPresentationStyle = .custom
-        
-        stampInfoVC.closeButtonTapped
-            .subscribe(with: self) { owner, _ in
-                owner.dismiss(animated: true)
-            }.disposed(by: disposeBag)
-        
-        self.present(stampInfoVC, animated: true)
     }
 }

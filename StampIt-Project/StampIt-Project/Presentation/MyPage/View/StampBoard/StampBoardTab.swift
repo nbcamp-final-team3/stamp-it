@@ -53,10 +53,6 @@ final class StampBoardTab: UIView {
         stickerBoardView.scrollDelegate = delegate
     }
     
-    func setCollectionViewDelegate(_ delegate: UICollectionViewDelegate) {
-        stickerBoardView.setCollectionViewDelegate(delegate)
-    }
-    
     // TODO: 사용후 필요한 메소드만 getter 로 생성
     func getCollectionView() -> UICollectionView {
         stickerBoardView.getCollectionView()
