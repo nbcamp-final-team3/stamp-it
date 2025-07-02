@@ -98,6 +98,10 @@ final class AssignMissionViewController: UIViewController {
         bind()
         
         viewModel.action.accept(.onAppear)
+        
+        if viewModel.state.mission.value?.category == .custom {
+            navigationBar.updateNavigationTitle("커스텀 미션 전달하기")
+        }
     }
     
     private func prepareSubviews() {

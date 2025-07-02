@@ -31,13 +31,13 @@ extension StickerFirestore {
         return Sticker(
             userID: self.userId,
             stickerID: self.stickerId,
-            title: self.missionId,
-            description: self.missionId,
-            imageURL: "",
+            groupId: self.groupId,
+            month: self.month,
             type: StickerType(rawValue: self.type) ?? .stampRed,
-            createdAt: self.createdAt.dateValue(),
-            maxStickers: self.maxStickers,
             pinNumber: self.pinNumber,
+            createdAt: self.createdAt.dateValue(),
+            missionId: self.missionId,
+            maxStickers: self.maxStickers,
             assignedBy: self.assignedBy
         )
         

@@ -137,7 +137,7 @@ final class ProfileViewModel: ViewModelProtocol {
         } else {
             state.shouldShowConfirmAlert.accept((
                 "'\(currentUser.groupName)' 그룹에서 탈퇴하시겠어요?",
-                "탈퇴 후 복구는 불가능해요",
+                "탈퇴 후 복구는 불가능하며 그룹에서\n생성된 스티커와 미션이 모두 삭제됩니다.",
                 { [weak self] in
                     self?.performLeaveGroup()
                 }
