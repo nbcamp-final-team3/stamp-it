@@ -47,7 +47,10 @@ final class DIContainer {
         return InviteRepositoryImpl(
             groupManager: groupManager,
             membershipManager: membershipManager,
-            userManager: userManager
+            userManager: userManager,
+            // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
+             missionManager: missionManager,
+             stickerManager: stickerManager
         )
     }()
 

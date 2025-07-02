@@ -124,6 +124,19 @@ final class InviteUseCaseImpl: InviteUseCase {
                             profileImage: user.profileImage ?? "profileImage1"
                         )
                     }
+                // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
+                    .flatMap { [weak self] _ -> Observable<Void> in
+                        guard let self = self else { return .empty() }
+                        if oldGroupMemberCount > 1 {
+                            return self.inviteRepository.cleanupUserDataWithRetry(
+                                userId: user.userID,
+                                currentGroupId: oldGroupId,
+                                maxRetries: 3
+                            )
+                        } else {
+                            return .just(())
+                        }
+                    }
                     .flatMap {
                         self.fetchInvite(inviteCode: inviteCode)
                     }
@@ -144,6 +157,21 @@ final class InviteUseCaseImpl: InviteUseCase {
             }
             .map { group in
                 return group.inviteCode
+            }
+    }
+
+    /// 다인 그룹 입장 시 확인이 필요한지 확인하는 메서드
+    func checkIfConfirmationNeeded(inviteCode: String) -> Observable<Bool> {
+        return getCurrentUser()
+            .flatMap { [weak self] optionalUser -> Observable<Int> in
+                guard let self = self, let user = optionalUser else {
+                    return Observable.error(RepositoryError.userNotFound)
+                }
+                return self.fetchGroupMemberCount(groupId: user.groupID)
+            }
+            .map { currentGroupMemberCount in
+                // 현재 그룹이 다인 그룹(2명 이상)인 경우 확인 필요
+                return currentGroupMemberCount > 1
             }
     }
 }

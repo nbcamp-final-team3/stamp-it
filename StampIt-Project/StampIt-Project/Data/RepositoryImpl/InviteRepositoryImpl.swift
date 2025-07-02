@@ -12,15 +12,24 @@ final class InviteRepositoryImpl: InviteRepository {
     private let groupManager: any GroupManagerProtocol
     private let membershipManager: any MembershipManagerProtocol
     private let userManager: any UserManagerProtocol
-    
+    // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
+    private let missionManager: any MissionManagerProtocol
+    private let stickerManager: any StickerManagerProtocol
+
     init(
         groupManager: any GroupManagerProtocol,
         membershipManager: any MembershipManagerProtocol,
-        userManager: any UserManagerProtocol
+        userManager: any UserManagerProtocol,
+         missionManager: any MissionManagerProtocol,
+         stickerManager: any StickerManagerProtocol
+        // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
     ) {
         self.groupManager = groupManager
         self.membershipManager = membershipManager
         self.userManager = userManager
+        // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
+         self.missionManager = missionManager
+         self.stickerManager = stickerManager
     }
     
     
@@ -81,5 +90,19 @@ final class InviteRepositoryImpl: InviteRepository {
             userNickname: userNickname,
             profileImage: profileImage
         )
+    }
+
+    // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
+    func cleanupUserDataWithRetry(userId: String, currentGroupId: String, maxRetries: Int) -> Observable<Void> {
+        return stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
+                    .retry(maxRetries)
+                    .flatMap { _ in
+                        return self.missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId)
+                            .retry(maxRetries)
+                    }
+                    .timeout(.seconds(5), scheduler: MainScheduler.instance)
+                    .catch { error in
+                        return Observable.error(GroupExitError.dataCleanupFailed(error.localizedDescription))
+                    }
     }
 }
