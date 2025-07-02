@@ -55,7 +55,11 @@ final class StampBoardViewController: UIViewController {
         .bind(with: self) { owner, combined in
             let (summary, stickers) = combined
             owner.updateSnapshot(summary: summary, stickers: stickers)
-            owner.stampBoardView.footerPageRelay.accept(summary.completed + 1)
+            
+            let page = summary.completed
+            owner.stampBoardView.footerPageRelay.accept(
+                page == .zero ? page : page + 1
+            )
         }.disposed(by: disposeBag)
     }
     

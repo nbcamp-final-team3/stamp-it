@@ -310,7 +310,7 @@ final class MissionManager: MissionManagerProtocol {
         return delete(id: missionId)
     }
     
-    /// 특정 사용자 관련 미션 삭제 (유저 탈퇴 시 사용)
+    /// "특정 사용자" 관련 미션 삭제 (유저 탈퇴 시 사용)
     func deleteUserMissions(userId: String, groupId: String) -> Observable<Void> {
         // 사용자가 할당받은 미션과 할당한 미션을 모두 조회
         return Observable.zip(
@@ -340,7 +340,24 @@ final class MissionManager: MissionManagerProtocol {
         }
     }
     
-    /// 특정 그룹의 모든 미션 삭제 (그룹 삭제 시 사용)
+    // 특정 사용자가 "받은" 미션만 삭제 (그룹 탈퇴 시 사용)
+    func deleteReceivedMissions(userId: String, groupId: String) -> Observable<Void> {
+        return fetchList(query: .byAssignee(userId, groupId: groupId))
+            .flatMap { [weak self] missions -> Observable<Void> in
+                guard let self = self else {
+                    return Observable.error(MissionError.fetchFailed("MissionManager 인스턴스가 없습니다"))
+                }
+                guard !missions.isEmpty else {
+                    return Observable.just(())
+                }
+                let deleteObservables = missions.map { mission in
+                    self.delete(id: mission.documentID)
+                }
+                return Observable.zip(deleteObservables).map { _ in () }
+            }
+    }
+    
+    /// "특정 그룹"의 모든 미션 삭제 (그룹 삭제 시 사용)
     func deleteGroupMissions(groupId: String) -> Observable<Void> {
         return fetchList(query: .byGroup(groupId))
             .flatMap { [weak self] missions -> Observable<Void> in

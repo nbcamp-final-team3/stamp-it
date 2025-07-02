@@ -20,6 +20,9 @@ protocol MembershipManagerProtocol: FullCRUDRepository where Entity == GroupMemb
     func updateMemberLeaderStatus(groupId: String, userId: String, isLeader: Bool) -> Observable<Void>
     func fetchOldestMember(groupId: String, excludeUserId: String) -> Observable<GroupMembershipFirestore>
     func fetchGroupMemberCount(groupId: String) -> Observable<Int>
+    func updateMemberProfileImage(groupId: String, userId: String, profileImage: String) -> Observable<Void>
+    func deleteGroupMemberships(groupId: String) -> Observable<Void>
+    func updateMemberNickname(groupId: String, userId: String, nickname: String) -> Observable<Void>
     
     // TODO: 그룹 변경 관련 (기존 switchUserGroup 분해) > 리팩토링 후 Repo로 이동시켜야함
     func switchUserGroup(

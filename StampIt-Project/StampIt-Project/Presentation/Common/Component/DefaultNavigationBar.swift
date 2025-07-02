@@ -181,6 +181,10 @@ final class DefaultNavigationBar: UIView {
             tabButton2.setTitleColor(.neutralGray900, for: .normal)
         }
     }
+    
+    func updateNavigationTitle(_ title: String) {
+        titleLabel.text = title
+    }
 }
 
 extension DefaultNavigationBar {

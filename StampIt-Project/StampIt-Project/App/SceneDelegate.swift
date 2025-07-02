@@ -13,26 +13,54 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = (scene as? UIWindowScene) else { return }
         
+        // 1. VersionCheckViewModel 인스턴스 준비
+        let versionCheckViewModel = VersionCheckViewModel()
+        
+        guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
         
-        let hasOnboarded = UserDefaults.standard.bool(forKey: "hasOnboarded")
-        let container = DIContainer.shared
-        let nav: UINavigationController
-        
-        if hasOnboarded {
-            // 온보딩 끝났으면 → LaunchViewController(분기 전용)로 이동
-            let launchVC = LaunchViewController(container: container)
-            nav = UINavigationController(rootViewController: launchVC)
-        } else {
-            // 온보딩 필요 → 온보딩 화면
-            let onboardingVC = DIContainer.shared.makeOnboardingViewController()
-            nav = UINavigationController(rootViewController: onboardingVC)
+        // 2. 버전 체크 먼저
+        versionCheckViewModel.checkForceUpdate { [weak self] needUpdate, message in
+            guard let self else { return }
+            if needUpdate {
+                // 3. 강제 업데이트 알럿만 띄우기 (이전 버전은 앱 사용 불가)
+                let alert = UIAlertController(
+                    title: "업데이트 필요",
+                    message: message ?? "최신 버전으로 업데이트 해주세요!",
+                    preferredStyle: .alert
+                )
+                let updateAction = UIAlertAction(title: "업데이트 하러가기", style: .default) { _ in
+                    guard let url = URL(string: "itms-apps://itunes.apple.com/app/id6747178558") else { return }
+                    DispatchQueue.main.async {
+                        UIApplication.shared.open(url, options: [:], completionHandler: { success in
+                            if !success {
+                                print("잠시 후 다시 시도해주세요.")
+                            }
+                        })
+                    }
+                }
+                alert.addAction(updateAction)
+                self.window?.rootViewController = UIViewController()
+                self.window?.makeKeyAndVisible()
+                self.window?.rootViewController?.present(alert, animated: true)
+                return
+            }
+            
+            // 4. 정상 분기 (온보딩/런치/메인 등 기존 로직)
+            let hasOnboarded = UserDefaults.standard.bool(forKey: "hasOnboarded")
+            let container = DIContainer.shared
+            let nav: UINavigationController
+            if hasOnboarded {
+                let launchVC = LaunchViewController(container: container)
+                nav = UINavigationController(rootViewController: launchVC)
+            } else {
+                let onboardingVC = container.makeOnboardingViewController()
+                nav = UINavigationController(rootViewController: onboardingVC)
+            }
+            self.window?.rootViewController = nav
+            self.window?.makeKeyAndVisible()
         }
-        window?.rootViewController = nav
-        
-        window?.makeKeyAndVisible()
     }
     
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -65,7 +93,5 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Save changes in the application's managed object context when the application transitions to the background.
         (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
     }
-    
-    
 }
 

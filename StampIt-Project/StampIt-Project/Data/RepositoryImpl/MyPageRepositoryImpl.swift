@@ -9,9 +9,9 @@ import Foundation
 import RxSwift
 
 final class MyPageRepositoryImpl: MyPageRepository {
-    private let stickerManager: StickerManager
+    private let stickerManager: any StickerManagerProtocol
     
-    init(stickerManager: StickerManager) {
+    init(stickerManager: any StickerManagerProtocol) {
         self.stickerManager = stickerManager
     }
     

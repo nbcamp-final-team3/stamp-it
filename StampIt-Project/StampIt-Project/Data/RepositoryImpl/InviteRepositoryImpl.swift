@@ -9,14 +9,14 @@ import Foundation
 import RxSwift
 
 final class InviteRepositoryImpl: InviteRepository {
-    private let groupManager: GroupManager
-    private let membershipManager: MembershipManager
-    private let userManager: UserManager
+    private let groupManager: any GroupManagerProtocol
+    private let membershipManager: any MembershipManagerProtocol
+    private let userManager: any UserManagerProtocol
     
     init(
-        groupManager: GroupManager,
-        membershipManager: MembershipManager,
-        userManager: UserManager
+        groupManager: any GroupManagerProtocol,
+        membershipManager: any MembershipManagerProtocol,
+        userManager: any UserManagerProtocol
     ) {
         self.groupManager = groupManager
         self.membershipManager = membershipManager
