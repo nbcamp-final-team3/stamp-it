@@ -537,10 +537,10 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         currentGroupId: String,
         maxRetries: Int
     ) -> Observable<Void> {
-        return missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId)
+        return stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
             .retry(maxRetries)
             .flatMap { _ in
-                return self.stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
+                return self.missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId)
                     .retry(maxRetries)
             }
             .timeout(.seconds(5), scheduler: MainScheduler.instance)
