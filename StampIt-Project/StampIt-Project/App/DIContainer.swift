@@ -40,7 +40,10 @@ final class DIContainer {
     }()
 
     lazy var myPageRepository: MyPageRepository = {
-        return MyPageRepositoryImpl(stickerManager: stickerManager)
+        return MyPageRepositoryImpl(
+            stickerManager: stickerManager,
+            userManager: userManager
+        )
     }()
 
     lazy var inviteRepository: InviteRepository = {
@@ -228,6 +231,13 @@ final class DIContainer {
     func makeGroupMemberManageViewModel() -> GroupMemberManageViewModel {
         return GroupMemberManageViewModel(groupManageUseCase: groupManageUseCase)
     }
+    
+    func makeStampInfoViewModel() -> StampInfoViewModel {
+        return StampInfoViewModel(
+            missionUseCase: missionUseCase,
+            myPageUseCase: myPageUseCase
+        )
+    }
 
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
@@ -250,7 +260,7 @@ final class DIContainer {
     
     func makeStampBoardViewController() -> StampBoardViewController {
         let viewModel = makeStampBoardViewModel()
-        return StampBoardViewController(viewModel: viewModel)
+        return StampBoardViewController(viewModel: viewModel, container: self)
     }
     
     func makeProfileViewController() -> ProfileViewController {
@@ -296,6 +306,11 @@ final class DIContainer {
     func makeGroupMemberManageViewController() -> GroupMemberManageViewController {
         let viewModel = makeGroupMemberManageViewModel()
         return GroupMemberManageViewController(viewModel: viewModel)
+    }
+    
+    func makeStampInfoViewController() -> StampInfoViewController {
+        let viewModel = makeStampInfoViewModel()
+        return StampInfoViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton

@@ -9,12 +9,14 @@ import UIKit
 import Then
 import SnapKit
 import RxSwift
+import RxRelay
 
 final class StampBoardViewController: UIViewController {
     
     // MARK: - Properties
     
     private var viewModel: StampBoardViewModel
+    private var container: DIContainer
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
@@ -23,8 +25,12 @@ final class StampBoardViewController: UIViewController {
     
     // MARK: - Initializer, Deinit, requiered
     
-    init(viewModel: StampBoardViewModel) {
+    init(
+        viewModel: StampBoardViewModel,
+        container: DIContainer
+    ) {
         self.viewModel = viewModel
+        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -141,14 +147,28 @@ extension StampBoardViewController: StampBoardScrollDelegate {
 
 extension StampBoardViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let stampInfoVC = StampInfoViewController()
-        stampInfoVC.modalPresentationStyle = .custom
+        let currentPage = viewModel.state.stickerSummary.value.completed
+        let stickers: [[Sticker]] = viewModel.state.stickersByPage.value
+        let clickedSticker = viewModel.state.stickersByPage.value[currentPage][indexPath.item]
+        let missionId = clickedSticker.missionId
         
-        stampInfoVC.closeButtonTapped
-            .subscribe(with: self) { owner, _ in
-                owner.dismiss(animated: true)
-            }.disposed(by: disposeBag)
         
-        self.present(stampInfoVC, animated: true)
+        print("didSelectItemAt stickers: \(stickers)")
+        print("currentPage: \(currentPage)")
+        print("indexPath.item: \(indexPath.item)")
+        
+        print("Clicked: \(viewModel.state.stickersByPage.value[stickers.count - 1][indexPath.item])")
+
+        /// 뷰를 위해 생성된 Empty Stamp 는 모달창 띄우지 않음
+        if clickedSticker.type != .stampGray {
+            let viewModel = container.makeStampInfoViewModel()
+            
+            let stampInfoVC = StampInfoViewController(viewModel: viewModel)
+            stampInfoVC.modalPresentationStyle = .overCurrentContext
+            
+            viewModel.action.accept(.load(missionId: missionId))
+            
+            self.present(stampInfoVC, animated: true)
+        }
     }
 }

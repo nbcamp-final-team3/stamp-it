@@ -15,27 +15,26 @@ final class StampInfoViewController: UIViewController {
     
     // MARK: - Properties
     
-    let closeButtonTapped = PublishRelay<Void>()
+    let viewModel: StampInfoViewModel
+    
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
     
-    private let bgView = UIView().then {
+    private let circleView = UIView().then {
         $0.backgroundColor = .white
         $0.layer.cornerRadius = (UIScreen.main.bounds.width - 16 * 2) / 2
     }
     
-    private let MainVStackView = UIStackView().then {
+    private let containerVStackView = UIStackView().then {
         $0.axis = .vertical
         $0.spacing = 12
         $0.alignment = .center
     }
     
-    private let categoryTitle = TagView(type: .filledLightSmall).then {
-        $0.updateText(with: "가족소통")
-    }
+    private let categoryTitle = TagView(type: .filledLightMedium)
     
-    private let SubVStackView = UIStackView().then {
+    private let contentsVStackView = UIStackView().then {
         $0.axis = .vertical
         $0.spacing = 30
         $0.alignment = .center
@@ -45,7 +44,6 @@ final class StampInfoViewController: UIViewController {
         $0.font = .pretendard(size: 18, weight: .semibold)
         $0.textColor = .gray800
         $0.numberOfLines = 2
-        $0.setTextWithLineHeight(text: "설거지하기 2줄까지 가능해요해요 가능해요", lineHeight: 25)
         $0.lineBreakMode = .byWordWrapping
         $0.textAlignment = .center
     }
@@ -69,7 +67,6 @@ final class StampInfoViewController: UIViewController {
     }
     
     private let completedDateValue = UILabel().then {
-        $0.text = "2025년 10월 10일"
         $0.font = .pretendard(size: 16, weight: .regular)
         $0.textColor = .gray500
     }
@@ -81,7 +78,6 @@ final class StampInfoViewController: UIViewController {
     }
     
     private let missionSenderValue = UILabel().then {
-        $0.text = "멤버명명명"
         $0.font = .pretendard(size: 16, weight: .regular)
         $0.textColor = .gray500
     }
@@ -100,6 +96,19 @@ final class StampInfoViewController: UIViewController {
         $0.layer.cornerRadius = 8
     }
     
+    // MARK: - Initializer, Deinit, requiered
+    
+    init(
+        viewModel: StampInfoViewModel
+    ) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - View Life Cycle
     
     override func viewDidLoad() {
@@ -114,8 +123,33 @@ final class StampInfoViewController: UIViewController {
     
     private func bind() {
         closeButton.rx.tap
-            .bind(to: closeButtonTapped)
-            .disposed(by: disposeBag)
+            .subscribe(with: self) { owned, _ in
+                owned.viewModel.action.accept(.closeButtonTapped)
+            }.disposed(by: disposeBag)
+        
+        viewModel.state.isDismissed
+            .asDriver()
+            .filter { $0 }
+            .drive(with: self) { owned, _ in
+                owned.dismiss(animated: true)
+            }.disposed(by: disposeBag)
+
+        viewModel.state.mission
+            .asDriver()
+            .drive(with: self) { owned, mission in
+                guard let mission else { return }
+                owned.updateUI(with: mission)
+            }.disposed(by: disposeBag)
+    }
+    
+    private func updateUI(with mission: MissionUI) {
+        categoryTitle.updateText(with: mission.category.title)
+        missionTitle.setTextWithLineHeight(
+            text: mission.title,
+            lineHeight: 25
+        )
+        completedDateValue.text = "\(mission.dueDate)"
+        missionSenderValue.text = mission.assignedBy
     }
     
     // MARK: - Set Styles
@@ -150,21 +184,21 @@ final class StampInfoViewController: UIViewController {
             vStackView,
             closeButton,
         ]
-            .forEach { SubVStackView.addArrangedSubview($0) }
+            .forEach { contentsVStackView.addArrangedSubview($0) }
         
         [
             categoryTitle,
-            SubVStackView,
+            contentsVStackView,
         ]
-            .forEach { MainVStackView.addArrangedSubview($0) }
+            .forEach { containerVStackView.addArrangedSubview($0) }
         
         [
-            MainVStackView,
+            containerVStackView,
         ]
-            .forEach { bgView.addSubview($0) }
+            .forEach { circleView.addSubview($0) }
         
         [
-            bgView,
+            circleView,
         ]
             .forEach { view.addSubview($0) }
     }
@@ -172,16 +206,16 @@ final class StampInfoViewController: UIViewController {
     // MARK: - Layout Helper
     
     private func setLayout() {
-        bgView.snp.makeConstraints {
+        circleView.snp.makeConstraints {
             $0.directionalHorizontalEdges.equalToSuperview().inset(16)
             $0.size.equalTo(UIScreen.main.bounds.width - 16 * 2)
             $0.center.equalToSuperview()
         }
         
-        MainVStackView.snp.makeConstraints {
+        containerVStackView.snp.makeConstraints {
             $0.top.equalToSuperview().offset(68)
             $0.center.equalToSuperview()
-            $0.directionalHorizontalEdges.equalToSuperview().inset(20)
+            $0.directionalHorizontalEdges.equalToSuperview().inset(40)
         }
         
         missionTitle.snp.makeConstraints {

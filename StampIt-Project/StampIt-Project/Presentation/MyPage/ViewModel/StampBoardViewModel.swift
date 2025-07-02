@@ -105,14 +105,14 @@ final class StampBoardViewModel: ViewModelProtocol {
                                     Sticker(
                                         userID: sticker.userID,
                                         stickerID: sticker.stickerID,
-                                        title: sticker.title,
-                                        description: sticker.description,
-                                        imageURL: sticker.imageURL,
+                                        groupId: sticker.groupId,
+                                        month: sticker.month,
                                         type: StickerType.from(page),
 //                                        type: index.isMultiple(of: 2) ? StickerType.stampBlue : StickerType.stampYellow,
-                                        createdAt: sticker.createdAt,
-                                        maxStickers: sticker.maxStickers,
                                         pinNumber: sticker.pinNumber,
+                                        createdAt: sticker.createdAt,
+                                        missionId: sticker.missionId,
+                                        maxStickers: sticker.maxStickers,
                                         assignedBy: sticker.assignedBy
                                     )
                                 }
@@ -122,7 +122,7 @@ final class StampBoardViewModel: ViewModelProtocol {
                     }
             }
             .observe(on: MainScheduler.instance)
-            .subscribe(with: self) { owner, result in
+            .subscribe(with: self)  { owner, result in
                 let (count, stickers) = result
                 
                 let totalSticker = StampBoardSection.totalStamp
@@ -147,6 +147,8 @@ final class StampBoardViewModel: ViewModelProtocol {
                 columns: StampBoardSection.column
             )
         }
+        
+        print("zigzag stickers: \(zigzagged)")
         state.stickersByPage.accept(zigzagged)
     }
     
@@ -183,18 +185,17 @@ final class StampBoardViewModel: ViewModelProtocol {
     private func makeEmptySticker() -> Sticker {
         
         // TODO: type 체크
-        
         Sticker(
-            userID: "",
+            userID: "유저아이디",
             stickerID: "\(UUID())",
-            title: "",
-            description: "",
-            imageURL: "",
+            groupId: "그룹아이디",
+            month: "2025-05",
             type: .stampGray,
-            createdAt: Date(),
-            maxStickers: 30,
             pinNumber: state.stickerSummary.value.completed,
-            assignedBy: ""
+            createdAt: Date(),
+            missionId: "미션아이디",
+            maxStickers: 30,
+            assignedBy: "미션준유저"
         )
     }
 }
