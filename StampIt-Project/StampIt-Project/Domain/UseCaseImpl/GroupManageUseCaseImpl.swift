@@ -128,16 +128,16 @@ final class GroupManageUseCaseImpl: GroupManageUseCase {
     // MARK: - Group Member Management Methods
 
     /// 그룹 멤버 관리 초기 데이터 로드
-    func loadGroupMemberManageData() -> Observable<GroupMemberManageData> {
+    func loadGroupMemberManageData() -> Observable<GroupMemberLoadModel> {
         return getCurrentUser()
-            .flatMap { [weak self] optionalUser -> Observable<GroupMemberManageData> in
+            .flatMap { [weak self] optionalUser -> Observable<GroupMemberLoadModel> in
                 guard let self = self, let user = optionalUser else {
                     return Observable.error(GroupUseCaseError.userNotFound)
                 }
 
                 return self.groupManageRepository.fetchMembersByGroup(groupId: user.groupID)
                     .map { members in
-                        GroupMemberManageData(
+                        GroupMemberLoadModel(
                             currentUser: user,
                             members: members,
                             isLeader: user.isLeader

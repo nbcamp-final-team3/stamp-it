@@ -25,18 +25,11 @@ protocol GroupManageUseCase {
     func switchToNewGroup(inviteCode: String) -> Observable<Void>
     
     /// 그룹 멤버 관리 초기 데이터 로드
-    func loadGroupMemberManageData() -> Observable<GroupMemberManageData>
+    func loadGroupMemberManageData() -> Observable<GroupMemberLoadModel>
     
     /// 멤버 ID로 멤버 내보내기
     func exportMember(memberId: String) -> Observable<Void>
     
     /// 멤버 목록 새로고침
     func refreshMembers() -> Observable<[Member]>
-}
-
-// MARK: - Data Models
-struct GroupMemberManageData {
-    let currentUser: User
-    let members: [Member]
-    let isLeader: Bool
 }

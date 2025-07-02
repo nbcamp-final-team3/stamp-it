@@ -32,7 +32,7 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
         let shouldRefreshMembers = PublishRelay<Void>()
         
         //State 업데이트 메서드 추가
-        mutating func updateWithGroupData(_ data: GroupMemberManageData) {
+        mutating func updateWithGroupData(_ data: GroupMemberLoadModel) {
             isLeader.accept(data.isLeader)
             members.accept(data.members)
             isLoading.accept(false)
