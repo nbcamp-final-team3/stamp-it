@@ -167,6 +167,7 @@ final class ReceiveInviteViewController: UIViewController {
         bindNavigation()
         bindMessages()
         bindInviteCompletion()
+        bindGroupExitConfirmation()
     }
     
     private func bindTextField() {
@@ -233,6 +234,49 @@ final class ReceiveInviteViewController: UIViewController {
                 owner.navigationController?.popToRootViewController(animated: true)
             }
             .disposed(by: disposeBag)
+    }
+    
+    private func bindGroupExitConfirmation() {
+        viewModel.state.showGroupExitConfirmation
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] inviteCode in
+                guard let self = self else { return }
+                
+                // 키보드가 올라와 있으면 먼저 내리기
+                if self.isKeyboardVisible {
+                    self.textField.resignFirstResponder()
+                    
+                    // 키보드가 완전히 내려간 후 알림 표시
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Constants.toastDelay) {
+                        self.showGroupExitAlert()
+                    }
+                } else {
+                    // 키보드가 내려가 있으면 바로 알림 표시
+                    self.showGroupExitAlert()
+                }
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    private func showGroupExitAlert() {
+        let alert = UIAlertController(
+            title: "그룹 이동",
+            message: "이동 후 복구는 불가능하며 그룹에서\n생성된 스티커와 미션이 모두 삭제됩니다.",
+            preferredStyle: .alert
+        )
+        
+        let confirmAction = UIAlertAction(title: "입장하기", style: .destructive) { [weak self] _ in
+            self?.viewModel.action.accept(.confirmGroupExit)
+        }
+        
+        let cancelAction = UIAlertAction(title: "취소", style: .cancel) { [weak self] _ in
+            self?.viewModel.action.accept(.cancelGroupExit)
+        }
+        
+        alert.addAction(confirmAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
     }
 
     private func setupKeyboardDismiss() {

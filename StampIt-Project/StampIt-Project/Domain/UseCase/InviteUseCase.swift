@@ -13,4 +13,6 @@ protocol InviteUseCase {
     func acceptInvite(inviteCode: String) -> Observable<Invite>
     /// 초대코드 생성 메서드
     func getInviteCode() -> Observable<String>
+    /// 다인 그룹 입장 시 확인이 필요한지 확인하는 메서드
+    func checkIfConfirmationNeeded(inviteCode: String) -> Observable<Bool>
 }

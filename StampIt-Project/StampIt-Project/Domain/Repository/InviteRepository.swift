@@ -28,4 +28,8 @@ protocol InviteRepository {
     
     func switchUserGroup(userId: String, fromGroupId: String, toGroupId: String, userNickname: String, profileImage: String) -> Observable<Void>
 
+    // TODO: 사용자 데이터 정리 (재시도 로직 포함)
+    // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
+    func cleanupUserDataWithRetry(userId: String, currentGroupId: String, maxRetries: Int) -> Observable<Void>
+
 }

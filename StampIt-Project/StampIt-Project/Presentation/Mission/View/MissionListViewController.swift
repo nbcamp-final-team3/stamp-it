@@ -304,6 +304,7 @@ extension MissionListViewController: UITableViewDelegate {
         }
         favoriteAction.image = UIImage(named: "bookmarkGray")
         favoriteAction.backgroundColor = .gray100
+
         return UISwipeActionsConfiguration(actions: [favoriteAction])
     }
 }

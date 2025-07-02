@@ -8,7 +8,6 @@
 import Foundation
 import RxSwift
 import RxCocoa
-import UIKit
 
 final class GroupMemberManageViewModel: ViewModelProtocol {
 
@@ -31,13 +30,28 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
         let isLoading = BehaviorRelay<Bool>(value: false)
         let members = BehaviorRelay<[Member]>(value: [])
         let shouldRefreshMembers = PublishRelay<Void>()
+        
+        //State 업데이트 메서드 추가
+        mutating func updateWithGroupData(_ data: GroupMemberLoadModel) {
+            isLeader.accept(data.isLeader)
+            members.accept(data.members)
+            isLoading.accept(false)
+        }
+        
+        mutating func setLoading(_ loading: Bool) {
+            isLoading.accept(loading)
+        }
+        
+        mutating func showError(_ message: String) {
+            showToast.accept(message)
+            isLoading.accept(false)
+        }
     }
 
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
-    let state = State()
-    
-    private var currentGroupId: String = ""
+    var state = State()
+
     private var currentUserId: String = ""
 
     init(groupManageUseCase: GroupManageUseCase) {
@@ -68,35 +82,21 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
     }
     
     private func loadInitialData() {
-        state.isLoading.accept(true)
-        
-        groupManageUseCase.getCurrentUser()
-            .flatMap { [weak self] optionalUser -> Observable<(User, [Member])> in
-                guard let self = self, let user = optionalUser else {
-                    return Observable.error(RepositoryError.userNotFound)
-                }
-                
-                self.currentGroupId = user.groupID
-                self.currentUserId = user.userID
-                self.state.isLeader.accept(user.isLeader)
-                
-                return self.groupManageUseCase.fetchGroupMembers(groupId: user.groupID)
-                    .map { members in (user, members) }
-            }
-            .subscribe(with: self) { owner, userAndMembers in
-                let (_, members) = userAndMembers
-                owner.state.members.accept(members)
-                owner.state.isLoading.accept(false)
+        state.setLoading(true)
+
+        groupManageUseCase.loadGroupMemberManageData()
+            .subscribe(with: self) { owner, data in
+                owner.currentUserId = data.currentUser.userID
+                owner.state.updateWithGroupData(data)
             } onError: { owner, error in
                 let errorMessage = owner.getToastMessage(from: error)
-                owner.state.showToast.accept(errorMessage)
-                owner.state.isLoading.accept(false)
+                owner.state.showError(errorMessage)
             }
             .disposed(by: disposeBag)
     }
 
     private func handleMemberState(type: MemberManageOptionType, memberId: String) {
-        state.isLoading.accept(true)
+        state.setLoading(true)
         
         let operation: Observable<Void>
         
@@ -104,47 +104,14 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
         case .leaderMandate:
             operation = groupManageUseCase.delegateLeader(to: memberId)
         case .exportMember:
-            // memberId로 Member를 찾고 User로 변환
-            let member = state.members.value.first { $0.userID == memberId }
-            guard let targetMember = member else {
-                state.showToast.accept("멤버를 찾을 수 없습니다.")
-                state.isLoading.accept(false)
-                return
-            }
-            
-            // 현재 사용자 정보에서 그룹 정보 가져오기
-            groupManageUseCase.getCurrentUser()
-                .flatMap { [weak self] optionalUser -> Observable<User> in
-                    guard let self = self, let currentUser = optionalUser else {
-                        return Observable.error(RepositoryError.userNotFound)
-                    }
-                    
-                    // Member를 User로 변환
-                    let targetUser = targetMember.toUser(
-                        groupId: currentUser.groupID,
-                        groupName: currentUser.groupName
-                    )
-                    
-                    return self.groupManageUseCase.exportMember(member: targetUser)
-                }
-                .subscribe(with: self) { owner, exportedUser in
-                    owner.state.showSuccess.accept("멤버가 내보내졌습니다.")
-                    owner.state.isLoading.accept(false)
-                    owner.state.shouldRefreshMembers.accept(())
-                } onError: { owner, error in
-                    let errorMessage = owner.getToastMessage(from: error)
-                    owner.state.showToast.accept(errorMessage)
-                    owner.state.isLoading.accept(false)
-                }
-                .disposed(by: disposeBag)
-            return
+            operation = groupManageUseCase.exportMember(memberId: memberId)
         }
         
         operation
             .subscribe(with: self) { owner, _ in
                 let message = type == .leaderMandate ? "리더 위임이 완료되었습니다." : "멤버가 내보내졌습니다."
                 owner.state.showSuccess.accept(message)
-                owner.state.isLoading.accept(false)
+                owner.state.setLoading(false)
                 
                 // 리더 위임인 경우 isLeader 상태를 false로 변경
                 if type == .leaderMandate {
@@ -155,19 +122,18 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
                 owner.state.shouldRefreshMembers.accept(())
             } onError: { owner, error in
                 let errorMessage = owner.getToastMessage(from: error)
-                owner.state.showToast.accept(errorMessage)
-                owner.state.isLoading.accept(false)
+                owner.state.showError(errorMessage)
             }
             .disposed(by: disposeBag)
     }
     
     private func refreshMembers() {
-        groupManageUseCase.fetchGroupMembers(groupId: currentGroupId)
+        groupManageUseCase.refreshMembers()
             .subscribe(with: self) { owner, members in
                 owner.state.members.accept(members)
             } onError: { owner, error in
                 let errorMessage = owner.getToastMessage(from: error)
-                owner.state.showToast.accept(errorMessage)
+                owner.state.showError(errorMessage)
             }
             .disposed(by: disposeBag)
     }
@@ -203,6 +169,24 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
     func getCurrentUserId() -> String {
         return currentUserId
     }
+
+    func createItems(from members: [Member]) -> [Item] {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy년 MM월 dd일"
+        
+        return members.map { member in
+            let formattedDate = dateFormatter.string(from: member.joinedAt)
+            
+            return Item(
+                id: member.userID,
+                name: member.nickname,
+                date: "그룹 가입일: \(formattedDate)",
+                imageName: member.profileImage,  // 이미지 이름만 전달
+                isCurrentUser: member.userID == currentUserId,
+                isLeader: member.isLeader
+            )
+        }
+    }
 }
 
 extension GroupMemberManageViewModel {
@@ -210,11 +194,13 @@ extension GroupMemberManageViewModel {
         case main
     }
 
+    // UIKit 의존성 제거
     struct Item: Hashable {
         let id: String
         let name: String
         let date: String
-        let image: UIImage?
+        let imageName: String?  // UIImage 대신 이미지 이름 사용
         let isCurrentUser: Bool
+        let isLeader: Bool
     }
 }
