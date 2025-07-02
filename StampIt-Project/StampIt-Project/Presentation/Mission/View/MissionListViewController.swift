@@ -298,15 +298,12 @@ extension MissionListViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let mission = viewModel.state.missions.value[indexPath.row]
-        let isFavorite = viewModel.state.favorites.value.contains(mission.missionId)
-        
         let favoriteAction = UIContextualAction(style: .normal, title: nil) { [weak self] _, _, completion in
             self?.viewModel.action.accept(.toggleFavorite(indexPath))
             completion(true)
         }
-        favoriteAction.image = UIImage(systemName: isFavorite ? "star.slash" : "star")
-        favoriteAction.backgroundColor = .gray200
+        favoriteAction.image = UIImage(named: "bookmarkGray")
+        favoriteAction.backgroundColor = .gray100
         return UISwipeActionsConfiguration(actions: [favoriteAction])
     }
 }

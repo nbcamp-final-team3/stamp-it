@@ -19,7 +19,7 @@ final class MissionListCell: UITableViewCell {
     }
     
     private let favoriteImageView = UIImageView().then {
-        $0.image = UIImage(systemName: "star.fill")
+        $0.image = UIImage(named: "bookmarkRed")
         $0.tintColor = .red200
     }
     
@@ -46,7 +46,7 @@ final class MissionListCell: UITableViewCell {
         
         favoriteImageView.snp.makeConstraints {
             $0.centerY.equalToSuperview()
-            $0.trailing.equalToSuperview().inset(16)
+            $0.trailing.equalToSuperview().inset(32)
         }
     }
     
