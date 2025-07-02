@@ -20,4 +20,5 @@ protocol MissionManagerProtocol: FullCRUDRepository where Entity == MissionFires
     func fetchMissions(to assigneeId: String?, by assignerId: String?, ofGroup groupId: String) -> Observable<[MissionFirestore]>
     func deleteUserMissions(userId: String, groupId: String) -> Observable<Void>
     func deleteGroupMissions(groupId: String) -> Observable<Void>
+    func deleteReceivedMissions(userId: String, groupId: String) -> Observable<Void>
 }
