@@ -18,6 +18,7 @@ final class StampBoardViewController: UIViewController {
     private var viewModel: StampBoardViewModel
     private var container: DIContainer
     private let disposeBag = DisposeBag()
+    private var currentPage: Int = .zero
     
     // MARK: - UI Components
 
@@ -105,7 +106,7 @@ final class StampBoardViewController: UIViewController {
     
     private func updateSnapshot(
         summary: (collected: Int, completed: Int),
-        stickers: [[Sticker]]
+        stickers: [[StickerUI]]
     ) {
         let maxPage = stickers.count
         
@@ -139,6 +140,8 @@ final class StampBoardViewController: UIViewController {
 
 extension StampBoardViewController: StampBoardScrollDelegate {
     func didScrollToPage(_ page: Int) {
+        currentPage = page
+        
         /// 배경색 변경
         stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
         stampBoardView.updateFooterPage(to: page)
@@ -146,18 +149,42 @@ extension StampBoardViewController: StampBoardScrollDelegate {
 }
 
 extension StampBoardViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let currentPage = viewModel.state.stickerSummary.value.completed
-        let stickers: [[Sticker]] = viewModel.state.stickersByPage.value
-        let clickedSticker = viewModel.state.stickersByPage.value[currentPage][indexPath.item]
-        let missionId = clickedSticker.missionId
+    func collectionView(
+        _ collectionView: UICollectionView,
+        willDisplay cell: UICollectionViewCell,
+        forItemAt indexPath: IndexPath
+    ) {
         
+        // TODO: 페이지 넘어갔을 때 색상 반만 바뀌는 이슈 해결하기
         
-        print("didSelectItemAt stickers: \(stickers)")
-        print("currentPage: \(currentPage)")
-        print("indexPath.item: \(indexPath.item)")
+        guard let cell = cell as? StampCell else { return }
         
-        print("Clicked: \(viewModel.state.stickersByPage.value[stickers.count - 1][indexPath.item])")
+        let stickers = viewModel.state.stickersByPage.value
+        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
+        
+        guard stickers.indices.contains(currentPage),
+              stickers[currentPage].indices.contains(itemIndexInPage) else {
+            return
+        }
+        
+        let sticker = stickers[currentPage][itemIndexInPage]
+
+        let dashedType = StampBoardSection.page.type.flatMap { $0 }[sticker.zigzagIndex]
+        
+        cell.configureDashedLine(with: dashedType)
+        
+    }
+    
+    func collectionView(
+        _ collectionView: UICollectionView,
+        didSelectItemAt indexPath: IndexPath
+    ) {
+        let stickersByPage = viewModel.state.stickersByPage.value
+        
+        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
+
+        let clickedSticker = stickersByPage[currentPage][itemIndexInPage]
+        let missionId = clickedSticker.missionID
 
         /// 뷰를 위해 생성된 Empty Stamp 는 모달창 띄우지 않음
         if clickedSticker.type != .stampGray {
