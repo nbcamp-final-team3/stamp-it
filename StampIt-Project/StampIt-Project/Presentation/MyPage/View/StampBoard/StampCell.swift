@@ -80,7 +80,7 @@ final class StampCell: UICollectionViewCell {
     
     // MARK: - Methods
     
-    func configureStamp(with type: Sticker) {
+    func configureStamp(with type: StickerUI) {
         stampImageView.image = UIImage(named: type.type.rawValue)
     }
     
