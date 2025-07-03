@@ -18,10 +18,15 @@ final class MissionListCell: UITableViewCell {
         $0.numberOfLines = 0
     }
     
+    private let favoriteImageView = UIImageView().then {
+        $0.image = UIImage(named: "bookmarkRed")
+        $0.tintColor = .red200
+    }
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
-        contentView.addSubview(label)
+        [label, favoriteImageView].forEach { addSubview($0) }
         
         setConstraints()
         
@@ -35,13 +40,25 @@ final class MissionListCell: UITableViewCell {
     private func setConstraints() {
         label.snp.makeConstraints {
             $0.verticalEdges.equalToSuperview().inset(16)
-            $0.horizontalEdges.equalToSuperview().inset(16)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalTo(favoriteImageView).inset(8)
+        }
+        
+        favoriteImageView.snp.makeConstraints {
+            $0.centerY.equalToSuperview()
+            $0.trailing.equalToSuperview().inset(32)
         }
     }
     
     /// 테이블 뷰 셀 업데이트
     /// - Parameter text: 미션 타이틀(예: 방 청소하기)
-    func configure(with text: String) {
+    func configure(with text: String, isFavorite: Bool) {
         label.text = text
+        
+        if isFavorite {
+            favoriteImageView.isHidden = false
+        } else {
+            favoriteImageView.isHidden = true
+        }
     }
 }

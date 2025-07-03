@@ -324,19 +324,16 @@ final class MissionManager: MissionManagerProtocol {
             
             let allMissions = assignedMissions + assignedByMissions
             
-            // 삭제할 미션이 없으면 바로 성공 반환
+            // 빈 배열 처리
             guard !allMissions.isEmpty else {
                 return Observable.just(())
             }
             
-            // 각 미션 삭제
             let deleteObservables = allMissions.map { mission in
                 self.delete(id: mission.documentID)
             }
             
-            // 모든 삭제 작업 완료 대기
-            return Observable.zip(deleteObservables)
-                .map { _ in () } // [Void] → Void 변환
+            return Observable.zip(deleteObservables).map { _ in () }
         }
     }
     
@@ -347,12 +344,16 @@ final class MissionManager: MissionManagerProtocol {
                 guard let self = self else {
                     return Observable.error(MissionError.fetchFailed("MissionManager 인스턴스가 없습니다"))
                 }
+                
+                // 빈 배열 처리
                 guard !missions.isEmpty else {
                     return Observable.just(())
                 }
+                
                 let deleteObservables = missions.map { mission in
                     self.delete(id: mission.documentID)
                 }
+                
                 return Observable.zip(deleteObservables).map { _ in () }
             }
     }
@@ -365,19 +366,16 @@ final class MissionManager: MissionManagerProtocol {
                     return Observable.error(MissionError.fetchFailed("MissionManager 인스턴스가 없습니다"))
                 }
                 
-                // 삭제할 미션이 없으면 바로 성공 반환
+                // 빈 배열 처리
                 guard !missions.isEmpty else {
                     return Observable.just(())
                 }
                 
-                // 각 미션 삭제
                 let deleteObservables = missions.map { mission in
                     self.delete(id: mission.documentID)
                 }
                 
-                // 모든 삭제 작업 완료 대기
-                return Observable.zip(deleteObservables)
-                    .map { _ in () } // [Void] → Void 변환
+                return Observable.zip(deleteObservables).map { _ in () }
             }
     }
 }

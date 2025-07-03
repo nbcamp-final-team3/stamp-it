@@ -332,13 +332,19 @@ final class StickerManager: StickerManagerProtocol {
                 return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
             }
             
+            // 빈 배열 처리
+            guard !stickers.isEmpty else {
+                return Observable.just(())
+            }
+            
             let deleteObservables = stickers.map { sticker in
                 self.delete(id: sticker.documentID)
             }
+            
             return Observable.zip(deleteObservables).map { _ in () }
         }
     }
-    
+
     /// 사용자의 모든 스티커 삭제 (서비스 탈퇴용)
     func deleteUserStickers(userId: String) -> Observable<Void> {
         return fetchList(query: StickerQuery(
@@ -366,11 +372,10 @@ final class StickerManager: StickerManagerProtocol {
                 self.delete(id: sticker.documentID)
             }
             
-            return Observable.zip(deleteObservables)
-                .map { _ in () }
+            return Observable.zip(deleteObservables).map { _ in () }
         }
     }
-    
+
     /// 특정 그룹의 모든 스티커 삭제 (그룹 삭제 시 사용)
     func deleteGroupStickers(groupId: String) -> Observable<Void> {
         return fetchList(query: .byGroup(groupId))
@@ -379,9 +384,15 @@ final class StickerManager: StickerManagerProtocol {
                     return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
                 }
                 
+                // 빈 배열 처리
+                guard !stickers.isEmpty else {
+                    return Observable.just(())
+                }
+                
                 let deleteObservables = stickers.map { sticker in
                     self.delete(id: sticker.documentID)
                 }
+                
                 return Observable.zip(deleteObservables).map { _ in () }
             }
     }
