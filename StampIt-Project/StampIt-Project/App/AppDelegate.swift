@@ -10,6 +10,8 @@ import CoreData
 import FirebaseCore
 import FirebaseFirestore
 import GoogleSignIn
+import FirebaseMessaging
+import UserNotifications
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -19,6 +21,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Firebase 설정
         FirebaseApp.configure()
         
+        // FCM 델리게이트 설정
+        Messaging.messaging().delegate = self
+        Messaging.messaging().isAutoInitEnabled = true
+
+        // UNUserNotificationCenter 델리게이트 설정
+        UNUserNotificationCenter.current().delegate = self
+        
+        // 알림 권한 요청
+        requestNotificationPermission()
+        
         // Firestore 네트워크 설정 개선
         configureFirestore()
         
@@ -26,6 +38,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         configureGoogleSignIn()
         
         return true
+    }
+    
+    // 알림 권한 요청
+    private func requestNotificationPermission() {
+        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+        UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
+            print("🔔 알림 권한: \(granted ? "허용됨" : "거부됨")")
+            
+            if let error = error {
+                print("❌ 알림 권한 요청 에러: \(error)")
+                return
+            }
+            
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                    print("📱 APNS 등록 요청됨")
+                }
+            }
+        }
     }
     
     // MARK: - Firestore 네트워크 오류 처리
@@ -109,6 +141,72 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 let nserror = error as NSError
                 fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
             }
+        }
+    }
+}
+
+// MARK: - UNUserNotificationCenterDelegate
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    
+    // APNS 토큰 등록 성공
+    func application(_ application: UIApplication,
+                    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        print("✅ APNS Token 등록 성공")
+        
+        // ⭐ 중요: FCM에 APNS 토큰 설정
+        Messaging.messaging().apnsToken = deviceToken
+        
+        // FCM 토큰 요청
+        Messaging.messaging().token { token, error in
+            if let error = error {
+                print("❌ FCM 토큰 가져오기 실패: \(error)")
+            } else if let token = token {
+                print("🔥 FCM Token: \(token)")
+                UserDefaults.standard.set(token, forKey: "FCMToken")
+            }
+        }
+    }
+    
+    // APNS 토큰 등록 실패
+    func application(_ application: UIApplication,
+                    didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("❌ APNS 등록 실패: \(error)")
+    }
+    
+    // 포그라운드에서 알림 표시
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                               willPresent notification: UNNotification,
+                               withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        print("📱 포그라운드 알림 수신됨")
+        completionHandler([.banner, .badge, .sound])
+    }
+    
+    // 알림 탭했을 때 처리
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                               didReceive response: UNNotificationResponse,
+                               withCompletionHandler completionHandler: @escaping () -> Void) {
+        print("👆 알림 탭됨: \(response.notification.request.content.userInfo)")
+        completionHandler()
+    }
+}
+
+// MARK: - MessagingDelegate
+extension AppDelegate: MessagingDelegate {
+    
+    // FCM 토큰 갱신 시 호출
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        print("🔥 FCM Token 갱신됨: \(fcmToken ?? "없음")")
+        
+        if let token = fcmToken {
+            UserDefaults.standard.set(token, forKey: "FCMToken")
+            
+            // NotificationCenter로 토큰 전달
+            let dataDict: [String: String] = ["token": token]
+            NotificationCenter.default.post(
+                name: Notification.Name("FCMToken"),
+                object: nil,
+                userInfo: dataDict
+            )
         }
     }
 }
