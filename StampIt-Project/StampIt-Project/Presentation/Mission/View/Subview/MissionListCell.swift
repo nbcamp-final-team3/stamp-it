@@ -20,7 +20,6 @@ final class MissionListCell: UITableViewCell {
     
     private let favoriteImageView = UIImageView().then {
         $0.image = UIImage(named: "bookmarkRed")
-        $0.tintColor = .red200
     }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
