@@ -9,11 +9,11 @@ import UIKit
 import SnapKit
 import Then
 
-final class CompletionStateButton: UIControl {
+final class MissionStateButton: UIControl {
 
     // MARK: - Properties
 
-    private var status: MissionStatus {
+    private var status: Status {
         didSet {
             setStyles()
         }
@@ -39,14 +39,14 @@ final class CompletionStateButton: UIControl {
 
     override var intrinsicContentSize: CGSize {
         let viewSize = containerStackView.intrinsicContentSize
-        let width = viewSize.width + 8 * 2
+        let width = 64.0
         let height = viewSize.height + 4.5 * 2
         return CGSize(width: width, height: height)
     }
 
     // MARK: - Init
 
-    init(status: MissionStatus) {
+    init(status: Status) {
         self.status = status
         super.init(frame: .zero)
         setStyles()
@@ -61,12 +61,10 @@ final class CompletionStateButton: UIControl {
     // MARK: - Set Styles
 
     private func setStyles() {
-        layer.borderWidth = borderWidth
-        layer.borderColor = borderColor
         layer.cornerRadius = 8
         backgroundColor = baseColor
 
-        markImageView.isHidden = status == .assigned
+        markImageView.isHidden = status == .assigned || status == .completed(isCancelable: true)
         if let symbol {
             markImageView.image = symbol
             markImageView.tintColor = textColor
@@ -92,7 +90,7 @@ final class CompletionStateButton: UIControl {
     private func setConstraints() {
         containerStackView.snp.makeConstraints { make in
             make.verticalEdges.equalToSuperview().inset(4.5)
-            make.directionalHorizontalEdges.equalToSuperview().inset(8)
+            make.centerX.equalToSuperview()
         }
 
         markImageView.snp.makeConstraints { make in
@@ -106,54 +104,59 @@ final class CompletionStateButton: UIControl {
 
     // MARK: - Methods
 
-    func updateStatus(to status: MissionStatus) {
-        self.status = status
+    func updateStatus(to status: MissionStatus, _ isCancelable: Bool) {
+        self.status = Status(status, isCancelable)
     }
 }
 
-extension CompletionStateButton {
-    private var borderWidth: CGFloat {
-        switch status {
-        case .assigned, .failed: 0
-        case .completed: 1
-        }
-    }
+extension MissionStateButton {
+    enum Status: Equatable {
+        case assigned
+        case completed(isCancelable: Bool)
+        case failed
 
-    private var borderColor: CGColor? {
-        switch status {
-        case .assigned, .failed: nil
-        case .completed: UIColor.red200.cgColor
+        init(_ missionStatus: MissionStatus, _ isCancelable: Bool) {
+            switch missionStatus {
+            case .assigned:
+                self = .assigned
+            case .completed:
+                self = .completed(isCancelable: isCancelable)
+            case .failed:
+                self = .failed
+            }
         }
     }
 
     private var baseColor: UIColor {
         switch status {
         case .assigned: .red50
-        case .completed: .clear
-        case .failed: .gray25
+        case .completed(isCancelable: true): .gray25
+        default: .clear
         }
     }
 
     private var text: String {
         switch status {
         case .assigned: "완료하기"
-        case .completed: "완료"
+        case .completed(isCancelable: true): "완료함"
+        case .completed(isCancelable: false): "완료"
         case .failed: "만료"
         }
     }
 
     private var textColor: UIColor {
         switch status {
-        case .assigned, .completed: .red400
-        case .failed: .gray200
+        case .assigned: .red400
+        case .completed(isCancelable: true), .failed: .gray200
+        case .completed(isCancelable: false): .red200
         }
     }
 
     private var symbol: UIImage? {
         switch status {
-        case .assigned: nil
-        case .completed: .checkRed
+        case .completed(isCancelable: false): .checkRed200
         case .failed: .xGray200
+        default: nil
         }
     }
 }
