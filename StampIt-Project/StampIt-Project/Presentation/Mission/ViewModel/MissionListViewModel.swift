@@ -23,6 +23,7 @@ final class MissionListViewModel: ViewModelProtocol {
         var searchText = BehaviorRelay<String>(value: "")
         var selectedCategory = BehaviorRelay<MissionCategory?>(value: nil)
         var favorites = BehaviorRelay<Set<String>>(value: [])
+        var isOnlyFavorite = BehaviorRelay<Bool>(value: false) // 즐겨찾기 등록된 미션만 보여줘야 하는지 true/false
     }
     
     var action = PublishRelay<Action>()
@@ -69,10 +70,16 @@ final class MissionListViewModel: ViewModelProtocol {
                 case .didSelectCollectionViewCell(let indexPath):
                     if indexPath.item == 0 {
                         state.selectedCategory.accept(nil)
+                        state.isOnlyFavorite.accept(false)
                         print("전체보기")
+                    } else if indexPath.item == 1 {
+                        state.selectedCategory.accept(nil)
+                        state.isOnlyFavorite.accept(true)
+                        print("즐겨찾기")
                     } else {
-                        let category = MissionCategory.allCases[indexPath.item - 1]
+                        let category = MissionCategory.allCases[indexPath.item - 2]
                         state.selectedCategory.accept(category)
+                        state.isOnlyFavorite.accept(false)
                         print("category: \(category.title)")
                     }
                 case .toggleFavorite(let indexPath):
@@ -94,8 +101,8 @@ final class MissionListViewModel: ViewModelProtocol {
     
     // 미션 검색 + 카테고리 선택
     private func bindFilterMisson() {
-        Observable.combineLatest(state.searchText, state.selectedCategory, state.favorites)
-            .map { [weak self] searchText, selectedCategory, _ -> [SampleMission] in
+        Observable.combineLatest(state.searchText, state.selectedCategory, state.isOnlyFavorite, state.favorites)
+            .map { [weak self] searchText, selectedCategory, isOnlyFavorite, favorites -> [SampleMission] in
                 guard let self else { return [] }
                 
                 // 단어 단위로 분할
@@ -105,6 +112,11 @@ final class MissionListViewModel: ViewModelProtocol {
                     .filter { !$0.isEmpty }
                 
                 let filteredMissions = _missions.filter { mission in
+                    // 즐겨찾기 필터
+                    if isOnlyFavorite, !favorites.contains(mission.missionId) {
+                        return false
+                    }
+                    
                     // 카테고리 필터
                     if let category = selectedCategory, mission.category != category {
                         return false

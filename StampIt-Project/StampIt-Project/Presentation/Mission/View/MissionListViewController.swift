@@ -142,7 +142,9 @@ final class MissionListViewController: UIViewController {
                 guard let self else { return }
                 
                 let favorites = viewModel.state.favorites.value
-                if favorites.contains(element.missionId) {
+                let isOnlyFavorites = viewModel.state.isOnlyFavorite.value
+                
+                if favorites.contains(element.missionId), !isOnlyFavorites {
                     cell.configure(with: element.title, isFavorite: true)
                 } else {
                     cell.configure(with: element.title, isFavorite: false)
@@ -188,7 +190,14 @@ final class MissionListViewController: UIViewController {
             .drive { [weak self] results in
                 guard let self else { return }
                 
-                if results.isEmpty {
+                let isOnlyFavorites = viewModel.state.isOnlyFavorite.value
+                let favorites = viewModel.state.favorites.value
+                
+                if isOnlyFavorites, favorites.isEmpty {
+                    noResultsView.configureContent(title: "즐겨찾기가 없어요", description: "미션을 스와이프해서 즐겨찾기에 추가하세요")
+                    tableView.backgroundView = noResultsView
+                } else if results.isEmpty {
+                    noResultsView.configureContent(title: "검색 결과가 없어요", description: "다른 검색어로 검색해보세요")
                     tableView.backgroundView = noResultsView
                 } else {
                     tableView.backgroundView = nil
@@ -252,6 +261,10 @@ final class MissionListViewController: UIViewController {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.reuseIdentifier, for: indexPath) as! FilterCell
                 cell.configure(title: "전체보기", titleColor: .white, backgroundColor: .red400)
                 return cell
+            case .favorite:
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.reuseIdentifier, for: indexPath) as! FilterCell
+                cell.configure(title: "즐겨찾기", titleColor: .white, backgroundColor: .red400)
+                return cell
             case .category(let category):
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCell.reuseIdentifier, for: indexPath) as! FilterCell
                 cell.configure(image: category.image, title: category.title, titleColor: .gray400, backgroundColor: .white)
@@ -264,7 +277,7 @@ final class MissionListViewController: UIViewController {
     private func updateSnapshot() {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.category])
-        snapshot.appendItems([.all, .category(.chore), .category(.communication), .category(.health), .category(.learning)])
+        snapshot.appendItems([.all, .favorite, .category(.chore), .category(.communication), .category(.health), .category(.learning)])
         
         dataSource?.apply(snapshot, animatingDifferences: true)
     }
@@ -324,6 +337,7 @@ extension MissionListViewController {
     
     enum Item: Hashable {
         case all
+        case favorite
         case category(MissionCategory)
     }
 }
