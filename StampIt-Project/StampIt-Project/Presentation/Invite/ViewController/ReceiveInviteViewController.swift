@@ -28,6 +28,7 @@ final class ReceiveInviteViewController: UIViewController {
     private let viewModel: ReceiveInviteViewModel
     private let disposeBag = DisposeBag()
     private var isKeyboardVisible = false
+    private var imageViewTopConstraint: Constraint?
 
     init(viewModel: ReceiveInviteViewModel) {
         self.viewModel = viewModel
@@ -132,7 +133,7 @@ final class ReceiveInviteViewController: UIViewController {
         }
 
         imageView.snp.makeConstraints {
-            $0.top.equalTo(navigationBar.snp.bottom).offset(140)
+            self.imageViewTopConstraint = $0.top.greaterThanOrEqualTo(navigationBar.snp.bottom).offset(140).constraint
             $0.centerX.equalToSuperview()
             $0.height.equalTo(100)
         }
@@ -323,8 +324,12 @@ final class ReceiveInviteViewController: UIViewController {
         // 버튼이 키보드에 가려지는 경우만 이동
         if buttonBottomY > keyboardTopY {
             let offset = buttonBottomY - keyboardTopY + Constants.keyboardOffset
+            
+            // imageView 제약조건 조정
+            imageViewTopConstraint?.update(offset: 140 - offset)
+            
             UIView.animate(withDuration: duration) {
-                self.view.transform = CGAffineTransform(translationX: 0, y: -offset)
+                self.view.layoutIfNeeded()
             }
         }
     }
@@ -336,8 +341,11 @@ final class ReceiveInviteViewController: UIViewController {
         
         isKeyboardVisible = false
         
+        // imageView 제약조건 원래대로 복원
+        imageViewTopConstraint?.update(offset: 140)
+        
         UIView.animate(withDuration: duration) {
-            self.view.transform = .identity
+            self.view.layoutIfNeeded()
         }
     }
 }
