@@ -33,22 +33,18 @@ struct Mission: Equatable {
     }
 }
 
+// MARK: - Presentation Model 변환
+
 extension Mission {
     func toPresentation() -> MissionUI {
         MissionUI(
             missionID: self.missionID,
             title: self.title,
             assignedBy: self.assignedBy,
-            dueDate: formattedString(with: self.dueDate),
+            dueDate: DateFormatterUtil.formattedString(
+                with: self.dueDate
+            ),
             category: self.category
         )
-    }
-    
-    func formattedString(with date: Date) -> String {
-        let format = DateFormatter()
-        format.dateFormat = "yyyy년 M월 d일"
-        
-        let dateString = format.string(from: date)
-        return dateString
     }
 }

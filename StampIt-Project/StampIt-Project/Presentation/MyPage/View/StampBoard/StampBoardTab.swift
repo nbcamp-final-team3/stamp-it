@@ -98,7 +98,6 @@ final class StampBoardTab: UIView {
                         
                         let backgroundBoard = StampBoardSection.page.type.flatMap { $0 }
                         
-                        print("**itemIndexInPage: \(itemIndexInPage)")
                         if backgroundBoard.indices.contains(itemIndexInPage) {
                             cell.configureDashedLine(with: backgroundBoard[itemIndexInPage])
                         }
