@@ -80,7 +80,6 @@ final class HomeViewModel: ViewModelProtocol {
             .subscribe(with: self) { owner, action in
                 switch action {
                 case .viewWillAppear:
-                    owner.showPlaceholderOnSendedSection()
                     owner.bindUser()
                 case .didTapGroupOrganizationButton:
                     owner.handleSelectIvitation()
@@ -258,14 +257,5 @@ final class HomeViewModel: ViewModelProtocol {
     private func findMissionFromCache(missionID: String) -> Mission? {
         guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
         return myMissions[index]
-    }
-
-    // MARK: - Methods
-
-    /// fetch 전 placeholder 제공
-    ///
-    /// TODO: 뷰를 로드할 때마다 깜빡임
-    private func showPlaceholderOnSendedSection() {
-        state.memberMissionsForDisplay.accept([])
     }
 }
