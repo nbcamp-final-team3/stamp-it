@@ -55,8 +55,6 @@ final class HomeViewModel: ViewModelProtocol {
     var memberCache = [String: Member]() // 멤버 정보 저장
     private var myMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
     private var memberMissions = [Mission]()
-    private var pendingMissions = [String]()
-    private var pendingCommits = DisposeBag()
 
     // MARK: - Init
 
@@ -156,13 +154,7 @@ final class HomeViewModel: ViewModelProtocol {
               self.myMissions = missions
               let items = self.missionMapper
                   .map(myMissions: missions, member: memberCache)
-                  .compactMap { mission -> HomeItem? in
-                      if self.pendingMissions.contains(mission.missionID) {
-                          return nil
-                      } else {
-                          return HomeItem.myMission(mission)
-                      }
-                  }
+                  .map { HomeItem.myMission($0) }
               self.state.myMissions.accept(items)
           })
           .disposed(by: disposeBag)
@@ -219,27 +211,18 @@ final class HomeViewModel: ViewModelProtocol {
     /// 미션 완료 API를 호출하고,
     /// 전달받은 미션의 ID로 myMissions에서 해당 미션을 찾아 제거, 스티커 생성
     func handleMissionCompleteButtonTapped(missionID: String) {
-        guard let user = state.user.value else { return }
+        guard let user = state.user.value,
+              let mission = removeMissionCache(missionID: missionID) else { return }
         removeMissionItem(missionID: missionID)
         state.isShowStickerReceived.accept(true)
-        pendingMissions.append(missionID)
 
-        // cancelMissionComplete() 호출 시 dispose되는 Observable
-        Observable<Void>.just(())
-            .delay(.seconds(3), scheduler: MainScheduler.instance)
-            .flatMap { [weak self] _ -> Observable<Mission> in
-                guard let self else { return .empty() }
-                let removedMission = removeMissionCache(missionID: missionID)
-                guard let mission = removedMission else { return .empty() }
-                pendingMissions.remove(at: pendingMissions.firstIndex(of: missionID)!)
-                return myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
-            }
+        myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
                 return myMissionUseCase.createSticker(user: user, mission: mission)
             }
             .subscribe()
-            .disposed(by: pendingCommits)
+            .disposed(by: disposeBag)
     }
 
     /// UI에서 미션 제거
@@ -257,8 +240,6 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
     func cancelMissionComplete() {
-        pendingCommits = DisposeBag()
-//        pendingMissions = []
         let cachedMissions = missionMapper
             .map(myMissions: myMissions, member: memberCache)
             .map { HomeItem.myMission($0) }
@@ -269,6 +250,8 @@ final class HomeViewModel: ViewModelProtocol {
     // MARK: - Methods
 
     /// fetch 전 placeholder 제공
+    ///
+    /// TODO: 뷰를 로드할 때마다 깜빡임
     private func showPlaceholderOnSendedSection() {
         state.memberMissionsForDisplay.accept([])
     }
