@@ -191,7 +191,7 @@ extension StampBoardViewController: UICollectionViewDelegate {
             let viewModel = container.makeStampInfoViewModel()
             
             let stampInfoVC = StampInfoViewController(viewModel: viewModel)
-            stampInfoVC.modalPresentationStyle = .overCurrentContext
+            stampInfoVC.modalPresentationStyle = .custom
             
             viewModel.action.accept(.load(missionId: missionId))
             
