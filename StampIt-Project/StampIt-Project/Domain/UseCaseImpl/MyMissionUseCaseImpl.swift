@@ -51,4 +51,8 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
             assignedBy: mission.assignedBy
         )
     }
+
+    func deleteSticker(missionID: String) -> Observable<Void> {
+        homeRepository.deleteSticker(missionID: missionID)
+    }
 }

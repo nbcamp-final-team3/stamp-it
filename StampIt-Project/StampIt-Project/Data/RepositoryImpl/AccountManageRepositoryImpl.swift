@@ -13,12 +13,12 @@ import FirebaseAuth
 
 final class AccountManageRepository: AccountManageRepositoryProtocol {
 
-    private let authManager: AuthManagerProtocol
-    private let userManager: UserManager
-    private let groupManager: GroupManager
-    private let membershipManager: MembershipManager
-    private let missionManager: MissionManager
-    private let stickerManager: StickerManager
+    private let authManager: any AuthManagerProtocol
+    private let userManager: any UserManagerProtocol
+    private let groupManager: any GroupManagerProtocol
+    private let membershipManager: any MembershipManagerProtocol
+    private let missionManager: any MissionManagerProtocol
+    private let stickerManager: any StickerManagerProtocol
 
     private let authRepository: AuthRepositoryProtocol
 
@@ -27,13 +27,13 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
 
     // 의존성 주입
     init(
-        authManager: AuthManagerProtocol,
-        userManager: UserManager,
-        groupManager: GroupManager,
-        membershipManager: MembershipManager,
-        missionManager: MissionManager,
-        stickerManager: StickerManager,
-        authRepository: AuthRepository,
+        authManager: any AuthManagerProtocol,
+        userManager: any UserManagerProtocol,
+        groupManager: any GroupManagerProtocol,
+        membershipManager: any MembershipManagerProtocol,
+        missionManager: any MissionManagerProtocol,
+        stickerManager: any StickerManagerProtocol,
+        authRepository: any AuthRepositoryProtocol,
         mapToRepositoryError: @escaping (Error) -> RepositoryError
     ) {
         self.authManager = authManager
@@ -191,7 +191,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
             membershipManager.removeMember(groupId: groupId, userId: userId),
             userManager.delete(id: userId),
             stickerManager.deleteUserStickers(userId: userId),
-            missionManager.deleteUserMissions(userId: userId, groupId: groupId)
+            missionManager.deleteReceivedMissions(userId: userId, groupId: groupId)
         )
         .map { _ in () }
         .catch { error in
@@ -287,10 +287,10 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
                     return Observable.error(RepositoryError.unknownError)
                 }
 
-                // 💡 그룹 탈퇴 전용 검증
+                // 그룹 탈퇴 전용 검증
                 return self.validateGroupLeaving(currentUser: currentUser)
                     .flatMap { _ in
-                        // 💡 그룹 탈퇴 실행
+                        // 그룹 탈퇴 실행
                         return self.executeGroupLeaving(currentUser: currentUser)
                     }
             }
@@ -334,7 +334,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
                 return self.membershipManager.fetchList(query: .byGroup(currentUser.groupID))
                     .map { memberships in memberships.count }
                     .flatMap { memberCount -> Observable<Void> in
-                        // 💡 핵심: 1인 그룹은 그룹 탈퇴 차단
+                        // 핵심: 1인 그룹은 그룹 탈퇴 차단
                         if memberCount <= 1 {
                             return Observable.error(
                                 RepositoryError.dataError("계정 삭제를 원하신다면\n'서비스 탈퇴'를 이용해주세요.")
@@ -537,8 +537,12 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         currentGroupId: String,
         maxRetries: Int
     ) -> Observable<Void> {
-        return missionManager.deleteUserMissions(userId: userId, groupId: currentGroupId)
+        return stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
             .retry(maxRetries)
+            .flatMap { _ in
+                return self.missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId)
+                    .retry(maxRetries)
+            }
             .timeout(.seconds(5), scheduler: MainScheduler.instance)
             .catch { error in
                 return Observable.error(GroupExitError.dataCleanupFailed(error.localizedDescription))

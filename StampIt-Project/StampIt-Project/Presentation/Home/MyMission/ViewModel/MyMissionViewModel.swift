@@ -21,7 +21,6 @@ final class MyMissionViewModel: ViewModelProtocol {
         case viewDidLoad
         case selectFilter(Int)
         case didTapStatusButton(MyMissionItem)
-        case didTapCompleteCancelButton
         case didTapBackButton
     }
 
@@ -30,8 +29,6 @@ final class MyMissionViewModel: ViewModelProtocol {
         let missionFilters = BehaviorRelay<[MyMissionItem]>(value: [])
         let filteredMissions = BehaviorRelay<[MyMissionItem]>(value: [])
         let selectedFilter = BehaviorRelay<Int>(value: 0)
-        let completedMissionTitle = BehaviorRelay<String>(value: "")
-        let isShowStickerReceived = PublishRelay<Bool>()
         let isPopVC = PublishRelay<Void>()
     }
 
@@ -42,8 +39,6 @@ final class MyMissionViewModel: ViewModelProtocol {
     var state = State()
     private var memberCache: [String: Member] = [:]
     private var myMissions = [Mission]()
-    private var pendingMissions = [String]()
-    private var pendingCommits = DisposeBag()
 
     // MARK: - Init
 
@@ -72,11 +67,7 @@ final class MyMissionViewModel: ViewModelProtocol {
                     owner.state.selectedFilter.accept(index)
                     owner.filterMyMissions(index: index)
                 case .didTapStatusButton(let item):
-                    let missionID = item.mission!.missionID
-                    owner.handleMissionCompleteButtonTapped(missionID: missionID)
-                    owner.state.completedMissionTitle.accept(item.mission!.title)
-                case .didTapCompleteCancelButton:
-                    owner.cancelMissionComplete()
+                    owner.handleMissionUpdate(item: item)
                 case .didTapBackButton:
                     owner.state.isPopVC.accept(())
                 }
@@ -105,13 +96,7 @@ final class MyMissionViewModel: ViewModelProtocol {
                         guard selectedFilter.status != .none else { return true }
                         return $0.status == selectedFilter.status
                     }
-                    .map { mission in
-                        if self.pendingMissions.contains(mission.missionID) {
-                            return MyMissionItem.mission(mission.makeCopyCompleted())
-                        } else {
-                            return MyMissionItem.mission(mission)
-                        }
-                    }
+                    .map { MyMissionItem.mission($0) }
             }
             .bind(to: state.filteredMissions)
             .disposed(by: disposeBag)
@@ -130,43 +115,60 @@ final class MyMissionViewModel: ViewModelProtocol {
         state.selectedFilter.accept(state.selectedFilter.value)
     }
 
-    /// 미션 완료 바인딩
+    /// 미션 상태 업데이트
     ///
-    /// 전달받은 미션의 ID로 myMissions에서 해당 미션을 찾아 UI를 우선 업데이트,
-    /// 4초간 대기 후 캐시 업데이트 및 API 호출
-    private func handleMissionCompleteButtonTapped(missionID: String) {
-        guard let user = state.user.value else { return }
-        updateMissionItem(missionID: missionID)
-        state.isShowStickerReceived.accept(true)
-        pendingMissions.append(missionID)
+    /// 진행중인 미션일 경우 완료로 업데이트, 완료되었으나 마감 기한 이전이면 완료를 취소
+    private func handleMissionUpdate(item: MyMissionItem) {
+        let mission = item.mission!
+        switch mission.status {
+        case .assigned:
+            handleMissionCompleteButtonTapped(missionID: mission.missionID)
+        case .completed:
+            guard mission.isCancelableCompleted else { return }
+            handleCancelMissionComplete(missionID: mission.missionID)
+        case .failed: break
+        }
+    }
 
-        // cancelMissionComplete() 호출 시 dispose되는 Observable
-        Observable<Void>.just(())
-            .delay(.seconds(3), scheduler: MainScheduler.instance)
-            .flatMap { [weak self] _ -> Observable<Mission> in
-                guard let self else { return .empty() }
-                let missionToUpdate = updateMissionCache(missionID: missionID)
-                guard let mission = missionToUpdate else { return .empty() }
-                pendingMissions.remove(at: pendingMissions.firstIndex(of: missionID)!)
-                return useCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
-            }
+    /// 미션 완료 바인딩
+    private func handleMissionCompleteButtonTapped(missionID: String) {
+        guard let user = state.user.value,
+              let missionToUpdate = updateMissionCache(missionID: missionID, toStatus: .completed) else { return }
+        updateMissionItem(missionID: missionID, toStatus: .completed)
+
+        useCase.updateMissionStatus(for: missionToUpdate, ofGroup: user.groupID, to: .completed)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
                 return useCase.createSticker(user: user, mission: mission)
             }
             .subscribe()
-            .disposed(by: pendingCommits)
+            .disposed(by: disposeBag)
+    }
+
+    /// 미션 완료 취소
+    private func handleCancelMissionComplete(missionID: String) {
+        guard let user = state.user.value,
+              let missionToUpdate = updateMissionCache(missionID: missionID, toStatus: .assigned) else { return }
+        updateMissionItem(missionID: missionID, toStatus: .assigned)
+
+        useCase.updateMissionStatus(for: missionToUpdate, ofGroup: user.groupID, to: .assigned)
+            .flatMap { [weak self] mission -> Observable<Void> in
+                guard let self else { return .empty() }
+                return useCase.deleteSticker(missionID: missionToUpdate.missionID)
+            }
+            .subscribe()
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Methods
 
     /// UI에서 미션 업데이트
-    private func updateMissionItem(missionID: String) {
+    private func updateMissionItem(missionID: String, toStatus status: MissionStatus) {
         let items = state.filteredMissions.value
         let updated = items.map { item in
             let mission = item.mission!
             if mission.missionID == missionID {
-                let updated = mission.makeCopyCompleted()
+                let updated = mission.makeCopy(status: status)
                 return MyMissionItem.mission(updated)
             } else {
                 return item
@@ -176,21 +178,12 @@ final class MyMissionViewModel: ViewModelProtocol {
     }
 
     /// 도메인 미션 캐시에서 미션 업데이트
-    private func updateMissionCache(missionID: String) -> Mission? {
+    private func updateMissionCache(missionID: String, toStatus status: MissionStatus) -> Mission? {
         guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
         let missionToUpdate = myMissions[index]
-        let updated = missionToUpdate.makeCopyCompleted()
+        let updated = missionToUpdate.makeCopy(status: status)
         myMissions[index] = updated
         return updated
-    }
-
-    /// 토스트 “취소하기” 버튼 눌렀을 때 호출
-    private func cancelMissionComplete() {
-        pendingCommits = DisposeBag()
-        pendingMissions = []
-        let index = state.selectedFilter.value
-        filterMyMissions(index: index)
-        state.isShowStickerReceived.accept(false)
     }
 
     private func filterMyMissions(index: Int) {

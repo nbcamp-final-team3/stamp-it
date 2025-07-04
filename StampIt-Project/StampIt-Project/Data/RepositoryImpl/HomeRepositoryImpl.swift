@@ -10,19 +10,19 @@ import RxSwift
 import FirebaseFirestore
 
 final class HomeRepository: HomeRepositoryProtocol {
-    private let membershipManager: MembershipManager
-        private let stickerManager: StickerManager
-        private let missionManager: MissionManager
+    private let membershipManager: any MembershipManagerProtocol
+    private let stickerManager: any StickerManagerProtocol
+    private let missionManager: any MissionManagerProtocol
 
-        init(
-            membershipManager: MembershipManager,
-            stickerManager: StickerManager,
-            missionManager: MissionManager
-        ) {
-            self.membershipManager = membershipManager
-            self.stickerManager = stickerManager
-            self.missionManager = missionManager
-        }
+    init(
+        membershipManager: any MembershipManagerProtocol,
+        stickerManager: any StickerManagerProtocol,
+        missionManager: any MissionManagerProtocol
+    ) {
+        self.membershipManager = membershipManager
+        self.stickerManager = stickerManager
+        self.missionManager = missionManager
+    }
 
     func fetchGroupMembers(ofGroup groupID: String) -> Observable<[Member]> {
         let thisMonth = Date().toYearMonthString()
@@ -61,7 +61,7 @@ final class HomeRepository: HomeRepositoryProtocol {
         missionManager.fetchMissions(to: assigneeID, by: assignerID, ofGroup: groupID)
             .map { $0.map { $0.toDomainModel() } }
     }
-    
+
     func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission> {
         let updated = MissionFirestore(
             missionId: mission.missionID,
@@ -99,5 +99,9 @@ final class HomeRepository: HomeRepositoryProtocol {
             missionId: missionId,
             assignedBy: assignedBy
         )
+    }
+
+    func deleteSticker(missionID: String) -> Observable<Void> {
+        stickerManager.deleteSticker(missionId: missionID)
     }
 }

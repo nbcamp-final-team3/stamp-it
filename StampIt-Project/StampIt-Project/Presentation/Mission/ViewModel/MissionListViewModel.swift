@@ -15,12 +15,15 @@ final class MissionListViewModel: ViewModelProtocol {
         case searchTextChanged(String)
         case didSelectTableViewCell(SampleMission)
         case didSelectCollectionViewCell(IndexPath)
+        case toggleFavorite(IndexPath)
     }
     
     struct State {
         var missions = BehaviorRelay<[SampleMission]>(value: []) // 뷰에 반영되는 샘플 미션 데이터
         var searchText = BehaviorRelay<String>(value: "")
         var selectedCategory = BehaviorRelay<MissionCategory?>(value: nil)
+        var favorites = BehaviorRelay<Set<String>>(value: [])
+        var isOnlyFavorite = BehaviorRelay<Bool>(value: false) // 즐겨찾기 등록된 미션만 보여줘야 하는지 true/false
     }
     
     var action = PublishRelay<Action>()
@@ -37,6 +40,8 @@ final class MissionListViewModel: ViewModelProtocol {
         bind()
         
         bindFilterMisson()
+        
+        loadFavorites()
     }
     
     private func bind() {
@@ -50,7 +55,7 @@ final class MissionListViewModel: ViewModelProtocol {
                         .subscribe { [weak self] missions in
                             guard let self else { return }
                             
-                            let sortedMissions = missions.sorted { $0.title < $1.title }
+                            let sortedMissions = sort(missions)
                             state.missions.accept(sortedMissions)
                             _missions = sortedMissions
                         } onFailure: { error in
@@ -65,12 +70,30 @@ final class MissionListViewModel: ViewModelProtocol {
                 case .didSelectCollectionViewCell(let indexPath):
                     if indexPath.item == 0 {
                         state.selectedCategory.accept(nil)
+                        state.isOnlyFavorite.accept(false)
                         print("전체보기")
+                    } else if indexPath.item == 1 {
+                        state.selectedCategory.accept(nil)
+                        state.isOnlyFavorite.accept(true)
+                        print("즐겨찾기")
                     } else {
-                        let category = MissionCategory.allCases[indexPath.item - 1]
+                        let category = MissionCategory.allCases[indexPath.item - 2]
                         state.selectedCategory.accept(category)
+                        state.isOnlyFavorite.accept(false)
                         print("category: \(category.title)")
                     }
+                case .toggleFavorite(let indexPath):
+                    let mission = state.missions.value[indexPath.row]
+                    var favorites = state.favorites.value
+                    
+                    // 토글 형식이므로, 현재 즐겨찾기인 미션을 탭하면 즐겨찾기 해제, 현재 즐겨찾기가 아닌 미션을 탭하면 즐겨찾기 등록
+                    if favorites.contains(mission.missionId) {
+                        favorites.remove(mission.missionId)
+                    } else {
+                        favorites.insert(mission.missionId)
+                    }
+                    state.favorites.accept(favorites)
+                    UserDefaults.standard.set(Array(favorites), forKey: "favorites")
                 }
             }
             .disposed(by: disposeBag)
@@ -78,8 +101,8 @@ final class MissionListViewModel: ViewModelProtocol {
     
     // 미션 검색 + 카테고리 선택
     private func bindFilterMisson() {
-        Observable.combineLatest(state.searchText, state.selectedCategory)
-            .map { [weak self] searchText, selectedCategory -> [SampleMission] in
+        Observable.combineLatest(state.searchText, state.selectedCategory, state.isOnlyFavorite, state.favorites)
+            .map { [weak self] searchText, selectedCategory, isOnlyFavorite, favorites -> [SampleMission] in
                 guard let self else { return [] }
                 
                 // 단어 단위로 분할
@@ -88,7 +111,12 @@ final class MissionListViewModel: ViewModelProtocol {
                     .components(separatedBy: .whitespaces)
                     .filter { !$0.isEmpty }
                 
-                return _missions.filter { mission in
+                let filteredMissions = _missions.filter { mission in
+                    // 즐겨찾기 필터
+                    if isOnlyFavorite, !favorites.contains(mission.missionId) {
+                        return false
+                    }
+                    
                     // 카테고리 필터
                     if let category = selectedCategory, mission.category != category {
                         return false
@@ -105,8 +133,35 @@ final class MissionListViewModel: ViewModelProtocol {
                         title.localizedStandardContains(keyword)
                     }
                 }
+                
+                return sort(filteredMissions)
             }
             .bind(to: state.missions)
             .disposed(by: disposeBag)
+    }
+    
+    // 정렬 우선순위: 1순위 즐겨찾기 여부 -> 2순위 미션 타이틀명
+    private func sort(_ missions: [SampleMission]) -> [SampleMission] {
+        // 우선 전체 데이터를 타이틀명 기준으로 정렬
+        let missions = missions.sorted { $0.title < $1.title }
+        
+        let favorites = state.favorites.value
+        
+        let favoriteMissions = missions.filter {
+            favorites.contains($0.missionId)
+        }
+        
+        let noFavoriteMissions = missions.filter {
+            !favorites.contains($0.missionId)
+        }
+        
+        // 즐겨찾기 등록된 미션을 앞으로, 나머지는 뒤로
+        return favoriteMissions + noFavoriteMissions
+    }
+    
+    // 즐겨찾기 샘플미션 로드
+    private func loadFavorites() {
+        let favorites = UserDefaults.standard.stringArray(forKey: "favorites") ?? []
+        state.favorites.accept(Set(favorites))
     }
 }

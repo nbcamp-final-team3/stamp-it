@@ -10,12 +10,12 @@ import RxSwift
 
 final class MyPageRepositoryImpl: MyPageRepository {
     
-    private let stickerManager: StickerManager
-    private let userManager: UserManager
+    private let stickerManager: any StickerManagerProtocol
+    private let userManager: any UserManagerProtocol
     
     init(
-        stickerManager: StickerManager,
-        userManager: UserManager
+        stickerManager: any StickerManagerProtocol,
+        userManager: any UserManagerProtocol
     ) {
         self.stickerManager = stickerManager
         self.userManager = userManager

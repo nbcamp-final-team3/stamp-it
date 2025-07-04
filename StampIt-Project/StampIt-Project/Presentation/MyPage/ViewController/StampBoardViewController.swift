@@ -154,9 +154,6 @@ extension StampBoardViewController: UICollectionViewDelegate {
         willDisplay cell: UICollectionViewCell,
         forItemAt indexPath: IndexPath
     ) {
-        
-        // TODO: 페이지 넘어갔을 때 색상 반만 바뀌는 이슈 해결하기
-        
         guard let cell = cell as? StampCell else { return }
         
         let stickers = viewModel.state.stickersByPage.value

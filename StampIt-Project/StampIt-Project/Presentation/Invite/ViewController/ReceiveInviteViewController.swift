@@ -28,6 +28,7 @@ final class ReceiveInviteViewController: UIViewController {
     private let viewModel: ReceiveInviteViewModel
     private let disposeBag = DisposeBag()
     private var isKeyboardVisible = false
+    private var imageViewTopConstraint: Constraint?
 
     init(viewModel: ReceiveInviteViewModel) {
         self.viewModel = viewModel
@@ -132,7 +133,7 @@ final class ReceiveInviteViewController: UIViewController {
         }
 
         imageView.snp.makeConstraints {
-            $0.top.equalTo(navigationBar.snp.bottom).offset(140)
+            self.imageViewTopConstraint = $0.top.greaterThanOrEqualTo(navigationBar.snp.bottom).offset(140).constraint
             $0.centerX.equalToSuperview()
             $0.height.equalTo(100)
         }
@@ -167,6 +168,7 @@ final class ReceiveInviteViewController: UIViewController {
         bindNavigation()
         bindMessages()
         bindInviteCompletion()
+        bindGroupExitConfirmation()
     }
     
     private func bindTextField() {
@@ -234,6 +236,49 @@ final class ReceiveInviteViewController: UIViewController {
             }
             .disposed(by: disposeBag)
     }
+    
+    private func bindGroupExitConfirmation() {
+        viewModel.state.showGroupExitConfirmation
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] inviteCode in
+                guard let self = self else { return }
+                
+                // 키보드가 올라와 있으면 먼저 내리기
+                if self.isKeyboardVisible {
+                    self.textField.resignFirstResponder()
+                    
+                    // 키보드가 완전히 내려간 후 알림 표시
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Constants.toastDelay) {
+                        self.showGroupExitAlert()
+                    }
+                } else {
+                    // 키보드가 내려가 있으면 바로 알림 표시
+                    self.showGroupExitAlert()
+                }
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    private func showGroupExitAlert() {
+        let alert = UIAlertController(
+            title: "그룹 이동",
+            message: "이동 후 복구는 불가능하며 그룹에서\n생성된 스티커와 미션이 모두 삭제됩니다.",
+            preferredStyle: .alert
+        )
+        
+        let confirmAction = UIAlertAction(title: "입장하기", style: .destructive) { [weak self] _ in
+            self?.viewModel.action.accept(.confirmGroupExit)
+        }
+        
+        let cancelAction = UIAlertAction(title: "취소", style: .cancel) { [weak self] _ in
+            self?.viewModel.action.accept(.cancelGroupExit)
+        }
+        
+        alert.addAction(confirmAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
 
     private func setupKeyboardDismiss() {
         let tapGesture = UITapGestureRecognizer()
@@ -279,8 +324,12 @@ final class ReceiveInviteViewController: UIViewController {
         // 버튼이 키보드에 가려지는 경우만 이동
         if buttonBottomY > keyboardTopY {
             let offset = buttonBottomY - keyboardTopY + Constants.keyboardOffset
+            
+            // imageView 제약조건 조정
+            imageViewTopConstraint?.update(offset: 140 - offset)
+            
             UIView.animate(withDuration: duration) {
-                self.view.transform = CGAffineTransform(translationX: 0, y: -offset)
+                self.view.layoutIfNeeded()
             }
         }
     }
@@ -292,8 +341,11 @@ final class ReceiveInviteViewController: UIViewController {
         
         isKeyboardVisible = false
         
+        // imageView 제약조건 원래대로 복원
+        imageViewTopConstraint?.update(offset: 140)
+        
         UIView.animate(withDuration: duration) {
-            self.view.transform = .identity
+            self.view.layoutIfNeeded()
         }
     }
 }
