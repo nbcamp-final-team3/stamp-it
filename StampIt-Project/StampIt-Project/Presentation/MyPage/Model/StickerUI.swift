@@ -22,11 +22,13 @@ struct StickerUI: Hashable {
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(stickerID)
+        hasher.combine(type)
         hasher.combine(zigzagIndex)
     }
     
     static func == (lhs: StickerUI, rhs: StickerUI) -> Bool {
         lhs.stickerID == rhs.stickerID &&
+        lhs.type == rhs.type &&
         lhs.zigzagIndex == rhs.zigzagIndex
     }
 }
