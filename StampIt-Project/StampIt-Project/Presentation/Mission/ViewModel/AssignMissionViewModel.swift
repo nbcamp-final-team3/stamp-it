@@ -101,12 +101,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
                     print("did tap assign button")
                     createMission()
                         .subscribe { [weak self] in
-                            guard let self else { return }
                             print("mission created.")
-                            onSuccess?()
-                            if let mission = state.mission.value, mission.missionId != "" {
-                                donate(.assignMission, to: mission)
-                            }
+                            self?.onSuccess?()
                         } onError: { error in
                             print(error)
                         }
@@ -172,17 +168,5 @@ final class AssignMissionViewModel: ViewModelProtocol {
             category: state.mission.value!.category)
         
         return missionUseCaseImpl.createMission(groupId: user.groupID, mission: mission)
-    }
-    
-    // 미션별 추천 점수 적립
-    // 어떤 이벤트가 일어날 때, 해당 미션에 이벤트별 점수를 적립(예: 사용자가 미션 전달하기를 완료하면 해당 미션에 0.4점 부여)
-    private func donate(_ event: Event, to mission: SampleMission) {
-        var scores = UserDefaults.standard.dictionary(forKey: UserDefaultsKey.missionScores) as? [String: Double] ?? [:]
-        var score = scores[mission.missionId] ?? 0
-        
-        score += event.relevance // 이벤트별 점수를 적립
-        scores[mission.missionId] = score
-        
-        UserDefaults.standard.set(scores, forKey: UserDefaultsKey.missionScores)
     }
 }

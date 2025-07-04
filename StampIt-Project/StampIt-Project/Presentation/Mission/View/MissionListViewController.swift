@@ -244,6 +244,7 @@ final class MissionListViewController: UIViewController {
         viewModel.onSuccess = { [weak self] in
             guard let self else { return }
             toastView.show(in: view, duration: 3, message: "미션이 전달되었어요", type: .success)
+            self.viewModel.donate(.assignMission, to: mission)
         }
         let viewController = AssignMissionViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)

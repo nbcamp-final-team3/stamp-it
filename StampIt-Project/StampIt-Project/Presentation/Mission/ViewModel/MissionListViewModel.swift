@@ -187,7 +187,7 @@ final class MissionListViewModel: ViewModelProtocol {
     // 추천 미션 선정(최대 3개)
     private func recommend(among missions: [SampleMission]) -> [SampleMission] {
         let recommendedMissions = missions
-            .filter { (missionScores[$0.missionId] ?? 0) > 0 } // 점수가 0 초과인 미션만 추천(0은 추천 안함)
+            .filter { (missionScores[$0.missionId] ?? 0) >= 1.0 } // 점수가 1.0 이상인 미션만 추천
             .sorted { (missionScores[$0.missionId] ?? 0) > (missionScores[$1.missionId] ?? 0) } // 점수 순 정렬
             .prefix(3) // 상위 3개만 추출
         return Array(recommendedMissions)
@@ -195,7 +195,7 @@ final class MissionListViewModel: ViewModelProtocol {
     
     // 미션별 추천 점수 적립
     // 어떤 이벤트가 일어날 때, 해당 미션에 이벤트별 점수를 적립(예: 사용자가 미션 전달하기를 완료하면 해당 미션에 0.4점 부여)
-    private func donate(_ event: Event, to mission: SampleMission) {
+    func donate(_ event: Event, to mission: SampleMission) {
         var scores = missionScores
         var score = scores[mission.missionId] ?? 0
         
