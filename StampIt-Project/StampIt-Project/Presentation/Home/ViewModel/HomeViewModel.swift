@@ -41,8 +41,8 @@ final class HomeViewModel: ViewModelProtocol {
         let isShowSelectInvitationVC = PublishRelay<Void>()
         let isPushSendInvitationVC = PublishRelay<Void>()
         let isPushReceiveInvitationVC = PublishRelay<Void>()
-        let completedMissionTitle = BehaviorRelay<String>(value: "")
-        let isShowStickerReceived = PublishRelay<Bool>()
+        let isShowStampReceived = PublishRelay<(String, String)>()
+        let completionCanceledMission = PublishRelay<String>()
         let isPushMyMissionVC = PublishRelay<Void>()
         let isPushMemberMissionVC = PublishRelay<Void>()
     }
@@ -55,6 +55,7 @@ final class HomeViewModel: ViewModelProtocol {
     var memberCache = [String: Member]() // 멤버 정보 저장
     private var myMissions = [Mission]() // Firestore 상태 업데이트용 도메인 미션 캐시
     private var memberMissions = [Mission]()
+    private var pendingStack: [Mission] = [] // 취소 가능한 미션 (3초 보관)
 
     // MARK: - Init
 
@@ -86,11 +87,10 @@ final class HomeViewModel: ViewModelProtocol {
                 case .didReceiveInvitationType(let type):
                     owner.handleInvitation(type: type)
                 case .didTapMissonCompleteButton(let item):
-                    let missionID = item.myMission!.missionID
-                    owner.handleMissionCompleteButtonTapped(missionID: missionID)
-                    owner.state.completedMissionTitle.accept(item.myMission!.title)
+                    let mission = item.myMission!
+                    owner.handleMissionCompleteButtonTapped(missionID: mission.missionID)
                 case .didTapCompleteCancelButton:
-                    owner.cancelMissionComplete()
+                    owner.handleCancelMissionComplete()
                 case .didTapMoreMyMissions:
                     owner.state.isPushMyMissionVC.accept(())
                 case .didSelectReceivedMember(let index):
@@ -208,14 +208,25 @@ final class HomeViewModel: ViewModelProtocol {
 
     /// 미션 완료 바인딩
     ///
-    /// 미션 완료 API를 호출하고,
-    /// 전달받은 미션의 ID로 myMissions에서 해당 미션을 찾아 제거, 스티커 생성
+    /// myMissions에서 완료할 미션을 찾은 후 미션 완료 API를 호출하고 스티커 생성
     func handleMissionCompleteButtonTapped(missionID: String) {
         guard let user = state.user.value,
-              let mission = removeMissionCache(missionID: missionID) else { return }
-        removeMissionItem(missionID: missionID)
-        state.isShowStickerReceived.accept(true)
+              let mission = findMissionFromCache(missionID: missionID) else { return }
 
+        let message = "'\(mission.title.truncatedTo10)' 미션을 완료했어요!"
+        state.isShowStampReceived.accept((missionID, message))
+        pendingStack.append(mission)
+
+        /// 3초 후 pending중인 미션 제거
+        Observable.just(())
+            .delay(.seconds(3), scheduler: MainScheduler.instance)
+            .bind(with: self, onNext: { owner, _ in
+                guard !owner.pendingStack.isEmpty else { return }
+                owner.pendingStack.removeFirst()
+            })
+            .disposed(by: disposeBag)
+
+        // 미션 상태를 완료로 업데이트
         myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
@@ -225,26 +236,28 @@ final class HomeViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
 
-    /// UI에서 미션 제거
-    private func removeMissionItem(missionID: String) {
-        let missions = state.myMissions.value
-        let updated = missions.filter { $0.myMission!.missionID != missionID }
-        state.myMissions.accept(updated)
-    }
-
-    /// 도메인 미션 캐시에서 미션 제거
-    private func removeMissionCache(missionID: String) -> Mission? {
-        guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
-        return myMissions.remove(at: index)
-    }
-
     /// 토스트 “취소하기” 버튼 눌렀을 때 호출
-    func cancelMissionComplete() {
-        let cachedMissions = missionMapper
-            .map(myMissions: myMissions, member: memberCache)
-            .map { HomeItem.myMission($0) }
-        state.myMissions.accept(cachedMissions)
-        state.isShowStickerReceived.accept(false)
+    private func handleCancelMissionComplete() {
+        guard !pendingStack.isEmpty else { return }
+        let mission = pendingStack.removeLast()
+        state.completionCanceledMission.accept(mission.missionID)
+
+        guard let user = state.user.value else { return }
+
+        /// 미션 상태를 진행중으로 롤백
+        myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .assigned)
+            .flatMap { [weak self] mission -> Observable<Void> in
+                guard let self else { return .empty() }
+                return myMissionUseCase.deleteSticker(missionID: mission.missionID)
+            }
+            .subscribe()
+            .disposed(by: disposeBag)
+    }
+
+    /// 도메인 미션 찾기
+    private func findMissionFromCache(missionID: String) -> Mission? {
+        guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
+        return myMissions[index]
     }
 
     // MARK: - Methods
