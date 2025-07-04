@@ -182,11 +182,11 @@ extension StampBoardViewController: UICollectionViewDelegate {
         let stickersByPage = viewModel.state.stickersByPage.value
         
         let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
-
+        
         let clickedSticker = stickersByPage[currentPage][itemIndexInPage]
         let missionId = clickedSticker.missionID
 
-        /// 뷰를 위해 생성된 Empty Stamp 는 모달창 띄우지 않음
+        /// Empty Stamp 는 모달뷰 띄우지 않음
         if clickedSticker.type != .stampGray {
             let viewModel = container.makeStampInfoViewModel()
             
