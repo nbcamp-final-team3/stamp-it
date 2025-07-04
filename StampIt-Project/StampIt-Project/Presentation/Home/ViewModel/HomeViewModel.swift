@@ -21,7 +21,7 @@ final class HomeViewModel: ViewModelProtocol {
     // MARK: - Action & State
 
     enum Action {
-        case viewWillAppear
+        case viewDidLoad
         case didTapGroupOrganizationButton
         case didReceiveInvitationType(InvitationType)
         case didTapMissonCompleteButton(HomeItem)
@@ -79,7 +79,7 @@ final class HomeViewModel: ViewModelProtocol {
         action
             .subscribe(with: self) { owner, action in
                 switch action {
-                case .viewWillAppear:
+                case .viewDidLoad:
                     owner.bindUser()
                 case .didTapGroupOrganizationButton:
                     owner.handleSelectIvitation()

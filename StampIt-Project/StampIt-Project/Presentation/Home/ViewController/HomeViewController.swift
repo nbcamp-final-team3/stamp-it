@@ -43,11 +43,6 @@ final class HomeViewController: UIViewController {
         bind()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        viewModel.action.accept(.viewWillAppear)
-    }
-
     // MARK: - Set Styles
 
     private func setStyles() {
@@ -80,6 +75,7 @@ final class HomeViewController: UIViewController {
     // MARK: - Bind
 
     private func bind() {
+        viewModel.action.accept(.viewDidLoad)
         bindGroupOrganizationView()
         bindDashboardView()
         bindToastView()
