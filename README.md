@@ -76,8 +76,8 @@
 
 ## 📷 앱스크린
 
-| ![Image](https://github.com/user-attachments/assets/feab66f4-5e2b-46f3-b846-4d8755b4ff19)
- | ![Image](https://github.com/user-attachments/assets/fe88eeb7-c62a-4353-b65f-7273251ea39c) | ![Image](https://github.com/user-attachments/assets/1fc0a05a-c6f1-41eb-a337-a392d92d52ec) | ![Image](https://github.com/user-attachments/assets/e58d1751-04d6-440e-b448-28317ea3fb3d) | ![Image](https://github.com/user-attachments/assets/11e1f359-bf3c-4195-940b-b9c813e4734a) | ![Image](https://github.com/user-attachments/assets/46456fb1-f4e2-4fa4-9735-fa262350e3e8) |
+| ![Image](https://github.com/user-attachments/assets/feab66f4-5e2b-46f3-b846-4d8755b4ff19) | ![Image](https://github.com/user-attachments/assets/fe88eeb7-c62a-4353-b65f-7273251ea39c) | ![Image](https://github.com/user-attachments/assets/1fc0a05a-c6f1-41eb-a337-a392d92d52ec) | ![Image](https://github.com/user-attachments/assets/e58d1751-04d6-440e-b448-28317ea3fb3d) | ![Image](https://github.com/user-attachments/assets/11e1f359-bf3c-4195-940b-b9c813e4734a) | ![Image](https://github.com/user-attachments/assets/46456fb1-f4e2-4fa4-9735-fa262350e3e8) |
+|:---:|:---:|:---:|:---:|:---:|:---:|
 
 ---
 
