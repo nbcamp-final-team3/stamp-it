@@ -137,8 +137,22 @@ final class StampInfoViewController: UIViewController {
         viewModel.state.mission
             .asDriver()
             .drive(with: self) { owned, mission in
-                guard let mission else { return }
+                guard let mission else {
+                    /// 그룹 탈퇴하여 받은 미션이 삭제된 경우
+                    owned.updateUI(
+                        with: MissionUI(
+                            missionID: .init(),
+                            title: "탈퇴한 그룹에서 받은 스탬프",
+                            assignedBy: "탈퇴한 그룹 멤버",
+                            dueDate: "탈퇴한 그룹에서 완료",
+                            category: .custom
+                        )
+                    )
+                    owned.categoryTitle.isHidden = true
+                    return
+                }
                 owned.updateUI(with: mission)
+                owned.categoryTitle.isHidden = false
             }.disposed(by: disposeBag)
     }
     
