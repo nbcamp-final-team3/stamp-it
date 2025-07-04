@@ -56,7 +56,10 @@ struct StickerUtil {
     }
     
     /// 빈 회색 스티커 생성
-    static func makeEmptySticker(with pinNumber: Int) -> StickerUI {
+    static func makeEmptySticker(
+        with pinNumber: Int,
+        zigzagIndex: Int? = nil
+    ) -> StickerUI {
         
         // TODO: type 체크
         
@@ -71,7 +74,16 @@ struct StickerUtil {
             missionID: "Unknown",
             maxStickers: .zero,
             assignedBy: "Unknown",
-            zigzagIndex: -1,
+            zigzagIndex: zigzagIndex ?? -1,
         )
+    }
+    
+    /// 스탬프판 초기값 생성
+    static func initialize() -> [[StickerUI]] {
+        [
+            (0..<StampBoardSection.totalStamp).map {
+                StickerUtil.makeEmptySticker(with: 1, zigzagIndex: $0)
+            }
+        ]
     }
 }

@@ -24,7 +24,9 @@ final class StampBoardViewModel: ViewModelProtocol {
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let stickersByPage = BehaviorRelay<[[StickerUI]]>(value: .init())
+        let stickersByPage = BehaviorRelay<[[StickerUI]]>(
+            value: StickerUtil.initialize()
+        )
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
         let stickerSummary = BehaviorRelay<(collected: Int, completed: Int)>(value: (.zero, .zero))
     }
@@ -80,7 +82,7 @@ final class StampBoardViewModel: ViewModelProtocol {
                 
                 var pinNumbers: [Int] = .init()
                 
-                // pinNumber 기준 : Firestore pinNumber
+                /// pinNumber 기준 : Firestore pinNumber
                 for pinNumber in stride(
                     from: currentPinNumber,
                     through: minPage,
@@ -89,6 +91,7 @@ final class StampBoardViewModel: ViewModelProtocol {
                     pinNumbers.append(pinNumber)
                 }
                 
+                /// pinNumber 로 페이지 별 모든 스티커 읽기
                 let stickerObservables = pinNumbers.map { pinNumber in
                     self.myPageUseCase.fetchStickersByPin(
                         userId: user.userID,
@@ -96,6 +99,7 @@ final class StampBoardViewModel: ViewModelProtocol {
                     )
                 }
                 
+                /// 순서에 맞게 페이지 별 스티커 배열 생성
                 return Observable.combineLatest(stickerObservables)
                     .map { stickerLists in
                         var formattedStickers: [[StickerUI]] = .init()
