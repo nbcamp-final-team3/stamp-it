@@ -91,7 +91,6 @@ struct HomeMyMission: Hashable {
     let assigner: String
     let isNew: Bool
     let isOverdue: Bool
-    let isCancelableCompleted: Bool
     let status: MissionStatus
 
     func makeCopy(status: MissionStatus) -> HomeMyMission {
@@ -103,7 +102,6 @@ struct HomeMyMission: Hashable {
             assigner: self.assigner,
             isNew: self.isNew,
             isOverdue: self.isOverdue,
-            isCancelableCompleted: self.isCancelableCompleted,
             status: status
         )
     }

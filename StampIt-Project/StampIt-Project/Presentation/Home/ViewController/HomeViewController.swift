@@ -22,7 +22,7 @@ final class HomeViewController: UIViewController {
 
     private let navigationBar = DefaultNavigationBar(.logoWithItem)
     private let homeView = HomeView()
-    private let toastView = ToastView(withCancelButton: true)
+    private var activeToasts: [String: ToastView] = [:] // key: missionID
 
     // MARK: - Life Cycles
 
@@ -41,11 +41,6 @@ final class HomeViewController: UIViewController {
         setHierarchy()
         setConstraints()
         bind()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        viewModel.action.accept(.viewWillAppear)
     }
 
     // MARK: - Set Styles
@@ -80,6 +75,7 @@ final class HomeViewController: UIViewController {
     // MARK: - Bind
 
     private func bind() {
+        viewModel.action.accept(.viewDidLoad)
         bindGroupOrganizationView()
         bindDashboardView()
         bindToastView()
@@ -193,27 +189,39 @@ final class HomeViewController: UIViewController {
     }
 
     private func bindToastView() {
-        toastView.didTapCancelButton
-            .map { HomeViewModel.Action.didTapCompleteCancelButton }
-            .bind(to: viewModel.action)
+        viewModel.state.completionCanceledMission
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, missionID in
+                owner.activeToasts[missionID]?.dismiss(duration: 0)
+                owner.activeToasts[missionID] = nil
+            }
             .disposed(by: disposeBag)
 
-        Observable.combineLatest(
-            viewModel.state.isShowStickerReceived,
-            viewModel.state.completedMissionTitle
-        )
-        .asDriver(onErrorDriveWith: .empty())
-        .drive { [weak self] show, missionTitle in
-            guard let self else { return }
-            if show {
-                let message = "'\(missionTitle.truncatedTo10)' 미션을 완료했어요!"
-                toastView.show(in: homeView, duration: 3, message: message, type: .success)
-            } else {
-                toastView.dismiss(duration: 0)
+        viewModel.state.isShowStampReceived
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, value in
+                let (missionID, message) = value
+                let toastView = ToastView(withCancelButton: true)
+                owner.activeToasts[missionID] = toastView
+
+                toastView.show(in: owner.homeView, duration: 3, message: message, type: .success)
+
+                Observable.just(())
+                    .delay(.seconds(3), scheduler: MainScheduler.instance)
+                    .take(until: toastView.didTapCancelButton)
+                    .bind(with: self) { owner, _ in
+                        owner.activeToasts[missionID] = nil
+                    }
+                    .disposed(by: toastView.disposeBag)
+
+                toastView.didTapCancelButton
+                    .map { HomeViewModel.Action.didTapCompleteCancelButton }
+                    .bind(to: owner.viewModel.action)
+                    .disposed(by: toastView.disposeBag)
             }
-        }
-        .disposed(by: disposeBag)
+            .disposed(by: disposeBag)
     }
+
 
     // MARK: - Methods
 
