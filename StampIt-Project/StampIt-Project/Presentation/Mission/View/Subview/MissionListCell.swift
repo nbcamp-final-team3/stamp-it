@@ -22,19 +22,7 @@ final class MissionListCell: UITableViewCell {
         $0.image = UIImage(named: "bookmarkRed")
     }
     
-    private let recommendationLabel = UILabel().then {
-        $0.text = "추천"
-        $0.font = .pretendard(size: 12, weight: .regular)
-        $0.textColor = .gray600
-        $0.backgroundColor = .gray50
-        $0.textAlignment = .center
-        $0.layer.cornerRadius = 10
-        $0.clipsToBounds = true
-        
-        $0.isHidden = true
-        $0.setContentHuggingPriority(.required, for: .horizontal)
-        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
-    }
+    private let recommendationLabel = TagView(type: .filledBold)
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -78,15 +66,13 @@ final class MissionListCell: UITableViewCell {
     func configure(with text: String, isFavorite: Bool, isRecommended: Bool) {
         label.text = text
         
-        if isFavorite {
+        if isFavorite, isRecommended { // 둘다 true면 즐겨찾기만 표시함
             favoriteImageView.isHidden = false
             recommendationLabel.isHidden = true
-        } else if isRecommended {
-            favoriteImageView.isHidden = true
-            recommendationLabel.isHidden = false
         } else {
-            favoriteImageView.isHidden = true
-            recommendationLabel.isHidden = true
+            favoriteImageView.isHidden = !isFavorite
+            recommendationLabel.isHidden = !isRecommended
+            recommendationLabel.updateText(with: isRecommended ? "추천" : "")
         }
     }
 }
