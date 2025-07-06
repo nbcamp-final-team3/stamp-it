@@ -143,11 +143,16 @@ final class MissionListViewController: UIViewController {
                 
                 let favorites = viewModel.state.favorites.value
                 let isOnlyFavorites = viewModel.state.isOnlyFavorite.value
+                let recommendedMissions = viewModel.state.recommendedMissions
+                let isFavorite = favorites.contains(element.missionId)
+                let isRecommended = recommendedMissions.contains(where: { $0.missionId == element.missionId })
                 
-                if favorites.contains(element.missionId), !isOnlyFavorites {
-                    cell.configure(with: element.title, isFavorite: true)
+                if isFavorite, !isOnlyFavorites {
+                    cell.configure(with: element.title, isFavorite: true, isRecommended: false)
+                } else if isRecommended, !isOnlyFavorites {
+                    cell.configure(with: element.title, isFavorite: false, isRecommended: true)
                 } else {
-                    cell.configure(with: element.title, isFavorite: false)
+                    cell.configure(with: element.title, isFavorite: false, isRecommended: false)
                 }
             }
             .disposed(by: disposeBag)
@@ -239,6 +244,7 @@ final class MissionListViewController: UIViewController {
         viewModel.onSuccess = { [weak self] in
             guard let self else { return }
             toastView.show(in: view, duration: 3, message: "미션이 전달되었어요", type: .success)
+            self.viewModel.donate(.assignMission, to: mission)
         }
         let viewController = AssignMissionViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)
