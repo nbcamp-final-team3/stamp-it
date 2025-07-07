@@ -21,6 +21,7 @@ final class StampCell: UICollectionViewCell {
         $0.contentMode = .scaleAspectFill
         $0.layer.cornerRadius = StickerType.imageSize / 2
         $0.image = UIImage(named: StickerType.stampGray.rawValue)
+        $0.layer.masksToBounds = false
     }
     
     private let horizontalLine = DashedLine(direction: .horizontal)
@@ -30,18 +31,33 @@ final class StampCell: UICollectionViewCell {
         super.prepareForReuse()
         configureDashedLine(with: .none)
         stampImageView.image = nil
+        stampImageView.layer.shadowOpacity = 0
+        stampImageView.layer.shadowPath = nil
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyBlur(withAnimationTo: stampImageView)
     }
     
     // MARK: - Initializer, Deinit, requiered
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        setStyle()
         setHierarchy()
         setLayout()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Style Helper
+    
+    private func setStyle() {
+        contentView.layer.masksToBounds = false
+        stampImageView.layer.masksToBounds = false
     }
     
     // MARK: - Hierarchy Helper
@@ -82,6 +98,38 @@ final class StampCell: UICollectionViewCell {
     
     func configureStamp(with type: StickerUI) {
         stampImageView.image = UIImage(named: type.type.rawValue)
+    }
+    
+    /// 새로운 스티커 생성시 애니메이션 추가
+    func applyBlur(withAnimationTo view: UIView) {
+        view.layer.shadowColor = UIColor.yellowGlow.cgColor
+        view.layer.shadowOpacity = 1
+        view.layer.shadowRadius = 9
+        view.layer.shadowOffset = .zero
+        
+        guard view.bounds.width > 0, view.bounds.height > 0 else { return }
+        
+        let path = UIBezierPath(
+            roundedRect: view.bounds,
+            cornerRadius: view.layer.cornerRadius
+        )
+        view.layer.shadowPath = path.cgPath
+        
+        // 3초 뒤 자연스럽게 사라지는 fade-out 애니메이션
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            let fadeOut = CABasicAnimation(keyPath: "shadowOpacity")
+            fadeOut.fromValue = 1.0
+            fadeOut.toValue = 0.0
+            fadeOut.duration = 0.6
+            fadeOut.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            fadeOut.fillMode = .forwards
+            fadeOut.isRemovedOnCompletion = false
+
+            view.layer.add(fadeOut, forKey: "fadeOutGlow")
+
+            // 최종 opacity 값도 0으로 설정해둬야 실제로 사라짐
+            view.layer.shadowOpacity = 0.0
+        }
     }
     
     func configureDashedLine(with type: StampCellType) {
