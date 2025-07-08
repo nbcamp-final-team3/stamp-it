@@ -104,6 +104,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return true
         }
         
+        // 딥링크 URL 처리
+        if url.scheme == "stamp-it" {
+            print("🔗 딥링크 URL 감지: \(url.absoluteString)")
+            
+            // SceneDelegate로 딥링크 전달
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let delegate = scene.delegate as? SceneDelegate {
+                delegate.handleDeepLink(url)
+                return true
+            }
+        }
+        
         print("❌ URL 처리 실패")
         return false
     }
@@ -186,8 +198,26 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                                didReceive response: UNNotificationResponse,
                                withCompletionHandler completionHandler: @escaping () -> Void) {
         print("👆 알림 탭됨: \(response.notification.request.content.userInfo)")
+        
+        // 딥링크 처리
+        let userInfo = response.notification.request.content.userInfo
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let delegate = scene.delegate as? SceneDelegate {
+            delegate.handleDeeplinkFromNotification(userInfo)
+        }
+        
         completionHandler()
     }
+
+    func handleDeeplink(_ userInfo: [AnyHashable: Any]) {
+        guard let linkStr = userInfo["deeplink"] as? String,
+              let url     = URL(string: linkStr),
+              let scene   = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let delegate = scene.delegate as? SceneDelegate
+        else { return }
+        delegate.moveToViewController(by: url)
+    }
+    
 }
 
 // MARK: - MessagingDelegate
