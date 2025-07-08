@@ -207,19 +207,9 @@ final class MissionListViewModel: ViewModelProtocol {
     }
 }
 
-enum Event {
-    case tapMission
-    case assignMission
-    
-    var relevance: Double {
-        switch self {
-        case .tapMission: 0.1
-        case .assignMission: 0.4
-        }
+extension MissionListViewModel {
+    struct UserDefaultsKey {
+        static let favorites = "favorites"
+        static let missionScores = "missionScores"
     }
-}
-
-struct UserDefaultsKey {
-    static let favorites = "favorites"
-    static let missionScores = "missionScores"
 }

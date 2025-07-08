@@ -147,12 +147,10 @@ final class MissionListViewController: UIViewController {
                 let isFavorite = favorites.contains(element.missionId)
                 let isRecommended = recommendedMissions.contains(where: { $0.missionId == element.missionId })
                 
-                if isFavorite, !isOnlyFavorites {
-                    cell.configure(with: element.title, isFavorite: true, isRecommended: false)
-                } else if isRecommended, !isOnlyFavorites {
-                    cell.configure(with: element.title, isFavorite: false, isRecommended: true)
-                } else {
+                if isOnlyFavorites { // "즐겨찾기" 카테고리 선택하면 즐겨찾기/추천 표시 안함
                     cell.configure(with: element.title, isFavorite: false, isRecommended: false)
+                } else { // 나머지 카테고리는 즐겨찾기/추천 표시함(둘다 true면 즐겨찾기만 표시)
+                    cell.configure(with: element.title, isFavorite: isFavorite, isRecommended: isRecommended)
                 }
             }
             .disposed(by: disposeBag)
