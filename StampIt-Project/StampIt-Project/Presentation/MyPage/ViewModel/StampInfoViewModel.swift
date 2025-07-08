@@ -49,12 +49,12 @@ final class StampInfoViewModel: ViewModelProtocol {
     
     private func bindAction() {
         action
-            .subscribe(with: self) { owned, action in
+            .subscribe(with: self) { owner, action in
                 switch action {
                 case .load(let missionId):
-                    owned.fetchMission(missionId: missionId)
+                    owner.fetchMission(missionId: missionId)
                 case .closeButtonTapped:
-                    owned.state.isDismissed.accept(true)
+                    owner.state.isDismissed.accept(true)
                 }
             }.disposed(by: disposeBag)
     }
@@ -63,20 +63,20 @@ final class StampInfoViewModel: ViewModelProtocol {
         missionUseCase.fetchMission(with: missionId)
             .flatMap { [weak self] mission -> Observable<(MissionUI, User?)> in
                 guard let self, let mission else { return .empty() }
-                let userId = mission.assignedBy
+                let userId = mission.nickname
                 return myPageUseCase.fetchUserOnce(userId: userId)
                     .map { user in (mission, user) }
             }
-            .subscribe(with: self) { owned, result in
+            .subscribe(with: self) { owner, result in
                 var (mission, user) = result
                 
                 if let user {
-                    mission.assignedBy = user.nickname
+                    mission.nickname = user.nickname
                 } else {
-                    mission.assignedBy = "탈퇴한 유저"
+                    mission.nickname = "탈퇴한 유저"
                 }
                 
-                owned.state.mission.accept(mission)
+                owner.state.mission.accept(mission)
             }.disposed(by: disposeBag)
     }
 }

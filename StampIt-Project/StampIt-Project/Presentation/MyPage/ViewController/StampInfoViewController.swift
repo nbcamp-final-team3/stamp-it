@@ -131,15 +131,15 @@ final class StampInfoViewController: UIViewController {
     
     private func bind() {
         closeButton.rx.tap
-            .subscribe(with: self) { owned, _ in
-                owned.viewModel.action.accept(.closeButtonTapped)
+            .subscribe(with: self) { owner, _ in
+                owner.viewModel.action.accept(.closeButtonTapped)
             }.disposed(by: disposeBag)
         
         viewModel.state.isDismissed
             .asDriver()
             .filter { $0 }
-            .drive(with: self) { owned, _ in
-                owned.dismiss(animated: true)
+            .drive(with: self) { owner, _ in
+                owner.dismiss(animated: true)
             }.disposed(by: disposeBag)
 
         viewModel.state.mission
