@@ -151,4 +151,9 @@ final class MissionRepositoryTest: MissionRepository {
             )
         }
     }
+    
+    // 미션 1개 패치
+    func fetchMission(widh id: String) -> Observable<Mission?> {
+        missionManager.fetch(id: id).map { $0?.toDomainModel() }
+    }
 }

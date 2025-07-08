@@ -24,7 +24,9 @@ final class StampBoardViewModel: ViewModelProtocol {
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let stickersByPage = BehaviorRelay<[[Sticker]]>(value: .init())
+        let stickersByPage = BehaviorRelay<[[StickerUI]]>(
+            value: StickerUtil.initialize()
+        )
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
         let stickerSummary = BehaviorRelay<(collected: Int, completed: Int)>(value: (.zero, .zero))
     }
@@ -70,7 +72,7 @@ final class StampBoardViewModel: ViewModelProtocol {
         
         /// stickerSummary, stickers 가 동시에 변경
         myPageUseCase.observeStickerCount(userId: user.userID)
-            .flatMapLatest { [weak self] count -> Observable<(Int, [[Sticker]])> in
+            .flatMapLatest { [weak self] count -> Observable<(Int, [[StickerUI]])> in
                 guard let self else { return .empty() }
                 
                 let completedBoard = Int(count / StampBoardSection.totalStamp)
@@ -80,7 +82,7 @@ final class StampBoardViewModel: ViewModelProtocol {
                 
                 var pinNumbers: [Int] = .init()
                 
-                // pinNumber 기준 : Firestore pinNumber
+                /// pinNumber 기준 : Firestore pinNumber
                 for pinNumber in stride(
                     from: currentPinNumber,
                     through: minPage,
@@ -89,6 +91,7 @@ final class StampBoardViewModel: ViewModelProtocol {
                     pinNumbers.append(pinNumber)
                 }
                 
+                /// pinNumber 로 페이지 별 모든 스티커 읽기
                 let stickerObservables = pinNumbers.map { pinNumber in
                     self.myPageUseCase.fetchStickersByPin(
                         userId: user.userID,
@@ -96,25 +99,14 @@ final class StampBoardViewModel: ViewModelProtocol {
                     )
                 }
                 
+                /// 순서에 맞게 페이지 별 스티커 배열 생성
                 return Observable.combineLatest(stickerObservables)
                     .map { stickerLists in
-                        var formattedStickers: [[Sticker]] = .init()
+                        var formattedStickers: [[StickerUI]] = .init()
                         for (page, stickers) in stickerLists.enumerated() {
                             formattedStickers.append(
                                 stickers.enumerated().map { (index, sticker) in
-                                    Sticker(
-                                        userID: sticker.userID,
-                                        stickerID: sticker.stickerID,
-                                        groupId: sticker.groupId,
-                                        month: sticker.month,
-                                        type: StickerType.from(page),
-//                                        type: index.isMultiple(of: 2) ? StickerType.stampBlue : StickerType.stampYellow,
-                                        pinNumber: sticker.pinNumber,
-                                        createdAt: sticker.createdAt,
-                                        missionId: sticker.month,
-                                        maxStickers: sticker.maxStickers,
-                                        assignedBy: sticker.assignedBy
-                                    )
+                                    StickerUI.map(sticker, type: StickerType.from(page))
                                 }
                             )
                         }
@@ -122,7 +114,7 @@ final class StampBoardViewModel: ViewModelProtocol {
                     }
             }
             .observe(on: MainScheduler.instance)
-            .subscribe(with: self) { owner, result in
+            .subscribe(with: self)  { owner, result in
                 let (count, stickers) = result
                 
                 let totalSticker = StampBoardSection.totalStamp
@@ -140,61 +132,20 @@ final class StampBoardViewModel: ViewModelProtocol {
             }.disposed(by: disposeBag)
     }
     
-    private func updateStickerZigzag(_ stickers: [[Sticker]]) {
-        let zigzagged: [[Sticker]] = stickers.map {
-            makeZigzagOrder(
-                from: $0,
-                columns: StampBoardSection.column
-            )
-        }
-        state.stickersByPage.accept(zigzagged)
-    }
-    
-    private func makeZigzagOrder(from stickers: [Sticker], columns: Int) -> [Sticker] {
-        let totalStickerCount = StampBoardSection.totalStamp
-        let totalStickers: [Sticker] = {
-            (0..<totalStickerCount).map { index in
+    private func updateStickerZigzag(_ stickerLists: [[StickerUI]]) {
+        let zigzagged: [[StickerUI]] = stickerLists
+            .map { stickers in
+                /// createdAt 내림차순 기준 정렬
+                let ordered = stickers
+                    .sorted { $0.createdAt > $1.createdAt }
                 
-                /// Empty stickers 배열 일 때 default stamp 생성
-                if stickers.count == .zero {
-                    return makeEmptySticker()
-                } else {
-                    /// stickers 배열이 1 이상, totalStickerCount 이하 일 경우
-                    if index < stickers.count {
-                        return stickers[index]
-                    } else {
-                        return makeEmptySticker()
-                    }
-                }
-            }
-        }()
-        
-        let rows = stride(from: 0, to: totalStickers.count, by: columns)
-            .map {
-                Array(totalStickers[$0..<min($0 + columns, totalStickers.count)])
+                return StickerUtil.makeZigzagOrder(
+                    from: ordered,
+                    columns: StampBoardSection.column,
+                    pinNumber: state.stickerSummary.value.completed
+                )
             }
         
-        let ordered = rows.enumerated().flatMap { (index, row) in
-            index.isMultiple(of: 2) ? row : row.reversed()
-        }
-        return ordered
-    }
-    
-    private func makeEmptySticker() -> Sticker {
-        
-        // TODO: type 체크
-        
-        Sticker(
-            userID: "",
-            stickerID: "\(UUID())",
-            groupId: "",
-            month: "",
-            type: .stampGray,
-            pinNumber: state.stickerSummary.value.completed,
-            createdAt: Date(),
-            missionId: "",
-            maxStickers: 30,
-            assignedBy: ""
-        )
+        state.stickersByPage.accept(zigzagged)
     }
 }

@@ -42,3 +42,19 @@ struct Mission: Equatable {
         )
     }
 }
+
+// MARK: - Presentation Model 변환
+
+extension Mission {
+    func toPresentation() -> MissionUI {
+        MissionUI(
+            missionID: self.missionID,
+            title: self.title,
+            nickname: self.assignedBy,
+            dueDate: DateFormatterUtil.formattedString(
+                with: self.dueDate
+            ),
+            category: self.category
+        )
+    }
+}

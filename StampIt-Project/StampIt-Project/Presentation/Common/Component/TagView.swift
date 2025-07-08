@@ -84,7 +84,8 @@ final class TagView: UIView {
 
 extension TagView {
     enum TagType {
-        case filledLight
+        case filledLightSmall
+        case filledLightMedium
         case filledBold
         case outlined
     }
@@ -99,13 +100,14 @@ extension TagView {
     private var borderColor: CGColor? {
         switch type {
         case .outlined: UIColor.yellow400.cgColor
-        case .filledLight, .filledBold: nil
+        default: nil
         }
     }
 
     private var textColor: UIColor {
         switch type {
-        case .filledLight: ._000000
+        case .filledLightSmall: ._000000
+        case .filledLightMedium: .gray800
         case .filledBold: .gray400
         case .outlined: .yellow400
         }
@@ -113,28 +115,30 @@ extension TagView {
 
     private var font: UIFont {
         switch type {
-        case .filledLight: .pretendard(size: 12, weight: .regular)
+        case .filledLightSmall, .filledLightMedium: .pretendard(size: 12, weight: .regular)
         case .filledBold, .outlined: .pretendard(size: 12, weight: .semibold)
         }
     }
 
     private var baseBackgroundColor: UIColor? {
         switch type {
-        case .filledLight, .filledBold: .gray25
+        case .filledLightSmall, .filledBold: .gray25
+        case .filledLightMedium: .gray50
         case .outlined: .FFFFFF
         }
     }
 
     private var labelHeight: CGFloat {
         switch type {
-        case .filledLight: 18
+        case .filledLightSmall, .filledLightMedium: 18
         case .filledBold, .outlined: 14
         }
     }
 
     private var verticalInset: CGFloat {
         switch type {
-        case .filledLight: 1
+        case .filledLightSmall: 1
+        case .filledLightMedium: 3
         case .filledBold, .outlined: 4
         }
     }

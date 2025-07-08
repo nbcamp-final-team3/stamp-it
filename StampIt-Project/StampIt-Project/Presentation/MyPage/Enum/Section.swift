@@ -91,7 +91,7 @@ enum StampBoardSection: Int, Hashable, CaseIterable {
 
 enum StampBoardItem: Hashable {
     case summary(collected: Int, completed: Int)
-    case sticker(Sticker)
+    case sticker(StickerUI)
 }
 
 
