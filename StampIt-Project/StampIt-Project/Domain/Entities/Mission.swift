@@ -54,7 +54,7 @@ extension Mission {
         MissionUI(
             missionID: self.missionID,
             title: self.title,
-            assignedBy: self.assignedBy,
+            nickname: self.assignedBy,
             dueDate: DateFormatterUtil.formattedString(
                 with: self.dueDate
             ),
