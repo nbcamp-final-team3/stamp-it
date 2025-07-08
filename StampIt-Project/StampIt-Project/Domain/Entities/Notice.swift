@@ -23,15 +23,3 @@ enum NoticeCategory: String {
     // ...추가 케이스
     case unknown
 }
-
-extension DomainNotice {
-    func toDomain() -> DomainNotice{
-        return DomainNotice(
-            id: id,
-            title: title,
-            description: description,
-            category: NoticeCategory(rawValue: category) ?? .unknown,
-            createdAt: timestamp.dateValue()
-        )
-    }
-}
