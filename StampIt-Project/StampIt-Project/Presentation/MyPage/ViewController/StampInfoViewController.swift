@@ -48,6 +48,14 @@ final class StampInfoViewController: UIViewController {
         $0.textAlignment = .center
     }
     
+    private let unknownMissionTitle = UILabel().then {
+        $0.font = .pretendard(size: 18, weight: .semibold)
+        $0.textColor = .gray800
+        $0.numberOfLines = 2
+        $0.lineBreakMode = .byWordWrapping
+        $0.textAlignment = .center
+    }
+    
     private let completedHStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.alignment = .leading
@@ -136,23 +144,15 @@ final class StampInfoViewController: UIViewController {
 
         viewModel.state.mission
             .asDriver()
-            .drive(with: self) { owned, mission in
+            .drive(with: self) { owner, mission in
                 guard let mission else {
                     /// 그룹 탈퇴하여 받은 미션이 삭제된 경우
-                    owned.updateUI(
-                        with: MissionUI(
-                            missionID: .init(),
-                            title: "탈퇴한 그룹에서 받은 스탬프",
-                            assignedBy: "탈퇴한 그룹 멤버",
-                            dueDate: "탈퇴한 그룹에서 완료",
-                            category: .custom
-                        )
-                    )
-                    owned.categoryTitle.isHidden = true
+                    owner.updateUI(title: "탈퇴한 그룹에서 받은 스탬프")
+                    owner.isUnknownStamp(true)
                     return
                 }
-                owned.updateUI(with: mission)
-                owned.categoryTitle.isHidden = false
+                owner.updateUI(with: mission)
+                owner.isUnknownStamp(false)
             }.disposed(by: disposeBag)
     }
     
@@ -161,16 +161,29 @@ final class StampInfoViewController: UIViewController {
         missionTitle.preferredMaxLayoutWidth = missionTitle.frame.width
     }
     
-    private func updateUI(with mission: MissionUI) {
-        categoryTitle.updateText(with: mission.category.title)
+    /// 탈퇴한 그룹에서 받은 스탬프 여부에 따른 뷰 hidden 처리
+    private func isUnknownStamp(_ value: Bool) {
+        categoryTitle.isHidden = value
+        senderHStackView.isHidden = value
+        completedHStackView.isHidden = value
+        missionTitle.isHidden = value
+        unknownMissionTitle.isHidden = !value
+    }
+    
+    private func updateUI(
+        with mission: MissionUI? = nil,
+        title: String? = nil
+    ) {
+        categoryTitle.updateText(with: mission?.category.title ?? "")
         
         missionTitle.setTextWithLineHeight(
-            text: mission.title,
+            text: mission?.title ?? "",
             lineHeight: 25
         )
         
-        completedDateValue.text = "\(mission.dueDate)"
-        missionSenderValue.text = mission.assignedBy
+        unknownMissionTitle.text = title
+        completedDateValue.text = "\(mission?.dueDate ?? "")"
+        missionSenderValue.text = mission?.nickname ?? ""
     }
     
     // MARK: - Set Styles
@@ -220,6 +233,7 @@ final class StampInfoViewController: UIViewController {
         
         [
             circleView,
+            unknownMissionTitle,
         ]
             .forEach { view.addSubview($0) }
     }
@@ -241,6 +255,10 @@ final class StampInfoViewController: UIViewController {
         
         missionTitle.snp.makeConstraints {
             $0.directionalHorizontalEdges.equalToSuperview()
+        }
+        
+        unknownMissionTitle.snp.makeConstraints {
+            $0.center.equalToSuperview()
         }
         
         completedHStackView.snp.makeConstraints {
