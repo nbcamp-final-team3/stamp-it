@@ -138,11 +138,11 @@ final class DeepLinkManager {
         switch deepLink {
         case .newMission(let id):
             print("🔗 새 미션 딥링크 처리: \(id)")
-            homeVC.presentDetailViewController(id: id)
-            
+            nav.pushViewController(homeVC, animated: true)
+
         case .missionRequest(let id):
             print("🔗 미션 요청 딥링크 처리: \(id)")
-            homeVC.presentMissionPoke(id: id)
+            nav.pushViewController(homeVC, animated: true)
         }
     }
     
