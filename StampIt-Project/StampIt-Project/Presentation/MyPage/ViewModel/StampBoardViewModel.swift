@@ -137,7 +137,7 @@ final class StampBoardViewModel: ViewModelProtocol {
             .map { stickers in
                 /// createdAt 내림차순 기준 정렬
                 let ordered = stickers
-                    .sorted { $0.createdAt > $1.createdAt }
+                    .sorted { $0.createdAt < $1.createdAt }
                 
                 return StickerUtil.makeZigzagOrder(
                     from: ordered,
