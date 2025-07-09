@@ -6,3 +6,15 @@
 //
 
 import Foundation
+
+enum Event {
+    case tapMission
+    case assignMission
+    
+    var relevance: Double {
+        switch self {
+        case .tapMission: 0.1
+        case .assignMission: 0.4
+        }
+    }
+}

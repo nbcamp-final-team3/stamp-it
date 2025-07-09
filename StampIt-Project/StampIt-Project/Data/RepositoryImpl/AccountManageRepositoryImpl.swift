@@ -10,6 +10,7 @@ import RxSwift
 import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
+import GoogleSignIn
 
 final class AccountManageRepository: AccountManageRepositoryProtocol {
 
@@ -64,47 +65,116 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     }
 
     // MARK: - 서비스 탈퇴 (그룹 탈퇴와 완전 분리)
-    /// 애플 providerID 체크
+    /// providerID 체크
     private func getCurrentProviderID() -> String? {
         return authManager.getCurrentUser()?.providerData.first?.providerID
     }
 
     func deleteAccount() -> Observable<Void> {
         print("🔥 [DEBUG] 서비스 탈퇴 시작")
-
         return getCurrentUser()
             .flatMap { [weak self] user -> Observable<Void> in
                 guard let self = self else {
                     return Observable.error(RepositoryError.unknownError)
                 }
-
                 return self.validateAccountDeletion(user: user)
                     .flatMap { _ -> Observable<Void> in
                         let providerID = self.getCurrentProviderID()
                         print("🔍 [DEBUG] Provider: \(providerID ?? "Unknown")")
-
-                        if providerID == "apple.com" {
-                            return self.deleteFirestoreDataForAccountDeletion(user: user)
-                                .flatMap { _ in
-                                    self.deleteAuthAccountWithLimitedRetry(maxRetry: 3)
-                                }
-                        } else {
-                            return self.deleteFirestoreDataForAccountDeletion(user: user)
-                                .flatMap { _ in
-                                    self.deleteAuthAccountUntilSuccess()
-                                }
-                        }
+                        // 애플/구글 모두 동일하게 처리
+                        return self.deleteFirestoreDataForAccountDeletion(user: user)
+                            .flatMap { _ in
+                                self.deleteAuthAccountWithRetryAndReauth(maxRetry: 5)
+                            }
                     }
             }
             .do(
-                onNext: { _ in
-                    print("✅ [DEBUG] 서비스 탈퇴 완료")
-                },
-                onError: { error in
-                    print("❌ [DEBUG] 서비스 탈퇴 실패: \(error)")
-                }
+                onNext: { _ in print("✅ [DEBUG] 서비스 탈퇴 완료") },
+                onError: { error in print("❌ [DEBUG] 서비스 탈퇴 실패: \(error)") }
             )
     }
+    
+    // MARK: - 재인증 메서드(서비스 탈퇴)
+    private func reauthenticateUser() -> Observable<Void> {
+        guard let user = Auth.auth().currentUser else {
+            return Observable.error(RepositoryError.userNotFound)
+        }
+        
+        // 현재 사용자의 로그인 제공자 확인
+        guard let providerData = user.providerData.first else {
+            return Observable.error(RepositoryError.authenticationFailed("로그인 제공자를 찾을 수 없습니다"))
+        }
+        
+        let providerId = providerData.providerID
+        
+        print("[DEBUG] 재인증 시작 - Provider: \(providerId)")
+        
+        switch providerId {
+        case "google.com":
+            return reauthenticateWithGoogle(user: user)
+        case "apple.com":
+            return reauthenticateWithApple(user: user)
+        default:
+            return Observable.error(RepositoryError.authenticationFailed("지원하지 않는 로그인 방식: \(providerId)"))
+        }
+    }
+    
+    // MARK: - Google 재인증
+    private func reauthenticateWithGoogle(user: FirebaseAuth.User) -> Observable<Void> {
+        return authManager.signInWithGoogle()
+            .flatMap { _ -> Observable<Void> in
+                // Google 로그인 성공 후 credential 생성
+                guard let googleUser = GIDSignIn.sharedInstance.currentUser,
+                      let idToken = googleUser.idToken?.tokenString else {
+                    return Observable.error(RepositoryError.authenticationFailed("Google 토큰을 가져올 수 없습니다"))
+                }
+                
+                let credential = GoogleAuthProvider.credential(
+                    withIDToken: idToken,
+                    accessToken: googleUser.accessToken.tokenString
+                )
+                
+                return Observable.create { observer in
+                    user.reauthenticate(with: credential) { _, error in
+                        if let error = error {
+                            print("[DEBUG] Google 재인증 실패: \(error.localizedDescription)")
+                            observer.onError(RepositoryError.authenticationFailed("Google 재인증 실패"))
+                        } else {
+                            print("[DEBUG] Google 재인증 성공")
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
+                    return Disposables.create()
+                }
+            }
+    }
+
+    // MARK: - Apple 재인증
+    private func reauthenticateWithApple(user: FirebaseAuth.User) -> Observable<Void> {
+        return authManager.signInWithApple()
+            .flatMap { authResult -> Observable<Void> in
+                // Apple 로그인에서 받은 credential 사용
+                guard let appleCredential = authResult.credential else {
+                    return Observable.error(RepositoryError.authenticationFailed("Apple credential을 가져올 수 없습니다"))
+                }
+                
+                return Observable.create { observer in
+                    user.reauthenticate(with: appleCredential) { _, error in
+                        if let error = error {
+                            print("[DEBUG] Apple 재인증 실패: \(error.localizedDescription)")
+                            observer.onError(RepositoryError.authenticationFailed("Apple 재인증 실패"))
+                        } else {
+                            print("[DEBUG] Apple 재인증 성공")
+                            observer.onNext(())
+                            observer.onCompleted()
+                        }
+                    }
+                    return Disposables.create()
+                }
+            }
+    }
+
 
     // MARK: - 서비스 탈퇴 전용 검증 (그룹 탈퇴와 완전 분리)
     private func validateAccountDeletion(user: User) -> Observable<Void> {
@@ -199,16 +269,19 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         }
     }
 
-
-    private func deleteAuthAccountWithLimitedRetry(maxRetry: Int) -> Observable<Void> {
+    // MARK: - Firebase Auth 계정 삭제 (재시도 + 재인증)
+    private func deleteAuthAccountWithRetryAndReauth(maxRetry: Int) -> Observable<Void> {
         var retryCount = 0
+        
         return Observable.create { [weak self] observer in
             guard let self = self else {
                 observer.onError(RepositoryError.unknownError)
                 return Disposables.create()
             }
-
+            
             func attemptDelete() {
+                print("🔄 [DEBUG] 계정 삭제 시도 \(retryCount + 1)/\(maxRetry)")
+                
                 self.authManager.deleteAccountWithSocialRevoke()
                     .subscribe(
                         onNext: {
@@ -218,10 +291,17 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
                         },
                         onError: { error in
                             retryCount += 1
-                            if retryCount >= maxRetry {
-                                print("❌ [DEBUG] Auth 삭제 최대 재시도 초과")
-                                observer.onError(RepositoryError.authenticationFailed("재인증 필요"))
+                            let nsError = error as NSError
+                            
+                            // Firebase Auth 에러 코드 17014: requires-recent-login
+                            if nsError.code == 17014 {
+                                print("🔄 [DEBUG] 재인증 필요 - 재인증 시도")
+                                self.handleReauthenticationAndDelete(observer: observer)
+                            } else if retryCount >= maxRetry {
+                                print("❌ [DEBUG] 최대 재시도 횟수 초과")
+                                observer.onError(RepositoryError.authenticationFailed("계정 삭제 실패: 최대 재시도 초과"))
                             } else {
+                                print("🔄 [DEBUG] \(retryCount)/\(maxRetry) 재시도 중...")
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                                     attemptDelete()
                                 }
@@ -230,41 +310,34 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
                     )
                     .disposed(by: self.disposeBag)
             }
-
+            
             attemptDelete()
             return Disposables.create()
         }
     }
 
-    // MARK: - Firebase Auth 계정 삭제 (무한 재시도) - 수정
-    private func deleteAuthAccountUntilSuccess() -> Observable<Void> {
-        return Observable.create { [weak self] observer in
-            guard let self = self else {
-                observer.onError(RepositoryError.unknownError)
-                return Disposables.create()
+    // MARK: - 재인증 후 계정 삭제 처리
+    private func handleReauthenticationAndDelete(observer: AnyObserver<Void>) {
+        self.reauthenticateUser()
+            .flatMap { _ -> Observable<Void> in
+                print("✅ [DEBUG] 재인증 완료 - 계정 삭제 재시도")
+                return self.authManager.deleteAccountWithSocialRevoke()
             }
-
-            func attemptDelete() {
-                self.authManager.deleteAccountWithSocialRevoke()
-                    .subscribe(
-                        onNext: {
-                            print("✅ [DEBUG] Firebase Auth 삭제 성공")
-                            observer.onNext(())
-                            observer.onCompleted()
-                        },
-                        onError: { error in
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                                attemptDelete()
-                            }
-                        }
-                    )
-                    .disposed(by: self.disposeBag)
-            }
-
-            attemptDelete()
-            return Disposables.create()
-        }
+            .subscribe(
+                onNext: {
+                    print("✅ [DEBUG] 재인증 후 계정 삭제 성공")
+                    observer.onNext(())
+                    observer.onCompleted()
+                },
+                onError: { error in
+                    print("❌ [DEBUG] 재인증 후에도 계정 삭제 실패: \(error)")
+                    observer.onError(RepositoryError.authenticationFailed("재인증 후에도 계정 삭제 실패"))
+                }
+            )
+            .disposed(by: self.disposeBag)
     }
+
+
 
     // MARK: - 그룹 탈퇴 (서비스 탈퇴와 완전 분리)
     /// 그룹 멤버 수 조회
