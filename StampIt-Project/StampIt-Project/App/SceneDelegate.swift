@@ -101,13 +101,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func handleDeepLink(_ url: URL) {
         print("🔗 딥링크 처리 시작: \(url.absoluteString)")
         
-        // DeepLinkManager를 사용한 안전한 처리
-        guard let tabBarController = window?.rootViewController as? UITabBarController else {
-            print("❌ 딥링크 처리 실패: 탭바 컨트롤러를 찾을 수 없습니다")
-            return
-        }
-        
-        DeepLinkManager.shared.handleURLString(url.absoluteString, in: tabBarController)
+        // 직접 moveToViewController 호출
+        moveToViewController(by: url)
     }
     
     /// 알림에서 딥링크 처리
@@ -137,18 +132,29 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             return
         }
         
-        // 2. 네비게이션 컨트롤러 찾기
+        // 2. 탭바의 모든 뷰 컨트롤러 확인
+        print("🔍 탭바의 모든 뷰 컨트롤러:")
+        for (index, vc) in tab.viewControllers?.enumerated() ?? [].enumerated() {
+            print("   탭[\(index)]: \(type(of: vc))")
+        }
+        
+        // 3. 네비게이션 컨트롤러 찾기
         guard let nav = tab.selectedViewController as? UINavigationController else {
             print("❌ moveToViewController 실패: 네비게이션 컨트롤러를 찾을 수 없습니다")
             return
         }
         
-        // 3. HomeViewController 찾기
-        guard let homeVC = nav.viewControllers.first as? HomeViewController else {
+        // 4. HomeViewController 찾기 (기존 인스턴스 확인용)
+        guard nav.viewControllers.first is HomeViewController else {
             print("❌ moveToViewController 실패: HomeViewController를 찾을 수 없습니다")
             return
         }
         
+        // 5. 새로운 뷰 컨트롤러들 생성
+        let container = DIContainer.shared
+        let homeVC = container.makeHomeViewController()
+        let missionListVC = container.makeMissionListViewController()
+
         // 4. DeepLink 파싱
         guard let link = DeepLinkManager.shared.safeParse(url: deeplink) else {
             print("❌ moveToViewController 실패: 딥링크 파싱 실패")
@@ -163,7 +169,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         case .missionRequest(let id):
             print("🔗 미션 요청 화면으로 이동: \(id)")
-            nav.pushViewController(homeVC, animated: true)
+            nav.pushViewController(missionListVC, animated: true)
         }
     }
 }
