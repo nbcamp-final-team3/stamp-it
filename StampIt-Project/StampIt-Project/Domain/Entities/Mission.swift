@@ -18,7 +18,17 @@ struct Mission: Equatable {
     let imageURL: String
     let category: MissionCategory
 
-    func makeCopyCompleted() -> Mission {
+    var isOverdue: Bool {
+        dueDate.daysFromToday() < 0
+    }
+
+    var isNew: Bool {
+        let today = Calendar.current.dateComponents([.day], from: Date())
+        let created = Calendar.current.dateComponents([.day], from: createDate)
+        return today.day == created.day
+    }
+
+    func makeCopy(status: MissionStatus) -> Mission {
         .init(
             missionID: self.missionID,
             title: self.title,
@@ -26,9 +36,25 @@ struct Mission: Equatable {
             assignedBy: self.assignedBy,
             createDate: self.createDate,
             dueDate: self.dueDate,
-            status: .completed,
+            status: status,
             imageURL: self.imageURL,
             category: self.category,
+        )
+    }
+}
+
+// MARK: - Presentation Model 변환
+
+extension Mission {
+    func toPresentation() -> MissionUI {
+        MissionUI(
+            missionID: self.missionID,
+            title: self.title,
+            nickname: self.assignedBy,
+            dueDate: DateFormatterUtil.formattedString(
+                with: self.dueDate
+            ),
+            category: self.category
         )
     }
 }

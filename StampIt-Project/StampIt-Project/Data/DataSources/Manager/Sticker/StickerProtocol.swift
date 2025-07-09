@@ -24,6 +24,7 @@ protocol StickerManagerProtocol: FullCRUDRepository where Entity == StickerFires
     func observeStickerCount(userId: String) -> Observable<Int>
     
     // 삭제 메서드들 (기존 FirestoreManager 메서드)
+    func deleteSticker(missionId: String) -> Observable<Void>
     func deleteUserStickers(userId: String, groupId: String) -> Observable<Void>
     func deleteUserStickers(userId: String) -> Observable<Void>
     func deleteGroupStickers(groupId: String) -> Observable<Void>

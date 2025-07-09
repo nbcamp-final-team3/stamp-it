@@ -31,12 +31,12 @@ extension StickerFirestore {
         return Sticker(
             userID: self.userId,
             stickerID: self.stickerId,
-            groupId: self.groupId,
+            groupID: self.groupId,
             month: self.month,
             type: StickerType(rawValue: self.type) ?? .stampRed,
             pinNumber: self.pinNumber,
             createdAt: self.createdAt.dateValue(),
-            missionId: self.missionId,
+            missionID: self.missionId,
             maxStickers: self.maxStickers,
             assignedBy: self.assignedBy
         )

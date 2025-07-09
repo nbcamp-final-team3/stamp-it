@@ -97,11 +97,6 @@ final class MyMissionViewController: UIViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
-        toastView.didTapCancelButton
-            .map { MyMissionViewModel.Action.didTapCompleteCancelButton }
-            .bind(to: viewModel.action)
-            .disposed(by: disposeBag)
-
         viewModel.state.isPopVC
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
@@ -129,21 +124,5 @@ final class MyMissionViewController: UIViewController {
                 owner.myMissionView.updateSnapshot(withItems: items, toSection: .mission)
             }
             .disposed(by: disposeBag)
-
-        Observable.combineLatest(
-            viewModel.state.isShowStickerReceived,
-            viewModel.state.completedMissionTitle
-        )
-        .asDriver(onErrorDriveWith: .empty())
-        .drive { [weak self] show, missionTitle in
-            guard let self else { return }
-            if show {
-                let message = "'\(missionTitle.truncatedTo10)' 미션을 완료했어요!"
-                toastView.show(in: myMissionView, duration: 3, message: message, type: .success)
-            } else {
-                toastView.dismiss(duration: 0)
-            }
-        }
-        .disposed(by: disposeBag)
     }
 }

@@ -85,7 +85,9 @@ final class AssignedMissionCell: UICollectionViewCell {
         $0.textAlignment = .right
     }
 
-    private let statusButton = CompletionStateButton(status: .assigned)
+    private let statusButton = MissionStateButton(status: .assigned).then {
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
 
     private let separatorView = UIView().then {
         $0.backgroundColor = .gray50
@@ -243,12 +245,12 @@ final class AssignedMissionCell: UICollectionViewCell {
         self.type = .received
         imageContainerView.backgroundColor = mission.category.backgroundColor
         categoryImageView.image = mission.category.image
-        newTag.isHidden = !(mission.isNew ?? false)
+        newTag.isHidden = !mission.isNew
         nameTag.updateText(with: "from." + mission.assigner)
         dateTag.updateText(with: "~" + mission.dueDate)
         dateTag.updateTextColor(mission.isOverdue ? .gray200 : .gray400)
         titleLabel.text = mission.title
-        statusButton.updateStatus(to: mission.status)
+        statusButton.updateStatus(to: mission.status, !mission.isOverdue)
         updateContentStackViewConstraints()
     }
 

@@ -9,13 +9,16 @@ import UIKit
 import Then
 import SnapKit
 import RxSwift
+import RxRelay
 
 final class StampBoardViewController: UIViewController {
     
     // MARK: - Properties
     
     private var viewModel: StampBoardViewModel
+    private var container: DIContainer
     private let disposeBag = DisposeBag()
+    private var currentPage: Int = .zero
     
     // MARK: - UI Components
 
@@ -23,8 +26,12 @@ final class StampBoardViewController: UIViewController {
     
     // MARK: - Initializer, Deinit, requiered
     
-    init(viewModel: StampBoardViewModel) {
+    init(
+        viewModel: StampBoardViewModel,
+        container: DIContainer
+    ) {
         self.viewModel = viewModel
+        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -92,13 +99,14 @@ final class StampBoardViewController: UIViewController {
     
     private func setDelegate() {
         stampBoardView.setScrollDelegate(self)
+        stampBoardView.setCollectionViewDelegate(self)
     }
     
     // MARK: - Snapshot
     
     private func updateSnapshot(
         summary: (collected: Int, completed: Int),
-        stickers: [[Sticker]]
+        stickers: [[StickerUI]]
     ) {
         let maxPage = stickers.count
         
@@ -132,8 +140,59 @@ final class StampBoardViewController: UIViewController {
 
 extension StampBoardViewController: StampBoardScrollDelegate {
     func didScrollToPage(_ page: Int) {
+        currentPage = page
+        
         /// 배경색 변경
         stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
         stampBoardView.updateFooterPage(to: page)
+    }
+}
+
+extension StampBoardViewController: UICollectionViewDelegate {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        willDisplay cell: UICollectionViewCell,
+        forItemAt indexPath: IndexPath
+    ) {
+        guard let cell = cell as? StampCell else { return }
+        
+        let stickers = viewModel.state.stickersByPage.value
+        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
+        
+        guard stickers.indices.contains(currentPage),
+              stickers[currentPage].indices.contains(itemIndexInPage) else {
+            return
+        }
+        
+        let sticker = stickers[currentPage][itemIndexInPage]
+
+        let dashedType = StampBoardSection.page.type.flatMap { $0 }[sticker.zigzagIndex]
+        
+        cell.configureDashedLine(with: dashedType)
+        
+    }
+    
+    func collectionView(
+        _ collectionView: UICollectionView,
+        didSelectItemAt indexPath: IndexPath
+    ) {
+        let stickersByPage = viewModel.state.stickersByPage.value
+        
+        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
+        
+        let clickedSticker = stickersByPage[currentPage][itemIndexInPage]
+        let missionId = clickedSticker.missionID
+
+        /// Empty Stamp 는 모달뷰 띄우지 않음
+        if clickedSticker.type != .stampGray {
+            let viewModel = container.makeStampInfoViewModel()
+            
+            let stampInfoVC = StampInfoViewController(viewModel: viewModel)
+            stampInfoVC.modalPresentationStyle = .custom
+            
+            viewModel.action.accept(.load(missionId: missionId))
+            
+            self.present(stampInfoVC, animated: true)
+        }
     }
 }

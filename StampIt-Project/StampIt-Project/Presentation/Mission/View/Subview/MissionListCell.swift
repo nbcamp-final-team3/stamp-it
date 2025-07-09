@@ -20,13 +20,14 @@ final class MissionListCell: UITableViewCell {
     
     private let favoriteImageView = UIImageView().then {
         $0.image = UIImage(named: "bookmarkRed")
-        $0.tintColor = .red200
     }
+    
+    private let recommendationLabel = TagView(type: .filledBold)
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
-        [label, favoriteImageView].forEach { addSubview($0) }
+        [label, favoriteImageView, recommendationLabel].forEach { addSubview($0) }
         
         setConstraints()
         
@@ -48,17 +49,30 @@ final class MissionListCell: UITableViewCell {
             $0.centerY.equalToSuperview()
             $0.trailing.equalToSuperview().inset(32)
         }
+        
+        recommendationLabel.snp.makeConstraints {
+            $0.centerY.equalToSuperview()
+            $0.trailing.equalToSuperview().inset(18)
+            $0.height.equalTo(20)
+            $0.width.greaterThanOrEqualTo(40)
+        }
     }
     
     /// 테이블 뷰 셀 업데이트
-    /// - Parameter text: 미션 타이틀(예: 방 청소하기)
-    func configure(with text: String, isFavorite: Bool) {
+    /// - Parameters:
+    ///   - text: 미션 타이틀(예: 방 청소하기)
+    ///   - isFavorite: 즐겨찾기 여부
+    ///   - isRecommended: 추천 미션 여부
+    func configure(with text: String, isFavorite: Bool, isRecommended: Bool) {
         label.text = text
         
-        if isFavorite {
+        if isFavorite, isRecommended { // 둘다 true면 즐겨찾기만 표시함
             favoriteImageView.isHidden = false
+            recommendationLabel.isHidden = true
         } else {
-            favoriteImageView.isHidden = true
+            favoriteImageView.isHidden = !isFavorite
+            recommendationLabel.isHidden = !isRecommended
+            recommendationLabel.updateText(with: isRecommended ? "추천" : "")
         }
     }
 }
