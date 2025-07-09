@@ -20,7 +20,12 @@ final class HomeViewController: UIViewController {
 
     // MARK: - UI Components
 
-    private let navigationBar = DefaultNavigationBar(.logoWithItem)
+    private let bellButton = UIButton().then {
+        $0.setImage(UIImage(named: Navigation.bellButton), for: .normal)
+    }
+    private lazy var navigationBar = DefaultNavigationBar(.logoWithItem).then {
+        $0.addRightItem(bellButton)
+    }
     private let homeView = HomeView()
     private var activeToasts: [String: ToastView] = [:] // key: missionID
 
