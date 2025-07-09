@@ -159,11 +159,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         switch link {
         case .newMission(let id):
             print("🔗 새 미션 화면으로 이동: \(id)")
-            homeVC.presentDetailViewController(id: id)
-            
+            nav.pushViewController(homeVC, animated: true)
+
         case .missionRequest(let id):
             print("🔗 미션 요청 화면으로 이동: \(id)")
-            homeVC.presentMissionPoke(id: id)
+            nav.pushViewController(homeVC, animated: true)
         }
     }
 }
