@@ -39,10 +39,24 @@ enum DeepLink {
     
     // MARK: - Throwing Initializer
     init(url: URL) throws {
-        let comps = url.pathComponents.filter { $0 != "/" }
+        // URL에서 scheme 부분을 제거하고 경로만 추출
+        let urlString = url.absoluteString
+        guard let schemeRange = urlString.range(of: "://") else {
+            throw DeepLinkError.invalidURL
+        }
+        
+        let pathString = String(urlString[schemeRange.upperBound...])
+        let comps = pathString.components(separatedBy: "/").filter { !$0.isEmpty }
+        
+        print("🔍 URL 파싱 디버그:")
+        print("   - 전체 URL: \(urlString)")
+        print("   - scheme 제거 후: '\(pathString)'")
+        print("   - 분할된 comps: \(comps)")
+        print("   - comps.count: \(comps.count)")
         
         // 기본 URL 형식 검증
         guard comps.count == 2 else {
+            print("❌ URL 형식 오류: comps.count = \(comps.count), 예상: 2")
             throw DeepLinkError.invalidFormat
         }
         
@@ -117,33 +131,14 @@ final class DeepLinkManager {
         }
     }
     
+    // MARK: - 사용하지 않는 메서드들 (현재 SceneDelegate에서 직접 처리)
+    /*
     /// 딥링크를 기반으로 적절한 화면으로 이동
     /// - Parameters:
     ///   - deepLink: 처리할 딥링크
     ///   - tabBarController: 현재 탭바 컨트롤러
     func handleDeepLink(_ deepLink: DeepLink, in tabBarController: UITabBarController) {
-        // 1. 네비게이션 컨트롤러 찾기
-        guard let nav = tabBarController.selectedViewController as? UINavigationController else {
-            print("❌ 딥링크 처리 실패: 네비게이션 컨트롤러를 찾을 수 없습니다")
-            return
-        }
-        
-        // 2. HomeViewController 찾기 (첫 번째 뷰 컨트롤러가 HomeViewController인지 확인)
-        guard let homeVC = nav.viewControllers.first as? HomeViewController else {
-            print("❌ 딥링크 처리 실패: HomeViewController를 찾을 수 없습니다")
-            return
-        }
-        
-        // 3. 딥링크 타입에 따른 화면 이동
-        switch deepLink {
-        case .newMission(let id):
-            print("🔗 새 미션 딥링크 처리: \(id)")
-            nav.pushViewController(homeVC, animated: true)
-
-        case .missionRequest(let id):
-            print("🔗 미션 요청 딥링크 처리: \(id)")
-            nav.pushViewController(homeVC, animated: true)
-        }
+        // 화면 이동은 SceneDelegate에서 처리하므로 주석처리
     }
     
     /// URL 문자열로부터 딥링크 처리
@@ -151,17 +146,9 @@ final class DeepLinkManager {
     ///   - urlString: URL 문자열
     ///   - tabBarController: 현재 탭바 컨트롤러
     func handleURLString(_ urlString: String, in tabBarController: UITabBarController) {
-        guard let url = URL(string: urlString) else {
-            print("❌ 딥링크 처리 실패: 유효하지 않은 URL 문자열")
-            return
-        }
-        
-        guard let deepLink = safeParse(url: url) else {
-            return
-        }
-        
-        handleDeepLink(deepLink, in: tabBarController)
+        // 화면 이동은 SceneDelegate에서 처리하므로 주석처리
     }
+    */
 }
 
 // MARK: - Convenience Extensions
