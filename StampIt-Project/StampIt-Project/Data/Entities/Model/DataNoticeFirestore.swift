@@ -8,8 +8,8 @@
 import Foundation
 import FirebaseCore
 
-struct DataNoticeFirestore {
-    let id: String
+struct DataNoticeFirestore: Codable {
+    let noticeId: String
     let title: String
     let description: String
     let category: String
@@ -21,7 +21,7 @@ struct DataNoticeFirestore {
 extension DataNoticeFirestore {
     func toDomain() -> DomainNotice {
         return DomainNotice(
-            id: id,
+            noticeId: noticeId,
             title: title,
             description: description,
             category: NoticeCategory(rawValue: category) ?? .unknown,
