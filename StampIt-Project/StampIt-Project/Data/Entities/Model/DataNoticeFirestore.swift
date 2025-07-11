@@ -9,13 +9,14 @@ import Foundation
 import FirebaseCore
 
 struct DataNoticeFirestore {
-    let id: String
+    let noticeId: String
     let title: String
     let description: String
     let category: String
     let createdAt: Timestamp
     let url: String
     let isRead: Bool
+    let userId: String
 }
 
 extension DataNoticeFirestore {
