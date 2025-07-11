@@ -16,6 +16,7 @@ struct DataNoticeFirestore: Codable {
     let createdAt: Timestamp
     let url: String
     let isRead: Bool
+    let userId: String
 }
 
 extension DataNoticeFirestore {
