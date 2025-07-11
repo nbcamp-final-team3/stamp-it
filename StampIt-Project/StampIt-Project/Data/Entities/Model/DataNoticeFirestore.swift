@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseCore
 
-struct DataNoticeFirestore {
+struct DataNoticeFirestore: Codable {
     let noticeId: String
     let title: String
     let description: String
