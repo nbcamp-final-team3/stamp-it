@@ -111,7 +111,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // SceneDelegate로 딥링크 전달
             if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let delegate = scene.delegate as? SceneDelegate {
-                delegate.handleDeepLink(url)
+                delegate.handleDeepLink(by: url)
                 return true
             }
         }
@@ -215,7 +215,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
               let scene   = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let delegate = scene.delegate as? SceneDelegate
         else { return }
-        delegate.moveToViewController(by: url)
+        delegate.handleDeepLink(by: url)
     }
     
 }
