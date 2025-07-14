@@ -97,73 +97,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // MARK: - DeepLink Handling
     
     /// 딥링크 URL 처리
-    /// - Parameter url: 처리할 URL
-    func handleDeepLink(_ url: URL) {
+    func handleDeepLink(by url: URL) {
         print("🔗 딥링크 처리 시작: \(url.absoluteString)")
         
-        // DeepLinkManager를 사용한 안전한 처리
-        guard let tabBarController = window?.rootViewController as? UITabBarController else {
-            print("❌ 딥링크 처리 실패: 탭바 컨트롤러를 찾을 수 없습니다")
-            return
-        }
+        let container = DIContainer.shared
+        let success = DeepLinkManager.shared.handleURL(url, in: window, container: container)
         
-        DeepLinkManager.shared.handleURLString(url.absoluteString, in: tabBarController)
+        if !success {
+            print("❌ 딥링크 처리 실패")
+        }
     }
     
     /// 알림에서 딥링크 처리
-    /// - Parameter userInfo: 알림 정보
     func handleDeeplinkFromNotification(_ userInfo: [AnyHashable: Any]) {
-        guard let linkStr = userInfo["deeplink"] as? String else {
-            print("❌ 알림에서 딥링크 정보를 찾을 수 없습니다")
-            return
-        }
+        let container = DIContainer.shared
+        let success = DeepLinkManager.shared.handleDeeplinkFromNotification(userInfo, in: window, container: container)
         
-        guard let url = URL(string: linkStr) else {
-            print("❌ 알림 딥링크 URL 파싱 실패: \(linkStr)")
-            return
-        }
-        
-        handleDeepLink(url)
-    }
-    
-    /// 딥링크를 기반으로 적절한 화면으로 이동 (기존 방식)
-    /// - Parameter deeplink: 처리할 딥링크 URL
-    func moveToViewController(by deeplink: URL) {
-        print("🔗 moveToViewController 호출: \(deeplink.absoluteString)")
-        
-        // 1. 탭바 컨트롤러 찾기
-        guard let tab = window?.rootViewController as? UITabBarController else {
-            print("❌ moveToViewController 실패: 탭바 컨트롤러를 찾을 수 없습니다")
-            return
-        }
-        
-        // 2. 네비게이션 컨트롤러 찾기
-        guard let nav = tab.selectedViewController as? UINavigationController else {
-            print("❌ moveToViewController 실패: 네비게이션 컨트롤러를 찾을 수 없습니다")
-            return
-        }
-        
-        // 3. HomeViewController 찾기
-        guard let homeVC = nav.viewControllers.first as? HomeViewController else {
-            print("❌ moveToViewController 실패: HomeViewController를 찾을 수 없습니다")
-            return
-        }
-        
-        // 4. DeepLink 파싱
-        guard let link = DeepLinkManager.shared.safeParse(url: deeplink) else {
-            print("❌ moveToViewController 실패: 딥링크 파싱 실패")
-            return
-        }
-        
-        // 5. 딥링크 타입에 따른 화면 이동
-        switch link {
-        case .newMission(let id):
-            print("🔗 새 미션 화면으로 이동: \(id)")
-            nav.pushViewController(homeVC, animated: true)
-
-        case .missionRequest(let id):
-            print("🔗 미션 요청 화면으로 이동: \(id)")
-            nav.pushViewController(homeVC, animated: true)
+        if !success {
+            print("❌ 알림 딥링크 처리 실패")
         }
     }
 }
