@@ -242,6 +242,10 @@ final class DIContainer {
         )
     }
 
+    func makeNoticeListViewModel() -> NoticeListViewModel {
+        return NoticeListViewModel()
+    }
+
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
@@ -314,6 +318,11 @@ final class DIContainer {
     func makeStampInfoViewController() -> StampInfoViewController {
         let viewModel = makeStampInfoViewModel()
         return StampInfoViewController(viewModel: viewModel)
+    }
+
+    func makeNoticeListViewController() -> NoticeListViewController {
+        let viewModel = makeNoticeListViewModel()
+        return NoticeListViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton

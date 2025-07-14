@@ -84,6 +84,19 @@ final class HomeViewController: UIViewController {
         bindGroupOrganizationView()
         bindDashboardView()
         bindToastView()
+        bindBellButton()
+    }
+
+    private func bindBellButton() {
+        bellButton.rx.tap
+            .map { HomeViewModel.Action.checkNotice }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
+        viewModel.state.isPushNoticeListVC
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(onNext: pushNoticeListVC)
+            .disposed(by: disposeBag)
     }
 
     private func bindGroupOrganizationView() {
@@ -253,6 +266,11 @@ final class HomeViewController: UIViewController {
             sheet.preferredCornerRadius = 32
         }
         present(vc, animated: true)
+    }
+
+    private func pushNoticeListVC() {
+        let noticeListVC = DIContainer.shared.makeNoticeListViewController()
+        navigationController?.pushViewController(noticeListVC, animated: true)
     }
 
     private func pushMyMissionVC() {
