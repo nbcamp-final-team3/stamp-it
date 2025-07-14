@@ -108,7 +108,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // MARK: - DeepLink Handling
     
     /// 딥링크 URL 처리
-    /// - Parameter url: 처리할 URL
     func handleDeepLink(by url: URL) {
         print("🔗 딥링크 처리 시작: \(url.absoluteString)")
         
@@ -121,7 +120,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     /// 알림에서 딥링크 처리
-    /// - Parameter userInfo: 알림 정보
     func handleDeeplinkFromNotification(_ userInfo: [AnyHashable: Any]) {
         let container = DIContainer.shared
         let success = DeepLinkManager.shared.handleDeeplinkFromNotification(userInfo, in: window, container: container)

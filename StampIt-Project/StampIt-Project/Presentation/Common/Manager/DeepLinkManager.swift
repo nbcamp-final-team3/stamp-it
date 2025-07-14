@@ -113,16 +113,11 @@ final class DeepLinkManager {
     // MARK: - Public Methods
     
     /// 딥링크 URL을 파싱하여 DeepLink 객체로 변환
-    /// - Parameter url: 파싱할 URL
-    /// - Returns: 파싱된 DeepLink 객체
-    /// - Throws: DeepLinkError
     func parse(url: URL) throws -> DeepLink {
         return try DeepLink(url: url)
     }
     
     /// 딥링크 처리를 위한 안전한 파싱 메서드
-    /// - Parameter url: 파싱할 URL
-    /// - Returns: 파싱 결과 (성공 시 DeepLink, 실패 시 에러 로그)
     func safeParse(url: URL) -> DeepLink? {
         do {
             let deepLink = try parse(url: url)
@@ -135,11 +130,6 @@ final class DeepLinkManager {
     }
     
     /// 딥링크를 기반으로 적절한 화면으로 이동
-    /// - Parameters:
-    ///   - deepLink: 처리할 딥링크
-    ///   - window: 현재 윈도우
-    ///   - container: DI 컨테이너
-    /// - Throws: DeepLinkError
     func handleDeepLink(_ deepLink: DeepLink, in window: UIWindow?, container: DIContainer) throws {
         print("🔗 딥링크 처리 시작: \(deepLink)")
         
@@ -170,11 +160,6 @@ final class DeepLinkManager {
     }
     
     /// URL 문자열로부터 딥링크 처리
-    /// - Parameters:
-    ///   - urlString: URL 문자열
-    ///   - window: 현재 윈도우
-    ///   - container: DI 컨테이너
-    /// - Returns: 처리 성공 여부
     func handleURLString(_ urlString: String, in window: UIWindow?, container: DIContainer) -> Bool {
         guard let url = URL(string: urlString) else {
             print("❌ URL 문자열 파싱 실패: \(urlString)")
@@ -185,11 +170,6 @@ final class DeepLinkManager {
     }
     
     /// URL로부터 딥링크 처리
-    /// - Parameters:
-    ///   - url: 처리할 URL
-    ///   - window: 현재 윈도우
-    ///   - container: DI 컨테이너
-    /// - Returns: 처리 성공 여부
     func handleURL(_ url: URL, in window: UIWindow?, container: DIContainer) -> Bool {
         print("🔗 딥링크 URL 처리 시작: \(url.absoluteString)")
         
@@ -204,11 +184,6 @@ final class DeepLinkManager {
     }
     
     /// 알림에서 딥링크 처리
-    /// - Parameters:
-    ///   - userInfo: 알림 정보
-    ///   - window: 현재 윈도우
-    ///   - container: DI 컨테이너
-    /// - Returns: 처리 성공 여부
     func handleDeeplinkFromNotification(_ userInfo: [AnyHashable: Any], in window: UIWindow?, container: DIContainer) -> Bool {
         guard let linkStr = userInfo["deeplink"] as? String else {
             print("❌ 알림에서 딥링크 정보를 찾을 수 없습니다")
