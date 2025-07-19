@@ -34,4 +34,8 @@ protocol MissionUseCase {
     ///   - id: 미션 ID
     /// - Returns: 미션 1개
     func fetchMission(with id: String) -> Observable<MissionUI?>
+    
+    /// 코어데이터 샘플 미션을 패치
+    /// - Returns: 샘플 미션 데이터
+    func fetchSampleMission() -> [SampleMission]
 }

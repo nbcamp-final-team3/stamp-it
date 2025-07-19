@@ -6,11 +6,13 @@
 //
 
 import UIKit
+import RxSwift
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     var window: UIWindow?
     
+    private let disposeBag = DisposeBag()
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         
@@ -57,6 +59,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             } else {
                 let onboardingVC = container.makeOnboardingViewController()
                 nav = UINavigationController(rootViewController: onboardingVC)
+                
+                // 온보딩 시 샘플 미션 JSON 데이터를 코어데이터에 저장
+                container.missionRepository.loadSampleMission()
+                    .subscribe { missions in
+                        container.missionRepository.saveAllSampleMissions(missions: missions)
+                    } onFailure: { error in
+                        print(error)
+                    }
+                    .disposed(by: disposeBag)
             }
             self.window?.rootViewController = nav
             self.window?.makeKeyAndVisible()

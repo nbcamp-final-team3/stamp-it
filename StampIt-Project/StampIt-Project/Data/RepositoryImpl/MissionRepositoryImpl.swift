@@ -8,20 +8,24 @@
 import Foundation
 import RxSwift
 import FirebaseCore
+import CoreData
 
 final class MissionRepositoryImpl: MissionRepository {
     private let missionManager: any MissionManagerProtocol
     private let membershipManager: any MembershipManagerProtocol
     private let authRepository: any AuthRepositoryProtocol
+    private let context: NSManagedObjectContext
     
     init(
         missionManager: any MissionManagerProtocol,
         membershipManager: any MembershipManagerProtocol,
-        authRepository: any AuthRepositoryProtocol
+        authRepository: any AuthRepositoryProtocol,
+        context: NSManagedObjectContext
     ) {
         self.missionManager = missionManager
         self.membershipManager = membershipManager
         self.authRepository = authRepository
+        self.context = context
     }
     
     // 샘플 미션 데이터 로드
@@ -127,5 +131,49 @@ final class MissionRepositoryImpl: MissionRepository {
     // 미션 1개 패치
     func fetchMission(widh id: String) -> Observable<Mission?> {
         missionManager.fetch(id: id).map { $0?.toDomainModel() }
+    }
+    
+    // 샘플 미션 전체를 코어데이터에 저장
+    func saveAllSampleMissions(missions: [SampleMission]) {
+        missions.forEach {
+            saveSampleMission(missionId: $0.missionId,
+                              title: $0.title,
+                              category: $0.category,
+                              isFavorite: $0.isFavorite)
+        }
+    }
+    
+    // 샘플 미션을 코어데이터에 저장
+    private func saveSampleMission(missionId: String, title: String, category: MissionCategory, isFavorite: Bool = false) {
+        let mission = SampleMissionEntity(context: context)
+        mission.missionId = missionId
+        mission.title = title
+        mission.category = category
+        mission.isFavorite = isFavorite
+        
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save Core Data changes: \(error)")
+        }
+    }
+    
+    // 코어데이터 샘플 미션을 패치
+    func fetchSampleMission() -> [SampleMission] {
+        let fetchRequest: NSFetchRequest<SampleMissionEntity> = SampleMissionEntity.fetchRequest()
+        
+        do {
+            let missions = try context.fetch(fetchRequest)
+            return missions.map { mission in
+                return SampleMission(missionId: mission.missionId ?? "",
+                                     title: mission.title ?? "",
+                                     description: nil,
+                                     category: mission.category,
+                                     isFavorite: mission.isFavorite)
+            }
+        } catch {
+            print("Failed to fetch Core Data: \(error)")
+            return []
+        }
     }
 }

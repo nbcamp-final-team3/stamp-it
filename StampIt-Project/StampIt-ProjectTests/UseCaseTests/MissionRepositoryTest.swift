@@ -156,4 +156,13 @@ final class MissionRepositoryTest: MissionRepository {
     func fetchMission(widh id: String) -> Observable<Mission?> {
         missionManager.fetch(id: id).map { $0?.toDomainModel() }
     }
+    
+    // 샘플 미션 전체를 코어데이터에 저장
+    func saveAllSampleMissions(missions: [SampleMission]) {
+    }
+    
+    // 코어데이터 샘플 미션을 패치
+    func fetchSampleMission() -> [SampleMission] {
+        return []
+    }
 }
