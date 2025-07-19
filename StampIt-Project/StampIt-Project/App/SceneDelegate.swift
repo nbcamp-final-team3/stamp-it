@@ -56,18 +56,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             if hasOnboarded {
                 let launchVC = LaunchViewController(container: container)
                 nav = UINavigationController(rootViewController: launchVC)
+                
+                // 코어데이터에 샘플 미션 데이터가 없으면 마이그레이션 실행
+                if container.missionRepository.fetchSampleMission().isEmpty {
+                    migrateSampleMission(container: container)
+                }
             } else {
                 let onboardingVC = container.makeOnboardingViewController()
                 nav = UINavigationController(rootViewController: onboardingVC)
                 
                 // 온보딩 시 샘플 미션 JSON 데이터를 코어데이터에 저장
-                container.missionRepository.loadSampleMission()
-                    .subscribe { missions in
-                        container.missionRepository.saveAllSampleMissions(missions: missions)
-                    } onFailure: { error in
-                        print(error)
-                    }
-                    .disposed(by: disposeBag)
+                migrateSampleMission(container: container)
             }
             self.window?.rootViewController = nav
             self.window?.makeKeyAndVisible()
@@ -103,6 +102,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         // Save changes in the application's managed object context when the application transitions to the background.
         (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
+    }
+    
+    // 샘플 미션 JSON 데이터를 코어데이터에 저장
+    private func migrateSampleMission(container: DIContainer) {
+        container.missionRepository.loadSampleMission()
+            .subscribe { missions in
+                container.missionRepository.saveAllSampleMissions(missions: missions)
+            } onFailure: { error in
+                print(error)
+            }
+            .disposed(by: disposeBag)
     }
 }
 
