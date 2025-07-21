@@ -176,4 +176,23 @@ final class MissionRepositoryImpl: MissionRepository {
             return []
         }
     }
+    
+    // 코어데이터 샘플 미션 업데이트
+    func updateSampleMission(mission: SampleMission) {
+        let fetchRequest: NSFetchRequest<SampleMissionEntity> = SampleMissionEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "missionId == %@", mission.missionId)
+        
+        do {
+            let missions = try context.fetch(fetchRequest)
+            guard !missions.isEmpty else { return }
+            
+            missions.forEach {
+                $0.isFavorite = mission.isFavorite
+            }
+            
+            try context.save()
+        } catch {
+            print("Failed to fetch or save Core Data recentBook: \(error)")
+        }
+    }
 }

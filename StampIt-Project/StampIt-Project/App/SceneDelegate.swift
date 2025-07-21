@@ -58,8 +58,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 nav = UINavigationController(rootViewController: launchVC)
                 
                 // 코어데이터에 샘플 미션 데이터가 없으면 마이그레이션 실행
-                if container.missionRepository.fetchSampleMission().isEmpty {
+                let missions = container.missionRepository.fetchSampleMission()
+                if missions.isEmpty {
                     migrateSampleMission(container: container)
+                    migrateFavorites(missions: missions, container: container)
                 }
             } else {
                 let onboardingVC = container.makeOnboardingViewController()
@@ -113,6 +115,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 print(error)
             }
             .disposed(by: disposeBag)
+    }
+    
+    // UserDefaults에 저장된 favorites 정보를 코어데이터로 마이그레이션
+    // 마이그레이션 완료 시 UserDefaults 삭제
+    private func migrateFavorites(missions: [SampleMission], container: DIContainer) {
+        let favorites = UserDefaults.standard.stringArray(forKey: "favorites")
+        guard let favorites, !favorites.isEmpty else { return }
+        
+        favorites.forEach { favorite in
+            let mission = missions.filter { $0.missionId == favorite }.first
+            if let mission {
+                container.missionRepository.updateSampleMission(mission: mission)
+            }
+        }
+        
+        UserDefaults.standard.removeObject(forKey: "favorites")
     }
 }
 

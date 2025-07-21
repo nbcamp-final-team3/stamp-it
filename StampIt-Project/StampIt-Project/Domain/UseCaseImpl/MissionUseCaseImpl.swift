@@ -45,4 +45,9 @@ struct MissionUseCaseImpl: MissionUseCase {
     func fetchSampleMission() -> [SampleMission] {
         missionRepositoryImpl.fetchSampleMission()
     }
+    
+    // 코어데이터 샘플 미션 업데이트
+    func updateSampleMission(mission: SampleMission) {
+        missionRepositoryImpl.updateSampleMission(mission: mission)
+    }
 }

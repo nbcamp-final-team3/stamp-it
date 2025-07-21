@@ -38,4 +38,8 @@ protocol MissionUseCase {
     /// 코어데이터 샘플 미션을 패치
     /// - Returns: 샘플 미션 데이터
     func fetchSampleMission() -> [SampleMission]
+    
+    /// 코어데이터 샘플 미션 업데이트
+    /// - Parameter mission: 샘플 미션 데이터
+    func updateSampleMission(mission: SampleMission)
 }

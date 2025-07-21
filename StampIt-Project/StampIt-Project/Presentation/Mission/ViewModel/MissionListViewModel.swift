@@ -22,7 +22,6 @@ final class MissionListViewModel: ViewModelProtocol {
         var missions = BehaviorRelay<[SampleMission]>(value: []) // 뷰에 반영되는 샘플 미션 데이터
         var searchText = BehaviorRelay<String>(value: "")
         var selectedCategory = BehaviorRelay<MissionCategory?>(value: nil)
-        var favorites = BehaviorRelay<Set<String>>(value: [])
         var isOnlyFavorite = BehaviorRelay<Bool>(value: false) // 즐겨찾기 등록된 미션만 보여줘야 하는지 true/false
         var recommendedMissions: [SampleMission] = []
     }
@@ -33,7 +32,7 @@ final class MissionListViewModel: ViewModelProtocol {
     var disposeBag = DisposeBag()
     
     private let missionUseCaseImpl: MissionUseCase
-    private var _missions: [SampleMission] = [] // 샘플 미션 JSON 원본 데이터
+    private var _missions: [SampleMission] = [] // 샘플 미션 원본 데이터
     private var missionScores: [String: Double] = [:] // 미션별 추천 점수
     
     init(missionUseCaseImpl: MissionUseCase) {
@@ -43,7 +42,6 @@ final class MissionListViewModel: ViewModelProtocol {
         
         bindFilterMisson()
         
-        loadFavorites()
         loadMissionScores()
     }
     
@@ -81,16 +79,12 @@ final class MissionListViewModel: ViewModelProtocol {
                     }
                 case .toggleFavorite(let indexPath):
                     let mission = state.missions.value[indexPath.row]
-                    var favorites = state.favorites.value
+                    guard let missionIndex = _missions.firstIndex(where: { $0.missionId == mission.missionId }) else { return }
                     
-                    // 토글 형식이므로, 현재 즐겨찾기인 미션을 탭하면 즐겨찾기 해제, 현재 즐겨찾기가 아닌 미션을 탭하면 즐겨찾기 등록
-                    if favorites.contains(mission.missionId) {
-                        favorites.remove(mission.missionId)
-                    } else {
-                        favorites.insert(mission.missionId)
-                    }
-                    state.favorites.accept(favorites)
-                    UserDefaults.standard.set(Array(favorites), forKey: UserDefaultsKey.favorites)
+                    _missions[missionIndex].isFavorite.toggle()
+                    missionUseCaseImpl.updateSampleMission(mission: _missions[missionIndex])
+                    
+                    state.searchText.accept(state.searchText.value) // 뷰 업데이트 트리거
                 }
             }
             .disposed(by: disposeBag)
@@ -98,8 +92,8 @@ final class MissionListViewModel: ViewModelProtocol {
     
     // 미션 검색 + 카테고리 선택
     private func bindFilterMisson() {
-        Observable.combineLatest(state.searchText, state.selectedCategory, state.isOnlyFavorite, state.favorites)
-            .map { [weak self] searchText, selectedCategory, isOnlyFavorite, favorites -> [SampleMission] in
+        Observable.combineLatest(state.searchText, state.selectedCategory, state.isOnlyFavorite)
+            .map { [weak self] searchText, selectedCategory, isOnlyFavorite -> [SampleMission] in
                 guard let self else { return [] }
                 
                 // 단어 단위로 분할
@@ -110,7 +104,7 @@ final class MissionListViewModel: ViewModelProtocol {
                 
                 let filteredMissions = _missions.filter { mission in
                     // 즐겨찾기 필터
-                    if isOnlyFavorite, !favorites.contains(mission.missionId) {
+                    if isOnlyFavorite, !mission.isFavorite {
                         return false
                     }
                     
@@ -142,15 +136,13 @@ final class MissionListViewModel: ViewModelProtocol {
         // 우선 전체 데이터를 타이틀명 기준으로 정렬
         let missions = missions.sorted { $0.title < $1.title }
         
-        let favorites = state.favorites.value
-        
         // 전체 데이터를 즐겨찾기 여부에 따라 2개로 분리
         let favoriteMissions = missions.filter {
-            favorites.contains($0.missionId)
+            $0.isFavorite
         }
         
         let noFavoriteMissions = missions.filter {
-            !favorites.contains($0.missionId)
+            !$0.isFavorite
         }
         
         // 즐겨찾기 false 데이터 중 추천 미션 선정(최대 3개)
@@ -164,12 +156,6 @@ final class MissionListViewModel: ViewModelProtocol {
         }
         
         return favoriteMissions + recommendedMissions + remainingMissions
-    }
-    
-    // 즐겨찾기 샘플미션 로드
-    private func loadFavorites() {
-        let favorites = UserDefaults.standard.stringArray(forKey: UserDefaultsKey.favorites) ?? []
-        state.favorites.accept(Set(favorites))
     }
     
     // 미션별 추천 점수 로드
@@ -202,7 +188,6 @@ final class MissionListViewModel: ViewModelProtocol {
 
 extension MissionListViewModel {
     struct UserDefaultsKey {
-        static let favorites = "favorites"
         static let missionScores = "missionScores"
     }
 }
