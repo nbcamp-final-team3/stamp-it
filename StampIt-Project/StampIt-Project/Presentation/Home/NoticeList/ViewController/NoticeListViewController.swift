@@ -8,7 +8,15 @@
 import UIKit
 
 final class NoticeListViewController: UIViewController {
+
+    // MARK: - Dependencies
+
     let viewModel: NoticeListViewModel!
+
+    // MARK: - UI Components
+
+
+    // MARK: - Life Cycles
 
     init(viewModel: NoticeListViewModel) {
         self.viewModel = viewModel
@@ -18,4 +26,5 @@ final class NoticeListViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
 }
