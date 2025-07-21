@@ -61,7 +61,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 let missions = container.missionRepository.fetchSampleMission()
                 if missions.isEmpty {
                     migrateSampleMission(container: container)
-                    migrateFavorites(missions: missions, container: container)
                 }
             } else {
                 let onboardingVC = container.makeOnboardingViewController()
@@ -109,8 +108,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // 샘플 미션 JSON 데이터를 코어데이터에 저장
     private func migrateSampleMission(container: DIContainer) {
         container.missionRepository.loadSampleMission()
-            .subscribe { missions in
+            .subscribe { [weak self] missions in
                 container.missionRepository.saveAllSampleMissions(missions: missions)
+                self?.migrateFavorites(container: container)
             } onFailure: { error in
                 print(error)
             }
@@ -119,13 +119,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     // UserDefaults에 저장된 favorites 정보를 코어데이터로 마이그레이션
     // 마이그레이션 완료 시 UserDefaults 삭제
-    private func migrateFavorites(missions: [SampleMission], container: DIContainer) {
+    private func migrateFavorites(container: DIContainer) {
         let favorites = UserDefaults.standard.stringArray(forKey: "favorites")
         guard let favorites, !favorites.isEmpty else { return }
+        let missions = container.missionRepository.fetchSampleMission()
+        guard !missions.isEmpty else { return }
         
         favorites.forEach { favorite in
             let mission = missions.filter { $0.missionId == favorite }.first
-            if let mission {
+            if var mission {
+                mission.isFavorite = true
                 container.missionRepository.updateSampleMission(mission: mission)
             }
         }
