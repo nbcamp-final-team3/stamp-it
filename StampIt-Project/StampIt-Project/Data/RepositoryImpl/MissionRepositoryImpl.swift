@@ -139,17 +139,21 @@ final class MissionRepositoryImpl: MissionRepository {
             saveSampleMission(missionId: $0.missionId,
                               title: $0.title,
                               category: $0.category,
-                              isFavorite: $0.isFavorite)
+                              isFavorite: $0.isFavorite,
+                              score: $0.score,
+                              timestamp: $0.timestamp)
         }
     }
     
     // 샘플 미션을 코어데이터에 저장
-    private func saveSampleMission(missionId: String, title: String, category: MissionCategory, isFavorite: Bool = false) {
+    private func saveSampleMission(missionId: String, title: String, category: MissionCategory, isFavorite: Bool = false, score: Double = 0.0, timestamp: Date = .now) {
         let mission = SampleMissionEntity(context: context)
         mission.missionId = missionId
         mission.title = title
         mission.category = category
         mission.isFavorite = isFavorite
+        mission.score = score
+        mission.timestamp = timestamp
         
         do {
             try context.save()
@@ -169,7 +173,9 @@ final class MissionRepositoryImpl: MissionRepository {
                                      title: mission.title ?? "",
                                      description: nil,
                                      category: mission.category,
-                                     isFavorite: mission.isFavorite)
+                                     isFavorite: mission.isFavorite,
+                                     score: mission.score,
+                                     timestamp: mission.timestamp)
             }
         } catch {
             print("Failed to fetch Core Data: \(error)")
@@ -188,6 +194,10 @@ final class MissionRepositoryImpl: MissionRepository {
             
             missions.forEach {
                 $0.isFavorite = mission.isFavorite
+                if $0.score != mission.score {
+                    $0.score = mission.score
+                    $0.timestamp = mission.timestamp // score가 변경되면 timestamp도 변경
+                }
             }
             
             try context.save()
