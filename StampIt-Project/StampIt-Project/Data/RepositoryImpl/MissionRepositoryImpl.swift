@@ -183,6 +183,30 @@ final class MissionRepositoryImpl: MissionRepository {
         }
     }
     
+    // 코어데이터 특정 샘플 미션을 패치
+    func fetchSampleMission(withId missionId: String) -> [SampleMission] {
+        let fetchRequest: NSFetchRequest<SampleMissionEntity> = SampleMissionEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "missionId == %@", missionId)
+        
+        do {
+            let missions = try context.fetch(fetchRequest)
+            guard !missions.isEmpty else { return [] }
+            
+            return missions.map { mission in
+                return SampleMission(missionId: mission.missionId ?? "",
+                                     title: mission.title ?? "",
+                                     description: nil,
+                                     category: mission.category,
+                                     isFavorite: mission.isFavorite,
+                                     score: mission.score,
+                                     timestamp: mission.timestamp)
+            }
+        } catch {
+            print("Failed to fetch Core Data: \(error)")
+            return []
+        }
+    }
+    
     // 코어데이터 샘플 미션 업데이트
     func updateSampleMission(mission: SampleMission) {
         let fetchRequest: NSFetchRequest<SampleMissionEntity> = SampleMissionEntity.fetchRequest()

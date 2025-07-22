@@ -33,7 +33,6 @@ final class MissionListViewModel: ViewModelProtocol {
     
     private let missionUseCaseImpl: MissionUseCase
     private var _missions: [SampleMission] = [] // 샘플 미션 원본 데이터
-    private var missionScores: [String: Double] = [:] // 미션별 추천 점수
     
     init(missionUseCaseImpl: MissionUseCase) {
         self.missionUseCaseImpl = missionUseCaseImpl
@@ -41,8 +40,6 @@ final class MissionListViewModel: ViewModelProtocol {
         bind()
         
         bindFilterMisson()
-        
-        loadMissionScores()
     }
     
     private func bind() {
@@ -158,16 +155,11 @@ final class MissionListViewModel: ViewModelProtocol {
         return favoriteMissions + recommendedMissions + remainingMissions
     }
     
-    // 미션별 추천 점수 로드
-    private func loadMissionScores() {
-        missionScores = UserDefaults.standard.dictionary(forKey: UserDefaultsKey.missionScores) as? [String: Double] ?? [:]
-    }
-    
     // 추천 미션 선정(최대 3개)
     private func recommend(among missions: [SampleMission]) -> [SampleMission] {
         let recommendedMissions = missions
-            .filter { (missionScores[$0.missionId] ?? 0) >= 1.0 } // 점수가 1.0 이상인 미션만 추천
-            .sorted { (missionScores[$0.missionId] ?? 0) > (missionScores[$1.missionId] ?? 0) } // 점수 순 정렬
+            .filter { $0.score >= 1.0 } // 점수가 1.0 이상인 미션만 추천
+            .sorted { $0.score > $1.score } // 점수 순 정렬
             .prefix(3) // 상위 3개만 추출
         return Array(recommendedMissions)
     }
@@ -175,19 +167,10 @@ final class MissionListViewModel: ViewModelProtocol {
     // 미션별 추천 점수 적립
     // 어떤 이벤트가 일어날 때, 해당 미션에 이벤트별 점수를 적립(예: 사용자가 미션 전달하기를 완료하면 해당 미션에 0.4점 부여)
     func donate(_ event: Event, to mission: SampleMission) {
-        var scores = missionScores
-        var score = scores[mission.missionId] ?? 0
+        guard var mission = missionUseCaseImpl.fetchSampleMission(withId: mission.missionId).first else { return }
         
-        score += event.relevance // 이벤트별 점수를 적립
-        scores[mission.missionId] = score
+        mission.score += event.relevance // 이벤트별 점수를 적립
         
-        missionScores = scores
-        UserDefaults.standard.set(scores, forKey: UserDefaultsKey.missionScores)
-    }
-}
-
-extension MissionListViewModel {
-    struct UserDefaultsKey {
-        static let missionScores = "missionScores"
+        missionUseCaseImpl.updateSampleMission(mission: mission)
     }
 }

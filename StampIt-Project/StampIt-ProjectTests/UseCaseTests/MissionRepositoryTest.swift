@@ -169,4 +169,9 @@ final class MissionRepositoryTest: MissionRepository {
     // 코어데이터 샘플 미션 업데이트
     func updateSampleMission(mission: SampleMission) {
     }
+    
+    // 코어데이터 특정 샘플 미션 업데이트
+    func fetchSampleMission(withId missionId: String) -> [SampleMission] {
+        return []
+    }
 }
