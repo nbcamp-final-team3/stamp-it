@@ -111,6 +111,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             .subscribe { [weak self] missions in
                 container.missionRepository.saveAllSampleMissions(missions: missions)
                 self?.migrateFavorites(container: container)
+                self?.migrateMissionScores(container: container)
             } onFailure: { error in
                 print(error)
             }
@@ -134,6 +135,25 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
         
         UserDefaults.standard.removeObject(forKey: "favorites")
+    }
+    
+    // UserDefaults에 저장된 mission score 정보를 코어데이터로 마이그레이션
+    // 마이그레이션 완료 시 UserDefaults 삭제
+    private func migrateMissionScores(container: DIContainer) {
+        let scores = UserDefaults.standard.dictionary(forKey: "missionScores") as? [String: Double]
+        guard let scores, !scores.isEmpty else { return }
+        let missions = container.missionRepository.fetchSampleMission()
+        guard !missions.isEmpty else { return }
+        
+        scores.forEach { score in
+            let mission = missions.filter { $0.missionId == score.key }.first
+            if var mission {
+                mission.score = score.value
+                container.missionRepository.updateSampleMission(mission: mission)
+            }
+        }
+        
+        UserDefaults.standard.removeObject(forKey: "missionScores")
     }
 }
 
