@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct DomainNotice {
+struct Notice {
     let id: String
     let title: String
     let description: String

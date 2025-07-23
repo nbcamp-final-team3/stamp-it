@@ -19,8 +19,8 @@ struct DataNoticeFirestore {
 }
 
 extension DataNoticeFirestore {
-    func toDomain() -> DomainNotice {
-        return DomainNotice(
+    func toDomain() -> Notice {
+        return Notice(
             id: id,
             title: title,
             description: description,
