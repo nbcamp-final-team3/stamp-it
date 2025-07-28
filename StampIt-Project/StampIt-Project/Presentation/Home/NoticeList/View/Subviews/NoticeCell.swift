@@ -89,6 +89,12 @@ final class NoticeCell: UICollectionViewCell {
     // MARK: - Set Constraints
 
     private func setConstraints() {
+        topStackView.snp.makeConstraints { make in
+            make.top.equalToSuperview().inset(16)
+            make.leading.equalToSuperview().inset(16)
+            make.trailing.equalToSuperview().inset(22)
+        }
+
         iconImageView.snp.makeConstraints { make in
             make.size.equalTo(30)
         }
@@ -103,6 +109,8 @@ final class NoticeCell: UICollectionViewCell {
 
         descriptionLabel.snp.makeConstraints { make in
             make.top.equalTo(titleLabel.snp.bottom).offset(6)
+            make.leading.equalTo(titleLabel)
+            make.bottom.equalToSuperview().inset(16)
         }
     }
 
