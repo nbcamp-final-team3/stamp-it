@@ -5,7 +5,7 @@
 //  Created by daeun on 7/23/25.
 //
 
-import Foundation
+import UIKit
 
 extension NoticeCategory {
     var iconImage: UIImage? {
