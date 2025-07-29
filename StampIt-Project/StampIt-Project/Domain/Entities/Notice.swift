@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct Notice {
-    let id: String
+struct DomainNotice {
+    let noticeId: String
     let title: String
     let description: String
     let category: NoticeCategory
