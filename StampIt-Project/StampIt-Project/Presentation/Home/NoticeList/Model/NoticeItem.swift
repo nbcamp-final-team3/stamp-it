@@ -12,6 +12,7 @@ enum NoticeSection: CaseIterable, Hashable {
 }
 
 struct HomeNotice: Hashable {
+    let noticeId: String
     let title: String
     let description: String
     let date: String
