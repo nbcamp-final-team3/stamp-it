@@ -7,6 +7,8 @@
 
 import UIKit
 import SnapKit
+import RxSwift
+import RxCocoa
 
 final class NoticeListViewController: UIViewController {
 
@@ -19,6 +21,10 @@ final class NoticeListViewController: UIViewController {
     private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "알림"))
     private let noticeView = NoticeView()
 
+    // MARK: - Properties
+
+    private let disposeBag = DisposeBag()
+
     // MARK: - Life Cycles
 
     init(viewModel: NoticeListViewModel) {
@@ -27,6 +33,7 @@ final class NoticeListViewController: UIViewController {
         setStyle()
         setHierarchy()
         setConstraints()
+        bind()
     }
     
     required init?(coder: NSCoder) {
@@ -54,5 +61,19 @@ final class NoticeListViewController: UIViewController {
             make.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
             make.bottom.equalToSuperview()
         }
+    }
+
+    private func bind() {
+        navigationBar.backTapped
+            .map { NoticeListViewModel.Action.navigateBack }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
+        viewModel.state.isNavigateBack
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, _ in
+                owner.navigationController?.popViewController(animated: true)
+            }
+            .disposed(by: disposeBag)
     }
 }

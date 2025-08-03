@@ -15,9 +15,11 @@ final class NoticeListViewModel: ViewModelProtocol {
     // MARK: - Action & State
 
     enum Action {
+        case navigateBack
     }
 
     struct State {
+        var isNavigateBack = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -38,6 +40,8 @@ final class NoticeListViewModel: ViewModelProtocol {
         action
             .subscribe(with: self) { owner, action in
                 switch action {
+                case .navigateBack:
+                    owner.state.isNavigateBack.accept(())
                 }
             }
             .disposed(by: disposeBag)
