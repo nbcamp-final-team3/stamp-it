@@ -47,4 +47,18 @@ protocol MissionUseCase {
     /// 코어데이터 샘플 미션 업데이트
     /// - Parameter mission: 샘플 미션 데이터
     func updateSampleMission(mission: SampleMission)
+    
+    /// 전달한 미션 정보를 코어데이터에 저장
+    /// - Parameters:
+    ///   - title: 미션 타이틀
+    ///   - assigneeId: 미션을 받는 멤버 ID
+    ///   - assigneeNickname: 미션을 받는 멤버 닉네임
+    ///   - createDate: 미션 생성일자
+    ///   - dueDate: 미션 기한
+    ///   - category: 미션 카테고리
+    func saveMissionData(title: String, assigneeId: String, assigneeNickname: String, createDate: Date, dueDate: Date, category: MissionCategory)
+    
+    /// 코어데이터 미션 데이터를 패치
+    /// - Returns: 미션 데이터
+    func fetchMissionData() -> [MissionData]
 }
