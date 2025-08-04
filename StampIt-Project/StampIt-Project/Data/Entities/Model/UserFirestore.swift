@@ -15,7 +15,8 @@ struct UserFirestore: Codable {
     let profileImage: String?
     let nicknameChangedAt: Timestamp
     let createdAt: Timestamp
-    
+    let fcmToken: String?
+
     var documentID: String { return userId }
 }
 
@@ -84,7 +85,8 @@ extension User {
             groupId: self.groupID,
             profileImage: self.profileImage,
             nicknameChangedAt: Timestamp(date: Date()), // 현재 시간으로 설정
-            createdAt: Timestamp(date: Date())
+            createdAt: Timestamp(date: Date()),
+            fcmToken: nil
         )
     }
     
@@ -97,6 +99,7 @@ extension User {
             profileImage: self.profileImage,
             nicknameChangedAt: Timestamp(date: Date()),
             createdAt: Timestamp(date: preserveCreatedAt), // 기존 생성일 유지
+            fcmToken: nil
         )
     }
 }
