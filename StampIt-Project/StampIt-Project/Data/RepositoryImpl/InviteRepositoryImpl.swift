@@ -8,7 +8,7 @@
 import Foundation
 import RxSwift
 
-final class InviteRepositoryImpl: InviteRepository {
+final class InviteRepositoryImpl: InviteRepositoryProtocol {
     private let groupManager: any GroupManagerProtocol
     private let membershipManager: any MembershipManagerProtocol
     private let userManager: any UserManagerProtocol

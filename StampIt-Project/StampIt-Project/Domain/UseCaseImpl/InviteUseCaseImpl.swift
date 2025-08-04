@@ -12,9 +12,9 @@ final class InviteUseCaseImpl: InviteUseCase {
 
 
     private let authRepository: AuthRepositoryProtocol
-    private let inviteRepository: InviteRepository
+    private let inviteRepository: InviteRepositoryProtocol
 
-    init(authRepository: AuthRepositoryProtocol, inviteRepository: InviteRepository) {
+    init(authRepository: AuthRepositoryProtocol, inviteRepository: InviteRepositoryProtocol) {
         self.authRepository = authRepository
         self.inviteRepository = inviteRepository
     }
