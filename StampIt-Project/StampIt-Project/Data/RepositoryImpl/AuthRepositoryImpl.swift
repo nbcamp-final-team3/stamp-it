@@ -14,6 +14,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     
     // MARK: - Properties
     private let authManager: AuthManagerProtocol
+    private let fcmManager: FCMManagerProtocol  // FCM 매니저 추가
     
     // 각 매니저별로 분리된 의존성 (새로운 매니저 구조)
     private let userManager: any UserManagerProtocol
@@ -27,6 +28,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     // MARK: - Init
     init(
         authManager: AuthManagerProtocol,
+        fcmManager: FCMManagerProtocol,  // FCM 매니저 주입
         userManager: any UserManagerProtocol,
         groupManager: any GroupManagerProtocol,
         membershipManager: any MembershipManagerProtocol,
@@ -34,6 +36,7 @@ final class AuthRepository: AuthRepositoryProtocol {
         stickerManager: any StickerManagerProtocol
     ) {
         self.authManager = authManager
+        self.fcmManager = fcmManager
         self.userManager = userManager
         self.groupManager = groupManager
         self.membershipManager = membershipManager
@@ -256,7 +259,7 @@ final class AuthRepository: AuthRepositoryProtocol {
             //let memberFirestore = member.toFirestoreModel()
             let memberFirestore = member.toMembershipFirestoreModel(groupId: group.groupID)
             
-            // 1. 유저 생성
+            // 1. 유저 생성 (FCM 토큰은 별도로 저장)
             let userDict: [String: Any] = [
                 "userId": userFirestore.userId,
                 "nickname": userFirestore.nickname,
@@ -296,10 +299,15 @@ final class AuthRepository: AuthRepositoryProtocol {
             batch.setData(membershipDict, forDocument: membershipRef)
             
             // 커밋
-            batch.commit { error in
+            batch.commit { [weak self] error in
                 if let error = error {
                     observer.onError(RepositoryError.dataError("신규 사용자 생성 실패: \(error.localizedDescription)"))
                 } else {
+                    // FCM 토큰 저장
+                    self?.fcmManager.refreshFCMTokenForUser(userId: user.userID)
+                        .subscribe()
+                        .disposed(by: self?.disposeBag ?? DisposeBag())
+                    
                     observer.onNext(user)
                     observer.onCompleted()
                 }
