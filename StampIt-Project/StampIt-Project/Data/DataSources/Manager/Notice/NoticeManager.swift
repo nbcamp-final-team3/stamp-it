@@ -9,7 +9,7 @@ import Foundation
 import FirebaseFirestore
 import RxSwift
 
-final class NoticeManager {
+final class NoticeManager: NoticeManagerProtocol {
     private let db = Firestore.firestore()
     var noticeCollection: CollectionReference {
         db.collection("DataNoticeFirestore")

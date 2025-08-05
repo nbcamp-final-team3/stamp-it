@@ -9,10 +9,10 @@ import Foundation
 import RxSwift
 
 final class NoticeRepository: NoticeRepositoryProtocol {
-    private let noticeManager: NoticeManager
-    private let authManager: AuthManager
+    private let noticeManager: any NoticeManagerProtocol
+    private let authManager: any AuthManagerProtocol
 
-    init(noticeManager: NoticeManager, authManager: AuthManager) {
+    init(noticeManager: any NoticeManagerProtocol, authManager: any AuthManagerProtocol) {
         self.noticeManager = noticeManager
         self.authManager = authManager
     }

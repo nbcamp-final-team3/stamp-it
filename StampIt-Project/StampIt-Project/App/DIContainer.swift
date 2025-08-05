@@ -17,6 +17,7 @@ final class DIContainer {
     lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
     lazy var missionManager: any MissionManagerProtocol = MissionManager()
     lazy var stickerManager: any StickerManagerProtocol = StickerManager()
+    lazy var noticeManager: any NoticeManagerProtocol = NoticeManager()
 
 
     // MARK: - Repositories (Data Layer)
@@ -96,6 +97,10 @@ final class DIContainer {
         )
     }()
 
+    lazy var noticeRepository: NoticeRepositoryProtocol = {
+        return NoticeRepository(noticeManager: noticeManager, authManager: authManager)
+    }()
+
     // MARK: - Services
 
     lazy var missionExpirationService: MissionExpirationService = {
@@ -161,7 +166,11 @@ final class DIContainer {
             accountManageRepository: accountManageRepository, inviteRepository: inviteRepository
         )
     }()
-    
+
+    lazy var noticeUseCase: NoticeUseCaseProtocol = {
+        return NoticeUseCase(repository: noticeRepository)
+    }()
+
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -243,7 +252,7 @@ final class DIContainer {
     }
 
     func makeNoticeListViewModel() -> NoticeListViewModel {
-        return NoticeListViewModel()
+        return NoticeListViewModel(useCase: noticeUseCase)
     }
 
     // MARK: - ViewControllers (Presentation Layer)

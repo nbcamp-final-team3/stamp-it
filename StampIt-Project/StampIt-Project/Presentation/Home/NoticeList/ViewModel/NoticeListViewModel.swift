@@ -12,6 +12,8 @@ import RxRelay
 final class NoticeListViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
+    let useCase: NoticeUseCaseProtocol!
+
     // MARK: - Action & State
 
     enum Action {
@@ -30,7 +32,8 @@ final class NoticeListViewModel: ViewModelProtocol {
 
     // MARK: - Init
 
-    init() {
+    init(useCase: NoticeUseCaseProtocol) {
+        self.useCase = useCase
         bind()
     }
 

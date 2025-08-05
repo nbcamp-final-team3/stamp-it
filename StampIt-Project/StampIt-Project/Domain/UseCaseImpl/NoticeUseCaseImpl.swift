@@ -9,9 +9,9 @@ import Foundation
 import RxSwift
 
 final class NoticeUseCase: NoticeUseCaseProtocol {
-    private let repository: NoticeRepository
+    private let repository: NoticeRepositoryProtocol
 
-    init(repository: NoticeRepository) {
+    init(repository: NoticeRepositoryProtocol) {
         self.repository = repository
     }
 
