@@ -19,3 +19,9 @@ struct HomeNotice: Hashable {
     let backgroundColor: UIColor
     let iconImage: UIImage?
 }
+
+extension Notice {
+    var backgroundColor: UIColor {
+        isRead ? .FFFFFF : .red50
+    }
+}

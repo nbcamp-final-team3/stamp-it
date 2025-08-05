@@ -64,6 +64,8 @@ final class NoticeListViewController: UIViewController {
     }
 
     private func bind() {
+        viewModel.action.accept(.load)
+
         navigationBar.backTapped
             .map { NoticeListViewModel.Action.navigateBack }
             .bind(to: viewModel.action)
@@ -73,6 +75,13 @@ final class NoticeListViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, _ in
                 owner.navigationController?.popViewController(animated: true)
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.notices
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, items in
+                owner.noticeView.updateSnapshot(withItems: items, toSection: .list)
             }
             .disposed(by: disposeBag)
     }

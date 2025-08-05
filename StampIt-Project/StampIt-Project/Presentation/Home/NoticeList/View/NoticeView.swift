@@ -108,6 +108,10 @@ final class NoticeView: UIView {
     // MARK: - Methods
 
     func updateSnapshot(withItems items: [HomeNotice], toSection section: NoticeSection) {
-
+        guard var snapshot = dataSource?.snapshot() else { return }
+        let itemForDelete = snapshot.itemIdentifiers(inSection: section)
+        snapshot.deleteItems(itemForDelete)
+        snapshot.appendItems(items, toSection: section)
+        dataSource?.apply(snapshot)
     }
 }
