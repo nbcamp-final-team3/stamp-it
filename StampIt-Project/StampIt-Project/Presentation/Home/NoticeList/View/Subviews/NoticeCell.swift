@@ -42,6 +42,7 @@ final class NoticeCell: UICollectionViewCell {
     private let dateLabel = UILabel().then {
         $0.font = .pretendard(size: 12, weight: .regular)
         $0.textColor = .gray500
+        $0.setContentHuggingPriority(.required, for: .horizontal)
     }
 
     // MARK: - Life Cycles
@@ -110,6 +111,7 @@ final class NoticeCell: UICollectionViewCell {
         descriptionLabel.snp.makeConstraints { make in
             make.top.equalTo(titleLabel.snp.bottom).offset(6)
             make.leading.equalTo(titleLabel)
+            make.trailing.equalTo(dateLabel)
             make.bottom.equalToSuperview().inset(16)
         }
     }
