@@ -12,16 +12,18 @@ import RxRelay
 final class NoticeListViewModel: ViewModelProtocol {
     // MARK: - Dependency
 
-    let useCase: NoticeUseCaseProtocol!
+    private let useCase: NoticeUseCaseProtocol!
 
     // MARK: - Action & State
 
     enum Action {
         case navigateBack
+        case load
     }
 
     struct State {
         var isNavigateBack = PublishRelay<Void>()
+        var notices = BehaviorRelay<[HomeNotice]>(value: [])
     }
 
     // MARK: - Properties
@@ -45,8 +47,28 @@ final class NoticeListViewModel: ViewModelProtocol {
                 switch action {
                 case .navigateBack:
                     owner.state.isNavigateBack.accept(())
+                case .load:
+                    owner.bindList()
                 }
             }
+            .disposed(by: disposeBag)
+    }
+
+    private func bindList() {
+        useCase.fetchNotices()
+            .subscribe(onNext: { [weak self] notices in
+                let homeNotices = notices.map { notice in
+                    HomeNotice(
+                       noticeId: notice.noticeId,
+                       title: notice.title,
+                       description: notice.description,
+                       date: notice.createdAt.toMonthDayStringKor(),
+                       backgroundColor: notice.backgroundColor,
+                       iconImage: notice.category.iconImage
+                       )
+                }
+                self?.state.notices.accept(homeNotices)
+            })
             .disposed(by: disposeBag)
     }
 }
