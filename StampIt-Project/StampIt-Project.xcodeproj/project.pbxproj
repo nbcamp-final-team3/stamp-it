@@ -22,6 +22,8 @@
 		783A885D2DF1506C0095BF4E /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 783A885C2DF1506C0095BF4E /* FirebaseStorage */; };
 		783A8A132DF599670095BF4E /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 783A8A122DF599670095BF4E /* GoogleSignIn */; };
 		783A8A152DF599670095BF4E /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 783A8A142DF599670095BF4E /* GoogleSignInSwift */; };
+		870EC2CD2E446D810021A713 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 870EC2CC2E446D810021A713 /* FirebaseAnalytics */; };
+		870EC2CF2E446D810021A713 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 870EC2CE2E446D810021A713 /* FirebaseAnalyticsCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,7 +112,9 @@
 				783A88512DF1506C0095BF4E /* FirebaseCore in Frameworks */,
 				783A875D2DF02D1F0095BF4E /* Lottie in Frameworks */,
 				783A87582DF02D100095BF4E /* RxRelay in Frameworks */,
+				870EC2CF2E446D810021A713 /* FirebaseAnalyticsCore in Frameworks */,
 				783A88532DF1506C0095BF4E /* FirebaseDatabase in Frameworks */,
+				870EC2CD2E446D810021A713 /* FirebaseAnalytics in Frameworks */,
 				783A87532DF02CFA0095BF4E /* SnapKit in Frameworks */,
 				783A87562DF02D100095BF4E /* RxCocoa in Frameworks */,
 				783A885D2DF1506C0095BF4E /* FirebaseStorage in Frameworks */,
@@ -144,6 +148,7 @@
 				783A87162DF02CA80095BF4E /* StampIt-Project */,
 				783A87302DF02CA90095BF4E /* StampIt-ProjectTests */,
 				783A873A2DF02CA90095BF4E /* StampIt-ProjectUITests */,
+				870EC2CB2E446D810021A713 /* Frameworks */,
 				783A87152DF02CA80095BF4E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -156,6 +161,13 @@
 				783A87372DF02CA90095BF4E /* StampIt-ProjectUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		870EC2CB2E446D810021A713 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -192,6 +204,8 @@
 				783A885C2DF1506C0095BF4E /* FirebaseStorage */,
 				783A8A122DF599670095BF4E /* GoogleSignIn */,
 				783A8A142DF599670095BF4E /* GoogleSignInSwift */,
+				870EC2CC2E446D810021A713 /* FirebaseAnalytics */,
+				870EC2CE2E446D810021A713 /* FirebaseAnalyticsCore */,
 			);
 			productName = "StampIt-Project";
 			productReference = 783A87142DF02CA80095BF4E /* StampIt-Project.app */;
@@ -405,11 +419,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "StampIt-Project/StampIt-Project.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 373K7546A3;
+				DEVELOPMENT_TEAM = 373K7546A3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Stamp It";
@@ -426,7 +438,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.by.Family-Stamp-It-Project";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = iOS_Developer_Profile;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -799,6 +810,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 783A8A112DF599670095BF4E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		870EC2CC2E446D810021A713 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A88492DF1506C0095BF4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		870EC2CE2E446D810021A713 /* FirebaseAnalyticsCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A88492DF1506C0095BF4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
