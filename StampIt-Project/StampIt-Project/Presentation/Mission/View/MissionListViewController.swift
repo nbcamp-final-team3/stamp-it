@@ -11,7 +11,10 @@ import RxCocoa
 import SnapKit
 import Then
 
-final class MissionListViewController: UIViewController {
+final class MissionListViewController: BaseViewController {
+    
+    override var screenName: String { "MissionList" }
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
     
     private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))

@@ -12,7 +12,10 @@ import RxCocoa
 import SnapKit
 import Then
 
-final class AssignMissionViewController: UIViewController {
+final class AssignMissionViewController: BaseViewController {
+    
+    override var screenName: String { "AssignMission" }
+    
     private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "미션 전달하기"))
     
     private let missionTitleTextField = UITextField().then {
