@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import RxRelay
+import WidgetKit
 
 final class HomeViewModel: ViewModelProtocol {
     // MARK: - Dependency
@@ -155,9 +156,24 @@ final class HomeViewModel: ViewModelProtocol {
                   .map(myMissions: missions, member: memberCache)
                   .map { HomeItem.myMission($0) }
               self.state.myMissions.accept(items)
+              print("저장할 미션 데이터: \(missions)")
+              
+              // 위젯 데이터 저장
+              let missionUIs = missions.map { $0.toPresentation() }
+              let widgetMissionUIs = missionUIs.map { MissionWidgetUI(from: $0) }
+              WidgetMissionManager.shared.save(missions: widgetMissionUIs)
+              WidgetCenter.shared.reloadAllTimelines() // 위젯 새로고침
+              let defaults = UserDefaults(suiteName: "group.com.by.Family-Stamp-It-Widget-")
+              if let data = defaults?.data(forKey: "missions"),
+                 let missions = try? JSONDecoder().decode([MissionWidgetUI].self, from: data) {
+                  print("미션 데이터: \(missions)")
+              } else {
+                  print("미션 데이터 없음!")
+              }
           })
           .disposed(by: disposeBag)
     }
+
 
     private func bindMemberMissions(ofUser currentUser: Observable<User>) {
         currentUser

@@ -9,7 +9,7 @@ import WidgetKit
 
 struct MissionEntry: TimelineEntry {
     let date: Date
-    let missions: [Mission]
+    let missions: [MissionWidgetUI]
 }
 
 struct Mission {

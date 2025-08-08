@@ -14,3 +14,4 @@ struct MissionUI: Equatable {
     let dueDate: String
     let category: MissionCategory
 }
+

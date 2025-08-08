@@ -1,0 +1,28 @@
+//
+//  MissionWidgetUI.swift
+//  StampIt-Project
+//
+//  Created by 이부용 on 8/8/25.
+//
+
+import Foundation
+
+struct MissionWidgetUI: Codable {
+    let id: String
+    let title: String
+    let fromLabel: String
+    let duration: String
+    let isNew: Bool
+    let category: MissionCategory
+}
+
+extension MissionWidgetUI {
+    init(from ui: MissionUI) {
+        self.id = ui.missionID
+        self.title = ui.title
+        self.category = ui.category
+        self.fromLabel = ui.nickname
+        self.duration = ui.dueDate
+        self.isNew = false
+    }
+}

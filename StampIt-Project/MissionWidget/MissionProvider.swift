@@ -9,44 +9,34 @@ import WidgetKit
 
 struct MissionTimelineProvider: TimelineProvider {
     func placeholder(in context: Context) -> MissionEntry {
-        MissionEntry(date: Date(), missions: getSampleMissions())
+        MissionEntry(date: Date(), missions: fetchMissions())
     }
     
     func getSnapshot(in context: Context, completion: @escaping (MissionEntry) -> ()) {
-        let entry = MissionEntry(date: Date(), missions: getSampleMissions())
+        let entry = MissionEntry(date: Date(), missions: fetchMissions())
         completion(entry)
     }
     
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        let missions = fetchMissions().isEmpty ? getSampleMissions() : fetchMissions()
+        let missions = fetchMissions()
         let entry = MissionEntry(date: Date(), missions: missions)
         let timeline = Timeline(entries: [entry], policy: .atEnd)
         completion(timeline)
     }
     
-    private func fetchMissions() -> [Mission] {
-        // TODO: 실제 API 호출 로직으로 변경 예정
+    private func fetchMissions() -> [MissionWidgetUI] {
+        let defaults = UserDefaults(suiteName: "group.com.by.Family-Stamp-It-Widget-")
+        if let data = defaults?.data(forKey: "missions"),
+           let missions = try? JSONDecoder().decode([MissionWidgetUI].self, from: data) {
+            print("미션 데이터: \(missions)")
+        } else {
+            print("미션 데이터 없음!")
+        }
+        guard let data = defaults?.data(forKey: "missions") else { return [] }
+        let decoder = JSONDecoder()
+        if let missions = try? decoder.decode([MissionWidgetUI].self, from: data) {
+            return missions
+        }
         return []
-    }
-    
-    private func getSampleMissions() -> [Mission] {
-        return [
-            Mission(
-                id: "1",
-                title: "미션내용입니다미션내용미션내용미션내용미션내용",
-                fromLabel: "from.label",
-                duration: "~기간",
-                isNew: true,
-                category: .chore
-            ),
-            Mission(
-                id: "2",
-                title: "미션내용입니다미션내용미션내용미션내용미션내용",
-                fromLabel: "from.label",
-                duration: "~기간",
-                isNew: true,
-                category: .health
-            )
-        ]
     }
 }
