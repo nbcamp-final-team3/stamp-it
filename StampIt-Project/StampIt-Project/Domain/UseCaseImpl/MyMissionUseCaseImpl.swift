@@ -9,47 +9,66 @@ import Foundation
 import RxSwift
 
 final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
-    let homeRepository: HomeRepositoryProtocol
-    let expirationService: MissionExpirationService
+    private let homeRepository: HomeRepositoryProtocol
+    private let expirationService: MissionExpirationService
+    private let user: Observable<User?>
 
-    init(homeRepository: HomeRepositoryProtocol, expirationService: MissionExpirationService) {
+    init(homeRepository: HomeRepositoryProtocol,
+         authRepository: AuthRepositoryProtocol,
+         expirationService: MissionExpirationService,
+    ) {
         self.homeRepository = homeRepository
         self.expirationService = expirationService
+        self.user = authRepository.getCurrentUser()
+            .replay(1)
+            .refCount()
     }
 
-    func fetchMissions(to userID: String?, ofGroup groupID: String) -> Observable<[Mission]> {
-        homeRepository.fetchMissions(to: userID, by: nil, ofGroup: groupID)
-            .do { [weak self] missions in
-                self?.expirationService.handleExpiredMissions(missions, groupID: groupID)
+    func fetchMissions() -> Observable<[Mission]> {
+        user.flatMap { [weak self] user -> Observable<[Mission]> in
+                guard let self, let user else { return .empty() }
+                return homeRepository.fetchMissions(to: user.userID, by: nil, ofGroup: user.groupID)
+                .do { [weak self] missions in
+                    self?.expirationService.handleExpiredMissions(missions, groupID: user.groupID)
+                }
             }
             .map { $0.sorted { $0.createDate > $1.createDate } }
     }
 
-    func fetchAssignedMissions(to userID: String?, ofGroup groupID: String) -> Observable<[Mission]> {
-        homeRepository.fetchMissions(to: userID, by: nil, ofGroup: groupID)
-            .do { [weak self] missions in
-                self?.expirationService.handleExpiredMissions(missions, groupID: groupID)
+    func fetchAssignedMissions() -> Observable<[Mission]> {
+        user.flatMap { [weak self] user -> Observable<[Mission]> in
+                guard let self, let user else { return .empty() }
+                return homeRepository.fetchMissions(to: user.userID, by: nil, ofGroup: user.groupID)
+                .do { [weak self] missions in
+                    self?.expirationService.handleExpiredMissions(missions, groupID: user.groupID)
+                }
             }
-            .map { $0
-                .sorted { $0.createDate > $1.createDate }
-                .filter { $0.status == .assigned && $0.dueDate.isWithinNext(days: 6) }
+            .map {
+                $0.sorted { $0.createDate > $1.createDate }
+                    .filter { $0.status == .assigned && $0.dueDate.isWithinNext(days: 6) }
             }
     }
 
-    func updateMissionStatus(for mission: Mission, ofGroup groupID: String, to status: MissionStatus) -> Observable<Mission> {
-        homeRepository.updateMissionStatus(for: mission, ofGroup: groupID, to: status)
+    func updateMissionStatus(for mission: Mission, to status: MissionStatus) -> Observable<Mission> {
+        user.flatMap { [weak self] user -> Observable<Mission> in
+            guard let self, let user else { return .empty() }
+            return homeRepository.updateMissionStatus(for: mission, ofGroup: user.groupID, to: status)
+            }
     }
 
-    func createSticker(user: User, mission: Mission) -> Observable<Void> {
-        homeRepository.createSticker(
-            userId: user.userID,
-            groupId: user.groupID,
-            missionTitle: mission.title,
-            maxSticker: 30, // TODO: pin 번호 계산용
-            stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
-            missionId: mission.missionID,
-            assignedBy: mission.assignedBy
-        )
+    func createSticker(mission: Mission) -> Observable<Void> {
+        user.flatMap { [weak self] user -> Observable<Void> in
+            guard let self, let user else { return .empty() }
+            return homeRepository.createSticker(
+                userId: user.userID,
+                groupId: user.groupID,
+                missionTitle: mission.title,
+                maxSticker: 30, // TODO: pin 번호 계산용
+                stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
+                missionId: mission.missionID,
+                assignedBy: mission.assignedBy
+            )
+        }
     }
 
     func deleteSticker(missionID: String) -> Observable<Void> {
