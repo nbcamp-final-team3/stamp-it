@@ -126,6 +126,7 @@ final class DIContainer {
     lazy var myMissionUseCase: MyMissionUseCaseProtocol = {
         return MyMissionUseCaseImpl(
             homeRepository: homeRepository,
+            authRepository: authRepository,
             expirationService: missionExpirationService
         )
     }()
@@ -207,7 +208,6 @@ final class DIContainer {
 
     func makeMyMissionViewModel(user: User, memberCache: [String: Member]) -> MyMissionViewModel {
         return MyMissionViewModel(
-            user: user,
             memberCache: memberCache,
             useCase: myMissionUseCase,
             mapper: MissionMapper(),

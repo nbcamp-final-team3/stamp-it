@@ -150,7 +150,7 @@ final class HomeViewModel: ViewModelProtocol {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Mission]> in
               guard let self = self else { return .empty() }
-              return self.myMissionUseCase.fetchAssignedMissions(to: user.userID, ofGroup: user.groupID)
+              return self.myMissionUseCase.fetchAssignedMissions()
           }
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
@@ -213,8 +213,7 @@ final class HomeViewModel: ViewModelProtocol {
     ///
     /// myMissions에서 완료할 미션을 찾은 후 미션 완료 API를 호출하고 스티커 생성
     func handleMissionCompleteButtonTapped(missionID: String) {
-        guard let user = state.user.value,
-              let mission = findMissionFromCache(missionID: missionID) else { return }
+        guard let mission = findMissionFromCache(missionID: missionID) else { return }
 
         let message = "'\(mission.title.truncatedTo10)' 미션을 완료했어요!"
         state.isShowStampReceived.accept((missionID, message))
@@ -230,10 +229,10 @@ final class HomeViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
 
         // 미션 상태를 완료로 업데이트
-        myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
+        myMissionUseCase.updateMissionStatus(for: mission, to: .completed)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
-                return myMissionUseCase.createSticker(user: user, mission: mission)
+                return myMissionUseCase.createSticker(mission: mission)
             }
             .subscribe()
             .disposed(by: disposeBag)
@@ -248,7 +247,7 @@ final class HomeViewModel: ViewModelProtocol {
         guard let user = state.user.value else { return }
 
         /// 미션 상태를 진행중으로 롤백
-        myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .assigned)
+        myMissionUseCase.updateMissionStatus(for: mission, to: .assigned)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
                 return myMissionUseCase.deleteSticker(missionID: mission.missionID)
