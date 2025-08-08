@@ -113,11 +113,8 @@ struct MissionRowView: View {
     
     private var missionIcon: some View {
         mission.category.widgetImage
-            .foregroundColor(.blue)
-            .font(.system(size: 16))
+            .resizable()
             .frame(width: 32, height: 32)
-            .background(Color.blue.opacity(0.1))
-            .cornerRadius(8)
     }
 }
 
