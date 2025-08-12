@@ -11,12 +11,14 @@ import Then
 import RxSwift
 import RxCocoa
 
-final class HomeViewController: UIViewController {
+final class HomeViewController: BaseViewController {
 
     // MARK: - Properties
 
     private let viewModel: HomeViewModel
     private let disposeBag = DisposeBag()
+    
+    override var screenName: String { "Home" }
 
     // MARK: - UI Components
 

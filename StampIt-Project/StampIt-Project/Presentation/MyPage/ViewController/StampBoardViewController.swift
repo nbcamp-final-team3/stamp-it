@@ -11,7 +11,7 @@ import SnapKit
 import RxSwift
 import RxRelay
 
-final class StampBoardViewController: UIViewController {
+final class StampBoardViewController: BaseViewController {
     
     // MARK: - Properties
     
@@ -19,6 +19,8 @@ final class StampBoardViewController: UIViewController {
     private var container: DIContainer
     private let disposeBag = DisposeBag()
     private var currentPage: Int = .zero
+    
+    override var screenName: String { "StampBoard" }
     
     // MARK: - UI Components
 
