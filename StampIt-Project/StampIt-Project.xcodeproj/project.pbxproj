@@ -22,8 +22,9 @@
 		783A885D2DF1506C0095BF4E /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 783A885C2DF1506C0095BF4E /* FirebaseStorage */; };
 		783A8A132DF599670095BF4E /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 783A8A122DF599670095BF4E /* GoogleSignIn */; };
 		783A8A152DF599670095BF4E /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 783A8A142DF599670095BF4E /* GoogleSignInSwift */; };
-		870EC2CD2E446D810021A713 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 870EC2CC2E446D810021A713 /* FirebaseAnalytics */; };
-		870EC2CF2E446D810021A713 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 870EC2CE2E446D810021A713 /* FirebaseAnalyticsCore */; };
+		877339CC2E45AF1C00FA2885 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 877339CB2E45AF1C00FA2885 /* WidgetKit.framework */; };
+		877339CE2E45AF1C00FA2885 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 877339CD2E45AF1C00FA2885 /* SwiftUI.framework */; };
+		877339DB2E45AF1D00FA2885 /* MissionWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 877339C92E45AF1C00FA2885 /* MissionWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,12 +42,37 @@
 			remoteGlobalIDString = 783A87132DF02CA80095BF4E;
 			remoteInfo = "StampIt-Project";
 		};
+		877339D92E45AF1D00FA2885 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 783A870C2DF02CA80095BF4E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 877339C82E45AF1C00FA2885;
+			remoteInfo = MissionWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		877339DC2E45AF1D00FA2885 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				877339DB2E45AF1D00FA2885 /* MissionWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		783A87142DF02CA80095BF4E /* StampIt-Project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "StampIt-Project.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		783A872D2DF02CA90095BF4E /* StampIt-ProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StampIt-ProjectTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		783A87372DF02CA90095BF4E /* StampIt-ProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "StampIt-ProjectUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		877339C92E45AF1C00FA2885 /* MissionWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MissionWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		877339CB2E45AF1C00FA2885 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		877339CD2E45AF1C00FA2885 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		87733A002E45D68500FA2885 /* MissionWidgetExtensionRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MissionWidgetExtensionRelease.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -73,6 +99,24 @@
 			);
 			target = 783A87132DF02CA80095BF4E /* StampIt-Project */;
 		};
+		877339E02E45AF1D00FA2885 /* Exceptions for "MissionWidget" folder in "MissionWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 877339C82E45AF1C00FA2885 /* MissionWidgetExtension */;
+		};
+		877339EC2E45B50000FA2885 /* Exceptions for "StampIt-Project" folder in "MissionWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Domain/Entities/MissionCategory.swift,
+				Presentation/Common/Model/HomeMissionWidget.swift,
+				"Presentation/Common/Model/MissionCategory+Extension.swift",
+				Presentation/MyPage/Model/MissionUI.swift,
+				Resource/Assets.xcassets,
+			);
+			target = 877339C82E45AF1C00FA2885 /* MissionWidgetExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,6 +124,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				783A873F2DF02CA90095BF4E /* Exceptions for "StampIt-Project" folder in "StampIt-Project" target */,
+				877339EC2E45B50000FA2885 /* Exceptions for "StampIt-Project" folder in "MissionWidgetExtension" target */,
 			);
 			path = "StampIt-Project";
 			sourceTree = "<group>";
@@ -98,6 +143,14 @@
 			path = "StampIt-ProjectUITests";
 			sourceTree = "<group>";
 		};
+		877339CF2E45AF1C00FA2885 /* MissionWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				877339E02E45AF1D00FA2885 /* Exceptions for "MissionWidget" folder in "MissionWidgetExtension" target */,
+			);
+			path = MissionWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,9 +165,7 @@
 				783A88512DF1506C0095BF4E /* FirebaseCore in Frameworks */,
 				783A875D2DF02D1F0095BF4E /* Lottie in Frameworks */,
 				783A87582DF02D100095BF4E /* RxRelay in Frameworks */,
-				870EC2CF2E446D810021A713 /* FirebaseAnalyticsCore in Frameworks */,
 				783A88532DF1506C0095BF4E /* FirebaseDatabase in Frameworks */,
-				870EC2CD2E446D810021A713 /* FirebaseAnalytics in Frameworks */,
 				783A87532DF02CFA0095BF4E /* SnapKit in Frameworks */,
 				783A87562DF02D100095BF4E /* RxCocoa in Frameworks */,
 				783A885D2DF1506C0095BF4E /* FirebaseStorage in Frameworks */,
@@ -139,16 +190,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		877339C62E45AF1C00FA2885 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				877339CE2E45AF1C00FA2885 /* SwiftUI.framework in Frameworks */,
+				877339CC2E45AF1C00FA2885 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		783A870B2DF02CA80095BF4E = {
 			isa = PBXGroup;
 			children = (
+				87733A002E45D68500FA2885 /* MissionWidgetExtensionRelease.entitlements */,
 				783A87162DF02CA80095BF4E /* StampIt-Project */,
 				783A87302DF02CA90095BF4E /* StampIt-ProjectTests */,
 				783A873A2DF02CA90095BF4E /* StampIt-ProjectUITests */,
-				870EC2CB2E446D810021A713 /* Frameworks */,
+				877339CF2E45AF1C00FA2885 /* MissionWidget */,
+				877339CA2E45AF1C00FA2885 /* Frameworks */,
 				783A87152DF02CA80095BF4E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -159,13 +221,16 @@
 				783A87142DF02CA80095BF4E /* StampIt-Project.app */,
 				783A872D2DF02CA90095BF4E /* StampIt-ProjectTests.xctest */,
 				783A87372DF02CA90095BF4E /* StampIt-ProjectUITests.xctest */,
+				877339C92E45AF1C00FA2885 /* MissionWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		870EC2CB2E446D810021A713 /* Frameworks */ = {
+		877339CA2E45AF1C00FA2885 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				877339CB2E45AF1C00FA2885 /* WidgetKit.framework */,
+				877339CD2E45AF1C00FA2885 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -180,10 +245,12 @@
 				783A87102DF02CA80095BF4E /* Sources */,
 				783A87112DF02CA80095BF4E /* Frameworks */,
 				783A87122DF02CA80095BF4E /* Resources */,
+				877339DC2E45AF1D00FA2885 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				877339DA2E45AF1D00FA2885 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				783A87162DF02CA80095BF4E /* StampIt-Project */,
@@ -204,8 +271,6 @@
 				783A885C2DF1506C0095BF4E /* FirebaseStorage */,
 				783A8A122DF599670095BF4E /* GoogleSignIn */,
 				783A8A142DF599670095BF4E /* GoogleSignInSwift */,
-				870EC2CC2E446D810021A713 /* FirebaseAnalytics */,
-				870EC2CE2E446D810021A713 /* FirebaseAnalyticsCore */,
 			);
 			productName = "StampIt-Project";
 			productReference = 783A87142DF02CA80095BF4E /* StampIt-Project.app */;
@@ -258,6 +323,28 @@
 			productReference = 783A87372DF02CA90095BF4E /* StampIt-ProjectUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		877339C82E45AF1C00FA2885 /* MissionWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 877339DF2E45AF1D00FA2885 /* Build configuration list for PBXNativeTarget "MissionWidgetExtension" */;
+			buildPhases = (
+				877339C52E45AF1C00FA2885 /* Sources */,
+				877339C62E45AF1C00FA2885 /* Frameworks */,
+				877339C72E45AF1C00FA2885 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				877339CF2E45AF1C00FA2885 /* MissionWidget */,
+			);
+			name = MissionWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = MissionWidgetExtension;
+			productReference = 877339C92E45AF1C00FA2885 /* MissionWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -265,7 +352,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1620;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					783A87132DF02CA80095BF4E = {
@@ -278,6 +365,9 @@
 					783A87362DF02CA90095BF4E = {
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = 783A87132DF02CA80095BF4E;
+					};
+					877339C82E45AF1C00FA2885 = {
+						CreatedOnToolsVersion = 16.4;
 					};
 				};
 			};
@@ -307,6 +397,7 @@
 				783A87132DF02CA80095BF4E /* StampIt-Project */,
 				783A872C2DF02CA90095BF4E /* StampIt-ProjectTests */,
 				783A87362DF02CA90095BF4E /* StampIt-ProjectUITests */,
+				877339C82E45AF1C00FA2885 /* MissionWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -327,6 +418,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		783A87352DF02CA90095BF4E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		877339C72E45AF1C00FA2885 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -357,6 +455,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		877339C52E45AF1C00FA2885 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -369,6 +474,11 @@
 			isa = PBXTargetDependency;
 			target = 783A87132DF02CA80095BF4E /* StampIt-Project */;
 			targetProxy = 783A87382DF02CA90095BF4E /* PBXContainerItemProxy */;
+		};
+		877339DA2E45AF1D00FA2885 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 877339C82E45AF1C00FA2885 /* MissionWidgetExtension */;
+			targetProxy = 877339D92E45AF1D00FA2885 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -383,8 +493,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 373K7546A3;
+				DEVELOPMENT_TEAM = 373K7546A3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "StampIt-Project/Resource/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Stamp It";
@@ -643,6 +752,74 @@
 			};
 			name = Release;
 		};
+		877339DD2E45AF1D00FA2885 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MissionWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MissionWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.5;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.by.Family-Stamp-It-Project.MissionWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		877339DE2E45AF1D00FA2885 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = MissionWidgetExtensionRelease.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 373K7546A3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MissionWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MissionWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.5;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.by.Family-Stamp-It-Project.MissionWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -678,6 +855,15 @@
 			buildConfigurations = (
 				783A87492DF02CA90095BF4E /* Debug */,
 				783A874A2DF02CA90095BF4E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		877339DF2E45AF1D00FA2885 /* Build configuration list for PBXNativeTarget "MissionWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				877339DD2E45AF1D00FA2885 /* Debug */,
+				877339DE2E45AF1D00FA2885 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -810,16 +996,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 783A8A112DF599670095BF4E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
-		};
-		870EC2CC2E446D810021A713 /* FirebaseAnalytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 783A88492DF1506C0095BF4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalytics;
-		};
-		870EC2CE2E446D810021A713 /* FirebaseAnalyticsCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 783A88492DF1506C0095BF4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalyticsCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
