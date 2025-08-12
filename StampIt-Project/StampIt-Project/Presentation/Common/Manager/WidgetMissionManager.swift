@@ -14,7 +14,7 @@ final class WidgetMissionManager {
     
     private init() {}
     
-    func save(missions: [MissionWidgetUI]) {
+    func save(missions: [HomeMissionWidget]) {
         print("위젯 데이터 저장 시도: \(missions.count)개")
         print("App Group ID: \(suiteName)")
         
@@ -29,7 +29,7 @@ final class WidgetMissionManager {
                 print("데이터 저장 성공: \(savedData.count) bytes")
                 
                 // 디코딩 테스트
-                if let savedMissions = try? JSONDecoder().decode([MissionWidgetUI].self, from: savedData) {
+                if let savedMissions = try? JSONDecoder().decode([HomeMissionWidget].self, from: savedData) {
                     print("저장된 미션: \(savedMissions.count)개")
                     for mission in savedMissions {
                         print("  - \(mission.title)")

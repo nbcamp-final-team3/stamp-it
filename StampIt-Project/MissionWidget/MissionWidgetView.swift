@@ -57,7 +57,7 @@ struct MissionWidgetEntryView: View {
     
     private var missionListView: some View {
         VStack(spacing: 0) {
-            ForEach(entry.missions.prefix(2), id: \.id) { mission in
+            ForEach(entry.missions.prefix(2)) { mission in
                 MissionRowView(mission: mission)
             }
         }

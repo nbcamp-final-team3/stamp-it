@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MissionWidgetUI: Codable {
+struct HomeMissionWidget: Codable, Identifiable {
     let id: String
     let title: String
     let fromLabel: String
@@ -16,7 +16,7 @@ struct MissionWidgetUI: Codable {
     let category: MissionCategory
 }
 
-extension MissionWidgetUI {
+extension HomeMissionWidget {
     init(from ui: MissionUI) {
         self.id = ui.missionID
         self.title = ui.title

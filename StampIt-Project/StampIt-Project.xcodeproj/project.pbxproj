@@ -113,8 +113,8 @@
 			membershipExceptions = (
 				Domain/Entities/MissionCategory.swift,
 				Presentation/Common/Manager/WidgetMissionManager.swift,
+				Presentation/Common/Model/HomeMissionWidget.swift,
 				"Presentation/Common/Model/MissionCategory+Extension.swift",
-				Presentation/Common/Model/MissionWidgetUI.swift,
 				Presentation/MyPage/Model/MissionUI.swift,
 				Resource/Assets.xcassets,
 			);

@@ -25,13 +25,8 @@ struct MissionTimelineProvider: TimelineProvider {
     }
     
     private func fetchMissions() -> [MissionWidgetUI] {
-        let defaults = UserDefaults(suiteName: "group.com.by.Family-Stamp-It-Widget-")
-        if let data = defaults?.data(forKey: "missions"),
-           let missions = try? JSONDecoder().decode([MissionWidgetUI].self, from: data) {
-            print("미션 데이터: \(missions)")
-        } else {
-            print("미션 데이터 없음!")
-        }
+        let defaults = UserDefaults(suiteName: "group.com.by.Family-Stamp-It-Widget-AppGroups")
+
         guard let data = defaults?.data(forKey: "missions") else { return [] }
         let decoder = JSONDecoder()
         if let missions = try? decoder.decode([MissionWidgetUI].self, from: data) {
