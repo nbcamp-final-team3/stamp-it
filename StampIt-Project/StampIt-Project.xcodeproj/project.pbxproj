@@ -25,6 +25,8 @@
 		877339CC2E45AF1C00FA2885 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 877339CB2E45AF1C00FA2885 /* WidgetKit.framework */; };
 		877339CE2E45AF1C00FA2885 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 877339CD2E45AF1C00FA2885 /* SwiftUI.framework */; };
 		877339DB2E45AF1D00FA2885 /* MissionWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 877339C92E45AF1C00FA2885 /* MissionWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		87A4B7522E4AE9FC0018E7DE /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 87A4B7512E4AE9FC0018E7DE /* FirebaseAnalytics */; };
+		87A4B7542E4AE9FC0018E7DE /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 87A4B7532E4AE9FC0018E7DE /* FirebaseAnalyticsCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -165,7 +167,9 @@
 				783A88512DF1506C0095BF4E /* FirebaseCore in Frameworks */,
 				783A875D2DF02D1F0095BF4E /* Lottie in Frameworks */,
 				783A87582DF02D100095BF4E /* RxRelay in Frameworks */,
+				87A4B7542E4AE9FC0018E7DE /* FirebaseAnalyticsCore in Frameworks */,
 				783A88532DF1506C0095BF4E /* FirebaseDatabase in Frameworks */,
+				87A4B7522E4AE9FC0018E7DE /* FirebaseAnalytics in Frameworks */,
 				783A87532DF02CFA0095BF4E /* SnapKit in Frameworks */,
 				783A87562DF02D100095BF4E /* RxCocoa in Frameworks */,
 				783A885D2DF1506C0095BF4E /* FirebaseStorage in Frameworks */,
@@ -271,6 +275,8 @@
 				783A885C2DF1506C0095BF4E /* FirebaseStorage */,
 				783A8A122DF599670095BF4E /* GoogleSignIn */,
 				783A8A142DF599670095BF4E /* GoogleSignInSwift */,
+				87A4B7512E4AE9FC0018E7DE /* FirebaseAnalytics */,
+				87A4B7532E4AE9FC0018E7DE /* FirebaseAnalyticsCore */,
 			);
 			productName = "StampIt-Project";
 			productReference = 783A87142DF02CA80095BF4E /* StampIt-Project.app */;
@@ -996,6 +1002,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 783A8A112DF599670095BF4E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		87A4B7512E4AE9FC0018E7DE /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A88492DF1506C0095BF4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		87A4B7532E4AE9FC0018E7DE /* FirebaseAnalyticsCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 783A88492DF1506C0095BF4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
