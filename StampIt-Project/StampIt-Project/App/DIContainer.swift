@@ -58,10 +58,12 @@ final class DIContainer {
     }()
 
     lazy var missionRepository: MissionRepository = {
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         return MissionRepositoryImpl(
             missionManager: missionManager,
             membershipManager: membershipManager,
-            authRepository: authRepository
+            authRepository: authRepository,
+            context: context
         )
     }()
 

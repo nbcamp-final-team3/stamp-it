@@ -34,4 +34,21 @@ protocol MissionRepository {
     ///   - id: 미션 ID
     /// - Returns: 미션 1개
     func fetchMission(widh id: String) -> Observable<Mission?>
+    
+    /// 샘플 미션 전체를 코어데이터에 저장
+    /// - Parameter missions: 샘플 미션 데이터
+    func saveAllSampleMissions(missions: [SampleMission])
+    
+    /// 코어데이터 샘플 미션을 패치
+    /// - Returns: 샘플 미션 데이터
+    func fetchSampleMission() -> [SampleMission]
+    
+    /// 코어데이터 특정 샘플 미션을 패치
+    /// - Parameter missionId: 미션 ID
+    /// - Returns: 샘플 미션 데이터
+    func fetchSampleMission(withId missionId: String) -> [SampleMission]
+    
+    /// 코어데이터 샘플 미션 업데이트
+    /// - Parameter mission: 샘플 미션 데이터
+    func updateSampleMission(mission: SampleMission)
 }
