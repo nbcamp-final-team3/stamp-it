@@ -66,7 +66,7 @@ struct MissionWidgetEntryView: View {
 }
 
 struct MissionRowView: View {
-    let mission: MissionWidgetUI
+    let mission: HomeMissionWidget
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
