@@ -174,4 +174,13 @@ final class MissionRepositoryTest: MissionRepository {
     func fetchSampleMission(withId missionId: String) -> [SampleMission] {
         return []
     }
+    
+    // 전달한 미션 정보를 코어데이터에 저장
+    func saveMissionData(title: String, assigneeId: String, assigneeNickname: String, createDate: Date, dueDate: Date, category: MissionCategory) {
+    }
+    
+    // 코어데이터 미션 데이터를 패치
+    func fetchMissionData() -> [MissionData] {
+        return []
+    }
 }

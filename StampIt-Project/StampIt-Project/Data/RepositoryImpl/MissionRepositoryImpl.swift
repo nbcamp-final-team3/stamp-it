@@ -229,4 +229,41 @@ final class MissionRepositoryImpl: MissionRepository {
             print("Failed to fetch or save Core Data recentBook: \(error)")
         }
     }
+    
+    // 전달한 미션 정보를 코어데이터에 저장
+    func saveMissionData(title: String, assigneeId: String, assigneeNickname: String, createDate: Date, dueDate: Date, category: MissionCategory) {
+        let mission = MissionDataEntity(context: context)
+        mission.title = title
+        mission.assigneeId = assigneeId
+        mission.assigneeNickname = assigneeNickname
+        mission.createDate = createDate
+        mission.dueDate = dueDate
+        mission.category = category
+        
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save Core Data changes: \(error)")
+        }
+    }
+    
+    // 코어데이터 미션 데이터를 패치
+    func fetchMissionData() -> [MissionData] {
+        let fetchRequest: NSFetchRequest<MissionDataEntity> = MissionDataEntity.fetchRequest()
+        
+        do {
+            let missions = try context.fetch(fetchRequest)
+            return missions.map { mission in
+                return MissionData(title: mission.title ?? "",
+                                   assigneeId: mission.assigneeId ?? "",
+                                   assigneeNickname: mission.assigneeNickname ?? "",
+                                   createDate: mission.createDate ?? .now,
+                                   dueDate: mission.dueDate ?? .now,
+                                   category: mission.category)
+            }
+        } catch {
+            print("Failed to fetch Core Data: \(error)")
+            return []
+        }
+    }
 }
