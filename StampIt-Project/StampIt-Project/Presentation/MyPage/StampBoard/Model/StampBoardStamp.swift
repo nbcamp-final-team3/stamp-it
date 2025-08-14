@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct StickerUI: Hashable {
+struct StampBoardStamp: Hashable {
     let userID: String
     let stickerID: String
     let groupID: String
@@ -26,7 +26,7 @@ struct StickerUI: Hashable {
         hasher.combine(zigzagIndex)
     }
     
-    static func == (lhs: StickerUI, rhs: StickerUI) -> Bool {
+    static func == (lhs: StampBoardStamp, rhs: StampBoardStamp) -> Bool {
         lhs.stickerID == rhs.stickerID &&
         lhs.type == rhs.type &&
         lhs.zigzagIndex == rhs.zigzagIndex
@@ -35,9 +35,9 @@ struct StickerUI: Hashable {
 
 // MARK: - Mapper
 
-extension StickerUI {
-    static func map(_ sticker: Sticker) -> StickerUI {
-        StickerUI(
+extension StampBoardStamp {
+    static func map(_ sticker: Sticker) -> StampBoardStamp {
+        StampBoardStamp(
             userID: sticker.userID,
             stickerID: sticker.stickerID,
             groupID: sticker.groupID,
@@ -53,10 +53,10 @@ extension StickerUI {
     }
     
     static func map(
-        _ sticker: StickerUI,
+        _ sticker: StampBoardStamp,
         type: StickerType = .stampGray
-    ) -> StickerUI {
-        StickerUI(
+    ) -> StampBoardStamp {
+        StampBoardStamp(
             userID: sticker.userID,
             stickerID: sticker.stickerID,
             groupID: sticker.groupID,

@@ -24,7 +24,7 @@ final class StampBoardViewModel: ViewModelProtocol {
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let stickersByPage = BehaviorRelay<[[StickerUI]]>(
+        let stickersByPage = BehaviorRelay<[[StampBoardStamp]]>(
             value: StickerUtil.initialize()
         )
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
@@ -72,7 +72,7 @@ final class StampBoardViewModel: ViewModelProtocol {
         
         /// stickerSummary, stickers 가 동시에 변경
         myPageUseCase.observeStickerCount(userId: user.userID)
-            .flatMapLatest { [weak self] count -> Observable<(Int, [[StickerUI]])> in
+            .flatMapLatest { [weak self] count -> Observable<(Int, [[StampBoardStamp]])> in
                 guard let self else { return .empty() }
                 
                 let completedBoard = Int(count / StampBoardSection.totalStamp)
@@ -102,11 +102,11 @@ final class StampBoardViewModel: ViewModelProtocol {
                 /// 순서에 맞게 페이지 별 스티커 배열 생성
                 return Observable.combineLatest(stickerObservables)
                     .map { stickerLists in
-                        var formattedStickers: [[StickerUI]] = .init()
+                        var formattedStickers: [[StampBoardStamp]] = .init()
                         for (page, stickers) in stickerLists.enumerated() {
                             formattedStickers.append(
                                 stickers.enumerated().map { (index, sticker) in
-                                    StickerUI.map(sticker, type: StickerType.from(page))
+                                    StampBoardStamp.map(sticker, type: StickerType.from(page))
                                 }
                             )
                         }
@@ -132,8 +132,8 @@ final class StampBoardViewModel: ViewModelProtocol {
             }.disposed(by: disposeBag)
     }
     
-    private func updateStickerZigzag(_ stickerLists: [[StickerUI]]) {
-        let zigzagged: [[StickerUI]] = stickerLists
+    private func updateStickerZigzag(_ stickerLists: [[StampBoardStamp]]) {
+        let zigzagged: [[StampBoardStamp]] = stickerLists
             .map { stickers in
                 /// createdAt 내림차순 기준 정렬
                 let ordered = stickers

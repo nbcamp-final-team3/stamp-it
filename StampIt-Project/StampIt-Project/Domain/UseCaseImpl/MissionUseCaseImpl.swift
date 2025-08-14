@@ -36,7 +36,7 @@ struct MissionUseCaseImpl: MissionUseCase {
     }
     
     // 미션 1개 패치
-    func fetchMission(with id: String) -> Observable<MissionUI?> {
+    func fetchMission(with id: String) -> Observable<StampBoardMission?> {
         missionRepositoryImpl.fetchMission(widh: id)
             .map { $0?.toPresentation() }
     }

@@ -108,7 +108,7 @@ final class StampBoardViewController: BaseViewController {
     
     private func updateSnapshot(
         summary: (collected: Int, completed: Int),
-        stickers: [[StickerUI]]
+        stickers: [[StampBoardStamp]]
     ) {
         let maxPage = stickers.count
         

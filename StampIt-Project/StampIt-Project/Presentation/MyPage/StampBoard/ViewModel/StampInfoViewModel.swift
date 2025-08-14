@@ -24,7 +24,7 @@ final class StampInfoViewModel: ViewModelProtocol {
     }
     
     struct State {
-        let mission = BehaviorRelay<MissionUI?>(value: nil)
+        let mission = BehaviorRelay<StampBoardMission?>(value: nil)
         let isDismissed = BehaviorRelay<Bool>(value: false)
     }
     
@@ -61,7 +61,7 @@ final class StampInfoViewModel: ViewModelProtocol {
     
     private func fetchMission(missionId: String) {
         missionUseCase.fetchMission(with: missionId)
-            .flatMap { [weak self] mission -> Observable<(MissionUI, User?)> in
+            .flatMap { [weak self] mission -> Observable<(StampBoardMission, User?)> in
                 guard let self, let mission else { return .empty() }
                 let userId = mission.nickname
                 return myPageUseCase.fetchUserOnce(userId: userId)

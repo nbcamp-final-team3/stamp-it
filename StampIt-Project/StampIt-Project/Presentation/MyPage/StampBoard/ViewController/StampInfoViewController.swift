@@ -171,7 +171,7 @@ final class StampInfoViewController: UIViewController {
     }
     
     private func updateUI(
-        with mission: MissionUI? = nil,
+        with mission: StampBoardMission? = nil,
         title: String? = nil
     ) {
         categoryTitle.updateText(with: mission?.category.title ?? "")
