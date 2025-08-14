@@ -115,7 +115,7 @@
 				Domain/Entities/MissionCategory.swift,
 				Presentation/Common/Model/HomeMissionWidget.swift,
 				"Presentation/Common/Model/MissionCategory+Extension.swift",
-				Presentation/MyPage/Model/MissionUI.swift,
+				Presentation/MyPage/StampBoard/Model/MissionUI.swift,
 				Resource/Assets.xcassets,
 			);
 			target = 877339C82E45AF1C00FA2885 /* MissionWidgetExtension */;
