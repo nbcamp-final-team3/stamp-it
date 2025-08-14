@@ -14,17 +14,3 @@ enum MissionCategory: String, CaseIterable, Codable {
     case learning
     case custom
 }
-
-// MARK: - Image Name Protocol
-extension MissionCategory {
-    /// 이미지 파일명을 반환하는 연산 프로퍼티
-    var imageName: String {
-        switch self {
-        case .chore: return "chore"
-        case .communication: return "communication"
-        case .health: return "health"
-        case .learning: return "learning"
-        case .custom: return "custom"
-        }
-    }
-}
