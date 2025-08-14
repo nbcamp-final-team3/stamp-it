@@ -24,18 +24,7 @@ extension MissionCategory {
     }
 
     var image: UIImage {
-        switch self {
-        case .chore:
-                .chore
-        case .communication:
-                .communication
-        case .health:
-                .health
-        case .learning:
-                .learning
-        case .custom:
-                .custom
-        }
+        return UIImage(named: imageName) ?? UIImage()
     }
 
     var backgroundColor: UIColor {
