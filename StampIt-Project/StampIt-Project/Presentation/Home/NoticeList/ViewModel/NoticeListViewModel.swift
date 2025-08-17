@@ -62,13 +62,7 @@ final class NoticeListViewModel: ViewModelProtocol {
     private func bindList() {
         useCase.fetchNotices()
             .subscribe(onNext: { [weak self] notices in
-                let notices: [Notice] = [
-                    .init(noticeId: "123", title: "미션 받음", description: "설명", category: .newMission, createdAt: Date(), isRead: false),
-                    .init(noticeId: "456", title: "미션 조르기", description: "설명", category: .missionRequest, createdAt: Date(), isRead: false),
-                    .init(noticeId: "789", title: "멤버 변동", description: "설명", category: .member, createdAt: Date(), isRead: false)
-                ]
-                
-                self?.noticeCache = notices
+                self?.saveCache(notices)
                 
                 let homeNotices = notices.map { notice in
                     HomeNotice(
@@ -85,8 +79,19 @@ final class NoticeListViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
     }
     
+    private func saveCache(_ notices: [Notice]) {
+        noticeCache = notices
+    }
+    
     private func handleSelection(of index: Int) {
-        let target = noticeCache[index].category
-        state.noticeTarget.accept(target)
+        let notice = noticeCache[index]
+        state.noticeTarget.accept(notice.category)
+        readNotice(notice)
+    }
+    
+    private func readNotice(_ notice: Notice) {
+        useCase.readNotice(notice.noticeId)
+            .subscribe()
+            .disposed(by: disposeBag)
     }
 }
