@@ -244,8 +244,6 @@ final class HomeViewModel: ViewModelProtocol {
         let mission = pendingStack.removeLast()
         state.completionCanceledMission.accept(mission.missionID)
 
-        guard let user = state.user.value else { return }
-
         /// 미션 상태를 진행중으로 롤백
         myMissionUseCase.updateMissionStatus(for: mission, to: .assigned)
             .flatMap { [weak self] mission -> Observable<Void> in

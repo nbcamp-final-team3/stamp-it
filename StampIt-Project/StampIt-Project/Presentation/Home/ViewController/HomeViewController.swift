@@ -274,9 +274,7 @@ final class HomeViewController: UIViewController {
     }
 
     private func pushMyMissionVC() {
-        guard let user = viewModel.state.user.value else { return }
         let myMissionVC = DIContainer.shared.makeMyMissionViewController(
-            user: user,
             memberCache: viewModel.memberCache
         )
         navigationController?.pushViewController(myMissionVC, animated: true)

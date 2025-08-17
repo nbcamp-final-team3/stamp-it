@@ -15,6 +15,7 @@ final class NoticeListViewController: UIViewController {
     // MARK: - Dependencies
 
     private let viewModel: NoticeListViewModel!
+    private lazy var navigator = DefaultNoticeNavigator(nav: self.navigationController, tab: self.tabBarController)
 
     // MARK: - UI Components
 
@@ -70,6 +71,11 @@ final class NoticeListViewController: UIViewController {
             .map { NoticeListViewModel.Action.navigateBack }
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
+        
+        noticeView.selectedRow
+            .map { NoticeListViewModel.Action.selectNotice($0) }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
 
         viewModel.state.isNavigateBack
             .asDriver(onErrorDriveWith: .empty())
@@ -82,6 +88,13 @@ final class NoticeListViewController: UIViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, items in
                 owner.noticeView.updateSnapshot(withItems: items, toSection: .list)
+            }
+            .disposed(by: disposeBag)
+        
+        viewModel.state.noticeTarget
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, category in
+                owner.navigator.show(by: category)
             }
             .disposed(by: disposeBag)
     }
