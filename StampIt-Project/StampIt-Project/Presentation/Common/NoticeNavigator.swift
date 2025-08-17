@@ -6,5 +6,5 @@
 //
 
 protocol NoticeNavigator {
-  func show(_ category: NoticeCategory)
+  func show(by category: NoticeCategory)
 }

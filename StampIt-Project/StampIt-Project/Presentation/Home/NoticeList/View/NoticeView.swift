@@ -9,19 +9,22 @@ import UIKit
 import SnapKit
 import Then
 import RxSwift
-import RxRelay
+import RxCocoa
 
 final class NoticeView: UIView {
 
     // MARK: - Actions
+    
+    let selectedRow = PublishSubject<Int>()
 
     // MARK: - Properties
 
+    let disposeBag = DisposeBag()
     var dataSource: UICollectionViewDiffableDataSource<NoticeSection, HomeNotice>?
 
     // MARK: - UI Components
 
-    lazy var collectionView = UICollectionView(
+    private lazy var collectionView = UICollectionView(
         frame: .zero,
         collectionViewLayout: createLayout()
     ).then {
@@ -81,6 +84,10 @@ final class NoticeView: UIView {
     // MARK: - Bind
 
     private func bind() {
+        collectionView.rx.itemSelected
+            .map { $0.row }
+            .bind(to: selectedRow)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - CollectionView Layout Helper

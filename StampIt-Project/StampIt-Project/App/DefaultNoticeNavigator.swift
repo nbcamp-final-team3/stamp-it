@@ -11,16 +11,15 @@ final class DefaultNoticeNavigator: NoticeNavigator {
     private weak var nav: UINavigationController?
     private weak var tab: UITabBarController?
     
-    init(nav: UINavigationController, tab: UITabBarController) {
+    init(nav: UINavigationController?, tab: UITabBarController?) {
         self.nav = nav
         self.tab = tab
     }
     
-    func show(_ category: NoticeCategory) {
+    func show(by category: NoticeCategory) {
         let vc: UIViewController
         switch category {
         case .newMission:
-            guard let user = UserCache.shared.getCurrentUser() else { return }
             vc = DIContainer.shared.makeMyMissionViewController(memberCache: [:])
             nav?.pushViewController(vc, animated: true)
         case .missionRequest:
