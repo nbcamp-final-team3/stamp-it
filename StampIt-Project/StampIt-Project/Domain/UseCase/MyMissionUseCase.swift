@@ -9,6 +9,7 @@ import Foundation
 import RxSwift
 
 protocol MyMissionUseCaseProtocol {
+    func fetchGroupMembers() -> Observable<[String: Member]>
     func fetchMissions() -> Observable<[Mission]>
     func fetchAssignedMissions() -> Observable<[Mission]>
     func updateMissionStatus(for mission: Mission, to status: MissionStatus) -> Observable<Mission>

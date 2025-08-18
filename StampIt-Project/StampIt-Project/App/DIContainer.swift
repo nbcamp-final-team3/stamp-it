@@ -210,7 +210,6 @@ final class DIContainer {
 
     func makeMyMissionViewModel(memberCache: [String: Member]) -> MyMissionViewModel {
         return MyMissionViewModel(
-            memberCache: memberCache,
             useCase: myMissionUseCase,
             mapper: MissionMapper(),
         )

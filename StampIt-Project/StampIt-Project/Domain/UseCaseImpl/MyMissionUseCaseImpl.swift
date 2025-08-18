@@ -23,6 +23,13 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
             .replay(1)
             .refCount()
     }
+    
+    // TODO: 도메인 mission 리팩토링 후 삭제 - assignedTo, assignedBy 닉네임 매핑
+    func fetchGroupMembers() -> Observable<[String: Member]> {
+        guard let user = UserCache.shared.getCurrentUser() else { return .empty() }
+        return homeRepository.fetchGroupMembers(ofGroup: user.groupID)
+            .map { Dictionary(uniqueKeysWithValues: $0.map { ($0.userID, $0) }) }
+    }
 
     func fetchMissions() -> Observable<[Mission]> {
         user.flatMap { [weak self] user -> Observable<[Mission]> in
