@@ -19,6 +19,7 @@ struct StickerUI: Hashable {
     let maxStickers: Int
     let assignedBy: String
     var zigzagIndex: Int
+    var shouldBlur: Bool
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(stickerID)
@@ -49,12 +50,14 @@ extension StickerUI {
             maxStickers: sticker.maxStickers,
             assignedBy: sticker.assignedBy,
             zigzagIndex: .zero,
+            shouldBlur: false,
         )
     }
     
     static func map(
         _ sticker: StickerUI,
-        type: StickerType = .stampGray
+        type: StickerType = .stampGray,
+        lastCheckedAt: Date
     ) -> StickerUI {
         StickerUI(
             userID: sticker.userID,
@@ -68,6 +71,7 @@ extension StickerUI {
             maxStickers: sticker.maxStickers,
             assignedBy: sticker.assignedBy,
             zigzagIndex: .zero,
+            shouldBlur: sticker.createdAt > lastCheckedAt,
         )
     }
 }

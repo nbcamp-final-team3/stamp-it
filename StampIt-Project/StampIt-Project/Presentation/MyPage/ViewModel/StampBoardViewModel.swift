@@ -20,6 +20,7 @@ final class StampBoardViewModel: ViewModelProtocol {
     enum Action {
         case viewDidLoad
         case tabButtonTapped(TabType)
+        case updateStickers([[StickerUI]])
     }
     
     struct State {
@@ -37,6 +38,8 @@ final class StampBoardViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     var state = State()
     
+    private var lastCheckedAt: Date = .init()
+
     // MARK: - Initializer, Deinit, requiered
     
     init(myPageUseCase: MyPageUseCaseProtocol) {
@@ -54,6 +57,8 @@ final class StampBoardViewModel: ViewModelProtocol {
                     owner.bindUser()
                 case .tabButtonTapped(let type):
                     owner.state.tabType.accept(type)
+                case .updateStickers(let stickers):
+                    owner.state.stickersByPage.accept(stickers)
                 }
             }.disposed(by: disposeBag)
     }
@@ -77,9 +82,11 @@ final class StampBoardViewModel: ViewModelProtocol {
                 
                 let completedBoard = Int(count / StampBoardSection.totalStamp)
                 let currentPinNumber = completedBoard + 1
+
+                if count == 0 { lastCheckedAt = .init() }
                 
                 let minPage = currentPinNumber > StampBoard.totalPage ? currentPinNumber - StampBoard.totalPage + 1 : 1
-                
+
                 var pinNumbers: [Int] = .init()
                 
                 /// pinNumber 기준 : Firestore pinNumber
@@ -101,12 +108,19 @@ final class StampBoardViewModel: ViewModelProtocol {
                 
                 /// 순서에 맞게 페이지 별 스티커 배열 생성
                 return Observable.combineLatest(stickerObservables)
-                    .map { stickerLists in
+                    .map { [weak self] stickerLists in
+                        guard let self else { return (.init(), .init()) }
+                        
                         var formattedStickers: [[StickerUI]] = .init()
                         for (page, stickers) in stickerLists.enumerated() {
+                            /// 페이지에 맞게 스티커 색상 지정
                             formattedStickers.append(
                                 stickers.enumerated().map { (index, sticker) in
-                                    StickerUI.map(sticker, type: StickerType.from(page))
+                                    StickerUI.map(
+                                        sticker,
+                                        type: StickerType.from(page),
+                                        lastCheckedAt: self.lastCheckedAt,
+                                    )
                                 }
                             )
                         }
@@ -145,7 +159,25 @@ final class StampBoardViewModel: ViewModelProtocol {
                     pinNumber: state.stickerSummary.value.completed
                 )
             }
-        
         state.stickersByPage.accept(zigzagged)
+    }
+
+    private func disableBlurAfterDelay() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+            guard let self else { return }
+
+            let updated = self.state.stickersByPage.value.map { section in
+                section.map { sticker in
+                    if sticker.shouldBlur {
+                        var newSticker = sticker
+                        newSticker.shouldBlur = false
+                        return newSticker
+                    }
+                    return sticker
+                }
+            }
+
+            self.state.stickersByPage.accept(updated)
+        }
     }
 }

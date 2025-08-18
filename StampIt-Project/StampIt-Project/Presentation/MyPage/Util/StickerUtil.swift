@@ -75,6 +75,7 @@ struct StickerUtil {
             maxStickers: .zero,
             assignedBy: "Unknown",
             zigzagIndex: zigzagIndex ?? -1,
+            shouldBlur: false,
         )
     }
     

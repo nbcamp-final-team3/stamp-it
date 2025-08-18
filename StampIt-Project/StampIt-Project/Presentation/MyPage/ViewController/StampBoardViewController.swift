@@ -177,7 +177,7 @@ extension StampBoardViewController: UICollectionViewDelegate {
         didSelectItemAt indexPath: IndexPath
     ) {
         let stickersByPage = viewModel.state.stickersByPage.value
-        
+
         let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
         
         let clickedSticker = stickersByPage[currentPage][itemIndexInPage]

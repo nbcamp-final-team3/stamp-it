@@ -35,11 +35,6 @@ final class StampCell: UICollectionViewCell {
         stampImageView.layer.shadowPath = nil
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        applyBlur(withAnimationTo: stampImageView)
-    }
-    
     // MARK: - Initializer, Deinit, requiered
     
     override init(frame: CGRect) {
@@ -98,10 +93,21 @@ final class StampCell: UICollectionViewCell {
     
     func configureStamp(with type: StickerUI) {
         stampImageView.image = UIImage(named: type.type.rawValue)
+        
+        if type.shouldBlur {
+            applyBlur(to: stampImageView)
+
+            /// 3초 후 블러 제거
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                guard let self else { return }
+                self.removeBlur(from: self.stampImageView)
+            }
+        } else {
+            removeBlur(from: stampImageView)
+        }
     }
     
-    /// 새로운 스티커 생성시 애니메이션 추가
-    func applyBlur(withAnimationTo view: UIView) {
+    private func applyBlur(to view: UIView) {
         view.layer.shadowColor = UIColor.yellowGlow.cgColor
         view.layer.shadowOpacity = 1
         view.layer.shadowRadius = 9
@@ -114,22 +120,11 @@ final class StampCell: UICollectionViewCell {
             cornerRadius: view.layer.cornerRadius
         )
         view.layer.shadowPath = path.cgPath
-        
-        // 3초 뒤 자연스럽게 사라지는 fade-out 애니메이션
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            let fadeOut = CABasicAnimation(keyPath: "shadowOpacity")
-            fadeOut.fromValue = 1.0
-            fadeOut.toValue = 0.0
-            fadeOut.duration = 0.6
-            fadeOut.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            fadeOut.fillMode = .forwards
-            fadeOut.isRemovedOnCompletion = false
-
-            view.layer.add(fadeOut, forKey: "fadeOutGlow")
-
-            // 최종 opacity 값도 0으로 설정해둬야 실제로 사라짐
-            view.layer.shadowOpacity = 0.0
-        }
+    }
+    
+    private func removeBlur(from view: UIView) {
+        view.layer.shadowOpacity = 0.0
+        view.layer.shadowPath = nil
     }
     
     func configureDashedLine(with type: StampCellType) {
