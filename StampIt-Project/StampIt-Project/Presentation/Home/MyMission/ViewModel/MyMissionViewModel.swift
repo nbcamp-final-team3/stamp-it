@@ -42,12 +42,10 @@ final class MyMissionViewModel: ViewModelProtocol {
     // MARK: - Init
 
     init(
-        memberCache: [String: Member],
         useCase: MyMissionUseCaseProtocol,
         mapper: MissionMapping,
     ) {
         self.useCase = useCase
-        self.memberCache = memberCache
         self.mapper = mapper
         bind()
     }
@@ -59,6 +57,7 @@ final class MyMissionViewModel: ViewModelProtocol {
             .subscribe(with: self) { owner, action in
                 switch action {
                 case .viewDidLoad:
+                    owner.fetchMembers()
                     owner.fetchMissions()
                 case .selectFilter(let index):
                     owner.state.selectedFilter.accept(index)
@@ -68,6 +67,15 @@ final class MyMissionViewModel: ViewModelProtocol {
                 case .didTapBackButton:
                     owner.state.isPopVC.accept(())
                 }
+            }
+            .disposed(by: disposeBag)
+    }
+    
+    // TODO: mission 리팩토링 후 삭제
+    private func fetchMembers() {
+        useCase.fetchGroupMembers()
+            .subscribe { [weak self] members in
+                self?.memberCache = members
             }
             .disposed(by: disposeBag)
     }
