@@ -19,7 +19,8 @@ final class StampBoardViewController: UIViewController {
     private var container: DIContainer
     private let disposeBag = DisposeBag()
     private var currentPage: Int = .zero
-    
+    private var selectedCellFrame: CGRect?
+
     // MARK: - UI Components
 
     private let stampBoardView = StampBoardTab()
@@ -177,22 +178,46 @@ extension StampBoardViewController: UICollectionViewDelegate {
         didSelectItemAt indexPath: IndexPath
     ) {
         let stickersByPage = viewModel.state.stickersByPage.value
-
         let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
-        
         let clickedSticker = stickersByPage[currentPage][itemIndexInPage]
         let missionId = clickedSticker.missionID
+
+        guard clickedSticker.type != .stampGray,
+              let cell = collectionView.cellForItem(at: indexPath) else { return }
+
+        /// 애니메이션을 위한 Cell의 Frame 저장
+        let cellFrameInSuperview = collectionView.convert(cell.frame, to: self.view)
+        self.selectedCellFrame = cellFrameInSuperview
 
         /// Empty Stamp 는 모달뷰 띄우지 않음
         if clickedSticker.type != .stampGray {
             let viewModel = container.makeStampInfoViewModel()
             
             let stampInfoVC = StampInfoViewController(viewModel: viewModel)
+            stampInfoVC.transitioningDelegate = self
             stampInfoVC.modalPresentationStyle = .custom
-            
+
             viewModel.action.accept(.load(missionId: missionId))
             
             self.present(stampInfoVC, animated: true)
         }
+    }
+}
+
+extension StampBoardViewController: UIViewControllerTransitioningDelegate {
+    func animationController(
+        forPresented presented: UIViewController,
+        presenting: UIViewController,
+        source: UIViewController
+    ) -> (any UIViewControllerAnimatedTransitioning)? {
+        guard let frame = selectedCellFrame else { return nil }
+        return StampPresentAnimator(originFrame: frame)
+    }
+
+    func animationController(
+        forDismissed dismissed: UIViewController
+    ) -> (any UIViewControllerAnimatedTransitioning)? {
+        guard let frame = selectedCellFrame else { return nil }
+        return StampDismissAnimator(destinationFrame: frame)
     }
 }

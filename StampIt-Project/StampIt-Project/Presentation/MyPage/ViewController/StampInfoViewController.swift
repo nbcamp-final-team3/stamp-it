@@ -21,7 +21,7 @@ final class StampInfoViewController: UIViewController {
     
     // MARK: - UI Components
     
-    private let circleView = UIView().then {
+    let circleView = UIView().then {
         $0.backgroundColor = .white
         $0.layer.cornerRadius = (UIScreen.main.bounds.width - 16 * 2) / 2
     }
@@ -113,7 +113,6 @@ final class StampInfoViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setStyles()
         setHierarchy()
         setLayout()
         bind()
@@ -155,7 +154,9 @@ final class StampInfoViewController: UIViewController {
                 owned.categoryTitle.isHidden = false
             }.disposed(by: disposeBag)
     }
-    
+
+    // MARK: - Method
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         missionTitle.preferredMaxLayoutWidth = missionTitle.frame.width
@@ -171,12 +172,6 @@ final class StampInfoViewController: UIViewController {
         
         completedDateValue.text = "\(mission.dueDate)"
         missionSenderValue.text = mission.assignedBy
-    }
-    
-    // MARK: - Set Styles
-
-    private func setStyles() {
-        view.backgroundColor = ._000000.withAlphaComponent(0.3)
     }
 
     // MARK: - Hierarchy Helper
