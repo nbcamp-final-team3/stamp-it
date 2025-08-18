@@ -158,22 +158,20 @@ final class HomeViewModel: ViewModelProtocol {
               self.state.myMissions.accept(items)
               print("저장할 미션 데이터: \(missions)")
               
-              // 위젯 데이터 저장
-              let missionUIs = missions.map { $0.toPresentation() }
-              let widgetMissionUIs = missionUIs.map { HomeMissionWidget(from: $0) }
-              WidgetMissionManager.shared.save(missions: widgetMissionUIs)
-              WidgetCenter.shared.reloadAllTimelines() // 위젯 새로고침
-              let defaults = UserDefaults(suiteName: "group.com.by.Family-Stamp-It-Widget-")
-              if let data = defaults?.data(forKey: "missions"),
-                 let missions = try? JSONDecoder().decode([HomeMissionWidget].self, from: data) {
-                  print("미션 데이터: \(missions)")
-              } else {
-                  print("미션 데이터 없음!")
+              // 위젯 데이터 저장 (mapForWidget 매핑 사용)
+              let widgetMissions = self.missionMapper.mapForWidget(missions: missions, member: self.memberCache)
+              WidgetMissionManager.shared.save(missions: widgetMissions)
+              WidgetCenter.shared.reloadAllTimelines()
+              
+              print("위젯용 미션 데이터 생성: \(widgetMissions.count)개")
+              for mission in widgetMissions {
+                  print("  - 제목: \(mission.title), 닉네임: \(mission.fromLabel), 날짜: \(mission.duration)")
               }
+              
           })
           .disposed(by: disposeBag)
     }
-
+    
 
     private func bindMemberMissions(ofUser currentUser: Observable<User>) {
         currentUser

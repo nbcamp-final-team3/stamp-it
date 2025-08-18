@@ -10,4 +10,5 @@ import Foundation
 protocol MissionMapping {
     func map(myMissions: [Mission], member: [String: Member]) -> [HomeMyMission]
     func map(memberMission: [Mission], member: [String: Member]) -> [HomeMemberMission]
+    func mapForWidget(missions: [Mission], member: [String: Member]) -> [HomeMissionWidget]
 }
