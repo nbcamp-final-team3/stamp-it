@@ -11,7 +11,10 @@ import RxCocoa
 import SnapKit
 import Then
 
-final class MissionListViewController: UIViewController {
+final class MissionListViewController: BaseViewController {
+    
+    override var screenName: String { "MissionList" }
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
     
     private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))
@@ -141,13 +144,14 @@ final class MissionListViewController: UIViewController {
             .drive(tableView.rx.items(cellIdentifier: MissionListCell.reuseIdentifier, cellType: MissionListCell.self)) { [weak self] (_, element, cell) in
                 guard let self else { return }
                 
-                let favorites = viewModel.state.favorites.value
                 let isOnlyFavorites = viewModel.state.isOnlyFavorite.value
+                let recommendedMissions = viewModel.state.recommendedMissions
+                let isRecommended = recommendedMissions.contains(where: { $0.missionId == element.missionId })
                 
-                if favorites.contains(element.missionId), !isOnlyFavorites {
-                    cell.configure(with: element.title, isFavorite: true)
-                } else {
-                    cell.configure(with: element.title, isFavorite: false)
+                if isOnlyFavorites { // "즐겨찾기" 카테고리 선택하면 즐겨찾기/추천 표시 안함
+                    cell.configure(with: element.title, isFavorite: false, isRecommended: false)
+                } else { // 나머지 카테고리는 즐겨찾기/추천 표시함(둘다 true면 즐겨찾기만 표시)
+                    cell.configure(with: element.title, isFavorite: element.isFavorite, isRecommended: isRecommended)
                 }
             }
             .disposed(by: disposeBag)
@@ -191,7 +195,7 @@ final class MissionListViewController: UIViewController {
                 guard let self else { return }
                 
                 let isOnlyFavorites = viewModel.state.isOnlyFavorite.value
-                let favorites = viewModel.state.favorites.value
+                let favorites = viewModel.state.missions.value.filter({ $0.isFavorite })
                 
                 if isOnlyFavorites, favorites.isEmpty {
                     noResultsView.configureContent(title: "즐겨찾기가 없어요", description: "미션을 스와이프해서 즐겨찾기에 추가하세요")
@@ -239,6 +243,7 @@ final class MissionListViewController: UIViewController {
         viewModel.onSuccess = { [weak self] in
             guard let self else { return }
             toastView.show(in: view, duration: 3, message: "미션이 전달되었어요", type: .success)
+            self.viewModel.donate(.assignMission, to: mission)
         }
         let viewController = AssignMissionViewController(viewModel: viewModel)
         navigationController?.pushViewController(viewController, animated: true)

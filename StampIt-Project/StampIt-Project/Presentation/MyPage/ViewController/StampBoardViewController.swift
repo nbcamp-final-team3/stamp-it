@@ -11,7 +11,7 @@ import SnapKit
 import RxSwift
 import RxRelay
 
-final class StampBoardViewController: UIViewController {
+final class StampBoardViewController: BaseViewController {
     
     // MARK: - Properties
     
@@ -21,6 +21,8 @@ final class StampBoardViewController: UIViewController {
     private var currentPage: Int = .zero
     private var selectedCellFrame: CGRect?
 
+    override var screenName: String { "StampBoard" }
+    
     // MARK: - UI Components
 
     private let stampBoardView = StampBoardTab()

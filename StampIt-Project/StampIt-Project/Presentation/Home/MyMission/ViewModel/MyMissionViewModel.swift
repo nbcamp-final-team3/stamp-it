@@ -124,7 +124,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         case .assigned:
             handleMissionCompleteButtonTapped(missionID: mission.missionID)
         case .completed:
-            guard mission.isCancelableCompleted else { return }
+            guard !mission.isOverdue else { return }
             handleCancelMissionComplete(missionID: mission.missionID)
         case .failed: break
         }

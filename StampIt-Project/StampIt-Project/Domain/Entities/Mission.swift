@@ -22,10 +22,6 @@ struct Mission: Equatable {
         dueDate.daysFromToday() < 0
     }
 
-    var isCancelableCompleted: Bool {
-        status == .completed && !isOverdue
-    }
-
     var isNew: Bool {
         let today = Calendar.current.dateComponents([.day], from: Date())
         let created = Calendar.current.dateComponents([.day], from: createDate)
@@ -54,7 +50,7 @@ extension Mission {
         MissionUI(
             missionID: self.missionID,
             title: self.title,
-            assignedBy: self.assignedBy,
+            nickname: self.assignedBy,
             dueDate: DateFormatterUtil.formattedString(
                 with: self.dueDate
             ),
