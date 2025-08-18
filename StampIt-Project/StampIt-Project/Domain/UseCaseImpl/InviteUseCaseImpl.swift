@@ -70,7 +70,7 @@ final class InviteUseCaseImpl: InviteUseCase {
 
     /// 초대코드를 받아서 해당 그룹에 새 멤버를 추가하는 코드
     // TODO: 주형님 이거 로직 너무 길어서 줄였어요..ㅠㅠ 그래도 아직까지 책임이 너무 많아서 단일책임 원칙 깨지는데 주석 확인하시면 리팩토링 좀 해주세요..
-    func acceptInvite(inviteCode: String) -> Observable<Invite> {
+    func acceptInvite(inviteCode: String) -> Observable<(User, Invite)> {
         return getCurrentUser()
             .flatMap { [weak self] optionalUser -> Observable<(User, Invite)> in
                 guard let self = self, let user = optionalUser else {
@@ -99,7 +99,7 @@ final class InviteUseCaseImpl: InviteUseCase {
                         (user, group, memberCount, oldGroupMemberCount)
                     }
             }
-            .flatMap { [weak self] user, group, newGroupMemberCount, oldGroupMemberCount -> Observable<Invite> in
+            .flatMap { [weak self] user, group, newGroupMemberCount, oldGroupMemberCount -> Observable<(User, Invite)> in
                 guard let self = self else { return .empty() }
                 guard newGroupMemberCount < 10 else {
                     return .error(RepositoryError.groupIsFull)
@@ -137,8 +137,9 @@ final class InviteUseCaseImpl: InviteUseCase {
                             return .just(())
                         }
                     }
-                    .flatMap {
+                    .flatMap { _ in
                         self.fetchInvite(inviteCode: inviteCode)
+                            .map { invite in (user, invite) }
                     }
             }
     }
