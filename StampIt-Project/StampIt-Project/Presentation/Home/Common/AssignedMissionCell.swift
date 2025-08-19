@@ -250,7 +250,7 @@ final class AssignedMissionCell: UICollectionViewCell {
         dateTag.updateText(with: "~" + mission.dueDate)
         dateTag.updateTextColor(mission.isOverdue ? .gray200 : .gray400)
         titleLabel.text = mission.title
-        statusButton.updateStatus(to: mission.status, mission.isCancelableCompleted)
+        statusButton.updateStatus(to: mission.status, !mission.isOverdue)
         updateContentStackViewConstraints()
     }
 

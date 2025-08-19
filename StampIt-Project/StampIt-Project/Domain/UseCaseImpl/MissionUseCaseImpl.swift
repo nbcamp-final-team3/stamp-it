@@ -41,4 +41,28 @@ struct MissionUseCaseImpl: MissionUseCase {
             .map { $0?.toPresentation() }
     }
     
+    // 코어데이터 샘플 미션을 패치
+    func fetchSampleMission() -> [SampleMission] {
+        missionRepositoryImpl.fetchSampleMission()
+    }
+    
+    // 코어데이터 특정 샘플 미션을 패치
+    func fetchSampleMission(withId missionId: String) -> [SampleMission] {
+        missionRepositoryImpl.fetchSampleMission(withId: missionId)
+    }
+    
+    // 코어데이터 샘플 미션 업데이트
+    func updateSampleMission(mission: SampleMission) {
+        missionRepositoryImpl.updateSampleMission(mission: mission)
+    }
+    
+    // 전달한 미션 정보를 코어데이터에 저장
+    func saveMissionData(title: String, assigneeId: String, assigneeNickname: String, createDate: Date, dueDate: Date, category: MissionCategory) {
+        missionRepositoryImpl.saveMissionData(title: title, assigneeId: assigneeId, assigneeNickname: assigneeNickname, createDate: createDate, dueDate: dueDate, category: category)
+    }
+    
+    // 코어데이터 미션 데이터를 패치
+    func fetchMissionData() -> [MissionData] {
+        missionRepositoryImpl.fetchMissionData()
+    }
 }

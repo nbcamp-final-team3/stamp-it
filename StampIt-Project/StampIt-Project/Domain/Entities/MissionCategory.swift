@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum MissionCategory: String, CaseIterable, Decodable {
+enum MissionCategory: String, CaseIterable, Codable {
     case chore
     case communication
     case health

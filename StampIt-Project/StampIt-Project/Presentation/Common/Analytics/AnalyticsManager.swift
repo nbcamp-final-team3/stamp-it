@@ -1,0 +1,53 @@
+//
+//  AnalyticsManager.swift
+//  StampIt-Project
+//
+//  Created by 이부용 on 8/7/25.
+//
+
+import FirebaseAnalytics
+
+protocol AnalyticsManagerProtocol {
+    func logScreenView(screenName: String)
+    func logClickEvent(screen: String, position: String, coordinates: CGPoint?)
+    func logScreenDuration(screen: String, duration: TimeInterval)
+}
+
+final class AnalyticsManager: AnalyticsManagerProtocol {
+    static let shared = AnalyticsManager()
+    
+    private init() {}
+    
+    // 스크린 타임 기록
+    func logScreenView(screenName: String) {
+        Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+            AnalyticsParameterScreenName: screenName,
+            "timestamp": Date().timeIntervalSince1970
+        ])
+    }
+    
+    // 클릭 위치 기록
+    func logClickEvent(screen: String, position: String, coordinates: CGPoint? = nil) {
+        var parameters: [String: Any] = [
+            "screen": screen,
+            "position": position,
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        
+        if let coords = coordinates {
+            parameters["tap_x"] = coords.x
+            parameters["tap_y"] = coords.y
+        }
+        
+        Analytics.logEvent("click_event", parameters: parameters)
+    }
+    
+    // 머문 시간 기록
+    func logScreenDuration(screen: String, duration: TimeInterval) {
+        Analytics.logEvent("screen_duration", parameters: [
+            "screen": screen,
+            "duration_seconds": duration,
+            "timestamp": Date().timeIntervalSince1970
+        ])
+    }
+}

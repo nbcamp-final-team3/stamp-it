@@ -155,17 +155,22 @@ final class AssignMissionViewModel: ViewModelProtocol {
         }
         
         let title = state.customMissionTitle.value ?? state.mission.value!.title
+        let createDate = Date()
+        let category = state.mission.value!.category
         
         let mission = Mission(
             missionID: UUID().uuidString,
             title: title,
             assignedTo: member.userID,
             assignedBy: user.userID,
-            createDate: Date(),
+            createDate: createDate,
             dueDate: dueDate,
             status: MissionStatus.assigned,
             imageURL: "",
-            category: state.mission.value!.category)
+            category: category)
+        
+        // 전달한 미션 정보를 코어데이터에 저장
+        missionUseCaseImpl.saveMissionData(title: title, assigneeId: member.userID, assigneeNickname: member.nickname, createDate: createDate, dueDate: dueDate, category: category)
         
         return missionUseCaseImpl.createMission(groupId: user.groupID, mission: mission)
     }

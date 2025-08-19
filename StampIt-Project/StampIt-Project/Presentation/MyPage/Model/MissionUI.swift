@@ -10,7 +10,8 @@ import Foundation
 struct MissionUI: Equatable {
     let missionID: String
     let title: String
-    var assignedBy: String
+    var nickname: String
     let dueDate: String
     let category: MissionCategory
 }
+
