@@ -8,12 +8,6 @@
 import UIKit
 
 final class StampPresentAnimator: NSObject, UIViewControllerAnimatedTransitioning {
-    let originFrame: CGRect
-
-    init(originFrame: CGRect) {
-        self.originFrame = originFrame
-    }
-
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         0.5
     }
@@ -25,24 +19,26 @@ final class StampPresentAnimator: NSObject, UIViewControllerAnimatedTransitionin
         containerView.backgroundColor = .black.withAlphaComponent(0.3)
 
         let finalFrame = transitionContext.finalFrame(for: toVC)
-
         toVC.view.frame = finalFrame
         containerView.addSubview(toVC.view)
 
-        // 시작 상태: 크기를 0.3배로 작게 만들고, 반바퀴(-180도) 회전된 상태
-        let circleView = toVC.circleView
-        circleView.transform = CGAffineTransform(scaleX: 0.1, y: 0.1) // 확대 / 축소
-            .concatenating(CGAffineTransform(rotationAngle: -.pi)) // 회전
+        toVC.view.layoutIfNeeded()
 
-        // 애니메이션 실행: 원래 크기, 원래 방향으로 돌아옴
+        let circleView = toVC.circleView
+
+        // 3D Y축 회전 설정 (뒤집혀 있는 상태)
+        var transform = CATransform3DIdentity
+        transform.m34 = -1.0 / 1000   // 원근감 추가
+        transform = CATransform3DRotate(transform, .pi, 0, 1, 0) // y축 기준 180도 회전
+        circleView.layer.transform = transform
+
+        // 애니메이션
         UIView.animate(
-            withDuration: transitionDuration(using: transitionContext), // 지속 시간
+            withDuration: transitionDuration(using: transitionContext),
             delay: 0,
-            usingSpringWithDamping: 0.7, // 튕김 효과 정도
-            initialSpringVelocity: 0.3,  // 초기 속도
-            options: []
+            options: [.curveEaseOut]
         ) {
-            circleView.transform = .identity
+            circleView.layer.transform = CATransform3DIdentity // 원래 상태로 되돌림
         } completion: { _ in
             transitionContext.completeTransition(true)
         }
@@ -50,14 +46,8 @@ final class StampPresentAnimator: NSObject, UIViewControllerAnimatedTransitionin
 }
 
 final class StampDismissAnimator: NSObject, UIViewControllerAnimatedTransitioning {
-    let destinationFrame: CGRect
-
-    init(destinationFrame: CGRect) {
-        self.destinationFrame = destinationFrame
-    }
-
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.5
+        0.6
     }
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -66,21 +56,26 @@ final class StampDismissAnimator: NSObject, UIViewControllerAnimatedTransitionin
             return
         }
 
-        let containerView = transitionContext.containerView
-        containerView.backgroundColor = .black.withAlphaComponent(0.3)
-        
         let circleView = fromVC.circleView
 
+        // 원근감 추가
+        var transform = CATransform3DIdentity
+        transform.m34 = -1.0 / 1000
+
+        // 애니메이션
         UIView.animate(
             withDuration: transitionDuration(using: transitionContext),
             delay: 0,
-            options: [.curveEaseIn]
-        ) {
-            circleView.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
-                .concatenating(CGAffineTransform(rotationAngle: -.pi))
-            fromVC.view.alpha = 0
-        } completion: { _ in
+            options: [.curveEaseInOut],
+            animations: {
+                transform = CATransform3DRotate(transform, .pi, 0, 1, 0) // y축 기준 180도 회전
+                circleView.layer.transform = transform
+
+                // 투명도 감소
+                fromVC.view.alpha = 0
+            }, completion: { _ in
+                fromVC.view.removeFromSuperview()
             transitionContext.completeTransition(true)
-        }
+        })
     }
 }

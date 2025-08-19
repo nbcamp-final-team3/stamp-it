@@ -210,14 +210,12 @@ extension StampBoardViewController: UIViewControllerTransitioningDelegate {
         presenting: UIViewController,
         source: UIViewController
     ) -> (any UIViewControllerAnimatedTransitioning)? {
-        guard let frame = selectedCellFrame else { return nil }
-        return StampPresentAnimator(originFrame: frame)
+        StampPresentAnimator()
     }
 
     func animationController(
         forDismissed dismissed: UIViewController
     ) -> (any UIViewControllerAnimatedTransitioning)? {
-        guard let frame = selectedCellFrame else { return nil }
-        return StampDismissAnimator(destinationFrame: frame)
+        StampDismissAnimator()
     }
 }
