@@ -16,8 +16,9 @@ final class StampInfoViewController: UIViewController {
     // MARK: - Properties
     
     let viewModel: StampInfoViewModel
-    
-    private let disposeBag = DisposeBag()
+
+    let missionRelay = PublishRelay<Void>()
+    let disposeBag = DisposeBag()
     
     // MARK: - UI Components
     
@@ -152,6 +153,7 @@ final class StampInfoViewController: UIViewController {
                 }
                 owner.updateUI(with: mission)
                 owner.isUnknownStamp(false)
+                owner.missionRelay.accept(()) // 데이터 받으면 애니메이션 시작
             }.disposed(by: disposeBag)
     }
 

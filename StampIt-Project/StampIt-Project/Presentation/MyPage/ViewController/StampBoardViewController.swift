@@ -187,10 +187,6 @@ extension StampBoardViewController: UICollectionViewDelegate {
         guard clickedSticker.type != .stampGray,
               let cell = collectionView.cellForItem(at: indexPath) else { return }
 
-        /// 애니메이션을 위한 Cell의 Frame 저장
-        let cellFrameInSuperview = collectionView.convert(cell.frame, to: self.view)
-        self.selectedCellFrame = cellFrameInSuperview
-
         /// Empty Stamp 는 모달뷰 띄우지 않음
         if clickedSticker.type != .stampGray {
             let viewModel = container.makeStampInfoViewModel()
