@@ -211,16 +211,6 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         completionHandler()
     }
-
-    func handleDeeplink(_ userInfo: [AnyHashable: Any]) {
-        guard let linkStr = userInfo["deeplink"] as? String,
-              let url     = URL(string: linkStr),
-              let scene   = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let delegate = scene.delegate as? SceneDelegate
-        else { return }
-        delegate.handleDeepLink(by: url)
-    }
-    
 }
 
 // MARK: - MessagingDelegate

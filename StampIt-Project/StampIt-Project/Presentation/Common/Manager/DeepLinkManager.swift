@@ -100,18 +100,6 @@ final class DeepLinkManager {
         return try DeepLink(url: url)
     }
     
-    /// 딥링크 처리를 위한 안전한 파싱 메서드
-    func safeParse(url: URL) -> DeepLink? {
-        do {
-            let deepLink = try parse(url: url)
-            print("✅ 딥링크 파싱 성공: \(deepLink)")
-            return deepLink
-        } catch {
-            print("❌ 딥링크 파싱 실패: \(error.localizedDescription)")
-            return nil
-        }
-    }
-    
     /// 딥링크를 기반으로 적절한 화면으로 이동
     func handleDeepLink(_ deepLink: DeepLink, in window: UIWindow?, container: DIContainer) throws {
         print("🔗 딥링크 처리 시작: \(deepLink)")
@@ -145,29 +133,6 @@ final class DeepLinkManager {
             let groupMemberManageVC = container.makeGroupMemberManageViewController()
             nav.pushViewController(groupMemberManageVC, animated: true)
         }
-    }
-    
-    // MARK: - 딥링크 URL 생성 메서드
-    
-    /// 그룹 관련 딥링크 URL 생성
-    func createGroupDeepLink(groupId: String) -> String {
-        let deepLinkURL = "stamp-it://group/\(groupId)"
-        print("🔗 그룹 딥링크 생성: \(deepLinkURL)")
-        return deepLinkURL
-    }
-    
-    /// 미션 관련 딥링크 URL 생성
-    func createMissionDeepLink(missionId: String) -> String {
-        let deepLinkURL = "stamp-it://mission/\(missionId)"
-        print("🔗 미션 딥링크 생성: \(deepLinkURL)")
-        return deepLinkURL
-    }
-    
-    /// 멤버 관련 딥링크 URL 생성
-    func createMemberDeepLink() -> String {
-        let deepLinkURL = "stamp-it://member"
-        print("🔗 멤버 딥링크 생성: \(deepLinkURL)")
-        return deepLinkURL
     }
     
     /// URL 문자열로부터 딥링크 처리
@@ -204,18 +169,3 @@ final class DeepLinkManager {
         return handleURLString(linkStr, in: window, container: container)
     }
 }
-
-// MARK: - Convenience Extensions
-extension DeepLink {
-    /// 딥링크 타입을 문자열로 반환
-    var type: String {
-        switch self {
-        case .newMission:
-            return "newMission"
-        case .missionRequest:
-            return "missionRequest"
-        case .member:
-            return "member"
-        }
-    }
-} 
