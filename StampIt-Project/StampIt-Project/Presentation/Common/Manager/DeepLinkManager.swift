@@ -37,8 +37,6 @@ enum DeepLink {
     case newMission
     case missionRequest
     case member
-    case group(String)  // groupId를 포함한 그룹 딥링크
-    case memberJoined  // 🎯 groupId 파라미터 제거하여 단순화
     
     // MARK: - Throwing Initializer
     init(url: URL) throws {
@@ -67,14 +65,6 @@ enum DeepLink {
             self = .missionRequest
         case "member":
             self = .member
-        case "group":
-            // group/{groupId} 패턴 처리
-            if comps.count >= 2 {
-                let groupId = comps[1]
-                self = .group(groupId)
-            } else {
-                throw DeepLinkError.invalidFormat
-            }
         default:
             throw DeepLinkError.invalidCategory
         }
@@ -92,10 +82,6 @@ enum DeepLink {
             path = "/missionRequest"
         case .member:
             path = "/member"
-        case .group(let groupId):
-            path = "/group/\(groupId)"
-        case .memberJoined:
-            path = "/member_joined"  // 🎯 그룹 ID 없이 단순화
         }
         
         return URL(string: "\(scheme)://\(path)")
@@ -158,16 +144,6 @@ final class DeepLinkManager {
             print("🔗 멤버 관리 화면으로 이동")
             let groupMemberManageVC = container.makeGroupMemberManageViewController()
             nav.pushViewController(groupMemberManageVC, animated: true)
-        case .group(let groupId):
-            print("�� 그룹 멤버 관리 화면으로 이동 (그룹 ID: \(groupId))")
-            let groupMemberManageVC = container.makeGroupMemberManageViewController(groupId: groupId)
-            nav.pushViewController(groupMemberManageVC, animated: true)
-        case .memberJoined:
-            print("🔗 그룹 멤버 가입 알림 처리: 멤버 관리 화면으로 이동")
-            // 🎯 그룹 멤버 관리 화면으로 이동 (해당 그룹 선택)
-            let groupMemberManageVC = container.makeGroupMemberManageViewController()
-            nav.pushViewController(groupMemberManageVC, animated: true)
-            print("✅ 그룹 멤버 가입 알림 처리 완료 - 멤버 관리 화면으로 이동")
         }
     }
     
@@ -240,10 +216,6 @@ extension DeepLink {
             return "missionRequest"
         case .member:
             return "member"
-        case .group(let groupId):
-            return "group/\(groupId)"
-        case .memberJoined:
-            return "memberJoined"
         }
     }
 } 
