@@ -13,7 +13,7 @@ final class DIContainer {
     // MARK: - Managers (Infrastructure Layer)
     lazy var authManager: any AuthManagerProtocol = AuthManager()
     lazy var userManager: any UserManagerProtocol = UserManager()
-    lazy var fcmManager: any FCMManagerProtocol = FCMManager(userManager: userManager)  // FCM 매니저 추가
+    lazy var fcmManager: any FCMManagerProtocol = FCMManager()  // FCM 매니저 추가
     lazy var groupManager: any GroupManagerProtocol = GroupManager()
     lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
     lazy var missionManager: any MissionManagerProtocol = MissionManager()
@@ -56,7 +56,8 @@ final class DIContainer {
             userManager: userManager,
             // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
              missionManager: missionManager,
-             stickerManager: stickerManager
+             stickerManager: stickerManager,
+             noticeManager: noticeManager
         )
     }()
 
