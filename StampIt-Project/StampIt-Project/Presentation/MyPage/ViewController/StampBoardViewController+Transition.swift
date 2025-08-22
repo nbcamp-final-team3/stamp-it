@@ -9,82 +9,187 @@ import UIKit
 import RxSwift
 
 final class StampPresentAnimator: NSObject, UIViewControllerAnimatedTransitioning {
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        0.5
+    private let duration: TimeInterval = 0.6
+    private var animationDisposable: Disposable?
+
+    func transitionDuration(
+        using transitionContext: UIViewControllerContextTransitioning?
+    ) -> TimeInterval {
+        return duration
     }
 
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        guard let toVC = transitionContext.viewController(forKey: .to) as? StampInfoViewController else { return }
+    func animateTransition(
+        using context: UIViewControllerContextTransitioning
+    ) {
+        guard let stampInfoVC = context.viewController(
+            forKey: .to
+        ) as? StampInfoViewController else {
+            context.completeTransition(false)
+            return
+        }
 
-        let containerView = transitionContext.containerView
+        let containerView = context.containerView
         containerView.backgroundColor = .black.withAlphaComponent(0.3)
 
-        let finalFrame = transitionContext.finalFrame(for: toVC)
-        toVC.view.alpha = 0 // 데이터 매핑 전 화면이 보이지 않도록
-        toVC.view.frame = finalFrame
-        containerView.addSubview(toVC.view)
+        let popupView = stampInfoVC.view!
+        containerView.addSubview(popupView)
+        popupView.frame = containerView.bounds
+        popupView.layoutIfNeeded()
 
-        toVC.view.layoutIfNeeded()
+        let cardView = stampInfoVC.cardContainerView
+        let frontView = stampInfoVC.frontInfoView
+        let backView = stampInfoVC.backImageView
 
-        let circleView = toVC.circleView
+        // 초기 각도 세팅 (back 먼저 보이도록)
+        var currentAngle: CGFloat = -180
 
-        // 3D Y축 회전 설정 (뒤집혀 있는 상태)
-        var transform = CATransform3DIdentity
-        transform.m34 = -1.0 / 1000   // 원근감 추가
-        transform = CATransform3DRotate(transform, .pi, 0, 1, 0) // y축 기준 180도 회전
-        circleView.layer.transform = transform
+        // 초기 스케일 설정 (zoom-in 효과용)
+        cardView.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
 
-        // 데이터 준비 완료 시점에 애니메이션 실행
-        toVC.missionRelay
+        frontView.isHidden = true
+        backView.isHidden = true
+
+        // 데이터 바인딩 완료 후 애니메이션 실행
+        animationDisposable = stampInfoVC.animationTrigger
             .take(1)
             .observe(on: MainScheduler.instance)
-            .subscribe(with: self) { owner, _ in
-                // 애니메이션
-                UIView.animate(
-                    withDuration: owner.transitionDuration(using: transitionContext),
-                    delay: 0,
-                    options: [.curveEaseOut]
-                ) {
-                    toVC.view.alpha = 1
-                    circleView.layer.transform = CATransform3DIdentity // 원래 상태로 되돌림
-                } completion: { _ in
-                    transitionContext.completeTransition(true)
-                }
-            }.disposed(by: toVC.disposeBag)
+            .subscribe(onNext: { [weak stampInfoVC] in
+                // 3D Y축 회전 설정
+                var perspective = CATransform3DIdentity
+
+                let displayLink = CADisplayLink(
+                    target: AnimationWrapper { [weak stampInfoVC] link in
+                        guard let stampInfoVC else {
+                            link.invalidate()
+                            return
+                        }
+
+                        currentAngle += 6 // 60fps 기준 → 360도 / 6 = 60프레임
+
+                        let radians = (currentAngle / 180) * .pi
+
+                        // 회전 적용
+                        frontView.layer.transform = CATransform3DRotate(perspective, radians, 0, 1, 0)
+                        backView.layer.transform = CATransform3DRotate(perspective, radians + .pi, 0, 1, 0)
+
+                        // 확대 (점진적 zoom in)
+                        let progress = min((currentAngle + 180) / 180, 1.0)
+                        let scale = 0.85 + (0.15 * progress)
+                        cardView.transform = CGAffineTransform(scaleX: scale, y: scale)
+
+                        // 뒷면 → 앞면 전환 타이밍
+                        let mod = currentAngle.truncatingRemainder(dividingBy: 360)
+                        if mod >= -90 && mod < 90 {
+                            frontView.isHidden = false
+                            backView.isHidden = true
+                        } else {
+                            frontView.isHidden = true
+                            backView.isHidden = false
+                        }
+
+                        if currentAngle >= 0 {
+                            link.invalidate()
+
+                            // 최종 상태 고정
+                            frontView.isHidden = false
+                            backView.isHidden = true
+                            frontView.layer.transform = CATransform3DIdentity
+                            backView.layer.transform = CATransform3DRotate(perspective, .pi, 0, 1, 0)
+                            cardView.transform = .identity
+
+                            context.completeTransition(true)
+                        }
+                    }, selector: #selector(AnimationWrapper.tick))
+
+                displayLink.add(to: .main, forMode: .common)
+            })
+    }
+
+    deinit {
+        animationDisposable?.dispose()
     }
 }
 
 final class StampDismissAnimator: NSObject, UIViewControllerAnimatedTransitioning {
+    private let duration: TimeInterval = 0.6
+    private var displayLink: CADisplayLink?
+
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        0.6
+        return duration
     }
 
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        guard let fromVC = transitionContext.viewController(forKey: .from) as? StampInfoViewController else {
-            transitionContext.completeTransition(false)
+    func animateTransition(using context: UIViewControllerContextTransitioning) {
+        guard let stampInfoVC = context.viewController(forKey: .from) as? StampInfoViewController else {
+            context.completeTransition(false)
             return
         }
 
-        let circleView = fromVC.circleView
+        let fromView = stampInfoVC.view!
+        let cardView = stampInfoVC.cardContainerView
+        let frontView = stampInfoVC.frontInfoView
+        let backView = stampInfoVC.backImageView
 
-        // 원근감 추가
-        var transform = CATransform3DIdentity
-        transform.m34 = -1.0 / 1000
+        // 두 면 모두 보이게
+        frontView.isHidden = false
+        backView.isHidden = false
 
-        // 애니메이션
-        UIView.animate(
-            withDuration: transitionDuration(using: transitionContext),
-            delay: 0,
-            options: [.curveEaseInOut],
-            animations: {
-                transform = CATransform3DRotate(transform, .pi, 0, 1, 0) // y축 기준 180도 회전
-                circleView.layer.transform = transform
+        // 초기 각도 세팅 (front 먼저 보이도록)
+        var currentAngle: CGFloat = 0
+        let totalAngle: CGFloat = 180  // 0 → 180
 
-                // 투명도 감소
-                fromVC.view.alpha = 0
-            }, completion: { _ in
-                fromVC.view.removeFromSuperview()
-            transitionContext.completeTransition(true)
-        })
+        let totalFrames: CGFloat = 50
+        let angleStep = totalAngle / totalFrames
+        var currentFrame: CGFloat = 0
+
+        displayLink = CADisplayLink(target: AnimationWrapper { [weak self, weak stampInfoVC] link in
+            guard let stampInfoVC else {
+                link.invalidate()
+                return
+            }
+
+            currentFrame += 1
+            currentAngle += angleStep
+            let radians = (currentAngle / 180) * .pi
+
+            // 3D Y축 회전 설정
+            var perspective = CATransform3DIdentity
+            frontView.layer.transform = CATransform3DRotate(perspective, radians, 0, 1, 0)
+            backView.layer.transform = CATransform3DRotate(perspective, radians + .pi, 0, 1, 0)
+
+            // 앞뒤면 전환
+            let mod = currentAngle.truncatingRemainder(dividingBy: 360)
+            if mod >= 90 && mod < 270 {
+                frontView.isHidden = true
+                backView.isHidden = false
+            } else {
+                frontView.isHidden = false
+                backView.isHidden = true
+            }
+
+            // 점진적 축소 + 페이드아웃
+            let scale = 1 - 0.3 * (currentFrame / totalFrames)  // 1.0 → 0.7
+            cardView.transform = CGAffineTransform(scaleX: scale, y: scale)
+            fromView.alpha = 1.0 - (currentFrame / totalFrames)
+
+            if currentFrame >= totalFrames {
+                link.invalidate()
+                self?.displayLink = nil
+
+                context.completeTransition(true)
+            }
+        }, selector: #selector(AnimationWrapper.tick))
+
+        displayLink?.add(to: .main, forMode: .common)
+    }
+}
+
+class AnimationWrapper {
+    let block: (CADisplayLink) -> Void
+    init(_ block: @escaping (CADisplayLink) -> Void) {
+        self.block = block
+    }
+
+    @objc func tick(_ sender: CADisplayLink) {
+        block(sender)
     }
 }
