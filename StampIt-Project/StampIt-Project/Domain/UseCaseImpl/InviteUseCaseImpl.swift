@@ -30,8 +30,8 @@ final class InviteUseCaseImpl: InviteUseCase {
 
     // receive 관련 메서드
     func addMember(groupId: String, member: Member) -> Observable<Void> {
-        let membershipFirestore = member.toMembershipFirestoreModel(groupId: groupId)
-        return authRepository.addMember(groupId: groupId, member: membershipFirestore)
+        print("🔗 addMember 호출")
+        return inviteRepository.addMember(groupId: groupId, member: member)
     }
 
     // send 관련 메서드
@@ -123,6 +123,20 @@ final class InviteUseCaseImpl: InviteUseCase {
                             userNickname: user.nickname,
                             profileImage: user.profileImage ?? "profileImage1"
                         )
+                    }
+                    .flatMap { [weak self] _ -> Observable<Void> in
+                        guard let self = self else { return .empty() }
+                        
+                        // 새 그룹에 멤버로 추가 (알림 발생)
+                        let newMember = Member(
+                            userID: user.userID,
+                            nickname: user.nickname,
+                            profileImage: user.profileImage,
+                            monthSticker: 0,
+                            joinedAt: Date(),
+                            isLeader: false
+                        )
+                        return self.addMember(groupId: newGroupId, member: newMember)
                     }
                 // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
                     .flatMap { [weak self] _ -> Observable<Void> in
