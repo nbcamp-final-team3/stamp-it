@@ -37,16 +37,14 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     let state = State()
 
     private let useCase: InviteUseCase
-    private let notificationUseCase: NotificationUseCase
     
     // 중복 실행 방지를 위한 플래그
     private var isProcessingInvite = false
 
     // MARK: - Init
 
-    init(useCase: InviteUseCase, notificationUseCase: NotificationUseCase) {
+    init(useCase: InviteUseCase) {
         self.useCase = useCase
-        self.notificationUseCase = notificationUseCase
         bindActions()
     }
 
@@ -119,34 +117,25 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     /// 🚀 실제 그룹 입장 처리 메서드
     /// UseCase의 acceptInvite 호출하여 그룹 이동 실행
     private func processInviteAcceptance(code: String) {
-    guard !isProcessingInvite else { return }
-    isProcessingInvite = true
-    
-    useCase.acceptInvite(inviteCode: code)
-        .flatMap { [weak self] userAndInvite -> Observable<Void> in
-            guard let self = self else { return .empty() }
-            
-            let (user, invite) = userAndInvite
-            
-            // 🎯 NotificationUseCase를 통해 알림 전송
-            return self.notificationUseCase.sendGroupJoinNotification(
-                userId: user.userID,
-                userNickname: user.nickname,
-                toGroupId: invite.groupId
-            )
-        }
-        .subscribe(onNext: { [weak self] _ in
-            self?.isProcessingInvite = false
-            self?.state.showMessage.accept((.success, "초대 완료!"))
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self?.state.didCompleteInvite.accept(())
-            }
-        }, onError: { [weak self] error in
-            self?.isProcessingInvite = false
-            self?.handleError(error)
-        })
-        .disposed(by: disposeBag)
-}
+        // 중복 실행 방지
+        guard !isProcessingInvite else { return }
+        isProcessingInvite = true
+        
+        useCase.acceptInvite(inviteCode: code)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] invite in
+                self?.isProcessingInvite = false
+                self?.state.showMessage.accept((.success, "초대 완료!"))
+                // MARK: - 초대 완료가 됐을때 VC에 발행
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    self?.state.didCompleteInvite.accept(())
+                }
+            }, onError: { [weak self] error in
+                self?.isProcessingInvite = false
+                self?.handleError(error)
+            })
+            .disposed(by: disposeBag)
+    }
     
     private func handleError(_ error: Error) {
         print("[DEBUG] error:", error)
