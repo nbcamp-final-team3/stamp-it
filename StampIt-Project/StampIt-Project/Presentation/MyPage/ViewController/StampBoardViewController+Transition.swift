@@ -43,9 +43,6 @@ final class StampPresentAnimator: NSObject, UIViewControllerAnimatedTransitionin
         // 초기 각도 세팅 (back 먼저 보이도록)
         var currentAngle: CGFloat = -180
 
-        // 초기 스케일 설정 (zoom-in 효과용)
-        cardView.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
-
         frontView.isHidden = true
         backView.isHidden = true
 
@@ -71,11 +68,6 @@ final class StampPresentAnimator: NSObject, UIViewControllerAnimatedTransitionin
                         // 회전 적용
                         frontView.layer.transform = CATransform3DRotate(perspective, radians, 0, 1, 0)
                         backView.layer.transform = CATransform3DRotate(perspective, radians + .pi, 0, 1, 0)
-
-                        // 확대 (점진적 zoom in)
-                        let progress = min((currentAngle + 180) / 180, 1.0)
-                        let scale = 0.85 + (0.15 * progress)
-                        cardView.transform = CGAffineTransform(scaleX: scale, y: scale)
 
                         // 뒷면 → 앞면 전환 타이밍
                         let mod = currentAngle.truncatingRemainder(dividingBy: 360)
@@ -124,8 +116,7 @@ final class StampDismissAnimator: NSObject, UIViewControllerAnimatedTransitionin
             return
         }
 
-        let fromView = stampInfoVC.view!
-        let cardView = stampInfoVC.cardContainerView
+        let popupView = stampInfoVC.view!
         let frontView = stampInfoVC.frontInfoView
         let backView = stampInfoVC.backImageView
 
@@ -167,9 +158,7 @@ final class StampDismissAnimator: NSObject, UIViewControllerAnimatedTransitionin
             }
 
             // 점진적 축소 + 페이드아웃
-            let scale = 1 - 0.3 * (currentFrame / totalFrames)  // 1.0 → 0.7
-            cardView.transform = CGAffineTransform(scaleX: scale, y: scale)
-            fromView.alpha = 1.0 - (currentFrame / totalFrames)
+            popupView.alpha = 1.0 - (currentFrame / totalFrames)
 
             if currentFrame >= totalFrames {
                 link.invalidate()
