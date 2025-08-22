@@ -12,6 +12,7 @@ import FirebaseFirestore
 import GoogleSignIn
 import FirebaseMessaging
 import UserNotifications
+import FirebaseAuth // Added for Auth.auth()
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -168,13 +169,15 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         // ⭐ 중요: FCM에 APNS 토큰 설정
         Messaging.messaging().apnsToken = deviceToken
         
-        // FCM 토큰 요청
+        // FCM 토큰 요청 및 Firestore 저장
         Messaging.messaging().token { token, error in
             if let error = error {
                 print("❌ FCM 토큰 가져오기 실패: \(error)")
             } else if let token = token {
                 print("🔥 FCM Token: \(token)")
                 UserDefaults.standard.set(token, forKey: "FCMToken")
+                // Firestore에도 저장 (재시도 로직 포함)
+                self.attemptToSaveFCMToken(token: token, retryCount: 0)
             }
         }
     }
@@ -230,6 +233,9 @@ extension AppDelegate: MessagingDelegate {
         if let token = fcmToken {
             UserDefaults.standard.set(token, forKey: "FCMToken")
             
+            // Firestore에도 저장 (재시도 로직 포함)
+            attemptToSaveFCMToken(token: token, retryCount: 0)
+            
             // NotificationCenter로 토큰 전달
             let dataDict: [String: String] = ["token": token]
             NotificationCenter.default.post(
@@ -237,6 +243,50 @@ extension AppDelegate: MessagingDelegate {
                 object: nil,
                 userInfo: dataDict
             )
+        }
+    }
+    
+         // FCM 토큰 저장 재시도
+    private func attemptToSaveFCMToken(token: String, retryCount: Int) {
+        let maxRetries = 5
+        
+        if let firebaseUID = Auth.auth().currentUser?.uid {
+            print("✅ Firebase Auth UID 발견: \(firebaseUID)")
+            uploadFCMTokenToFirestore(token)
+            return
+        }
+        
+        if retryCount < maxRetries {
+            print("⏳ Firebase Auth 대기 중... \(retryCount + 1)/\(maxRetries) (2초 후 재시도)")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                self?.attemptToSaveFCMToken(token: token, retryCount: retryCount + 1)
+            }
+        } else {
+            print("❌ 최대 재시도 횟수 초과. FCM 토큰 저장 실패")
+            print("⚠️ Firebase Auth 상태를 확인해주세요")
+        }
+    }
+    
+    // Firestore에 FCM 토큰 업로드
+    private func uploadFCMTokenToFirestore(_ token: String) {
+        // Firebase Auth의 현재 사용자 UID 사용
+        guard let firebaseUID = Auth.auth().currentUser?.uid else { 
+            print("❌ Firebase Auth 사용자 UID를 찾을 수 없음")
+            return 
+        }
+        
+        print(" Firebase Auth UID로 FCM 토큰 저장 시작: \(firebaseUID)")
+        
+        let db = Firestore.firestore()
+        db.collection("users").document(firebaseUID).setData([
+            "fcmToken": token
+        ], merge: true) { error in
+            if let error = error {
+                print("❌ FCM 토큰 Firestore 저장 실패: \(error)")
+            } else {
+                print("✅ FCM 토큰 Firestore 저장 성공: users/\(firebaseUID)")
+            }
         }
     }
 }
