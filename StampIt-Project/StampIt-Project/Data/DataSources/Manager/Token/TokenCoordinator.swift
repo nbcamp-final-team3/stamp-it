@@ -17,7 +17,7 @@ final class TokenCoordinator {
     
     init(fcmManager: FCMManagerProtocol) {
         self.fcmManager = fcmManager
-//        setupTokenObserver()
+       setupTokenObserver()
         setupAuthStateObserver()
     }
     
@@ -27,25 +27,26 @@ final class TokenCoordinator {
         if let authStateListener { Auth.auth().removeStateDidChangeListener(authStateListener) }
     }
     
-//    // MARK: - 토큰 갱신 이벤트 구독
-//    private func setupTokenObserver() {
-//        tokenObserver = NotificationCenter.default.addObserver(
-//            forName: .fcmTokenDidRefresh,
-//            object: nil,
-//            queue: .main
-//        ) { [weak self] notification in
-//            guard
-//                let self = self,
-//                let uid = self.currentUserId,  // 로그인 되어 있어야 서버에 씀
-//                let token = notification.userInfo?["token"] as? String
-//            else { return }
-//            
-//            print("🔄 TokenCoordinator: 토큰 갱신 이벤트 수신 - 사용자: \(uid)")
-//            self.fcmManager.upsertToken(token, for: uid)
-//        }
-//    }
+
+   // MARK: - 토큰 갱신 이벤트 구독 test미완료
+   private func setupTokenObserver() {
+       tokenObserver = NotificationCenter.default.addObserver(
+           forName: .fcmTokenDidRefresh,
+           object: nil,
+           queue: .main
+       ) { [weak self] notification in
+           guard
+               let self = self,
+               let uid = self.currentUserId,  // 로그인 되어 있어야 서버에 씀
+               let token = notification.userInfo?["token"] as? String
+           else { return }
+           
+           print("🔄 TokenCoordinator: 토큰 갱신 이벤트 수신 - 사용자: \(uid)")
+           self.fcmManager.upsertToken(token, for: uid)
+       }
+   }
     
-    // MARK: - 인증 상태 변화 감지
+    // MARK: - 인증 상태 변화 감지 test완료
     private func setupAuthStateObserver() {
         authStateListener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             if let user = user {
