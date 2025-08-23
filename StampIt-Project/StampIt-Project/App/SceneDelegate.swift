@@ -21,6 +21,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
+
+        // TokenCoordinator 초기화 (FCM 토큰 이벤트 구독 시작)
+        _ = DIContainer.shared.tokenCoordinator
         
         // 2. 버전 체크 먼저
         versionCheckViewModel.checkForceUpdate { [weak self] needUpdate, message in
