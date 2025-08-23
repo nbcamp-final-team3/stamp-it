@@ -299,15 +299,10 @@ final class AuthRepository: AuthRepositoryProtocol {
             batch.setData(membershipDict, forDocument: membershipRef)
             
             // 커밋
-            batch.commit { [weak self] error in
+            batch.commit { error in
                 if let error = error {
                     observer.onError(RepositoryError.dataError("신규 사용자 생성 실패: \(error.localizedDescription)"))
                 } else {
-                    // FCM 토큰 저장
-                    self?.fcmManager.refreshFCMTokenForUser(userId: user.userID)
-                        .subscribe()
-                        .disposed(by: self?.disposeBag ?? DisposeBag())
-                    
                     observer.onNext(user)
                     observer.onCompleted()
                 }
