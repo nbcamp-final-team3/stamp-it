@@ -128,9 +128,9 @@ final class StampDismissAnimator: NSObject, UIViewControllerAnimatedTransitionin
         var currentAngle: CGFloat = 0
         let totalAngle: CGFloat = 180  // 0 → 180
 
-        let totalFrames: CGFloat = 50
+        let totalFrames: CGFloat = 40
         let angleStep = totalAngle / totalFrames
-        var currentFrame: CGFloat = 0
+        var currentFrame: CGFloat = -5
 
         displayLink = CADisplayLink(target: AnimationWrapper { [weak self, weak stampInfoVC] link in
             guard let stampInfoVC else {

@@ -16,6 +16,7 @@ final class StampInfoViewController: UIViewController {
     // MARK: - Properties
 
     let viewModel: StampInfoViewModel
+    let stampType: StickerType
 
     let animationTrigger = PublishRelay<Void>()
     let disposeBag = DisposeBag()
@@ -35,7 +36,6 @@ final class StampInfoViewController: UIViewController {
     }
 
     let backImageView = UIImageView().then {
-        $0.image = UIImage(named: "stampRed")
         $0.contentMode = .scaleAspectFill
         $0.clipsToBounds = true
     }
@@ -113,9 +113,11 @@ final class StampInfoViewController: UIViewController {
     // MARK: - Initializer, Deinit, requiered
 
     init(
-        viewModel: StampInfoViewModel
+        viewModel: StampInfoViewModel,
+        stampType: StickerType,
     ) {
         self.viewModel = viewModel
+        self.stampType = stampType
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -136,23 +138,23 @@ final class StampInfoViewController: UIViewController {
 
     private func bind() {
         closeButton.rx.tap
-            .subscribe(with: self) { owner, _ in
-                owner.viewModel.action.accept(.closeButtonTapped)
+            .subscribe(with: self) { owned, _ in
+                owned.viewModel.action.accept(.closeButtonTapped)
             }.disposed(by: disposeBag)
 
         viewModel.state.isDismissed
             .asDriver()
             .filter { $0 }
-            .drive(with: self) { owner, _ in
-                owner.dismiss(animated: true)
+            .drive(with: self) { owned, _ in
+                owned.dismiss(animated: true)
             }.disposed(by: disposeBag)
 
         viewModel.state.mission
             .asDriver()
-            .drive(with: self) { owner, mission in
+            .drive(with: self) { owned, mission in
                 guard let mission else {
                     /// 그룹 탈퇴하여 받은 미션이 삭제된 경우
-                    owner.updateUI(
+                    owned.updateUI(
                         with: MissionUI(
                             missionID: .init(),
                             title: "탈퇴한 그룹에서 받은 스탬프",
@@ -161,13 +163,15 @@ final class StampInfoViewController: UIViewController {
                             category: .custom
                         )
                     )
-                    owner.categoryTitle.isHidden = true
+                    owned.categoryTitle.isHidden = true
                     return
                 }
-                owner.updateUI(with: mission)
-                owner.categoryTitle.isHidden = false
-                owner.animationTrigger.accept(()) // 데이터 받으면 애니메이션 시작
+                owned.updateUI(with: mission)
+                owned.categoryTitle.isHidden = false
+                owned.animationTrigger.accept(()) // 데이터 받으면 애니메이션 시작
             }.disposed(by: disposeBag)
+
+        backImageView.image = UIImage(named: stampType.rawValue)
     }
 
     // MARK: - Method
