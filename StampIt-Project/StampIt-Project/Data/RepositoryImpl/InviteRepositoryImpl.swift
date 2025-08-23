@@ -76,6 +76,7 @@ final class InviteRepositoryImpl: InviteRepositoryProtocol {
                                 isRead: false,
                                 userId: existingMember.userId  // 기존 멤버에게 전송
                             )
+                            // 서버 트리거 함수 호출
                             return self.noticeManager.create(notice: notice)
                         }
                         
