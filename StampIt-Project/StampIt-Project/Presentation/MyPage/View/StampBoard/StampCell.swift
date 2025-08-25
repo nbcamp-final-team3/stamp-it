@@ -30,9 +30,8 @@ final class StampCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         configureDashedLine(with: .none)
+        removeBlur(from: stampImageView)
         stampImageView.image = nil
-        stampImageView.layer.shadowOpacity = 0
-        stampImageView.layer.shadowPath = nil
     }
     
     // MARK: - Initializer, Deinit, requiered
