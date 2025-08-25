@@ -9,7 +9,7 @@ import Foundation
 import FirebaseFirestore
 import RxSwift
 
-final class NoticeManager {
+final class NoticeManager: NoticeManagerProtocol {
     private let db = Firestore.firestore()
     var noticeCollection: CollectionReference {
         db.collection("DataNoticeFirestore")
@@ -17,7 +17,7 @@ final class NoticeManager {
 
     // MARK: - 알림 생성 (Firestore 저장 → FCM 푸시 트리거)
     /// Firestore에 알림 데이터를 저장  - 저장 후, 서버/클라우드 함수가 해당 userId로 FCM 푸시 알림을 전송함.
-    func create(notice: DataNoticeFirestore) -> Observable<Void> {
+    func create(notice: NoticeFirestore) -> Observable<Void> {
         Observable.create { observer in
             do {
                 try self.noticeCollection.document(notice.noticeId).setData(from: notice) { error in
@@ -37,7 +37,7 @@ final class NoticeManager {
 
     // MARK: - 실시간 알림 구독 (앱 내 알림 리스트)
     /// Firestore에서 내 userId 등 조건에 맞는 알림을 실시간 구독 - 앱이 켜져 있을 때 알림 리스트를 자동 갱신.
-    func observeNotices(query: NoticeQuery) -> Observable<[DataNoticeFirestore]> {
+    func observeNotices(query: NoticeQuery) -> Observable<[NoticeFirestore]> {
         Observable.create { observer in
             var firestoreQuery: Query = self.noticeCollection
             
@@ -69,7 +69,7 @@ final class NoticeManager {
                     return
                 }
                 do {
-                    let notices = try documents.compactMap { try $0.data(as: DataNoticeFirestore.self) }
+                    let notices = try documents.compactMap { try $0.data(as: NoticeFirestore.self) }
                     observer.onNext(notices)
                 } catch {
                     observer.onError(NoticeError.decodingFailed(error.localizedDescription))

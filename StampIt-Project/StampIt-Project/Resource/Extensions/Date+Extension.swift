@@ -8,9 +8,19 @@
 import Foundation
 
 extension Date {
+    // TODO: formatting 함수 통일
     func toMonthDayString() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MM/dd"
+
+        let formattedDate = formatter.string(from: self)
+
+        return formattedDate
+    }
+
+    func toMonthDayStringKor() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM월 dd일"
 
         let formattedDate = formatter.string(from: self)
 

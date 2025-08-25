@@ -17,6 +17,7 @@ final class DIContainer {
     lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
     lazy var missionManager: any MissionManagerProtocol = MissionManager()
     lazy var stickerManager: any StickerManagerProtocol = StickerManager()
+    lazy var noticeManager: any NoticeManagerProtocol = NoticeManager()
 
 
     // MARK: - Repositories (Data Layer)
@@ -96,6 +97,10 @@ final class DIContainer {
         )
     }()
 
+    lazy var noticeRepository: NoticeRepositoryProtocol = {
+        return NoticeRepository(noticeManager: noticeManager, authManager: authManager)
+    }()
+
     // MARK: - Services
 
     lazy var missionExpirationService: MissionExpirationService = {
@@ -121,6 +126,7 @@ final class DIContainer {
     lazy var myMissionUseCase: MyMissionUseCaseProtocol = {
         return MyMissionUseCaseImpl(
             homeRepository: homeRepository,
+            authRepository: authRepository,
             expirationService: missionExpirationService
         )
     }()
@@ -161,7 +167,11 @@ final class DIContainer {
             accountManageRepository: accountManageRepository, inviteRepository: inviteRepository
         )
     }()
-    
+
+    lazy var noticeUseCase: NoticeUseCaseProtocol = {
+        return NoticeUseCase(repository: noticeRepository)
+    }()
+
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -196,10 +206,8 @@ final class DIContainer {
         return OnboardingViewModel(totalPages: 3)
     }
 
-    func makeMyMissionViewModel(user: User, memberCache: [String: Member]) -> MyMissionViewModel {
+    func makeMyMissionViewModel(memberCache: [String: Member]) -> MyMissionViewModel {
         return MyMissionViewModel(
-            user: user,
-            memberCache: memberCache,
             useCase: myMissionUseCase,
             mapper: MissionMapper(),
         )
@@ -242,6 +250,10 @@ final class DIContainer {
         )
     }
 
+    func makeNoticeListViewModel() -> NoticeListViewModel {
+        return NoticeListViewModel(useCase: noticeUseCase)
+    }
+
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
@@ -276,8 +288,8 @@ final class DIContainer {
         return OnboardingViewController(viewModel: viewModel)
     }
 
-    func makeMyMissionViewController(user: User, memberCache: [String: Member]) -> MyMissionViewController {
-        let viewModel = makeMyMissionViewModel(user: user, memberCache: memberCache)
+    func makeMyMissionViewController(memberCache: [String: Member]) -> MyMissionViewController {
+        let viewModel = makeMyMissionViewModel(memberCache: memberCache)
         return MyMissionViewController(viewModel: viewModel)
     }
 
@@ -314,6 +326,11 @@ final class DIContainer {
     func makeStampInfoViewController() -> StampInfoViewController {
         let viewModel = makeStampInfoViewModel()
         return StampInfoViewController(viewModel: viewModel)
+    }
+
+    func makeNoticeListViewController() -> NoticeListViewController {
+        let viewModel = makeNoticeListViewModel()
+        return NoticeListViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton

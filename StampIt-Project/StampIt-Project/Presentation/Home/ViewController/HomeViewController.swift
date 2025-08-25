@@ -20,7 +20,12 @@ final class HomeViewController: UIViewController {
 
     // MARK: - UI Components
 
-    private let navigationBar = DefaultNavigationBar(.logoWithItem)
+    private let bellButton = UIButton().then {
+        $0.setImage(UIImage(named: Navigation.bellButton), for: .normal)
+    }
+    private lazy var navigationBar = DefaultNavigationBar(.logoWithItem).then {
+        $0.addRightItem(bellButton)
+    }
     private let homeView = HomeView()
     private var activeToasts: [String: ToastView] = [:] // key: missionID
 
@@ -79,6 +84,19 @@ final class HomeViewController: UIViewController {
         bindGroupOrganizationView()
         bindDashboardView()
         bindToastView()
+        bindBellButton()
+    }
+
+    private func bindBellButton() {
+        bellButton.rx.tap
+            .map { HomeViewModel.Action.checkNotice }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
+        viewModel.state.isPushNoticeListVC
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(onNext: pushNoticeListVC)
+            .disposed(by: disposeBag)
     }
 
     private func bindGroupOrganizationView() {
@@ -250,10 +268,13 @@ final class HomeViewController: UIViewController {
         present(vc, animated: true)
     }
 
+    private func pushNoticeListVC() {
+        let noticeListVC = DIContainer.shared.makeNoticeListViewController()
+        navigationController?.pushViewController(noticeListVC, animated: true)
+    }
+
     private func pushMyMissionVC() {
-        guard let user = viewModel.state.user.value else { return }
         let myMissionVC = DIContainer.shared.makeMyMissionViewController(
-            user: user,
             memberCache: viewModel.memberCache
         )
         navigationController?.pushViewController(myMissionVC, animated: true)
