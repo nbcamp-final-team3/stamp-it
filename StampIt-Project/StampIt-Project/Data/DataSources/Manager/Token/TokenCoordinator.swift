@@ -17,7 +17,7 @@ final class TokenCoordinator {
     
     init(fcmManager: FCMManagerProtocol) {
         self.fcmManager = fcmManager
-       setupTokenObserver()
+//       setupTokenObserver()
         setupAuthStateObserver()
     }
     
