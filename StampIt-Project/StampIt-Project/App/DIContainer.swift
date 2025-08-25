@@ -13,8 +13,7 @@ final class DIContainer {
     // MARK: - Managers (Infrastructure Layer)
     lazy var authManager: any AuthManagerProtocol = AuthManager()
     lazy var userManager: any UserManagerProtocol = UserManager()
-    lazy var tokenManager: any TokenManagerProtocol = TokenManager()  // TokenManager 추가
-    lazy var fcmManager: any FCMManagerProtocol = FCMManager()  // TokenManager 주입 제거
+    lazy var fcmManager: any FCMManagerProtocol = FCMManager()
     lazy var groupManager: any GroupManagerProtocol = GroupManager()
     lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
     lazy var missionManager: any MissionManagerProtocol = MissionManager()
@@ -28,7 +27,6 @@ final class DIContainer {
     lazy var authRepository: AuthRepositoryProtocol = {
         return AuthRepository(
             authManager: authManager,
-            fcmManager: fcmManager,  // FCM 매니저 주입
             userManager: userManager,
             groupManager: groupManager,
             membershipManager: membershipManager,
