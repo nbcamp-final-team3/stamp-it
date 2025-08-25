@@ -18,7 +18,6 @@ protocol TokenManagerProtocol {
     /// 그룹 멤버들의 FCM 토큰 조회
     func getGroupMemberActiveTokens(groupId: String) -> Observable<[String]>
     
-    
     /// 사용자의 모든 토큰 삭제 (계정 삭제 시)
     func deleteAllTokens(userId: String) -> Observable<Void>
 }

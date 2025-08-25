@@ -14,7 +14,6 @@ final class AuthRepository: AuthRepositoryProtocol {
     
     // MARK: - Properties
     private let authManager: AuthManagerProtocol
-    private let fcmManager: FCMManagerProtocol  // FCM 매니저 추가
     
     // 각 매니저별로 분리된 의존성 (새로운 매니저 구조)
     private let userManager: any UserManagerProtocol
@@ -28,7 +27,6 @@ final class AuthRepository: AuthRepositoryProtocol {
     // MARK: - Init
     init(
         authManager: AuthManagerProtocol,
-        fcmManager: FCMManagerProtocol,  // FCM 매니저 주입
         userManager: any UserManagerProtocol,
         groupManager: any GroupManagerProtocol,
         membershipManager: any MembershipManagerProtocol,
@@ -36,7 +34,6 @@ final class AuthRepository: AuthRepositoryProtocol {
         stickerManager: any StickerManagerProtocol
     ) {
         self.authManager = authManager
-        self.fcmManager = fcmManager
         self.userManager = userManager
         self.groupManager = groupManager
         self.membershipManager = membershipManager

@@ -205,7 +205,6 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 }
 
 // MARK: - MessagingDelegate
-// MARK: - MessagingDelegate
 extension AppDelegate: MessagingDelegate {
     
     // FCM 토큰 갱신 시 호출
