@@ -16,7 +16,6 @@ final class LoginViewController: UIViewController {
     
     // MARK: - Properties
     private let viewModel: LoginViewModel
-    private let container: DIContainer
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
@@ -120,11 +119,9 @@ final class LoginViewController: UIViewController {
     
     // MARK: - Init
     init(
-        viewModel: LoginViewModel,
-        container: DIContainer
+        viewModel: LoginViewModel
     ) {
         self.viewModel = viewModel
-        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -422,13 +419,13 @@ final class LoginViewController: UIViewController {
     
     /// 홈 화면으로 이동
     private func navigateToHome(user: User) {
-        let tabBar = MainTabBarController(container: container)
+        let tabBar = MainTabBarController()
         WindowTransitionManager.shared.changeRootViewController(to: tabBar)
     }
     
     /// 신규 사용자 환영 메시지 표시
     private func showWelcomeMessage(user: User) {
-        let tabBar = MainTabBarController(container: container)
+        let tabBar = MainTabBarController()
         WindowTransitionManager.shared.changeRootViewController(to: tabBar)
         
         // 2. 새로운 루트 뷰에서 토스트 표시 (0.5초 후)

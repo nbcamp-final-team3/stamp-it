@@ -15,14 +15,13 @@ final class MyPageViewController: UIViewController {
     // MARK: - Properties
     
     private let viewModel: MyPageViewModel
-    private let container: DIContainer
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
     
     private lazy var viewControllers: [UIViewController] = [
-        container.makeStampBoardViewController(),
-        container.makeProfileViewController()
+        DIContainer.shared.makeStampBoardViewController(),
+        DIContainer.shared.makeProfileViewController()
     ]
     
     private lazy var pageViewController = UIPageViewController(
@@ -46,10 +45,8 @@ final class MyPageViewController: UIViewController {
     
     init(
         viewModel: MyPageViewModel,
-        container: DIContainer
     ) {
         self.viewModel = viewModel
-        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
