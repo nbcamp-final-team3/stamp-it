@@ -47,54 +47,62 @@ final class StampPresentAnimator: NSObject, UIViewControllerAnimatedTransitionin
         backView.isHidden = true
 
         // 데이터 바인딩 완료 후 애니메이션 실행
-        animationDisposable = stampInfoVC.animationTrigger
-            .take(1)
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak stampInfoVC] in
-                // 3D Y축 회전 설정
-                var perspective = CATransform3DIdentity
+        animationDisposable = Observable.merge(
+            stampInfoVC
+                .animationTrigger
+                .take(1)
+                .asObservable(),
+            Observable
+                .just(())
+                .delay(.milliseconds(300), scheduler: MainScheduler.instance)
+        )
+        .take(1)
+        .observe(on: MainScheduler.instance)
+        .subscribe(onNext: { [weak stampInfoVC] in
+            // 3D Y축 회전 설정
+            var perspective = CATransform3DIdentity
 
-                let displayLink = CADisplayLink(
-                    target: AnimationWrapper { [weak stampInfoVC] link in
-                        guard let stampInfoVC else {
-                            link.invalidate()
-                            return
-                        }
+            let displayLink = CADisplayLink(
+                target: AnimationWrapper { [weak stampInfoVC] link in
+                    guard let stampInfoVC else {
+                        link.invalidate()
+                        return
+                    }
 
-                        currentAngle += 6 // 60fps 기준 → 360도 / 6 = 60프레임
+                    currentAngle += 6 // 60fps 기준 → 360도 / 6 = 60프레임
 
-                        let radians = (currentAngle / 180) * .pi
+                    let radians = (currentAngle / 180) * .pi
 
-                        // 회전 적용
-                        frontView.layer.transform = CATransform3DRotate(perspective, radians, 0, 1, 0)
-                        backView.layer.transform = CATransform3DRotate(perspective, radians + .pi, 0, 1, 0)
+                    // 회전 적용
+                    frontView.layer.transform = CATransform3DRotate(perspective, radians, 0, 1, 0)
+                    backView.layer.transform = CATransform3DRotate(perspective, radians + .pi, 0, 1, 0)
 
-                        // 뒷면 → 앞면 전환 타이밍
-                        let mod = currentAngle.truncatingRemainder(dividingBy: 360)
-                        if mod >= -90 && mod < 90 {
-                            frontView.isHidden = false
-                            backView.isHidden = true
-                        } else {
-                            frontView.isHidden = true
-                            backView.isHidden = false
-                        }
+                    // 뒷면 → 앞면 전환 타이밍
+                    let mod = currentAngle.truncatingRemainder(dividingBy: 360)
+                    if mod >= -90 && mod < 90 {
+                        frontView.isHidden = false
+                        backView.isHidden = true
+                    } else {
+                        frontView.isHidden = true
+                        backView.isHidden = false
+                    }
 
-                        if currentAngle >= 0 {
-                            link.invalidate()
+                    if currentAngle >= 0 {
+                        link.invalidate()
 
-                            // 최종 상태 고정
-                            frontView.isHidden = false
-                            backView.isHidden = true
-                            frontView.layer.transform = CATransform3DIdentity
-                            backView.layer.transform = CATransform3DRotate(perspective, .pi, 0, 1, 0)
-                            cardView.transform = .identity
+                        // 최종 상태 고정
+                        frontView.isHidden = false
+                        backView.isHidden = true
+                        frontView.layer.transform = CATransform3DIdentity
+                        backView.layer.transform = CATransform3DRotate(perspective, .pi, 0, 1, 0)
+                        cardView.transform = .identity
 
-                            context.completeTransition(true)
-                        }
-                    }, selector: #selector(AnimationWrapper.tick))
+                        context.completeTransition(true)
+                    }
+                }, selector: #selector(AnimationWrapper.tick))
 
-                displayLink.add(to: .main, forMode: .common)
-            })
+            displayLink.add(to: .main, forMode: .common)
+        })
     }
 
     deinit {

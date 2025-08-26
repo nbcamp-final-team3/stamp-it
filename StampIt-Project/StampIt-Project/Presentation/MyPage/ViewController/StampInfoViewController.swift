@@ -152,7 +152,10 @@ final class StampInfoViewController: UIViewController {
         viewModel.state.mission
             .asDriver()
             .drive(with: self) { owned, mission in
-                guard let mission else {
+                if let mission {
+                    owned.updateUI(with: mission)
+                    owned.categoryTitle.isHidden = false
+                } else {
                     /// 그룹 탈퇴하여 받은 미션이 삭제된 경우
                     owned.updateUI(
                         with: MissionUI(
@@ -164,10 +167,7 @@ final class StampInfoViewController: UIViewController {
                         )
                     )
                     owned.categoryTitle.isHidden = true
-                    return
                 }
-                owned.updateUI(with: mission)
-                owned.categoryTitle.isHidden = false
                 owned.animationTrigger.accept(()) // 데이터 받으면 애니메이션 시작
             }.disposed(by: disposeBag)
 

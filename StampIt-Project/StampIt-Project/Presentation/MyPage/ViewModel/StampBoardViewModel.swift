@@ -159,7 +159,6 @@ final class StampBoardViewModel: ViewModelProtocol {
                     pinNumber: state.stickerSummary.value.completed
                 )
             }
-
         state.stickersByPage.accept(zigzagged)
         disableBlurAfterDelay()
     }
