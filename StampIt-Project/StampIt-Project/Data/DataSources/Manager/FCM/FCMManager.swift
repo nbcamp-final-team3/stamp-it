@@ -27,19 +27,22 @@ final class FCMManager: NSObject, FCMManagerProtocol {
         // 사용자별로 고정된 문서 ID 사용 (같은 토큰일 경우 갱신만)
         let doc = db.collection("tokens").document(userId)
         
-        let payload: [String: Any] = [
-            "userId": userId,
-            "fcmToken": token,
-            "tokenId": userId,
-            "updatedAt": FieldValue.serverTimestamp()
-        ]
+        // TokenFirestore 모델 생성
+        let tokenData = TokenFirestore(
+            userId: userId,
+            fcmToken: token
+        )
         
-        doc.setData(payload, merge: true) { error in
-            if let error = error {
-                print("❌ FCM token upsert 실패: \(error)")
-            } else {
-                print("✅ FCM token upsert 성공 - 사용자: \(userId)")
+        do {
+            try doc.setData(from: tokenData, merge: true) { error in
+                if let error = error {
+                    print("❌ FCM token upsert 실패: \(error)")
+                } else {
+                    print("✅ FCM token upsert 성공 - 사용자: \(userId)")
+                }
             }
+        } catch {
+            print("❌ FCM token 모델 인코딩 실패: \(error)")
         }
     }
 }
