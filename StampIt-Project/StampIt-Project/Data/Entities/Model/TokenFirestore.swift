@@ -9,10 +9,14 @@ import Foundation
 import FirebaseFirestore
 
 struct TokenFirestore: Codable {
-    let tokenId: String
     let userId: String
     let fcmToken: String
+    let updatedAt: Timestamp
     
-    var documentID: String { return tokenId }
+    init(userId: String, fcmToken: String) {
+        self.userId = userId
+        self.fcmToken = fcmToken
+        self.updatedAt = Timestamp()
+    }
 }
 
