@@ -16,7 +16,6 @@ final class StampBoardViewController: BaseViewController {
     // MARK: - Properties
     
     private var viewModel: StampBoardViewModel
-    private var container: DIContainer
     private let disposeBag = DisposeBag()
     private var currentPage: Int = .zero
     
@@ -30,10 +29,8 @@ final class StampBoardViewController: BaseViewController {
     
     init(
         viewModel: StampBoardViewModel,
-        container: DIContainer
     ) {
         self.viewModel = viewModel
-        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -187,8 +184,8 @@ extension StampBoardViewController: UICollectionViewDelegate {
 
         /// Empty Stamp 는 모달뷰 띄우지 않음
         if clickedSticker.type != .gray {
-            let viewModel = container.makeStampInfoViewModel()
-            
+            let viewModel = DIContainer.shared.makeStampInfoViewModel()
+
             let stampInfoVC = StampInfoViewController(viewModel: viewModel)
             stampInfoVC.modalPresentationStyle = .custom
             
