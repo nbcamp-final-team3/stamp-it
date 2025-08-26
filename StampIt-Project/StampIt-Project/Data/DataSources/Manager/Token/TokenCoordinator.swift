@@ -11,40 +11,18 @@ import FirebaseMessaging
 
 final class TokenCoordinator {
     private let fcmManager: FCMManagerProtocol
-    private var tokenObserver: NSObjectProtocol?
     private var authStateListener: AuthStateDidChangeListenerHandle?
     private var currentUserId: String?
     
     init(fcmManager: FCMManagerProtocol) {
         self.fcmManager = fcmManager
-//       setupTokenObserver()
         setupAuthStateObserver()
     }
     
     deinit {
         // 리스너들 정리
-        if let tokenObserver { NotificationCenter.default.removeObserver(tokenObserver) }
         if let authStateListener { Auth.auth().removeStateDidChangeListener(authStateListener) }
     }
-    
-
-   // MARK: - 토큰 갱신 이벤트 구독 test미완료 -> 주기적인 갱신을 위한 메서드
-//   private func setupTokenObserver() {
-//       tokenObserver = NotificationCenter.default.addObserver(
-//           forName: .fcmTokenDidRefresh,
-//           object: nil,
-//           queue: .main
-//       ) { [weak self] notification in
-//           guard
-//               let self = self,
-//               let uid = self.currentUserId,  // 로그인 되어 있어야 서버에 씀
-//               let token = notification.userInfo?["token"] as? String
-//           else { return }
-//           
-//           print("🔄 TokenCoordinator: 토큰 갱신 이벤트 수신 - 사용자: \(uid)")
-//           self.fcmManager.upsertToken(token, for: uid)
-//       }
-//   }
     
     // MARK: - 인증 상태 변화 감지 test완료
     private func setupAuthStateObserver() {
