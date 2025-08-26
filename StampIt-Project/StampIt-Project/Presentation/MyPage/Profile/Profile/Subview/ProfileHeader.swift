@@ -28,7 +28,7 @@ final class ProfileHeader: UITableViewHeaderFooterView {
     }
     
     private let titleLabel = UILabel().then {
-        $0.font = .pretendard(size: MyPage.Menu.fontSizeSmall, weight: .semibold)
+        $0.font = .pretendard(size: MyPage.Text.fontSizeSmall, weight: .semibold)
         $0.textColor = .neutralGray400
     }
     
@@ -66,7 +66,7 @@ final class ProfileHeader: UITableViewHeaderFooterView {
     private func setLayout() {
         divider.snp.makeConstraints {
             $0.directionalHorizontalEdges.equalToSuperview()
-            $0.height.equalTo(MyPage.Menu.dividerHeight)
+            $0.height.equalTo(1)
             $0.top.equalToSuperview().offset(-10)
         }
         

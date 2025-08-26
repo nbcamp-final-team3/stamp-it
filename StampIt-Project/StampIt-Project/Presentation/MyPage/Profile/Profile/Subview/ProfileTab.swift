@@ -16,7 +16,7 @@ final class ProfileTab: UIView {
     /// User Profile View
     private let vStackView = UIStackView().then {
         $0.axis = .vertical
-        $0.spacing = MyPage.User.contentVSpacing
+        $0.spacing = 7
         $0.alignment = .center
     }
     
@@ -26,28 +26,28 @@ final class ProfileTab: UIView {
         $0.backgroundColor = .white
         $0.layer.borderWidth = 1
         $0.layer.borderColor = UIColor.gray200.cgColor
-        $0.layer.cornerRadius = MyPage.User.profileImageSize / 2
+        $0.layer.cornerRadius = MyPage.Image.imageSizeLarge / 2
     }
     
     private let groupLable = UILabel().then {
-        $0.font = .pretendard(size: MyPage.User.fontSizeSmall, weight: .medium)
+        $0.font = .pretendard(size: MyPage.Text.fontSizeSmall, weight: .medium)
         $0.textColor = .neutralGray500
-        $0.text = "그룹이름"
+        $0.text = MyPage.User.group
     }
     
     private let hStackView = UIStackView().then {
         $0.axis = .horizontal
-        $0.spacing = MyPage.User.contentHSpacing
+        $0.spacing = 8
     }
     
     private let userLabel = UILabel().then {
-        $0.font = .pretendard(size: MyPage.User.fontSizeMedium, weight: .bold)
+        $0.font = .pretendard(size: MyPage.Text.fontSizeLarge, weight: .bold)
         $0.textColor = ._000000
-        $0.text = "유저이름"
+        $0.text = MyPage.User.user
     }
     
     private let editButton = UIButton().then {
-        let image = UIImage(named: MyPage.User.editImage)!.withTintColor(.neutralGray400)
+        let image = UIImage(named: MyPage.User.edit)!.withTintColor(.neutralGray400)
         $0.setImage(image, for: .normal)
     }
     
@@ -111,16 +111,16 @@ final class ProfileTab: UIView {
     
     private func setLayout() {
         vStackView.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(MyPage.User.top)
+            $0.top.equalToSuperview().offset(12)
             $0.centerX.equalToSuperview()
         }
         
         profileImageView.snp.makeConstraints {
-            $0.size.equalTo(MyPage.User.profileImageSize)
+            $0.size.equalTo(MyPage.Image.imageSizeLarge)
         }
         
         editButton.snp.makeConstraints {
-            $0.size.equalTo(MyPage.User.editImageSize)
+            $0.size.equalTo(MyPage.Image.imageSizeSmall)
         }
         
         divider.snp.makeConstraints {

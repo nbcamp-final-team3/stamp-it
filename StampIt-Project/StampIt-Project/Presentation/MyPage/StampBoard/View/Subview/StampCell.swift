@@ -20,7 +20,7 @@ final class StampCell: UICollectionViewCell {
     private let stampImageView = UIImageView().then {
         $0.contentMode = .scaleAspectFill
         $0.layer.cornerRadius = StickerType.imageSize / 2
-        $0.image = UIImage(named: StickerType.stampGray.rawValue)
+        $0.image = UIImage(named: StickerType.gray.rawValue)
     }
     
     private let horizontalLine = DashedLine(direction: .horizontal)
