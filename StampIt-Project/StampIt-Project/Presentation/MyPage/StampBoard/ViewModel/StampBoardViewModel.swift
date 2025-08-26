@@ -75,7 +75,7 @@ final class StampBoardViewModel: ViewModelProtocol {
             .flatMapLatest { [weak self] count -> Observable<(Int, [[StampBoardStamp]])> in
                 guard let self else { return .empty() }
                 
-                let completedBoard = Int(count / StampBoardSection.totalStamp)
+                let completedBoard = Int(count / Sticker.totalStamp)
                 let currentPinNumber = completedBoard + 1
                 
                 let minPage = currentPinNumber > StampBoard.totalPage ? currentPinNumber - StampBoard.totalPage + 1 : 1
@@ -117,7 +117,7 @@ final class StampBoardViewModel: ViewModelProtocol {
             .subscribe(with: self)  { owner, result in
                 let (count, stickers) = result
                 
-                let totalSticker = StampBoardSection.totalStamp
+                let totalSticker = Sticker.totalStamp
                 let collectedSticker = Int(count % totalSticker)
                 let completedBoard = Int(count / totalSticker)
                 

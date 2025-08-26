@@ -145,7 +145,7 @@ extension StampBoardViewController: StampBoardScrollDelegate {
         currentPage = page
         
         /// 배경색 변경
-        stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
+        stampBoardView.backgroundColor = StampBoard(rawValue: page)?.background
         stampBoardView.updateFooterPage(to: page)
     }
 }
@@ -159,8 +159,8 @@ extension StampBoardViewController: UICollectionViewDelegate {
         guard let cell = cell as? StampCell else { return }
         
         let stickers = viewModel.state.stickersByPage.value
-        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
-        
+        let itemIndexInPage = indexPath.item % Sticker.totalStamp
+
         guard stickers.indices.contains(currentPage),
               stickers[currentPage].indices.contains(itemIndexInPage) else {
             return
@@ -180,13 +180,13 @@ extension StampBoardViewController: UICollectionViewDelegate {
     ) {
         let stickersByPage = viewModel.state.stickersByPage.value
         
-        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
+        let itemIndexInPage = indexPath.item % Sticker.totalStamp
         
         let clickedSticker = stickersByPage[currentPage][itemIndexInPage]
         let missionId = clickedSticker.missionID
 
         /// Empty Stamp 는 모달뷰 띄우지 않음
-        if clickedSticker.type != .stampGray {
+        if clickedSticker.type != .gray {
             let viewModel = container.makeStampInfoViewModel()
             
             let stampInfoVC = StampInfoViewController(viewModel: viewModel)

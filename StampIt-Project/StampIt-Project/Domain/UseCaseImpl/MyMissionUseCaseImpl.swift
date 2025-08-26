@@ -45,8 +45,8 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
             userId: user.userID,
             groupId: user.groupID,
             missionTitle: mission.title,
-            maxSticker: 30, // TODO: pin 번호 계산용
-            stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
+            maxSticker: Sticker.totalStamp,
+            stickerType: StickerType.red.rawValue,
             missionId: mission.missionID,
             assignedBy: mission.assignedBy
         )

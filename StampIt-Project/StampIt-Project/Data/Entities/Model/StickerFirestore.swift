@@ -33,7 +33,7 @@ extension StickerFirestore {
             stickerID: self.stickerId,
             groupID: self.groupId,
             month: self.month,
-            type: StickerType(rawValue: self.type) ?? .stampRed,
+            type: StickerType(rawValue: self.type) ?? .red,
             pinNumber: self.pinNumber,
             createdAt: self.createdAt.dateValue(),
             missionID: self.missionId,

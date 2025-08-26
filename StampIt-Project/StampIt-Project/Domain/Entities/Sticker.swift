@@ -21,18 +21,16 @@ struct Sticker: Hashable {
 }
 
 enum StickerType: String, Hashable {
-    case stampGray
-    case stampRed
-    case stampBlue
-    case stampYellow
-    case stampPurple
+    case gray
+    case red
+    case blue
+    case yellow
+    case purple
 }
-
-// MARK: - Presentation Model 변환
 
 extension Sticker {
     func toPresentation() -> StampBoardStamp {
-        return StampBoardStamp(
+        StampBoardStamp(
             userID: self.userID,
             stickerID: self.stickerID,
             groupID: self.groupID,
@@ -45,6 +43,7 @@ extension Sticker {
             assignedBy: self.assignedBy,
             zigzagIndex: .zero,
         )
-        
     }
+
+    static var totalStamp: Int { 30 }
 }
