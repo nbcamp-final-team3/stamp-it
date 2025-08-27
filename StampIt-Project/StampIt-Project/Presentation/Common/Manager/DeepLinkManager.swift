@@ -13,7 +13,6 @@ enum DeepLinkError: Error, LocalizedError {
     case invalidURL
     case invalidFormat
     case invalidCategory
-    case invalidID
     case unsupportedCategory
     case navigationFailed
     
@@ -25,8 +24,6 @@ enum DeepLinkError: Error, LocalizedError {
             return "잘못된 URL 형식입니다"
         case .invalidCategory:
             return "지원하지 않는 카테고리입니다"
-        case .invalidID:
-            return "유효하지 않은 ID입니다"
         case .unsupportedCategory:
             return "현재 지원하지 않는 기능입니다"
         case .navigationFailed:
@@ -37,8 +34,9 @@ enum DeepLinkError: Error, LocalizedError {
 
 // MARK: - DeepLink Enum
 enum DeepLink {
-    case newMission(id: String)
-    case missionRequest(id: String)
+    case newMission
+    case missionRequest
+    case member
     
     // MARK: - Throwing Initializer
     init(url: URL) throws {
@@ -57,34 +55,17 @@ enum DeepLink {
         print("   - 분할된 comps: \(comps)")
         print("   - comps.count: \(comps.count)")
         
-        // 기본 URL 형식 검증
-        guard comps.count == 2 else {
-            print("❌ URL 형식 오류: comps.count = \(comps.count), 예상: 2")
-            throw DeepLinkError.invalidFormat
-        }
-        
         let categoryRawValue = comps[0]
-        let idString = comps[1]
-        
-        // ID 검증 (빈 문자열 체크)
-        guard !idString.isEmpty else {
-            throw DeepLinkError.invalidID
-        }
-        
-        // 카테고리 매핑
-        guard let category = NoticeCategory(rawValue: categoryRawValue) else {
-            throw DeepLinkError.invalidCategory
-        }
         
         // 카테고리별 처리
-        switch category {
-        case .newMission:
-            self = .newMission(id: idString)
-        case .missionRequest:
-            self = .missionRequest(id: idString)
-        case .member:
-            throw DeepLinkError.unsupportedCategory
-        case .unknown:
+        switch categoryRawValue {
+        case "newMission":
+            self = .newMission
+        case "missionRequest":
+            self = .missionRequest
+        case "member":
+            self = .member
+        default:
             throw DeepLinkError.invalidCategory
         }
     }
@@ -95,10 +76,12 @@ enum DeepLink {
         let path: String
         
         switch self {
-        case .newMission(let id):
-            path = "/newMission/\(id)"
-        case .missionRequest(let id):
-            path = "/missionRequest/\(id)"
+        case .newMission:
+            path = "/newMission"
+        case .missionRequest:
+            path = "/missionRequest"
+        case .member:
+            path = "/member"
         }
         
         return URL(string: "\(scheme)://\(path)")
@@ -115,18 +98,6 @@ final class DeepLinkManager {
     /// 딥링크 URL을 파싱하여 DeepLink 객체로 변환
     func parse(url: URL) throws -> DeepLink {
         return try DeepLink(url: url)
-    }
-    
-    /// 딥링크 처리를 위한 안전한 파싱 메서드
-    func safeParse(url: URL) -> DeepLink? {
-        do {
-            let deepLink = try parse(url: url)
-            print("✅ 딥링크 파싱 성공: \(deepLink)")
-            return deepLink
-        } catch {
-            print("❌ 딥링크 파싱 실패: \(error.localizedDescription)")
-            return nil
-        }
     }
     
     /// 딥링크를 기반으로 적절한 화면으로 이동
@@ -147,15 +118,20 @@ final class DeepLinkManager {
         
         // 3. 딥링크 타입에 따른 화면 이동
         switch deepLink {
-        case .newMission(let id):
-            print("🔗 새 미션 화면으로 이동: \(id)")
+        case .newMission:
+            print("🔗 새 미션 화면으로 이동")
             let homeVC = container.makeHomeViewController()
             nav.pushViewController(homeVC, animated: true)
             
-        case .missionRequest(let id):
-            print("🔗 미션 요청 화면으로 이동: \(id)")
+        case .missionRequest:
+            print("🔗 미션 요청 화면으로 이동")
             let missionListVC = container.makeMissionListViewController()
             nav.pushViewController(missionListVC, animated: true)
+            
+        case .member:
+            print("🔗 멤버 관리 화면으로 이동")
+            let groupMemberManageVC = container.makeGroupMemberManageViewController()
+            nav.pushViewController(groupMemberManageVC, animated: true)
         }
     }
     
@@ -193,26 +169,3 @@ final class DeepLinkManager {
         return handleURLString(linkStr, in: window, container: container)
     }
 }
-
-// MARK: - Convenience Extensions
-extension DeepLink {
-    /// 딥링크 타입을 문자열로 반환
-    var type: String {
-        switch self {
-        case .newMission:
-            return "newMission"
-        case .missionRequest:
-            return "missionRequest"
-        }
-    }
-    
-    /// 딥링크 ID를 반환
-    var id: String {
-        switch self {
-        case .newMission(let id):
-            return id
-        case .missionRequest(let id):
-            return id
-        }
-    }
-} 

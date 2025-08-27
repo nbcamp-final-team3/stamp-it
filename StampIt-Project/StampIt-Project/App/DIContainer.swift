@@ -13,12 +13,15 @@ final class DIContainer {
     // MARK: - Managers (Infrastructure Layer)
     lazy var authManager: any AuthManagerProtocol = AuthManager()
     lazy var userManager: any UserManagerProtocol = UserManager()
+    lazy var fcmManager: any FCMManagerProtocol = FCMManager()
     lazy var groupManager: any GroupManagerProtocol = GroupManager()
     lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
     lazy var missionManager: any MissionManagerProtocol = MissionManager()
     lazy var stickerManager: any StickerManagerProtocol = StickerManager()
     lazy var noticeManager: any NoticeManagerProtocol = NoticeManager()
 
+    // MARK: - Coordinators
+    lazy var tokenCoordinator: TokenCoordinator = TokenCoordinator(fcmManager: fcmManager)
 
     // MARK: - Repositories (Data Layer)
     lazy var authRepository: AuthRepositoryProtocol = {
@@ -47,14 +50,15 @@ final class DIContainer {
         )
     }()
 
-    lazy var inviteRepository: InviteRepository = {
+    lazy var inviteRepository: InviteRepositoryProtocol = {
         return InviteRepositoryImpl(
             groupManager: groupManager,
             membershipManager: membershipManager,
             userManager: userManager,
             // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
              missionManager: missionManager,
-             stickerManager: stickerManager
+             stickerManager: stickerManager,
+             noticeManager: noticeManager
         )
     }()
 

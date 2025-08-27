@@ -2,7 +2,7 @@
 //  NoticeManager.swift
 //  StampIt-Project
 //
-//  Created by iOS study on 7/11/25.
+//  Created by 윤주형 study on 7/11/25.
 //
 
 import Foundation
@@ -14,6 +14,8 @@ final class NoticeManager: NoticeManagerProtocol {
     var noticeCollection: CollectionReference {
         db.collection("DataNoticeFirestore")
     }
+
+    init() {}
 
     // MARK: - 알림 생성 (Firestore 저장 → FCM 푸시 트리거)
     /// Firestore에 알림 데이터를 저장  - 저장 후, 서버/클라우드 함수가 해당 userId로 FCM 푸시 알림을 전송함.

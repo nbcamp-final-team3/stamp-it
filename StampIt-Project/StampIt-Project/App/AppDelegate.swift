@@ -12,6 +12,7 @@ import FirebaseFirestore
 import GoogleSignIn
 import FirebaseMessaging
 import UserNotifications
+import FirebaseAuth // Added for Auth.auth()
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -168,15 +169,8 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         // ⭐ 중요: FCM에 APNS 토큰 설정
         Messaging.messaging().apnsToken = deviceToken
         
-        // FCM 토큰 요청
-        Messaging.messaging().token { token, error in
-            if let error = error {
-                print("❌ FCM 토큰 가져오기 실패: \(error)")
-            } else if let token = token {
-                print("🔥 FCM Token: \(token)")
-                UserDefaults.standard.set(token, forKey: "FCMToken")
-            }
-        }
+        // FCM 토큰은 MessagingDelegate에서 자동으로 처리됨
+        // 별도로 저장하지 않음 (중복 방지)
     }
     
     // APNS 토큰 등록 실패
@@ -208,16 +202,6 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         completionHandler()
     }
-
-    func handleDeeplink(_ userInfo: [AnyHashable: Any]) {
-        guard let linkStr = userInfo["deeplink"] as? String,
-              let url     = URL(string: linkStr),
-              let scene   = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let delegate = scene.delegate as? SceneDelegate
-        else { return }
-        delegate.handleDeepLink(by: url)
-    }
-    
 }
 
 // MARK: - MessagingDelegate
@@ -225,18 +209,23 @@ extension AppDelegate: MessagingDelegate {
     
     // FCM 토큰 갱신 시 호출
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        print("🔥 FCM Token 갱신됨: \(fcmToken ?? "없음")")
+        guard let token = fcmToken, !token.isEmpty else { return }
         
-        if let token = fcmToken {
-            UserDefaults.standard.set(token, forKey: "FCMToken")
-            
-            // NotificationCenter로 토큰 전달
-            let dataDict: [String: String] = ["token": token]
-            NotificationCenter.default.post(
-                name: Notification.Name("FCMToken"),
-                object: nil,
-                userInfo: dataDict
-            )
-        }
+        print("🔥 FCM Token 갱신됨: \(token)")
+        
+        // 임시 캐시 (선택)
+        UserDefaults.standard.set(token, forKey: "FCMToken")
+        
+        // 핵심: NotificationCenter 이벤트 브로드캐스트
+        NotificationCenter.default.post(
+            name: .fcmTokenDidRefresh,
+            object: nil,
+            userInfo: ["token": token]
+        )
     }
+}
+
+// Notification 이름 확장
+extension Notification.Name {
+    static let fcmTokenDidRefresh = Notification.Name("FCMToken")
 }
