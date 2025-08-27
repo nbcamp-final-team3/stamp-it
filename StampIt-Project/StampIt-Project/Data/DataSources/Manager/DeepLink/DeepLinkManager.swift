@@ -120,7 +120,7 @@ final class DeepLinkManager {
         switch deepLink {
         case .newMission:
             print("🔗 내 미션 화면으로 이동")
-            let myMissionVC = container.makeMyMissionViewController(memberCache: [:]) // TODO: myMission에서 독립적으로 member 정보 fetch 하도록 변경
+            let myMissionVC = container.makeMyMissionViewController()
             nav.pushViewController(myMissionVC, animated: true)
 
         case .missionRequest:
