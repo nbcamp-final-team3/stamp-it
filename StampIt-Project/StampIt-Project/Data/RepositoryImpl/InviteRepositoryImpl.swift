@@ -66,7 +66,7 @@ final class InviteRepositoryImpl: InviteRepositoryProtocol {
                         
                         // 2. 각 기존 멤버에게 알림 생성
                         let noticeObservables = existingMembers.map { existingMember in
-                            let notice = DataNoticeFirestore(
+                            let notice = NoticeFirestore(
                                 noticeId: UUID().uuidString,
                                 title: "새로운 멤버가 들어왔어요!",
                                 description: "\(member.nickname)님이 그룹에 합류했습니다.",
