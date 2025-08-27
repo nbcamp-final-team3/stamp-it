@@ -39,6 +39,7 @@ final class NoticeRepository: NoticeRepositoryProtocol {
 
         let query = NoticeQuery.builder()
             .userId(currentUserId)
+            .orderBy(.createdAtDesc)
             .build()
 
         return noticeManager.observeNotices(query: query)
