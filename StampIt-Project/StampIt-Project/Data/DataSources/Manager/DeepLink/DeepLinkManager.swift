@@ -119,10 +119,10 @@ final class DeepLinkManager {
         // 3. 딥링크 타입에 따른 화면 이동
         switch deepLink {
         case .newMission:
-            print("🔗 새 미션 화면으로 이동")
-            let homeVC = container.makeHomeViewController()
-            nav.pushViewController(homeVC, animated: true)
-            
+            print("🔗 내 미션 화면으로 이동")
+            let myMissionVC = container.makeMyMissionViewController(memberCache: [:]) // TODO: myMission에서 독립적으로 member 정보 fetch 하도록 변경
+            nav.pushViewController(myMissionVC, animated: true)
+
         case .missionRequest:
             print("🔗 미션 요청 화면으로 이동")
             let missionListVC = container.makeMissionListViewController()
