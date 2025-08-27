@@ -12,7 +12,8 @@ import FirebaseFirestore
 import GoogleSignIn
 import FirebaseMessaging
 import UserNotifications
-import FirebaseAuth // Added for Auth.auth()
+import FirebaseAuth
+import RxSwift
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -192,9 +193,17 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                                didReceive response: UNNotificationResponse,
                                withCompletionHandler completionHandler: @escaping () -> Void) {
         print("👆 알림 탭됨: \(response.notification.request.content.userInfo)")
-        
-        // 딥링크 처리
         let userInfo = response.notification.request.content.userInfo
+
+        // 알림 읽음 처리
+        let noticeUseCase = DIContainer.shared.noticeUseCase
+        if let noticeId = userInfo["noticeId"] as? String {
+            _ = noticeUseCase.readNotice(noticeId)
+                .take(1)
+                .subscribe()
+        }
+
+        // 딥링크 처리
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let delegate = scene.delegate as? SceneDelegate {
             delegate.handleDeeplinkFromNotification(userInfo)
