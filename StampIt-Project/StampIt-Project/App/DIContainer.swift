@@ -143,7 +143,11 @@ final class DIContainer {
     }()
 
     lazy var missionUseCase: MissionUseCase = {
-        return MissionUseCaseImpl(missionRepositoryImpl: missionRepository)
+        return MissionUseCaseImpl(
+            authRepository: authRepository,
+            missionRepositoryImpl: missionRepository,
+            noticeRepository: noticeRepository
+        )
     }()
 
     lazy var inviteUseCase: InviteUseCase = {
