@@ -12,6 +12,8 @@ import FirebaseFirestore
 import GoogleSignIn
 import FirebaseMessaging
 import UserNotifications
+import FirebaseAuth
+import RxSwift
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -104,6 +106,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return true
         }
         
+        // 딥링크 URL 처리
+        if url.scheme == "stamp-it" {
+            print("🔗 딥링크 URL 감지: \(url.absoluteString)")
+            
+            // SceneDelegate로 딥링크 전달
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let delegate = scene.delegate as? SceneDelegate {
+                delegate.handleDeepLink(by: url)
+                return true
+            }
+        }
+        
         print("❌ URL 처리 실패")
         return false
     }
@@ -156,15 +170,8 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         // ⭐ 중요: FCM에 APNS 토큰 설정
         Messaging.messaging().apnsToken = deviceToken
         
-        // FCM 토큰 요청
-        Messaging.messaging().token { token, error in
-            if let error = error {
-                print("❌ FCM 토큰 가져오기 실패: \(error)")
-            } else if let token = token {
-                print("🔥 FCM Token: \(token)")
-                UserDefaults.standard.set(token, forKey: "FCMToken")
-            }
-        }
+        // FCM 토큰은 MessagingDelegate에서 자동으로 처리됨
+        // 별도로 저장하지 않음 (중복 방지)
     }
     
     // APNS 토큰 등록 실패
@@ -186,6 +193,22 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                                didReceive response: UNNotificationResponse,
                                withCompletionHandler completionHandler: @escaping () -> Void) {
         print("👆 알림 탭됨: \(response.notification.request.content.userInfo)")
+        let userInfo = response.notification.request.content.userInfo
+
+        // 알림 읽음 처리
+        let noticeUseCase = DIContainer.shared.noticeUseCase
+        if let noticeId = userInfo["noticeId"] as? String {
+            _ = noticeUseCase.readNotice(noticeId)
+                .take(1)
+                .subscribe()
+        }
+
+        // 딥링크 처리
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let delegate = scene.delegate as? SceneDelegate {
+            delegate.handleDeeplinkFromNotification(userInfo)
+        }
+        
         completionHandler()
     }
 }
@@ -195,18 +218,23 @@ extension AppDelegate: MessagingDelegate {
     
     // FCM 토큰 갱신 시 호출
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        print("🔥 FCM Token 갱신됨: \(fcmToken ?? "없음")")
+        guard let token = fcmToken, !token.isEmpty else { return }
         
-        if let token = fcmToken {
-            UserDefaults.standard.set(token, forKey: "FCMToken")
-            
-            // NotificationCenter로 토큰 전달
-            let dataDict: [String: String] = ["token": token]
-            NotificationCenter.default.post(
-                name: Notification.Name("FCMToken"),
-                object: nil,
-                userInfo: dataDict
-            )
-        }
+        print("🔥 FCM Token 갱신됨: \(token)")
+        
+        // 임시 캐시 (선택)
+        UserDefaults.standard.set(token, forKey: "FCMToken")
+        
+        // 핵심: NotificationCenter 이벤트 브로드캐스트
+        NotificationCenter.default.post(
+            name: .fcmTokenDidRefresh,
+            object: nil,
+            userInfo: ["token": token]
+        )
     }
+}
+
+// Notification 이름 확장
+extension Notification.Name {
+    static let fcmTokenDidRefresh = Notification.Name("FCMToken")
 }

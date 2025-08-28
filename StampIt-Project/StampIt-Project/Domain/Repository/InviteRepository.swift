@@ -8,7 +8,7 @@
 import Foundation
 import RxSwift
 
-protocol InviteRepository {
+protocol InviteRepositoryProtocol {
     // receive 관련 메서드
     func fetchInvite(inviteCode: String) -> Observable<Invite>
     func addMember(groupId: String, member: Member) -> Observable<Void>
