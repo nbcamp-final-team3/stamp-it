@@ -54,9 +54,9 @@ final class SendInviteViewController: UIViewController{
         $0.lineBreakMode = .byTruncatingTail
     }
 
-    private let copyButton = UIButton(type: .system).then {
-        $0.setImage(UIImage(named: "ContentCopy"), for: .normal)
-        $0.tintColor = .gray800
+    private let shareButton = UIButton(type: .system).then {
+        $0.setImage(UIImage(named: "ContentShare"), for: .normal)
+        $0.tintColor = .gray500
         $0.setContentHuggingPriority(.required, for: .horizontal)
     }
 
@@ -104,7 +104,7 @@ final class SendInviteViewController: UIViewController{
         [navigationBar, imageView, helpLabel, stackViewContainerView]
             .forEach{ view.addSubview($0) }
 
-        [textFieldInTitle, inviteCodeLabel, copyButton]
+        [textFieldInTitle, inviteCodeLabel, shareButton]
             .forEach { inviteCodeStackView.addArrangedSubview($0) }
 
         [textFieldInTitle, inviteCodeLabel].forEach {
@@ -147,7 +147,7 @@ final class SendInviteViewController: UIViewController{
             $0.width.equalTo(60)
         }
 
-        copyButton.snp.makeConstraints {
+        shareButton.snp.makeConstraints {
             $0.width.height.equalTo(24)
         }
     }
