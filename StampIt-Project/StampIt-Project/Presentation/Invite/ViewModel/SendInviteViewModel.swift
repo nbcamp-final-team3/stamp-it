@@ -18,6 +18,7 @@ final class SendInviteViewModel: ViewModelProtocol {
 
     struct State {
         let inviteCode = BehaviorRelay<String>(value: "")
+        let currentUser = BehaviorRelay<User?>(value: nil)
         let showMessage = PublishRelay<(ToastType, String)>()
         let copySuccess = PublishRelay<String>()
     }
@@ -74,9 +75,10 @@ final class SendInviteViewModel: ViewModelProtocol {
 
     // 화면에 접속했을 때 초대 코드를 보여주는 메서드
     private func showInviteCode() {
-        useCase.getInviteCode()
-            .subscribe(onNext: { [weak self] code in
+        useCase.getInviteCodeAndUserInfo()
+            .subscribe(onNext: { [weak self] (code, user) in
                 self?.state.inviteCode.accept(code)
+                self?.state.currentUser.accept(user)
             }, onError: { [weak self] error in
                 let message: String
 

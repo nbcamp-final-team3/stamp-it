@@ -169,9 +169,10 @@ final class SendInviteViewController: UIViewController{
     }
 
     private func bindCopyAction() {
-        copyButton.rx.tap
-            .map{SendInviteViewModel.Action.copyButtonTapped }
-            .bind(to: viewModel.action)
+        shareButton.rx.tap
+            .subscribe(onNext: { [weak self] in
+                self?.showShareActivity()
+            })
             .disposed(by: disposeBag)
     }
 
@@ -209,15 +210,60 @@ final class SendInviteViewController: UIViewController{
         viewModel.state.showMessage.accept((.failure, message))
     }
     
-    // MARK: - Utility Methods
-    private func handleCopyInviteCode() {
-        // 복사 관련 추가 로직이 필요한 경우
-        print("Copy invite code handled")
-    }
+    // MARK: - Share Methods
+    private func showShareActivity() {
+        let code = viewModel.state.inviteCode.value
+        let currentUser = viewModel.state.currentUser.value
+        let userNickname = currentUser?.nickname ?? "사용자"
+        
+        // 딥링크 URL 생성 (앱 설치된 사용자용)
+        let deepLink = DeepLink.invite(code)
+        let deepLinkURL = deepLink.url
+        
+        // 앱스토어 URL (앱 미설치 사용자용)
+        let appStoreURL = "https://apps.apple.com/kr/app/stamp-it/id6747178558"
+        
+        // 공유할 텍스트 생성
+        let shareText = """
+        \(userNickname)님이 미션으로 함께하는 공동체 생활, Stamp it에 초대했습니다.
 
-    private func processCopyRequest() {
-        // 복사 요청 처리 로직이 필요한 경우
-        print("Copy request processed")
+        지금 초대에 수락해 함께 즐거운 공동체 생활을 시작해보세요
+
+        초대 코드: \(code)
+        
+        앱으로 입장하기: \(deepLinkURL?.absoluteString ?? "링크 생성 불가!")
+        
+        """
+        
+        // 공유할 아이템 배열 생성
+        var items: [Any] = [shareText]
+        
+        // 앱스토어 URL 추가 (앱 미설치 사용자용)
+        items.append(appStoreURL)
+
+        // UIActivityViewController 생성 및 설정
+        let activityViewController = UIActivityViewController(activityItems: items, applicationActivities: nil)
+
+        // 공유할 수 없는 앱 제외
+        activityViewController.excludedActivityTypes = [
+            .assignToContact,
+            .addToReadingList,
+            .openInIBooks,
+            .markupAsPDF
+        ]
+        
+        // 공유 완료 후 피드백
+        activityViewController.completionWithItemsHandler = { [weak self] (activityType, completed, returnedItems, error) in
+            if completed {
+                DispatchQueue.main.async {
+                    let toastView = ToastView()
+                    toastView.show(in: self?.view ?? UIView(), message: "초대 코드가 공유되었습니다", type: .success)
+                }
+            }
+        }
+        
+        // 공유 시트 표시
+        present(activityViewController, animated: true, completion: nil)
     }
 }
 
