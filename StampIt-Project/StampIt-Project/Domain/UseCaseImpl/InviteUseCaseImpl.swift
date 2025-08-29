@@ -34,7 +34,7 @@ final class InviteUseCaseImpl: InviteUseCase {
         return inviteRepository.addMember(groupId: groupId, member: member)
     }
 
-    // send 관련 메서드
+    // invite 관련 메서드
     func fetchGroup(groupId: String) -> Observable<Group> {
         inviteRepository.fetchGroup(groupId: groupId)
     }
@@ -157,20 +157,21 @@ final class InviteUseCaseImpl: InviteUseCase {
             }
     }
     
-    /// 초대 코드를 확인하는 코드
-    func getInviteCode() -> Observable<String> {
+    /// 초대 코드와 사용자 정보를 함께 가져오는 메서드
+    func getInviteCodeAndUserInfo() -> Observable<(String, User)> {
         return getCurrentUser()
             .flatMap { optionalUser -> Observable<User> in
                 guard let user = optionalUser else {
                     return Observable.error(RepositoryError.userNotFound)
                 }
-                return self.fetchUserOnce(userId: user.userID)
+                return Observable.just(user)
             }
-            .flatMap { user -> Observable<Group> in
+            .flatMap { user -> Observable<(User, Group)> in
                 return self.fetchGroup(groupId: user.groupID)
+                    .map { group in (user, group) }
             }
-            .map { group in
-                return group.inviteCode
+            .map { user, group in
+                return (group.inviteCode, user)
             }
     }
 
