@@ -18,6 +18,8 @@ final class AssignMissionViewController: BaseViewController {
     
     private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "미션 전달하기"))
     
+    private let favoriteButton = UIButton()
+    
     private let missionTitleTextField = UITextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
         $0.placeholder = "미션 내용"
@@ -112,6 +114,8 @@ final class AssignMissionViewController: BaseViewController {
     private func prepareSubviews() {
         view.backgroundColor = .white
         
+        navigationBar.addSubview(favoriteButton)
+        
         // dropdownView는 보여질 때 일부 화면이 가려지므로(예: dueDateStackView) 마지막에 서브 뷰로 추가
         [navigationBar, missionTitleTextField, memberStackView, dueDateView, assignButton, dropdownView]
             .forEach {
@@ -124,6 +128,12 @@ final class AssignMissionViewController: BaseViewController {
     }
     
     private func setConstraints() {
+        favoriteButton.snp.makeConstraints {
+            $0.trailing.equalToSuperview().inset(32)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(30)
+        }
+        
         navigationBar.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
             $0.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
@@ -170,6 +180,7 @@ final class AssignMissionViewController: BaseViewController {
             .drive { [weak self] mission in
                 guard let self, let mission else { return }
                 missionTitleTextField.text = mission.title
+                setFavoriteButton()
             }
             .disposed(by: disposeBag)
         
@@ -226,6 +237,12 @@ final class AssignMissionViewController: BaseViewController {
         navigationBar.backTapped
             .bind(with: self) { owner, _ in
                 owner.navigationController?.popViewController(animated: true)
+            }
+            .disposed(by: disposeBag)
+        
+        favoriteButton.rx.tap
+            .bind(with: self) { owner, _ in
+                owner.viewModel.action.accept(.toggleFavorite)
             }
             .disposed(by: disposeBag)
     }
@@ -302,5 +319,16 @@ final class AssignMissionViewController: BaseViewController {
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
+    }
+    
+    private func setFavoriteButton() {
+        // 커스텀 미션이면 버튼 비활성화
+        guard let mission = viewModel.state.mission.value, !mission.title.isEmpty else {
+            favoriteButton.isHidden = true
+            return
+        }
+        
+        let bookmarkImage = mission.isFavorite ? "bookmarkFavoriteFill" : "bookmarkFavorite"
+        favoriteButton.setImage(UIImage(named: bookmarkImage), for: .normal)
     }
 }

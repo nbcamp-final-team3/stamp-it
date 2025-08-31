@@ -87,6 +87,10 @@ final class MissionListViewController: BaseViewController {
         setCollectionViewCell()
         
         setTapGesture()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         
         // 미션 샘플 데이터 로드
         viewModel.action.accept(.onAppear)

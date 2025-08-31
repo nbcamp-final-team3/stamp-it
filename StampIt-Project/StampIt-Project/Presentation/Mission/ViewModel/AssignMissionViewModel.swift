@@ -16,6 +16,7 @@ final class AssignMissionViewModel: ViewModelProtocol {
         case didSelectMember(Member)
         case didSelectDueDate(Date)
         case didTapAssignButton
+        case toggleFavorite
     }
     
     struct State {
@@ -107,6 +108,12 @@ final class AssignMissionViewModel: ViewModelProtocol {
                             print(error)
                         }
                         .disposed(by: disposeBag)
+                case .toggleFavorite:
+                    guard var mission = state.mission.value else { return }
+                    mission.isFavorite.toggle()
+                    
+                    state.mission.accept(mission)
+                    missionUseCaseImpl.updateSampleMission(mission: mission)
                 }
             }
             .disposed(by: disposeBag)
