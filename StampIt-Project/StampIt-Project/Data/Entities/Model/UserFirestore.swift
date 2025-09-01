@@ -58,7 +58,7 @@ extension UserFirestore {
     func toDomainModelForGroup(
         groupMembership: GroupMembershipFirestore,  // 새로운 구조 활용
         groupName: String,
-        boards: [StickerBoard] = []
+        boards: [StampBoard] = []
     ) -> StampIt_Project.User {
         return StampIt_Project.User(
             userID: self.userId,

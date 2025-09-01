@@ -7,12 +7,12 @@
 
 import UIKit
 
-// MARK: - Sticker
+// MARK: - Stamp
 
-extension StickerType {
+extension StampType {
     static let imageSize: CGFloat = 53
     
-    static func from(_ index: Int) -> StickerType {
+    static func from(_ index: Int) -> StampType {
         switch index {
         case 0: return .red
         case 1: return .blue
@@ -30,7 +30,7 @@ enum DefaultStamp {
     static let assignedBy: String = "Unknown"
     static let month: String = "0000-00"
     static let zigzagIndex: Int = -1
-    static let maxStickers: Int = .zero
+    static let maxStamps: Int = .zero
 }
 
 // MARK: - MyPage

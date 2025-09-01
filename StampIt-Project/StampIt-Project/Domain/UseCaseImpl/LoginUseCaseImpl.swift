@@ -129,7 +129,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 userID: authUser.uid,
                 nickname: randomNickname,
                 profileImage: "profileImage1",
-                monthSticker: 0, // 별도로 추가됨
+                monthStamp: 0, // 별도로 추가됨
                 joinedAt: now,
                 isLeader: true
             )

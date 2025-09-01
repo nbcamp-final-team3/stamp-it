@@ -31,7 +31,7 @@ extension StampBoardSection {
 
 enum StampBoardItem: Hashable {
     case summary(collected: Int, completed: Int)
-    case sticker(StampBoardStamp)
+    case stamp(StampBoardStamp)
 }
 
 /// Dashed Line 방향 기준
