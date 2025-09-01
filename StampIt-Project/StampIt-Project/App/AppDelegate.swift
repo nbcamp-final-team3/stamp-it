@@ -228,4 +228,5 @@ extension AppDelegate: MessagingDelegate {
 // Notification 이름 확장
 extension Notification.Name {
     static let fcmTokenDidRefresh = Notification.Name("FCMToken")
+    static let mainUITabReady = Notification.Name("mainUITabReady")
 }

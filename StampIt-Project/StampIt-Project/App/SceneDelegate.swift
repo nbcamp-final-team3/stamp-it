@@ -63,62 +63,125 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             }
             self.window?.rootViewController = nav
             self.window?.makeKeyAndVisible()
+
+            // 탭바 준비 상태 리셋
+            self.isTabBarReady = false
+            
+            // 탭바 준비 완료 노티피케이션 구독
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(self.handleTabBarReady),
+                name: .mainUITabReady,
+                object: nil
+            )
         }
     }
-    
+
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
         // This occurs shortly after the scene enters the background, or when its session is discarded.
         // Release any resources associated with this scene that can be re-created the next time the scene connects.
         // The scene may re-connect later, as its session was not necessarily discarded (see `application:didDiscardSceneSessions` instead).
+        
+        // 노티피케이션 구독 해제
+        NotificationCenter.default.removeObserver(self, name: .mainUITabReady, object: nil)
     }
-    
+
     func sceneDidBecomeActive(_ scene: UIScene) {
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
     }
-    
+
     func sceneWillResignActive(_ scene: UIScene) {
         // Called when the scene will move from an active state to an inactive state.
         // This may occur due to temporary interruptions (ex. an incoming phone call).
     }
-    
+
     func sceneWillEnterForeground(_ scene: UIScene) {
         // Called as the scene transitions from the background to the foreground.
         // Use this method to undo the changes made on entering the background.
     }
-    
+
     func sceneDidEnterBackground(_ scene: UIScene) {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
-        
+
         // Save changes in the application's managed object context when the application transitions to the background.
         (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
     }
-    
+
     // MARK: - DeepLink Handling
-    
-    /// 딥링크 URL 처리
+
+    /// 앱이 이미 실행 중일 때 딥링크 URL 처리
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        pendingDeepLinkURL = url
+        processPendingDeepLink()
+    }
+
+    // MARK: - 탭바 준비 완료 처리
+    @objc private func handleTabBarReady() {
+        print("🔗 탭바 준비 완료 - 딥링크 처리 가능")
+        isTabBarReady = true
+        processPendingDeepLink()
+    }
+
+    // MARK: - 버퍼 처리
+    private func processPendingDeepLink() {
+        // 탭바가 준비되지 않았으면 보류
+        guard isTabBarReady else {
+            print("🔗 탭바가 아직 준비되지 않음 - 딥링크 처리 보류")
+            return
+        }
+        
+        // 딥링크 URL이 없으면 종료
+        guard let url = pendingDeepLinkURL else {
+            print("🔗 보류 중인 딥링크 없음")
+            return
+        }
+
+        // 네비게이션 가능한 상태인지 확인
+        guard mainUINavigable() else {
+            print("🔗 네비게이션이 아직 준비되지 않음 - 딥링크 처리 보류")
+            return
+        }
+        
+        print("🔗 보류 중인 딥링크 처리 시작: \(url.absoluteString)")
+        
+        // 소비 후 처리
+        pendingDeepLinkURL = nil
+        handleDeepLink(by: url)
+    }
+
+    /// 공통 딥링크 처리
     func handleDeepLink(by url: URL) {
         print("🔗 딥링크 처리 시작: \(url.absoluteString)")
-        
+
         let container = DIContainer.shared
         let success = DeepLinkManager.shared.handleURL(url, in: window, container: container)
-        
+
         if !success {
             print("❌ 딥링크 처리 실패")
         }
     }
-    
+
     /// 알림에서 딥링크 처리
     func handleDeeplinkFromNotification(_ userInfo: [AnyHashable: Any]) {
-        let container = DIContainer.shared
-        let success = DeepLinkManager.shared.handleDeeplinkFromNotification(userInfo, in: window, container: container)
-        
-        if !success {
-            print("❌ 알림 딥링크 처리 실패")
+        if let linkStr = (userInfo["deeplink"] as? String) ?? (userInfo["url"] as? String),
+           let url = URL(string: linkStr) {
+            pendingDeepLinkURL = url
+            processPendingDeepLink()
         }
+    }
+
+    // 탭바+네비 존재 여부 체크
+    private func mainUINavigable() -> Bool {
+        guard let tab = window?.rootViewController as? UITabBarController,
+              let _ = tab.selectedViewController as? UINavigationController else {
+            return false
+        }
+        return true
     }
 }
 
