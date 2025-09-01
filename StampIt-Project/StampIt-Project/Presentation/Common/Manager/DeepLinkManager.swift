@@ -65,6 +65,14 @@ enum DeepLink {
             self = .missionRequest
         case "member":
             self = .member
+        case "invite":
+            // 초대 코드가 있는지 확인
+            if comps.count > 1 {
+                let inviteCode = comps[1]
+                self = .invite(inviteCode)
+            } else {
+                throw DeepLinkError.invalidFormat
+            }
         default:
             throw DeepLinkError.invalidCategory
         }
