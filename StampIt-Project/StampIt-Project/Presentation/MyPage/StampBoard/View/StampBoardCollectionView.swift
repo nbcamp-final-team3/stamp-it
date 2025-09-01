@@ -166,7 +166,7 @@ final class StampBoardCollectionView: UIView {
             top: 24,
             leading: isPortrait ? 36 : 45,
             bottom: 0,
-            trailing: isPortrait ? StickerType.imageSize / 3 : -45
+            trailing: isPortrait ? StampType.imageSize / 3 : -45
         )
         
         /// 수평 페이징 변화 감지

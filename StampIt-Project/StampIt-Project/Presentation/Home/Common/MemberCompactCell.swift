@@ -46,7 +46,7 @@ final class MemberCompactCell: UICollectionViewCell {
         $0.textAlignment = .center
     }
     
-    private let stickerCountLabel = UILabel().then {
+    private let stampCountLabel = UILabel().then {
         $0.font = .pretendard(size: 12, weight: .regular)
         $0.textColor = .gray300
         $0.textAlignment = .center
@@ -69,7 +69,7 @@ final class MemberCompactCell: UICollectionViewCell {
 
     private func setStyles() {
         rankBadgeImageView.isHidden = type != .rank
-        stickerCountLabel.isHidden = type != .rank
+        stampCountLabel.isHidden = type != .rank
         profileImageView.layer.borderWidth = borderWidth
         profileImageView.layer.borderColor = borderColor
         profileImageView.layer.opacity = opacity
@@ -83,7 +83,7 @@ final class MemberCompactCell: UICollectionViewCell {
             profileImageView,
             rankBadgeImageView,
             nameLabel,
-            stickerCountLabel,
+            stampCountLabel,
         ].forEach { addSubview($0) }
     }
 
@@ -109,7 +109,7 @@ final class MemberCompactCell: UICollectionViewCell {
             make.height.equalTo(21)
         }
 
-        stickerCountLabel.snp.makeConstraints { make in
+        stampCountLabel.snp.makeConstraints { make in
             make.top.equalTo(nameLabel.snp.bottom)
             make.directionalHorizontalEdges.equalToSuperview()
             make.height.equalTo(18)
@@ -129,7 +129,7 @@ final class MemberCompactCell: UICollectionViewCell {
         self.type = type
         setProfileImage(imageName: member.profileImage)
         nameLabel.text = member.nickname
-        stickerCountLabel.text = member.stickerCount
+        stampCountLabel.text = member.stampCount
         handleRank(rank: member.rank)
     }
 

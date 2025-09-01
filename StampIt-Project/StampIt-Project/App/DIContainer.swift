@@ -16,7 +16,7 @@ final class DIContainer {
     lazy var groupManager: any GroupManagerProtocol = GroupManager()
     lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
     lazy var missionManager: any MissionManagerProtocol = MissionManager()
-    lazy var stickerManager: any StickerManagerProtocol = StickerManager()
+    lazy var stampManager: any StampManagerProtocol = StampManager()
 
 
     // MARK: - Repositories (Data Layer)
@@ -27,21 +27,21 @@ final class DIContainer {
             groupManager: groupManager,
             membershipManager: membershipManager,
             missionManager: missionManager,
-            stickerManager: stickerManager
+            stampManager: stampManager
         )
     }()
 
     lazy var homeRepository: HomeRepositoryProtocol = {
         return HomeRepository(
             membershipManager: membershipManager,
-            stickerManager: stickerManager,
+            stampManager: stampManager,
             missionManager: missionManager
         )
     }()
 
     lazy var myPageRepository: MyPageRepository = {
         return MyPageRepositoryImpl(
-            stickerManager: stickerManager,
+            stampManager: stampManager,
             userManager: userManager
         )
     }()
@@ -53,7 +53,7 @@ final class DIContainer {
             userManager: userManager,
             // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
              missionManager: missionManager,
-             stickerManager: stickerManager
+             stampManager: stampManager
         )
     }()
 
@@ -90,7 +90,7 @@ final class DIContainer {
             groupManager: groupManager,
             membershipManager: membershipManager,
             missionManager: missionManager,
-            stickerManager: stickerManager,
+            stampManager: stampManager,
             authRepository: authRepository,
             mapToRepositoryError: { error in
                 return RepositoryError.unknownError
