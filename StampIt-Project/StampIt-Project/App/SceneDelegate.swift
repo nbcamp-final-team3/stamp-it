@@ -8,21 +8,32 @@
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-    
+
     var window: UIWindow?
+
+    // 딥링크 버퍼
+    private var pendingDeepLinkURL: URL?
     
-    
+    // 탭바 준비 상태 추적
+    private var isTabBarReady = false
+
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        
+
+        // handleDeepLink()를 바로 호출 하지 않고 버퍼에 보관
+        if let url = connectionOptions.urlContexts.first?.url {
+
+            pendingDeepLinkURL = url
+        }
+
         // 1. VersionCheckViewModel 인스턴스 준비
         let versionCheckViewModel = VersionCheckViewModel()
-        
+
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
 
         // TokenCoordinator 초기화 (FCM 토큰 이벤트 구독 시작)
         _ = DIContainer.shared.tokenCoordinator
-        
+
         // 2. 버전 체크 먼저
         versionCheckViewModel.checkForceUpdate { [weak self] needUpdate, message in
             guard let self else { return }
@@ -49,7 +60,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 self.window?.rootViewController?.present(alert, animated: true)
                 return
             }
-            
+
             // 4. 정상 분기 (온보딩/런치/메인 등 기존 로직)
             let hasOnboarded = UserDefaults.standard.bool(forKey: "hasOnboarded")
             let container = DIContainer.shared
