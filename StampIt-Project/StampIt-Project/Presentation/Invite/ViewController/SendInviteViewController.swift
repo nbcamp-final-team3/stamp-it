@@ -156,8 +156,7 @@ final class SendInviteViewController: UIViewController{
     private func bindViewModel() {
         // 데이터 바인딩
         bindInviteCode()
-        bindCopyAction()
-        bindCopySuccess()
+        bindShareAction()
         bindNavigation()
         bindMessages()
     }
@@ -168,7 +167,7 @@ final class SendInviteViewController: UIViewController{
             .disposed(by: disposeBag)
     }
 
-    private func bindCopyAction() {
+    private func bindShareAction() {
         shareButton.rx.tap
             .subscribe(onNext: { [weak self] in
                 self?.showShareActivity()
@@ -176,14 +175,7 @@ final class SendInviteViewController: UIViewController{
             .disposed(by: disposeBag)
     }
 
-    private func bindCopySuccess() {
-        // 복사 성공 시그널을 구독하여 실제 클립보드 복사 처리
-        viewModel.state.copySuccess
-            .subscribe(onNext: { code in
-                UIPasteboard.general.string = code
-            })
-            .disposed(by: disposeBag)
-    }
+
 
     private func bindNavigation() {
         navigationBar.backTapped

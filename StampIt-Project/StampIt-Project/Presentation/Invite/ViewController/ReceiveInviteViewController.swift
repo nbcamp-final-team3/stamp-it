@@ -279,6 +279,15 @@ final class ReceiveInviteViewController: UIViewController {
         
         present(alert, animated: true)
     }
+    
+    // MARK: - Deep Link Handling
+    
+    /// 딥링크로 받은 초대 코드를 textField에 설정
+    func setInviteCodeFromDeepLink(_ inviteCode: String) {
+        textField.text = inviteCode
+        // ViewModel의 상태도 업데이트
+        viewModel.action.accept(.codeChanged(inviteCode))
+    }
 
     private func setupKeyboardDismiss() {
         let tapGesture = UITapGestureRecognizer()
