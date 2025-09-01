@@ -227,7 +227,7 @@ final class ReceiveInviteViewController: UIViewController {
                 let container = DIContainer.shared
 
                 // 홈 탭으로 전환
-                let tabBarController = MainTabBarController(container: container)
+                let tabBarController = MainTabBarController()
                 tabBarController.selectedIndex = 0
 
                 WindowTransitionManager.shared.changeRootViewController(to: tabBarController, duration: Constants.rootTransitionDuration)
