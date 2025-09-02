@@ -185,7 +185,11 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         let userInfo = response.notification.request.content.userInfo
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let delegate = scene.delegate as? SceneDelegate {
-            delegate.handleDeeplinkFromNotification(userInfo)
+            if let linkStr = (userInfo["deeplink"] as? String) ?? (userInfo["url"] as? String),
+               let url = URL(string: linkStr) {
+                // SceneDelegate로 포워딩 -> 알림 상태 조건 검사
+                delegate.enqueueDeepLink(url)
+            }
         }
         
         completionHandler()

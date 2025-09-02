@@ -19,7 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
 
-        // handleDeepLink()를 바로 호출 하지 않고 버퍼에 보관 / 앱이 종료된 상태 일때
+        // 앱이 종료된 상태 일때 / 버퍼에 보관
         if let url = connectionOptions.urlContexts.first?.url {
 
             pendingDeepLinkURL = url
@@ -138,7 +138,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         processPendingDeepLink()
     }
 
-    // MARK: - 버퍼 처리
+    // MARK: - 버퍼 및 조건 처리
     private func processPendingDeepLink() {
         // 탭바가 준비되지 않았으면 보류
         guard isTabBarReady else {
@@ -165,7 +165,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         handleDeepLink(by: url)
     }
 
-    /// 공통 딥링크 처리
+    /// URL 딥링크 라우팅
     func handleDeepLink(by url: URL) {
         print("🔗 딥링크 처리 시작: \(url.absoluteString)")
 
@@ -177,13 +177,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
     }
 
-    /// 알림에서 딥링크 처리
-    func handleDeeplinkFromNotification(_ userInfo: [AnyHashable: Any]) {
-        if let linkStr = (userInfo["deeplink"] as? String) ?? (userInfo["url"] as? String),
-           let url = URL(string: linkStr) {
-            enqueueDeepLink(url)
-        }
-    }
 
     // 공통 사용 묶음 메서드
     func enqueueDeepLink(_ url: URL) {
