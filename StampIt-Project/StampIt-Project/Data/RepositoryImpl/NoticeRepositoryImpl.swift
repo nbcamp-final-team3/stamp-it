@@ -7,6 +7,7 @@
 
 import Foundation
 import RxSwift
+import FirebaseFirestore // FIXME: Manager에서 Date -> TimeStamp 변환하도록 변경하여 의존도 낮추기
 
 final class NoticeRepository: NoticeRepositoryProtocol {
     private let noticeManager: any NoticeManagerProtocol
@@ -17,6 +18,20 @@ final class NoticeRepository: NoticeRepositoryProtocol {
         self.authManager = authManager
     }
 
+    func createNotice(_ notice: Notice, receiverId: String) -> Observable<Void> {
+        let noticeFireStore = NoticeFirestore(
+            noticeId: notice.noticeId,
+            title: notice.title,
+            description: notice.description,
+            category: notice.category.rawValue,
+            createdAt: Timestamp(date: notice.createdAt),
+            url: "stampit://newMission",
+            isRead: notice.isRead,
+            userId: receiverId
+        )
+        return noticeManager.create(notice: noticeFireStore)
+    }
+
     func fetchNotices() -> Observable<[Notice]> {
         guard let currentUserId = authManager.getCurrentUser()?.uid else {
             return .error(AuthError.userNotFound)
@@ -24,6 +39,7 @@ final class NoticeRepository: NoticeRepositoryProtocol {
 
         let query = NoticeQuery.builder()
             .userId(currentUserId)
+            .orderBy(.createdAtDesc)
             .build()
 
         return noticeManager.observeNotices(query: query)

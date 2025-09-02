@@ -7,6 +7,7 @@
 
 import Foundation
 
+// TODO: Date+Extension으로 마이그레이션
 struct DateFormatterUtil {
     static func formattedString(with date: Date) -> String {
         let format = DateFormatter()

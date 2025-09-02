@@ -20,7 +20,7 @@ final class DefaultNoticeNavigator: NoticeNavigator {
         let vc: UIViewController
         switch category {
         case .newMission:
-            vc = DIContainer.shared.makeMyMissionViewController(memberCache: [:])
+            vc = DIContainer.shared.makeMyMissionViewController()
             nav?.pushViewController(vc, animated: true)
         case .missionRequest:
             guard let tab else { return }

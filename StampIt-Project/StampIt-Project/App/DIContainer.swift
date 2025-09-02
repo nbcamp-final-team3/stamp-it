@@ -63,10 +63,12 @@ final class DIContainer {
     }()
 
     lazy var missionRepository: MissionRepository = {
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         return MissionRepositoryImpl(
             missionManager: missionManager,
             membershipManager: membershipManager,
-            authRepository: authRepository
+            authRepository: authRepository,
+            context: context
         )
     }()
 
@@ -143,7 +145,11 @@ final class DIContainer {
     }()
 
     lazy var missionUseCase: MissionUseCase = {
-        return MissionUseCaseImpl(missionRepositoryImpl: missionRepository)
+        return MissionUseCaseImpl(
+            authRepository: authRepository,
+            missionRepositoryImpl: missionRepository,
+            noticeRepository: noticeRepository
+        )
     }()
 
     lazy var inviteUseCase: InviteUseCase = {
@@ -210,7 +216,7 @@ final class DIContainer {
         return OnboardingViewModel(totalPages: 3)
     }
 
-    func makeMyMissionViewModel(memberCache: [String: Member]) -> MyMissionViewModel {
+    func makeMyMissionViewModel() -> MyMissionViewModel {
         return MyMissionViewModel(
             useCase: myMissionUseCase,
             mapper: MissionMapper(),
@@ -292,8 +298,8 @@ final class DIContainer {
         return OnboardingViewController(viewModel: viewModel)
     }
 
-    func makeMyMissionViewController(memberCache: [String: Member]) -> MyMissionViewController {
-        let viewModel = makeMyMissionViewModel(memberCache: memberCache)
+    func makeMyMissionViewController() -> MyMissionViewController {
+        let viewModel = makeMyMissionViewModel()
         return MyMissionViewController(viewModel: viewModel)
     }
 
