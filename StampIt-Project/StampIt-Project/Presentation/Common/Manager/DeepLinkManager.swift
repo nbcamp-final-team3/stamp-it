@@ -2,7 +2,7 @@
 //  DeepLinkManager.swift
 //  StampIt-Project
 //
-//  Created by iOS study on 7/8/25.
+//  Created by 윤주형 study on 7/8/25.
 //
 
 import Foundation
