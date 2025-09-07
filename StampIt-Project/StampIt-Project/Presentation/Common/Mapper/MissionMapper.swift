@@ -47,7 +47,7 @@ final class MissionMapper: MissionMapping {
     }
     
     /// MissionMapper에서 mapForWidget으로 변환
-    func mapForWidget(missions: [Mission], member: [String: Member]) -> [HomeMissionWidget] {
+    func map(widgetMissions missions: [Mission], member: [String: Member]) -> [HomeMissionWidget] {
         missions.map { mission in
             let nickname = member[mission.assignedBy]?.nickname ?? "탈퇴한 멤버"
             let duration = mission.dueDate.toMonthDayString()

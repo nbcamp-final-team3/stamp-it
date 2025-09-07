@@ -159,7 +159,7 @@ final class HomeViewModel: ViewModelProtocol {
               print("저장할 미션 데이터: \(missions)")
               
               // 위젯 데이터 저장 (mapForWidget 매핑 사용)
-              let widgetMissions = self.missionMapper.mapForWidget(missions: missions, member: self.memberCache)
+              let widgetMissions = self.missionMapper.map(widgetMissions: missions, member: self.memberCache)
               WidgetMissionManager.shared.save(missions: widgetMissions)
               WidgetCenter.shared.reloadAllTimelines()
               
