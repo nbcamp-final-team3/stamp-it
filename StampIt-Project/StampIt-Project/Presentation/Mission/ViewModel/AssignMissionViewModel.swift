@@ -12,11 +12,12 @@ import RxRelay
 final class AssignMissionViewModel: ViewModelProtocol {
     enum Action {
         case onAppear
-        case didFillOutTitle(String)
+        case titleDidChange(String)
         case didSelectMember(Member)
         case didSelectDueDate(Date)
         case didTapAssignButton
         case toggleFavorite
+        case textFieldIsEditing(Bool)
     }
     
     struct State {
@@ -26,6 +27,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
         var dueDate = BehaviorRelay<Date>(value: Date())
         var canSubmit = BehaviorRelay<Bool>(value: false)
         var customMissionTitle = BehaviorRelay<String?>(value: nil)
+        var textFieldIsEditing = BehaviorRelay<Bool>(value: false)
+        var suggestions = BehaviorRelay<[Suggestion]>(value: [])
     }
     
     var action = PublishRelay<Action>()
@@ -37,6 +40,7 @@ final class AssignMissionViewModel: ViewModelProtocol {
     
     private let missionUseCaseImpl: MissionUseCase
     private var user: User?
+    private var userData: [MissionData] = [] // 과거 데이터(사용자가 다른 멤버에게 전달했던 미션)
     
     private var canSubmit: Bool {
         // 멤버 선택이 안되어 있으면 false
@@ -87,10 +91,13 @@ final class AssignMissionViewModel: ViewModelProtocol {
                 switch input {
                 case .onAppear:
                     loadMembers()
-                    print("mission: \(String(describing: state.mission.value?.title)), members count: \(state.members.value.count)")
-                case .didFillOutTitle(let title):
+                    
+                    userData = missionUseCaseImpl.fetchMissionData()
+                case .titleDidChange(let title):
                     state.customMissionTitle.accept(title)
                     state.canSubmit.accept(canSubmit)
+                    
+                    state.suggestions.accept(generateSuggestion())
                 case .didSelectMember(let member):
                     state.selectedMember.accept(member)
                     state.canSubmit.accept(canSubmit)
@@ -114,6 +121,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
                     
                     state.mission.accept(mission)
                     missionUseCaseImpl.updateSampleMission(mission: mission)
+                case .textFieldIsEditing(let isEditing):
+                    state.textFieldIsEditing.accept(isEditing)
                 }
             }
             .disposed(by: disposeBag)
@@ -180,5 +189,39 @@ final class AssignMissionViewModel: ViewModelProtocol {
         missionUseCaseImpl.saveMissionData(title: title, assigneeId: member.userID, assigneeNickname: member.nickname, createDate: createDate, dueDate: dueDate, category: category)
         
         return missionUseCaseImpl.createMission(groupId: user.groupID, mission: mission)
+    }
+    
+    private func generateSuggestion() -> [Suggestion] {
+        guard !userData.isEmpty else { return [] }
+        let inputText = state.customMissionTitle.value
+        var suggestions: [Suggestion] = []
+        
+        // 1. 과거 데이터 기반 추천데이터 생성
+        if let inputText, !inputText.isEmpty {
+            // 단어 단위로 분할
+            let trimmedText = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+            let keywords = trimmedText
+                .components(separatedBy: .whitespaces)
+                .filter { !$0.isEmpty }
+            
+            userData
+                .filter { mission in
+                    // 위에서 분할한 단어들이 미션 제목에 포함되는지 확인
+                    let title = mission.title.replacingOccurrences(of: " ", with: "")
+                    return keywords.allSatisfy { keyword in
+                        title.localizedStandardContains(keyword)
+                    }
+                }
+                .forEach { mission in
+                    if !suggestions.contains(where: { $0.title == mission.title }) {
+                        let suggestion = Suggestion(title: mission.title, source: .history)
+                        suggestions.append(suggestion)
+                    }
+                }
+        }
+        
+        // TODO: 2. AI 기반 추천데이터 생성
+        
+        return suggestions
     }
 }
