@@ -1,8 +1,8 @@
 //
-//  ProfileSection.swift
+//  MyPageItem.swift
 //  StampIt-Project
 //
-//  Created by kingj on 6/9/25.
+//  Created by kingj on 8/26/25.
 //
 
 // MARK: - MyPage Profile Section
@@ -19,7 +19,7 @@ enum MyPageProfileSection: CaseIterable {
             return [.leaveGroup, .logout, .leaveService]
         }
     }
-    
+
     var headerTitle: String {
         switch self {
         case .groupMember: return "그룹 구성원 관리"
@@ -37,7 +37,7 @@ enum MyPageMenu: CaseIterable {
     case leaveGroup
     case logout
     case leaveService
-    
+
     var title: String {
         switch self {
         case .MemberManage: return "멤버 관리"
@@ -48,7 +48,7 @@ enum MyPageMenu: CaseIterable {
         case .leaveService: return "서비스 탈퇴"
         }
     }
-    
+
     var subtitle: String {
         switch self {
         case .MemberManage: return "그룹 멤버 관리하기"
@@ -59,48 +59,4 @@ enum MyPageMenu: CaseIterable {
         case .leaveService: return "‘스탬프잇' 탈퇴하기"
         }
     }
-}
-
-// MARK: - StampBoard Section
-
-enum StampBoardSection: Int, Hashable, CaseIterable {
-    case summary
-    case page
-    
-    var type: [[StampCellType]] {
-        switch self {
-        case .page:
-            return [
-                [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
-                [.both, .horizontal, .horizontal, .horizontal, .none],
-                [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
-                [.both, .horizontal, .horizontal, .horizontal, .none],
-                [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
-                [.horizontal, .horizontal, .horizontal, .horizontal, .none],
-            ]
-        default: return .init()
-        }
-    }
-    
-    static var column: Int { 5 }
-    
-    static var totalStamp: Int { 30 }
-}
-
-// MARK: - StampBoard Item
-
-enum StampBoardItem: Hashable {
-    case summary(collected: Int, completed: Int)
-    case sticker(StampBoardStamp)
-}
-
-
-// MARK: - Stamp Cell Type
-
-/// Dashed Line 방향 기준
-enum StampCellType: Hashable {
-    case horizontal
-    case vertical
-    case both
-    case none
 }

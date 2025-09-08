@@ -139,7 +139,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         useCase.updateMissionStatus(for: missionToUpdate, ofGroup: user.groupID, to: .completed)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
-                return useCase.createSticker(user: user, mission: mission)
+                return useCase.createStamp(user: user, mission: mission)
             }
             .subscribe()
             .disposed(by: disposeBag)
@@ -154,7 +154,7 @@ final class MyMissionViewModel: ViewModelProtocol {
         useCase.updateMissionStatus(for: missionToUpdate, ofGroup: user.groupID, to: .assigned)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
-                return useCase.deleteSticker(missionID: missionToUpdate.missionID)
+                return useCase.deleteStamp(missionID: missionToUpdate.missionID)
             }
             .subscribe()
             .disposed(by: disposeBag)

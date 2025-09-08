@@ -20,7 +20,7 @@ final class AuthRepository: AuthRepositoryProtocol {
     private let groupManager: any GroupManagerProtocol
     private let membershipManager: any MembershipManagerProtocol
     private let missionManager: any MissionManagerProtocol
-    private let stickerManager: any StickerManagerProtocol
+    private let stampManager: any StampManagerProtocol
     
     private let disposeBag = DisposeBag()
     
@@ -31,14 +31,14 @@ final class AuthRepository: AuthRepositoryProtocol {
         groupManager: any GroupManagerProtocol,
         membershipManager: any MembershipManagerProtocol,
         missionManager: any MissionManagerProtocol,
-        stickerManager: any StickerManagerProtocol
+        stampManager: any StampManagerProtocol
     ) {
         self.authManager = authManager
         self.userManager = userManager
         self.groupManager = groupManager
         self.membershipManager = membershipManager
         self.missionManager = missionManager
-        self.stickerManager = stickerManager
+        self.stampManager = stampManager
     }
     
     // MARK: - Sign-In

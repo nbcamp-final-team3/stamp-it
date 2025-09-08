@@ -19,7 +19,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     private let groupManager: any GroupManagerProtocol
     private let membershipManager: any MembershipManagerProtocol
     private let missionManager: any MissionManagerProtocol
-    private let stickerManager: any StickerManagerProtocol
+    private let stampManager: any StampManagerProtocol
 
     private let authRepository: AuthRepositoryProtocol
 
@@ -33,7 +33,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         groupManager: any GroupManagerProtocol,
         membershipManager: any MembershipManagerProtocol,
         missionManager: any MissionManagerProtocol,
-        stickerManager: any StickerManagerProtocol,
+        stampManager: any StampManagerProtocol,
         authRepository: any AuthRepositoryProtocol,
         mapToRepositoryError: @escaping (Error) -> RepositoryError
     ) {
@@ -42,7 +42,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         self.groupManager = groupManager
         self.membershipManager = membershipManager
         self.missionManager = missionManager
-        self.stickerManager = stickerManager
+        self.stampManager = stampManager
         self.authRepository = authRepository
         self.mapToRepositoryError = mapToRepositoryError
     }
@@ -243,7 +243,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         return Observable.zip(
             groupManager.delete(id: groupId),
             userManager.delete(id: userId),
-            stickerManager.deleteUserStickers(userId: userId),
+            stampManager.deleteUserStamps(userId: userId),
             missionManager.deleteGroupMissions(groupId: groupId),
             membershipManager.deleteGroupMemberships(groupId: groupId)
         )
@@ -260,7 +260,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         return Observable.zip(
             membershipManager.removeMember(groupId: groupId, userId: userId),
             userManager.delete(id: userId),
-            stickerManager.deleteUserStickers(userId: userId),
+            stampManager.deleteUserStamps(userId: userId),
             missionManager.deleteReceivedMissions(userId: userId, groupId: groupId)
         )
         .map { _ in () }
@@ -610,7 +610,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
         currentGroupId: String,
         maxRetries: Int
     ) -> Observable<Void> {
-        return stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
+        return stampManager.deleteUserStamps(userId: userId, groupId: currentGroupId)
             .retry(maxRetries)
             .flatMap { _ in
                 return self.missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId)

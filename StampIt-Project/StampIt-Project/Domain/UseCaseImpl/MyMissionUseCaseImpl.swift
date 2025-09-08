@@ -40,19 +40,19 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
         homeRepository.updateMissionStatus(for: mission, ofGroup: groupID, to: status)
     }
 
-    func createSticker(user: User, mission: Mission) -> Observable<Void> {
-        homeRepository.createSticker(
+    func createStamp(user: User, mission: Mission) -> Observable<Void> {
+        homeRepository.createStamp(
             userId: user.userID,
             groupId: user.groupID,
             missionTitle: mission.title,
-            maxSticker: 30, // TODO: pin 번호 계산용
-            stickerType: StickerType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
+            maxStamp: Stamp.totalStamp,
+            stampType: StampType.red.rawValue,
             missionId: mission.missionID,
             assignedBy: mission.assignedBy
         )
     }
 
-    func deleteSticker(missionID: String) -> Observable<Void> {
-        homeRepository.deleteSticker(missionID: missionID)
+    func deleteStamp(missionID: String) -> Observable<Void> {
+        homeRepository.deleteStamp(missionID: missionID)
     }
 }
