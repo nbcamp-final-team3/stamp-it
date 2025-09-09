@@ -36,7 +36,7 @@ final class DefaultNavigationBar: UIView {
     private let logoImageView = UIImageView().then {
         $0.contentMode = .scaleAspectFill
     }
-    
+
     private lazy var tabButton1 = createTabButton()
     private lazy var tabButton2 = createTabButton()
     
@@ -112,13 +112,13 @@ final class DefaultNavigationBar: UIView {
         case .plainTitle:
             titleLabel.snp.makeConstraints {
                 $0.centerY.equalToSuperview()
-                $0.leading.equalTo(Navigation.leading)
+                $0.leading.equalToSuperview().inset(Navigation.horizontal)
             }
         case .titleWithBackButton:
             backButton.snp.makeConstraints {
                 $0.centerY.equalToSuperview()
-                $0.leading.equalTo(Navigation.leading)
-                $0.size.equalTo(Navigation.backButtonSize)
+                $0.leading.equalToSuperview().inset(Navigation.horizontal)
+                $0.size.equalTo(Navigation.buttonSize)
             }
             
             titleLabel.snp.makeConstraints {
@@ -128,15 +128,15 @@ final class DefaultNavigationBar: UIView {
         case .logoWithItem:
             logoImageView.snp.makeConstraints {
                 $0.centerY.equalToSuperview()
-                $0.leading.equalTo(Navigation.leading)
+                $0.leading.equalToSuperview().inset(Navigation.horizontal)
                 $0.width.equalTo(Navigation.appLogoWidth)
                 $0.height.equalTo(Navigation.appLogoHeight)
             }
-            
+
         case .segmentedControlTabs:
             tabButton1.snp.makeConstraints {
                 $0.centerY.equalToSuperview()
-                $0.leading.equalTo(Navigation.leading)
+                $0.leading.equalToSuperview().inset(Navigation.horizontal)
             }
             
             tabButton2.snp.makeConstraints {
@@ -184,6 +184,17 @@ final class DefaultNavigationBar: UIView {
     
     func updateNavigationTitle(_ title: String) {
         titleLabel.text = title
+    }
+
+    /// 네비바 오른쪽에 아이템 추가
+    func addRightItem(_ item: UIView) {
+        addSubview(item)
+
+        item.snp.makeConstraints {
+            $0.centerY.equalToSuperview()
+            $0.trailing.equalToSuperview().inset(Navigation.horizontal)
+            $0.size.equalTo(Navigation.buttonSize)
+        }
     }
 }
 

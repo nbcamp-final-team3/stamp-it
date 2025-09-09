@@ -8,7 +8,7 @@
 import Foundation
 
 final class MissionExpirationServiceImpl: MissionExpirationService {
-    var homeRepository: HomeRepositoryProtocol
+    private let homeRepository: HomeRepositoryProtocol
 
     init(homeRepository: HomeRepositoryProtocol) {
         self.homeRepository = homeRepository

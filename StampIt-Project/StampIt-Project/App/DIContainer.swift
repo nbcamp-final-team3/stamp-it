@@ -13,11 +13,15 @@ final class DIContainer {
     // MARK: - Managers (Infrastructure Layer)
     lazy var authManager: any AuthManagerProtocol = AuthManager()
     lazy var userManager: any UserManagerProtocol = UserManager()
+    lazy var fcmManager: any FCMManagerProtocol = FCMManager()
     lazy var groupManager: any GroupManagerProtocol = GroupManager()
     lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
     lazy var missionManager: any MissionManagerProtocol = MissionManager()
     lazy var stickerManager: any StickerManagerProtocol = StickerManager()
+    lazy var noticeManager: any NoticeManagerProtocol = NoticeManager()
 
+    // MARK: - Coordinators
+    lazy var tokenCoordinator: TokenCoordinator = TokenCoordinator(fcmManager: fcmManager)
 
     // MARK: - Repositories (Data Layer)
     lazy var authRepository: AuthRepositoryProtocol = {
@@ -46,14 +50,15 @@ final class DIContainer {
         )
     }()
 
-    lazy var inviteRepository: InviteRepository = {
+    lazy var inviteRepository: InviteRepositoryProtocol = {
         return InviteRepositoryImpl(
             groupManager: groupManager,
             membershipManager: membershipManager,
             userManager: userManager,
             // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
              missionManager: missionManager,
-             stickerManager: stickerManager
+             stickerManager: stickerManager,
+             noticeManager: noticeManager
         )
     }()
 
@@ -98,6 +103,10 @@ final class DIContainer {
         )
     }()
 
+    lazy var noticeRepository: NoticeRepositoryProtocol = {
+        return NoticeRepository(noticeManager: noticeManager, authManager: authManager)
+    }()
+
     // MARK: - Services
 
     lazy var missionExpirationService: MissionExpirationService = {
@@ -123,6 +132,7 @@ final class DIContainer {
     lazy var myMissionUseCase: MyMissionUseCaseProtocol = {
         return MyMissionUseCaseImpl(
             homeRepository: homeRepository,
+            authRepository: authRepository,
             expirationService: missionExpirationService
         )
     }()
@@ -135,7 +145,11 @@ final class DIContainer {
     }()
 
     lazy var missionUseCase: MissionUseCase = {
-        return MissionUseCaseImpl(missionRepositoryImpl: missionRepository)
+        return MissionUseCaseImpl(
+            authRepository: authRepository,
+            missionRepositoryImpl: missionRepository,
+            noticeRepository: noticeRepository
+        )
     }()
 
     lazy var inviteUseCase: InviteUseCase = {
@@ -163,7 +177,11 @@ final class DIContainer {
             accountManageRepository: accountManageRepository, inviteRepository: inviteRepository
         )
     }()
-    
+
+    lazy var noticeUseCase: NoticeUseCaseProtocol = {
+        return NoticeUseCase(repository: noticeRepository)
+    }()
+
     // MARK: - ViewModels (Domain Layer)
     func makeLoginViewModel() -> LoginViewModel {
         return LoginViewModel(loginUseCase: loginUseCase)
@@ -198,10 +216,8 @@ final class DIContainer {
         return OnboardingViewModel(totalPages: 3)
     }
 
-    func makeMyMissionViewModel(user: User, memberCache: [String: Member]) -> MyMissionViewModel {
+    func makeMyMissionViewModel() -> MyMissionViewModel {
         return MyMissionViewModel(
-            user: user,
-            memberCache: memberCache,
             useCase: myMissionUseCase,
             mapper: MissionMapper(),
         )
@@ -244,6 +260,10 @@ final class DIContainer {
         )
     }
 
+    func makeNoticeListViewModel() -> NoticeListViewModel {
+        return NoticeListViewModel(useCase: noticeUseCase)
+    }
+
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
@@ -278,8 +298,8 @@ final class DIContainer {
         return OnboardingViewController(viewModel: viewModel)
     }
 
-    func makeMyMissionViewController(user: User, memberCache: [String: Member]) -> MyMissionViewController {
-        let viewModel = makeMyMissionViewModel(user: user, memberCache: memberCache)
+    func makeMyMissionViewController() -> MyMissionViewController {
+        let viewModel = makeMyMissionViewModel()
         return MyMissionViewController(viewModel: viewModel)
     }
 
@@ -316,6 +336,11 @@ final class DIContainer {
     func makeStampInfoViewController() -> StampInfoViewController {
         let viewModel = makeStampInfoViewModel()
         return StampInfoViewController(viewModel: viewModel)
+    }
+
+    func makeNoticeListViewController() -> NoticeListViewController {
+        let viewModel = makeNoticeListViewModel()
+        return NoticeListViewController(viewModel: viewModel)
     }
 
     // MARK: - Singleton

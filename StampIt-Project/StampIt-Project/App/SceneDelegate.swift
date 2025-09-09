@@ -21,6 +21,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
+
+        // TokenCoordinator 초기화 (FCM 토큰 이벤트 구독 시작)
+        _ = DIContainer.shared.tokenCoordinator
         
         // 2. 버전 체크 먼저
         versionCheckViewModel.checkForceUpdate { [weak self] needUpdate, message in
@@ -103,6 +106,30 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         // Save changes in the application's managed object context when the application transitions to the background.
         (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
+    }
+    
+    // MARK: - DeepLink Handling
+    
+    /// 딥링크 URL 처리
+    func handleDeepLink(by url: URL) {
+        print("🔗 딥링크 처리 시작: \(url.absoluteString)")
+        
+        let container = DIContainer.shared
+        let success = DeepLinkManager.shared.handleURL(url, in: window, container: container)
+        
+        if !success {
+            print("❌ 딥링크 처리 실패")
+        }
+    }
+    
+    /// 알림에서 딥링크 처리
+    func handleDeeplinkFromNotification(_ userInfo: [AnyHashable: Any]) {
+        let container = DIContainer.shared
+        let success = DeepLinkManager.shared.handleDeeplinkFromNotification(userInfo, in: window, container: container)
+        
+        if !success {
+            print("❌ 알림 딥링크 처리 실패")
+        }
     }
     
     // 샘플 미션 JSON 데이터를 코어데이터에 저장
