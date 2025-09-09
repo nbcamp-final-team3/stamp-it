@@ -208,6 +208,7 @@ final class AssignMissionViewController: BaseViewController {
         missionTitleTextField.rx.text
             .orEmpty
             .asDriver(onErrorDriveWith: .empty())
+            .distinctUntilChanged()
             .debounce(.milliseconds(300))
             .drive { [weak self] text in
                 self?.viewModel.action.accept(.titleDidChange(text))
@@ -351,7 +352,7 @@ final class AssignMissionViewController: BaseViewController {
         let suggestion = button?.getSuggestion()
         guard let suggestion else { return }
         
-        missionTitleTextField.text = suggestion.title
+        viewModel.action.accept(.titleDidChange(suggestion.title))
     }
     
     // 멤버 선택 버튼을 누르면 드랍다운으로 멤버 리스트를 보여줌. 다시 누르면 닫음.

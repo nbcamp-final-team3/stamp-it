@@ -26,7 +26,6 @@ final class AssignMissionViewModel: ViewModelProtocol {
         var selectedMember = BehaviorRelay<Member?>(value: nil)
         var dueDate = BehaviorRelay<Date>(value: Date())
         var canSubmit = BehaviorRelay<Bool>(value: false)
-        var customMissionTitle = BehaviorRelay<String?>(value: nil)
         var textFieldIsEditing = BehaviorRelay<Bool>(value: false)
         var suggestions = BehaviorRelay<[Suggestion]>(value: [])
     }
@@ -48,9 +47,6 @@ final class AssignMissionViewModel: ViewModelProtocol {
         
         // 만약 커스텀 미션이 아니라면(샘플 미션이라면) 멤버 선택은 이미 되어 있으므로 true
         if let mission = state.mission.value, !mission.title.isEmpty { return true }
-        
-        // 만약 커스텀 미션이고, 미션 제목을 입력했다면 true
-        if let title = state.customMissionTitle.value, !title.isEmpty { return true }
         
         return false
     }
@@ -94,7 +90,10 @@ final class AssignMissionViewModel: ViewModelProtocol {
                     
                     userData = missionUseCaseImpl.fetchMissionData()
                 case .titleDidChange(let title):
-                    state.customMissionTitle.accept(title)
+                    guard let mission = state.mission.value else { return }
+                    let newMission = SampleMission(missionId: mission.missionId, title: title, description: mission.description, category: mission.category)
+                    state.mission.accept(newMission)
+                    
                     state.canSubmit.accept(canSubmit)
                     
                     state.suggestions.accept(generateSuggestion())
@@ -170,9 +169,9 @@ final class AssignMissionViewModel: ViewModelProtocol {
             return Observable.error(NSError(domain: "user data is nil.", code: 0, userInfo: nil))
         }
         
-        let title = state.customMissionTitle.value ?? state.mission.value!.title
+        let title = state.mission.value?.title ?? ""
         let createDate = Date()
-        let category = state.mission.value!.category
+        let category = state.mission.value?.category ?? MissionCategory.custom
         
         let mission = Mission(
             missionID: UUID().uuidString,
@@ -193,7 +192,7 @@ final class AssignMissionViewModel: ViewModelProtocol {
     
     private func generateSuggestion() -> [Suggestion] {
         guard !userData.isEmpty else { return [] }
-        let inputText = state.customMissionTitle.value
+        let inputText = state.mission.value?.title
         var suggestions: [Suggestion] = []
         
         // 1. 과거 데이터 기반 추천데이터 생성
