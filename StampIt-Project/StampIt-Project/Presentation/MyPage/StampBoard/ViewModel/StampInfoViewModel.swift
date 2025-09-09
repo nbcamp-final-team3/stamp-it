@@ -17,7 +17,6 @@ final class StampInfoViewModel: ViewModelProtocol {
     
     // MARK: - Action & State
     
-    
     enum Action {
         case load(missionId: String)
         case closeButtonTapped

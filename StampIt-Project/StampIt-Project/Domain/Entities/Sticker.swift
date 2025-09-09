@@ -44,7 +44,7 @@ extension Sticker {
             maxStickers: self.maxStickers,
             assignedBy: self.assignedBy,
             zigzagIndex: .zero,
+            shouldBlur: false,
         )
-        
     }
 }

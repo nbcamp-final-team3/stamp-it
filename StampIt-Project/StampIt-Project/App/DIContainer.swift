@@ -282,12 +282,12 @@ final class DIContainer {
             container: self
         )
     }
-    
+
     func makeStampBoardViewController() -> StampBoardViewController {
         let viewModel = makeStampBoardViewModel()
-        return StampBoardViewController(viewModel: viewModel, container: self)
+        return StampBoardViewController(viewModel: viewModel)
     }
-    
+
     func makeProfileViewController() -> ProfileViewController {
         let viewModel = makeProfileViewModel()
         return ProfileViewController(viewModel: viewModel, container: self)
@@ -332,10 +332,10 @@ final class DIContainer {
         let viewModel = makeGroupMemberManageViewModel()
         return GroupMemberManageViewController(viewModel: viewModel)
     }
-    
-    func makeStampInfoViewController() -> StampInfoViewController {
+
+    func makeStampInfoViewController(stampType: StickerType) -> StampInfoViewController {
         let viewModel = makeStampInfoViewModel()
-        return StampInfoViewController(viewModel: viewModel)
+        return StampInfoViewController(viewModel: viewModel, stampType: stampType)
     }
 
     func makeNoticeListViewController() -> NoticeListViewController {

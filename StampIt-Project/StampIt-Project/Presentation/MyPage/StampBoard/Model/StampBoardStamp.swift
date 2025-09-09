@@ -19,6 +19,7 @@ struct StampBoardStamp: Hashable {
     let maxStickers: Int
     let assignedBy: String
     var zigzagIndex: Int
+    var shouldBlur: Bool
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(stickerID)
@@ -49,12 +50,14 @@ extension StampBoardStamp {
             maxStickers: sticker.maxStickers,
             assignedBy: sticker.assignedBy,
             zigzagIndex: .zero,
+            shouldBlur: false,
         )
     }
     
     static func map(
         _ sticker: StampBoardStamp,
-        type: StickerType = .stampGray
+        type: StickerType = .stampGray,
+        lastCheckedAt: Date
     ) -> StampBoardStamp {
         StampBoardStamp(
             userID: sticker.userID,
@@ -68,6 +71,7 @@ extension StampBoardStamp {
             maxStickers: sticker.maxStickers,
             assignedBy: sticker.assignedBy,
             zigzagIndex: .zero,
+            shouldBlur: sticker.createdAt > lastCheckedAt,
         )
     }
 }

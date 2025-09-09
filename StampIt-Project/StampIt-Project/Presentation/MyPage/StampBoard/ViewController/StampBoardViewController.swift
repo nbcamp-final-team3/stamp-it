@@ -16,10 +16,9 @@ final class StampBoardViewController: BaseViewController {
     // MARK: - Properties
     
     private var viewModel: StampBoardViewModel
-    private var container: DIContainer
     private let disposeBag = DisposeBag()
     private var currentPage: Int = .zero
-    
+
     override var screenName: String { "StampBoard" }
     
     // MARK: - UI Components
@@ -30,10 +29,8 @@ final class StampBoardViewController: BaseViewController {
     
     init(
         viewModel: StampBoardViewModel,
-        container: DIContainer
     ) {
         self.viewModel = viewModel
-        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -179,22 +176,42 @@ extension StampBoardViewController: UICollectionViewDelegate {
         didSelectItemAt indexPath: IndexPath
     ) {
         let stickersByPage = viewModel.state.stickersByPage.value
-        
         let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
-        
         let clickedSticker = stickersByPage[currentPage][itemIndexInPage]
         let missionId = clickedSticker.missionID
 
+        guard clickedSticker.type != .stampGray else { return }
+
         /// Empty Stamp 는 모달뷰 띄우지 않음
         if clickedSticker.type != .stampGray {
-            let viewModel = container.makeStampInfoViewModel()
-            
-            let stampInfoVC = StampInfoViewController(viewModel: viewModel)
+            let viewModel = DIContainer.shared.makeStampInfoViewModel()
+
+            let stampInfoVC = StampInfoViewController(
+                viewModel: viewModel,
+                stampType: clickedSticker.type,
+            )
+            stampInfoVC.transitioningDelegate = self
             stampInfoVC.modalPresentationStyle = .custom
-            
+
             viewModel.action.accept(.load(missionId: missionId))
             
             self.present(stampInfoVC, animated: true)
         }
+    }
+}
+
+extension StampBoardViewController: UIViewControllerTransitioningDelegate {
+    func animationController(
+        forPresented presented: UIViewController,
+        presenting: UIViewController,
+        source: UIViewController
+    ) -> (any UIViewControllerAnimatedTransitioning)? {
+        StampPresentAnimator()
+    }
+
+    func animationController(
+        forDismissed dismissed: UIViewController
+    ) -> (any UIViewControllerAnimatedTransitioning)? {
+        StampDismissAnimator()
     }
 }
