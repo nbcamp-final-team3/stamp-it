@@ -8,6 +8,17 @@
 import UIKit
 
 extension MissionCategory {
+    /// 이미지 파일명을 반환하는 연산 프로퍼티
+    var imageName: String {
+        switch self {
+        case .chore: return "chore"
+        case .communication: return "communication"
+        case .health: return "health"
+        case .learning: return "learning"
+        case .custom: return "custom"
+        }
+    }
+    
     var title: String {
         switch self {
         case .chore:
@@ -24,18 +35,7 @@ extension MissionCategory {
     }
 
     var image: UIImage {
-        switch self {
-        case .chore:
-                .chore
-        case .communication:
-                .communication
-        case .health:
-                .health
-        case .learning:
-                .learning
-        case .custom:
-                .custom
-        }
+        return UIImage(named: imageName) ?? UIImage()
     }
 
     var backgroundColor: UIColor {
