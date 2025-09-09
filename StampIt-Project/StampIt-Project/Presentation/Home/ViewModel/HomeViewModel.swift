@@ -30,6 +30,7 @@ final class HomeViewModel: ViewModelProtocol {
         case didTapMoreMyMissions
         case didSelectReceivedMember(Int)
         case didTapMoreMemberMissions
+        case checkNotice
     }
 
     struct State {
@@ -46,6 +47,7 @@ final class HomeViewModel: ViewModelProtocol {
         let completionCanceledMission = PublishRelay<String>()
         let isPushMyMissionVC = PublishRelay<Void>()
         let isPushMemberMissionVC = PublishRelay<Void>()
+        let isPushNoticeListVC = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -97,6 +99,8 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.updateMemberMissions(index: index)
                 case .didTapMoreMemberMissions:
                     owner.state.isPushMemberMissionVC.accept(())
+                case .checkNotice:
+                    owner.state.isPushNoticeListVC.accept(())
                 }
             }
             .disposed(by: disposeBag)
@@ -147,7 +151,7 @@ final class HomeViewModel: ViewModelProtocol {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Mission]> in
               guard let self = self else { return .empty() }
-              return self.myMissionUseCase.fetchAssignedMissions(to: user.userID, ofGroup: user.groupID)
+              return self.myMissionUseCase.fetchAssignedMissions()
           }
           .subscribe(onNext: { [weak self] missions in
               guard let self = self else { return }
@@ -158,21 +162,23 @@ final class HomeViewModel: ViewModelProtocol {
               self.state.myMissions.accept(items)
               print("저장할 미션 데이터: \(missions)")
               
-              // 위젯 데이터 저장 (mapForWidget 매핑 사용)
+              // 위젯 데이터 저장
+              let missionUIs = missions.map { $0.toPresentation() }
               let widgetMissions = self.missionMapper.map(widgetMissions: missions, member: self.memberCache)
               WidgetMissionManager.shared.save(missions: widgetMissions)
-              WidgetCenter.shared.reloadAllTimelines()
-              
-              print("위젯용 미션 데이터 생성: \(widgetMissions.count)개")
-              for mission in widgetMissions {
-                  print("  - 제목: \(mission.title), 닉네임: \(mission.fromLabel), 날짜: \(mission.duration)")
+              WidgetCenter.shared.reloadAllTimelines() // 위젯 새로고침
+              let defaults = UserDefaults(suiteName: "group.com.by.Family-Stamp-It-Widget-")
+              if let data = defaults?.data(forKey: "missions"),
+                 let missions = try? JSONDecoder().decode([HomeMissionWidget].self, from: data) {
+                  print("미션 데이터: \(missions)")
+              } else {
+                  print("미션 데이터 없음!")
               }
-              
           })
           .disposed(by: disposeBag)
     }
     
-
+    
     private func bindMemberMissions(ofUser currentUser: Observable<User>) {
         currentUser
           .flatMapLatest { [weak self] user -> Observable<[Mission]> in
@@ -223,8 +229,7 @@ final class HomeViewModel: ViewModelProtocol {
     ///
     /// myMissions에서 완료할 미션을 찾은 후 미션 완료 API를 호출하고 스티커 생성
     func handleMissionCompleteButtonTapped(missionID: String) {
-        guard let user = state.user.value,
-              let mission = findMissionFromCache(missionID: missionID) else { return }
+        guard let mission = findMissionFromCache(missionID: missionID) else { return }
 
         let message = "'\(mission.title.truncatedTo10)' 미션을 완료했어요!"
         state.isShowStampReceived.accept((missionID, message))
@@ -240,10 +245,10 @@ final class HomeViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
 
         // 미션 상태를 완료로 업데이트
-        myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .completed)
+        myMissionUseCase.updateMissionStatus(for: mission, to: .completed)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
-                return myMissionUseCase.createSticker(user: user, mission: mission)
+                return myMissionUseCase.createSticker(mission: mission)
             }
             .subscribe()
             .disposed(by: disposeBag)
@@ -255,10 +260,8 @@ final class HomeViewModel: ViewModelProtocol {
         let mission = pendingStack.removeLast()
         state.completionCanceledMission.accept(mission.missionID)
 
-        guard let user = state.user.value else { return }
-
         /// 미션 상태를 진행중으로 롤백
-        myMissionUseCase.updateMissionStatus(for: mission, ofGroup: user.groupID, to: .assigned)
+        myMissionUseCase.updateMissionStatus(for: mission, to: .assigned)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
                 return myMissionUseCase.deleteSticker(missionID: mission.missionID)
