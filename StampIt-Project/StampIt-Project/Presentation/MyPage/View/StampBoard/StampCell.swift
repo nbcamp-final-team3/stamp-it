@@ -21,7 +21,6 @@ final class StampCell: UICollectionViewCell {
         $0.contentMode = .scaleAspectFill
         $0.layer.cornerRadius = StickerType.imageSize / 2
         $0.image = UIImage(named: StickerType.stampGray.rawValue)
-        $0.layer.masksToBounds = false
     }
     
     private let horizontalLine = DashedLine(direction: .horizontal)
@@ -38,20 +37,12 @@ final class StampCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setStyle()
         setHierarchy()
         setLayout()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: - Style Helper
-    
-    private func setStyle() {
-        contentView.layer.masksToBounds = false
-        stampImageView.layer.masksToBounds = false
     }
     
     // MARK: - Hierarchy Helper
