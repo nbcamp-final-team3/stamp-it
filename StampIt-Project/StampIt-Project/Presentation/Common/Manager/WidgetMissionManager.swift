@@ -14,6 +14,7 @@ final class WidgetMissionManager {
     
     private init() {}
     
+    // TODO: 1.1.6 혹은 1.2 배포 후 이후 리팩토링 과정에서 디버깅 로그 삭제 예정
     func save(missions: [HomeMissionWidget]) {
         print("위젯 데이터 저장 시도: \(missions.count)개")
         print("App Group ID: \(suiteName)")

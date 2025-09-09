@@ -17,7 +17,7 @@ struct HomeMissionWidget: Codable, Identifiable {
 }
 
 extension HomeMissionWidget {
-    init(from ui: MissionUI) {
+    init(from ui: StampBoardMission) {
         self.id = ui.missionID
         self.title = ui.title
         self.category = ui.category

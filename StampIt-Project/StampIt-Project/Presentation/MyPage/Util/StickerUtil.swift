@@ -11,14 +11,14 @@ struct StickerUtil {
     
     /// 지그재그 순서로 스티커 배열 생성
     static func makeZigzagOrder(
-        from stickers: [StickerUI],
+        from stickers: [StampBoardStamp],
         columns: Int,
         pinNumber: Int
-    ) -> [StickerUI] {
+    ) -> [StampBoardStamp] {
         let totalStickerCount = StampBoardSection.totalStamp
         
         /// 총 totalStickerCount 개의 스탬프 배열 생성 (부족하면 Empty sticker 생성)
-        let totalStickers: [StickerUI] = {
+        let totalStickers: [StampBoardStamp] = {
             (0..<totalStickerCount).map { index in
                 
                 /// Empty stickers 배열 일 때 default stamp 생성
@@ -46,7 +46,7 @@ struct StickerUtil {
         }
         
         /// 지그재그 순서에 맞춰 zigzagIndex 부여
-        let finalStickers = zigzagOrdered.enumerated().map { (index, sticker) -> StickerUI in
+        let finalStickers = zigzagOrdered.enumerated().map { (index, sticker) -> StampBoardStamp in
             var zigzagIndexAdded = sticker
             zigzagIndexAdded.zigzagIndex = index
             return zigzagIndexAdded
@@ -59,11 +59,11 @@ struct StickerUtil {
     static func makeEmptySticker(
         with pinNumber: Int,
         zigzagIndex: Int? = nil
-    ) -> StickerUI {
+    ) -> StampBoardStamp {
         
         // TODO: type 체크
         
-        StickerUI(
+        StampBoardStamp(
             userID: "Unknown",
             stickerID: "\(UUID())",
             groupID: "Unknown",
@@ -80,7 +80,7 @@ struct StickerUtil {
     }
     
     /// 스탬프판 초기값 생성
-    static func initialize() -> [[StickerUI]] {
+    static func initialize() -> [[StampBoardStamp]] {
         [
             (0..<StampBoardSection.totalStamp).map {
                 StickerUtil.makeEmptySticker(with: 1, zigzagIndex: $0)

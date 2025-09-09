@@ -46,8 +46,8 @@ struct Mission: Equatable {
 // MARK: - Presentation Model 변환
 
 extension Mission {
-    func toPresentation() -> MissionUI {
-        MissionUI(
+    func toPresentation() -> StampBoardMission {
+        StampBoardMission(
             missionID: self.missionID,
             title: self.title,
             nickname: self.assignedBy,
