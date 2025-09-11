@@ -104,19 +104,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             print("✅ Google Sign-In URL 처리 성공")
             return true
         }
-        
-        // 딥링크 URL 처리
-        if url.scheme == "stamp-it" {
-            print("🔗 딥링크 URL 감지: \(url.absoluteString)")
-            
-            // SceneDelegate로 딥링크 전달
-            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let delegate = scene.delegate as? SceneDelegate {
-                delegate.handleDeepLink(by: url)
-                return true
-            }
-        }
-        
         print("❌ URL 처리 실패")
         return false
     }
@@ -168,9 +155,6 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         // ⭐ 중요: FCM에 APNS 토큰 설정
         Messaging.messaging().apnsToken = deviceToken
-        
-        // FCM 토큰은 MessagingDelegate에서 자동으로 처리됨
-        // 별도로 저장하지 않음 (중복 방지)
     }
     
     // APNS 토큰 등록 실패
@@ -195,10 +179,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         // 딥링크 처리
         let userInfo = response.notification.request.content.userInfo
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let delegate = scene.delegate as? SceneDelegate {
-            delegate.handleDeeplinkFromNotification(userInfo)
-        }
+        _ = DeepLinkManager.shared.handleDeepLinkFromNotification(userInfo)
         
         completionHandler()
     }

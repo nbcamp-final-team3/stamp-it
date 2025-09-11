@@ -11,18 +11,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
-    // 딥링크 버퍼
-    private var pendingDeepLinkURL: URL?
-    
-    // 탭바 준비 상태 추적
-    private var isTabBarReady = false
+    let deepLinkManager = DeepLinkManager.shared
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
 
         // handleDeepLink()를 바로 호출 하지 않고 버퍼에 보관
         if let url = connectionOptions.urlContexts.first?.url {
 
-            pendingDeepLinkURL = url
+            deepLinkManager.pendingDeepLinkURL = url
         }
 
         // 1. VersionCheckViewModel 인스턴스 준비
@@ -76,15 +72,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             self.window?.makeKeyAndVisible()
 
             // 탭바 준비 상태 리셋
-            self.isTabBarReady = false
-            
-            // 탭바 준비 완료 노티피케이션 구독
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(self.handleTabBarReady),
-                name: .mainUITabReady,
-                object: nil
-            )
+            deepLinkManager.isTabBarReady = false
+
         }
     }
 
@@ -122,77 +111,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
     }
 
-    // MARK: - DeepLink Handling
-
-    /// 앱이 이미 실행 중일 때 딥링크 URL 처리
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
-        guard let url = URLContexts.first?.url else { return }
-        pendingDeepLinkURL = url
-        processPendingDeepLink()
-    }
-
-    // MARK: - 탭바 준비 완료 처리
-    @objc private func handleTabBarReady() {
-        print("🔗 탭바 준비 완료 - 딥링크 처리 가능")
-        isTabBarReady = true
-        processPendingDeepLink()
-    }
-
-    // MARK: - 버퍼 처리
-    private func processPendingDeepLink() {
-        // 탭바가 준비되지 않았으면 보류
-        guard isTabBarReady else {
-            print("🔗 탭바가 아직 준비되지 않음 - 딥링크 처리 보류")
-            return
-        }
+         guard let url = URLContexts.first?.url else { return }
+        let handleResult = deepLinkManager.handleDeepLinkFromAppDelegate(url)
         
-        // 딥링크 URL이 없으면 종료
-        guard let url = pendingDeepLinkURL else {
-            print("🔗 보류 중인 딥링크 없음")
-            return
+        if handleResult {
+            print("✅ SceneDelegate: 딥링크 처리 성공 - \(url.absoluteString)")
+        } else {
+            print("❌ SceneDelegate: 딥링크 처리 실패 - \(url.absoluteString)")
         }
-
-        // 네비게이션 가능한 상태인지 확인
-        guard mainUINavigable() else {
-            print("🔗 네비게이션이 아직 준비되지 않음 - 딥링크 처리 보류")
-            return
-        }
-        
-        print("🔗 보류 중인 딥링크 처리 시작: \(url.absoluteString)")
-        
-        // 소비 후 처리
-        pendingDeepLinkURL = nil
-        handleDeepLink(by: url)
-    }
-
-    /// 공통 딥링크 처리
-    func handleDeepLink(by url: URL) {
-        print("🔗 딥링크 처리 시작: \(url.absoluteString)")
-
-        let container = DIContainer.shared
-        let success = DeepLinkManager.shared.handleURL(url, in: window, container: container)
-
-        if !success {
-            print("❌ 딥링크 처리 실패")
-        }
-    }
-
-    /// 알림에서 딥링크 처리
-    func handleDeeplinkFromNotification(_ userInfo: [AnyHashable: Any]) {
-        if let linkStr = (userInfo["deeplink"] as? String) ?? (userInfo["url"] as? String),
-           let url = URL(string: linkStr) {
-            pendingDeepLinkURL = url
-            processPendingDeepLink()
-        }
-    }
-
-    // 탭바+네비 존재 여부 체크
-    private func mainUINavigable() -> Bool {
-        guard let tab = window?.rootViewController as? UITabBarController,
-              let _ = tab.selectedViewController as? UINavigationController else {
-            return false
-        }
-        return true
-    }
+     }
 }
 

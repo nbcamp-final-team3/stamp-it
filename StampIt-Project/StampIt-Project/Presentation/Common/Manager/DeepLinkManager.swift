@@ -105,8 +105,26 @@ enum DeepLink {
 
 // MARK: - DeepLink Manager
 final class DeepLinkManager {
+    // 딥링크 버퍼
+    var pendingDeepLinkURL: URL?
+
+    // 탭바 준비 상태 추적
+    var isTabBarReady = false
+
     static let shared = DeepLinkManager()
-    private init() {}
+    private init() {
+        // 탭바 준비 완료 노티피케이션 구독
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleTabBarReady),
+            name: .mainUITabReady,
+            object: nil
+        )
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 
     // MARK: - Public Methods
 
@@ -205,5 +223,115 @@ final class DeepLinkManager {
         }
 
         return handleURLString(linkStr, in: window, container: container)
+    }
+
+    /// AppDelegate에서 호출하는 통합 딥링크 처리
+    func handleDeepLinkFromAppDelegate(_ url: URL) -> Bool {
+        print("🔗 AppDelegate에서 딥링크 처리: \(url.absoluteString)")
+        
+        // 딥링크를 버퍼에 저장
+        pendingDeepLinkURL = url
+        
+        // 현재 window와 container 가져오기
+        guard let window = getCurrentWindow(),
+              let container = getDIContainer() else {
+            print("❌ Window 또는 DIContainer를 찾을 수 없습니다")
+            return false
+        }
+        
+        // 딥링크 처리 시도
+        return processDeepLinkIfReady(in: window, container: container)
+    }
+    
+    /// 알림에서 딥링크 처리 (AppDelegate에서 호출)
+    func handleDeepLinkFromNotification(_ userInfo: [AnyHashable: Any]) -> Bool {
+        print("🔗 알림에서 딥링크 처리")
+        
+        // 딥링크 URL 추출
+        guard let linkStr = (userInfo["deeplink"] as? String) ?? (userInfo["url"] as? String),
+              let url = URL(string: linkStr) else {
+            print("❌ 알림에서 딥링크 정보를 찾을 수 없습니다")
+            return false
+        }
+        
+        // 딥링크를 버퍼에 저장
+        pendingDeepLinkURL = url
+        
+        // 현재 window와 container 가져오기
+        guard let window = getCurrentWindow(),
+              let container = getDIContainer() else {
+            print("❌ Window 또는 DIContainer를 찾을 수 없습니다")
+            return false
+        }
+        
+        // 딥링크 처리 시도
+        return processDeepLinkIfReady(in: window, container: container)
+    }
+    
+
+    
+    // MARK: - Private Helper Methods
+    
+    /// 딥링크가 준비되면 처리
+    private func processDeepLinkIfReady(in window: UIWindow?, container: DIContainer) -> Bool {
+        // 탭바가 준비되지 않았으면 보류
+        guard isTabBarReady else {
+            print("🔗 탭바가 아직 준비되지 않음 - 딥링크 처리 보류")
+            return true // 보류는 성공으로 간주
+        }
+        
+        // 딥링크 URL이 없으면 종료
+        guard let url = pendingDeepLinkURL else {
+            print("🔗 보류 중인 딥링크 없음")
+            return false
+        }
+        
+        // 네비게이션 가능한 상태인지 확인
+        guard isMainUINavigable(in: window) else {
+            print("🔗 네비게이션이 아직 준비되지 않음 - 딥링크 처리 보류")
+            return true // 보류는 성공으로 간주
+        }
+        
+        print("🔗 보류 중인 딥링크 처리 시작: \(url.absoluteString)")
+        
+        // 소비 후 처리
+        pendingDeepLinkURL = nil
+        return handleURL(url, in: window, container: container)
+    }
+    
+    /// 현재 window 가져오기
+    private func getCurrentWindow() -> UIWindow? {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let delegate = scene.delegate as? SceneDelegate else {
+            return nil
+        }
+        return delegate.window
+    }
+    
+    /// DIContainer 가져오기
+    private func getDIContainer() -> DIContainer? {
+        return DIContainer.shared
+    }
+    
+    /// 탭바+네비 존재 여부 체크
+    private func isMainUINavigable(in window: UIWindow?) -> Bool {
+        guard let tab = window?.rootViewController as? UITabBarController,
+              let _ = tab.selectedViewController as? UINavigationController else {
+            return false
+        }
+        return true
+    }
+    
+    // MARK: - NotificationCenter Observer
+    
+    @objc private func handleTabBarReady() {
+        print("🔗 탭바 준비 완료 - 딥링크 처리 가능")
+        isTabBarReady = true
+        
+        // 보류 중인 딥링크가 있으면 처리
+        guard let window = getCurrentWindow(),
+              let container = getDIContainer() else { return }
+        
+        _ = processDeepLinkIfReady(in: window, container: container)
     }
 }
