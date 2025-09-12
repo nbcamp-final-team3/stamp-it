@@ -54,13 +54,13 @@ final class StampBoardViewController: BaseViewController {
     
     private func bind() {
         Observable.combineLatest(
-            viewModel.state.stickerSummary,
-            viewModel.state.stickersByPage
+            viewModel.state.stampSummary,
+            viewModel.state.stampsByPage
         )
         .observe(on: MainScheduler.instance)
         .bind(with: self) { owner, combined in
-            let (summary, stickers) = combined
-            owner.updateSnapshot(summary: summary, stickers: stickers)
+            let (summary, stamps) = combined
+            owner.updateSnapshot(summary: summary, stamps: stamps)
             
             let page = summary.completed
             owner.stampBoardView.footerPageRelay.accept(
@@ -105,9 +105,9 @@ final class StampBoardViewController: BaseViewController {
     
     private func updateSnapshot(
         summary: (collected: Int, completed: Int),
-        stickers: [[StampBoardStamp]]
+        stamps: [[StampBoardStamp]]
     ) {
-        let maxPage = stickers.count
+        let maxPage = stamps.count
         
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
 
@@ -126,12 +126,12 @@ final class StampBoardViewController: BaseViewController {
         /// Item & Section For StampBoard
         for index in 0..<maxPage {
             snapshot.appendItems(
-                stickers[index].map { .sticker($0) },
+                stamps[index].map { .stamp($0) },
                 toSection: .page
             )
         }
         
-        stampBoardView.stickerBoardDataSource.apply(snapshot, animatingDifferences: false)
+        stampBoardView.stampBoardDataSource.apply(snapshot, animatingDifferences: false)
         
         stampBoardView.getCollectionView().layoutIfNeeded()
     }
@@ -155,17 +155,17 @@ extension StampBoardViewController: UICollectionViewDelegate {
     ) {
         guard let cell = cell as? StampCell else { return }
         
-        let stickers = viewModel.state.stickersByPage.value
+        let stamps = viewModel.state.stampsByPage.value
         let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
         
-        guard stickers.indices.contains(currentPage),
-              stickers[currentPage].indices.contains(itemIndexInPage) else {
+        guard stamps.indices.contains(currentPage),
+              stamps[currentPage].indices.contains(itemIndexInPage) else {
             return
         }
         
-        let sticker = stickers[currentPage][itemIndexInPage]
+        let stamp = stamps[currentPage][itemIndexInPage]
 
-        let dashedType = StampBoardSection.page.type.flatMap { $0 }[sticker.zigzagIndex]
+        let dashedType = StampBoardSection.page.type.flatMap { $0 }[stamp.zigzagIndex]
         
         cell.configureDashedLine(with: dashedType)
         
@@ -175,20 +175,20 @@ extension StampBoardViewController: UICollectionViewDelegate {
         _ collectionView: UICollectionView,
         didSelectItemAt indexPath: IndexPath
     ) {
-        let stickersByPage = viewModel.state.stickersByPage.value
+        let stampsByPage = viewModel.state.stampsByPage.value
         let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
-        let clickedSticker = stickersByPage[currentPage][itemIndexInPage]
-        let missionId = clickedSticker.missionID
+        let clickedStamp = stampsByPage[currentPage][itemIndexInPage]
+        let missionId = clickedStamp.missionID
 
-        guard clickedSticker.type != .stampGray else { return }
+        guard clickedStamp.type != .stampGray else { return }
 
         /// Empty Stamp 는 모달뷰 띄우지 않음
-        if clickedSticker.type != .stampGray {
+        if clickedStamp.type != .stampGray {
             let viewModel = DIContainer.shared.makeStampInfoViewModel()
 
             let stampInfoVC = StampInfoViewController(
                 viewModel: viewModel,
-                stampType: clickedSticker.type,
+                stampType: clickedStamp.type,
             )
             stampInfoVC.transitioningDelegate = self
             stampInfoVC.modalPresentationStyle = .custom

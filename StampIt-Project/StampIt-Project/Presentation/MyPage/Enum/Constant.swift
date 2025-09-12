@@ -7,12 +7,12 @@
 
 import UIKit
 
-// MARK: - Sticker
+// MARK: - Stamp
 
-extension StickerType {
+extension StampType {
     static let imageSize: CGFloat = 53
     
-    static func from(_ index: Int) -> StickerType {
+    static func from(_ index: Int) -> StampType {
         switch index {
         case 0: return .stampRed
         case 1: return .stampBlue

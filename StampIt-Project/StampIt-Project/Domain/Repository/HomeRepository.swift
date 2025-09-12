@@ -11,7 +11,7 @@ import RxSwift
 protocol HomeRepositoryProtocol {
     func fetchGroupMembers(ofGroup groupID: String) -> Observable<[Member]>
 
-    func fetchStickers(ofGroup groupID: String, month: String) -> Observable<[Sticker]>
+    func fetchStamps(ofGroup groupID: String, month: String) -> Observable<[Stamp]>
 
     func fetchMissions(
         to assigneeID: String?,
@@ -25,15 +25,15 @@ protocol HomeRepositoryProtocol {
         to status: MissionStatus
     ) -> Observable<Mission>
 
-    func createSticker(
+    func createStamp(
         userId: String,
         groupId: String,
         missionTitle: String,
-        maxSticker: Int,
-        stickerType: String,
+        maxStamp: Int,
+        stampType: String,
         missionId: String,
         assignedBy: String
     ) -> Observable<Void>
 
-    func deleteSticker(missionID: String) -> Observable<Void>
+    func deleteStamp(missionID: String) -> Observable<Void>
 }

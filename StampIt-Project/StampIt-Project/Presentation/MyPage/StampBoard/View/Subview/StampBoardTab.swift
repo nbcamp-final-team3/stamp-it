@@ -15,7 +15,7 @@ final class StampBoardTab: UIView {
     
     // MARK: - Properties
     
-    var stickerBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
+    var stampBoardDataSource: UICollectionViewDiffableDataSource<StampBoardSection, StampBoardItem>!
     
     private weak var footerView: PageControlFooterView?
     
@@ -24,7 +24,7 @@ final class StampBoardTab: UIView {
 
     // MARK: - UI Components
     
-    private let stickerBoardView = StampBoardCollectionView()
+    private let stampBoardView = StampBoardCollectionView()
     
     // MARK: - Initializer, Deinit, requiered
     
@@ -50,23 +50,23 @@ final class StampBoardTab: UIView {
     // MARK: - Delegate Helper
     
     func setScrollDelegate(_ delegate: StampBoardScrollDelegate) {
-        stickerBoardView.scrollDelegate = delegate
+        stampBoardView.scrollDelegate = delegate
     }
     
     func setCollectionViewDelegate(_ delegate: UICollectionViewDelegate) {
-        stickerBoardView.setCollectionViewDelegate(delegate)
+        stampBoardView.setCollectionViewDelegate(delegate)
     }
     
     // TODO: 사용후 필요한 메소드만 getter 로 생성
     func getCollectionView() -> UICollectionView {
-        stickerBoardView.getCollectionView()
+        stampBoardView.getCollectionView()
     }
     
     // MARK: - DataSource Helper
     
     private func setDataSource() {
-        stickerBoardDataSource = UICollectionViewDiffableDataSource(
-            collectionView: stickerBoardView.getCollectionView(),
+        stampBoardDataSource = UICollectionViewDiffableDataSource(
+            collectionView: stampBoardView.getCollectionView(),
             cellProvider: { collectionView, indexPath, itemIdentifier in
                 guard let section = StampBoardSection(rawValue: indexPath.section) else { return .init() }
                 
@@ -79,8 +79,8 @@ final class StampBoardTab: UIView {
                     
                     if case let .summary(collected, completed) = itemIdentifier {
                         cell.configureItem(
-                            currentSticker: "\(collected)",
-                            totalSticker: "\(StampBoardSection.totalStamp)",
+                            currentStamp: "\(collected)",
+                            totalStamp: "\(StampBoardSection.totalStamp)",
                             totalBoard: "\(completed)"
                         )
                     }
@@ -92,7 +92,7 @@ final class StampBoardTab: UIView {
                         for: indexPath
                     ) as! StampCell
                     
-                    if case let .sticker(sticker) = itemIdentifier {
+                    if case let .stamp(stamp) = itemIdentifier {
                         /// .page 섹션 하나 안에 셀 (페이징된 모든 스티커 아이템) 을 다 그려서 30 단위로 indexPath.item 증가
                         let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
                         
@@ -102,16 +102,16 @@ final class StampBoardTab: UIView {
                             cell.configureDashedLine(with: backgroundBoard[itemIndexInPage])
                         }
                         
-                        cell.configureStamp(with: sticker)
+                        cell.configureStamp(with: stamp)
                     }
                     return cell
                 }
             })
-        stickerBoardView.setDataSource(stickerBoardDataSource)
+        stampBoardView.setDataSource(stampBoardDataSource)
     }
     
     private func setFooter() {
-        stickerBoardDataSource.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
+        stampBoardDataSource.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
             
             let sections = StampBoardSection.allCases
             
@@ -154,7 +154,7 @@ final class StampBoardTab: UIView {
     
     private func setHierarchy() {
         [
-            stickerBoardView
+            stampBoardView
         ]
             .forEach { addSubview($0) }
     }
@@ -162,7 +162,7 @@ final class StampBoardTab: UIView {
     // MARK: - Layout Helper
     
     private func setLayout() {
-        stickerBoardView.snp.makeConstraints {
+        stampBoardView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
     }

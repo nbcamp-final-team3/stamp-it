@@ -16,7 +16,7 @@ final class MemberMapper: MemberMapping {
             let member = HomeMember(
                 memberID: member.userID,
                 nickname: isUser ? "나" : member.nickname,
-                stickerCount: "\(member.monthSticker)개",
+                stampCount: "\(member.monthStamp)개",
                 rank: index + 1,
                 profileImage: member.profileImage
             )

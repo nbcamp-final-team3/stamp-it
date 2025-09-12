@@ -1,5 +1,5 @@
 //
-//  StickerManager.swift
+//  StampManager.swift
 //  StampIt-Project
 //
 //  Created by iOS study on 6/23/25.
@@ -10,31 +10,31 @@ import FirebaseFirestore
 import Firebase
 import RxSwift
 
-// MARK: - StickerManager Implementation
-final class StickerManager: StickerManagerProtocol {
+// MARK: - StampManager Implementation
+final class StampManager: StampManagerProtocol {
     
-    typealias Entity = StickerFirestore
+    typealias Entity = StampFirestore
     typealias ID = String
-    typealias Query = StickerQuery
+    typealias Query = StampQuery
     
     // MARK: - Properties
     private let db = Firestore.firestore()
     
     // MARK: - Collection Reference
-    var stickerCollection: CollectionReference {
-        return db.collection("stickers")
+    var stampCollection: CollectionReference {
+        return db.collection("stamps")
     }
     
     // MARK: - Init
     init() {}
     
     // MARK: - FullCRUDRepository 프로토콜 구현
-    func fetch(id: String) -> Observable<StickerFirestore?> {
+    func fetch(id: String) -> Observable<StampFirestore?> {
         return Observable.create { observer in
-            self.stickerCollection.document(id)
+            self.stampCollection.document(id)
                 .getDocument(source: .server) { documentSnapshot, error in
                     if let error = error {
-                        observer.onError(StickerError.fetchFailed(error.localizedDescription))
+                        observer.onError(StampError.fetchFailed(error.localizedDescription))
                         return
                     }
                     
@@ -45,11 +45,11 @@ final class StickerManager: StickerManagerProtocol {
                     }
                     
                     do {
-                        let sticker = try document.data(as: StickerFirestore.self)
-                        observer.onNext(sticker)
+                        let stamp = try document.data(as: StampFirestore.self)
+                        observer.onNext(stamp)
                         observer.onCompleted()
                     } catch {
-                        observer.onError(StickerError.decodingFailed(error.localizedDescription))
+                        observer.onError(StampError.decodingFailed(error.localizedDescription))
                     }
                 }
             
@@ -57,12 +57,12 @@ final class StickerManager: StickerManagerProtocol {
         }
     }
     
-    func observe(id: String) -> Observable<StickerFirestore?> {
+    func observe(id: String) -> Observable<StampFirestore?> {
         return Observable.create { observer in
-            let listener = self.stickerCollection.document(id)
+            let listener = self.stampCollection.document(id)
                 .addSnapshotListener { documentSnapshot, error in
                     if let error = error {
-                        observer.onError(StickerError.fetchFailed(error.localizedDescription))
+                        observer.onError(StampError.fetchFailed(error.localizedDescription))
                         return
                     }
                     
@@ -72,10 +72,10 @@ final class StickerManager: StickerManagerProtocol {
                     }
                     
                     do {
-                        let sticker = try document.data(as: StickerFirestore.self)
-                        observer.onNext(sticker)
+                        let stamp = try document.data(as: StampFirestore.self)
+                        observer.onNext(stamp)
                     } catch {
-                        observer.onError(StickerError.decodingFailed(error.localizedDescription))
+                        observer.onError(StampError.decodingFailed(error.localizedDescription))
                     }
                 }
             
@@ -85,22 +85,22 @@ final class StickerManager: StickerManagerProtocol {
         }
     }
     
-    func create(_ entity: StickerFirestore) -> Observable<Void> {
-        return addSticker(entity)
+    func create(_ entity: StampFirestore) -> Observable<Void> {
+        return addStamp(entity)
     }
     
-    func update(id: String, entity: StickerFirestore) -> Observable<Void> {
+    func update(id: String, entity: StampFirestore) -> Observable<Void> {
         guard id == entity.documentID else {
-            return Observable.error(StickerError.invalidInput("ID 불일치"))
+            return Observable.error(StampError.invalidInput("ID 불일치"))
         }
-        return updateSticker(entity)
+        return updateStamp(entity)
     }
     
     func updateFields(id: String, fields: [String: Any]) -> Observable<Void> {
         return Observable.create { observer in
-            self.stickerCollection.document(id).updateData(fields) { error in
+            self.stampCollection.document(id).updateData(fields) { error in
                 if let error = error {
-                    observer.onError(StickerError.updateFailed(error.localizedDescription))
+                    observer.onError(StampError.updateFailed(error.localizedDescription))
                 } else {
                     observer.onNext(())
                     observer.onCompleted()
@@ -112,9 +112,9 @@ final class StickerManager: StickerManagerProtocol {
     
     func delete(id: String) -> Observable<Void> {
         return Observable.create { observer in
-            self.stickerCollection.document(id).delete { error in
+            self.stampCollection.document(id).delete { error in
                 if let error = error {
-                    observer.onError(StickerError.deleteFailed(error.localizedDescription))
+                    observer.onError(StampError.deleteFailed(error.localizedDescription))
                 } else {
                     observer.onNext(())
                     observer.onCompleted()
@@ -124,16 +124,16 @@ final class StickerManager: StickerManagerProtocol {
         }
     }
     
-    func fetchList(query: StickerQuery) -> Observable<[StickerFirestore]> {
+    func fetchList(query: StampQuery) -> Observable<[StampFirestore]> {
         return Observable.create { observer in
-            var firestoreQuery: FirebaseFirestore.Query = self.stickerCollection
+            var firestoreQuery: FirebaseFirestore.Query = self.stampCollection
             
             // 쿼리 조건 적용
             firestoreQuery = self.applyQueryConditions(firestoreQuery, query: query)
             
             firestoreQuery.getDocuments { snapshot, error in
                 if let error = error {
-                    observer.onError(StickerError.fetchFailed(error.localizedDescription))
+                    observer.onError(StampError.fetchFailed(error.localizedDescription))
                     return
                 }
                 
@@ -144,29 +144,29 @@ final class StickerManager: StickerManagerProtocol {
                 }
                 
                 do {
-                    let stickers = try documents.compactMap { document in
-                        try document.data(as: StickerFirestore.self)
+                    let stamps = try documents.compactMap { document in
+                        try document.data(as: StampFirestore.self)
                     }
-                    observer.onNext(stickers)
+                    observer.onNext(stamps)
                     observer.onCompleted()
                 } catch {
-                    observer.onError(StickerError.decodingFailed(error.localizedDescription))
+                    observer.onError(StampError.decodingFailed(error.localizedDescription))
                 }
             }
             return Disposables.create()
         }
     }
 
-    func observeList(query: StickerQuery) -> Observable<[StickerFirestore]> {
+    func observeList(query: StampQuery) -> Observable<[StampFirestore]> {
         return Observable.create { observer in
-            var firestoreQuery: FirebaseFirestore.Query = self.stickerCollection
+            var firestoreQuery: FirebaseFirestore.Query = self.stampCollection
             
             // 쿼리 조건 적용
             firestoreQuery = self.applyQueryConditions(firestoreQuery, query: query)
             
             let listener = firestoreQuery.addSnapshotListener { snapshot, error in
                 if let error = error {
-                    observer.onError(StickerError.fetchFailed(error.localizedDescription))
+                    observer.onError(StampError.fetchFailed(error.localizedDescription))
                     return
                 }
                 
@@ -176,12 +176,12 @@ final class StickerManager: StickerManagerProtocol {
                 }
                 
                 do {
-                    let stickers = try documents.compactMap { document in
-                        try document.data(as: StickerFirestore.self)
+                    let stamps = try documents.compactMap { document in
+                        try document.data(as: StampFirestore.self)
                     }
-                    observer.onNext(stickers)
+                    observer.onNext(stamps)
                 } catch {
-                    observer.onError(StickerError.decodingFailed(error.localizedDescription))
+                    observer.onError(StampError.decodingFailed(error.localizedDescription))
                 }
             }
             
@@ -192,46 +192,46 @@ final class StickerManager: StickerManagerProtocol {
     }
     
     // MARK: - Private Helper
-    private func applyQueryConditions(_ query: FirebaseFirestore.Query, query stickerQuery: StickerQuery) -> FirebaseFirestore.Query {
+    private func applyQueryConditions(_ query: FirebaseFirestore.Query, query stampQuery: StampQuery) -> FirebaseFirestore.Query {
         var result = query
         
-        if let stickerId = stickerQuery.stickerId, !stickerId.isEmpty {
-            result = result.whereField("stickerId", in: stickerId)
+        if let stampId = stampQuery.stampId, !stampId.isEmpty {
+            result = result.whereField("stampId", in: stampId)
         }
         
-        if let userId = stickerQuery.userId, !userId.isEmpty {
+        if let userId = stampQuery.userId, !userId.isEmpty {
             result = result.whereField("userId", in: userId)
         }
         
-        if let groupId = stickerQuery.groupId, !groupId.isEmpty {
+        if let groupId = stampQuery.groupId, !groupId.isEmpty {
             result = result.whereField("groupId", in: groupId)
         }
 
-        if let missionId = stickerQuery.missionId, !missionId.isEmpty {
+        if let missionId = stampQuery.missionId, !missionId.isEmpty {
             result = result.whereField("missionId", in: missionId)
         }
 
-        if let month = stickerQuery.month, !month.isEmpty {
+        if let month = stampQuery.month, !month.isEmpty {
             result = result.whereField("month", in: month)
         }
         
-        if let pinNumber = stickerQuery.pinNumber, !pinNumber.isEmpty {
+        if let pinNumber = stampQuery.pinNumber, !pinNumber.isEmpty {
             result = result.whereField("pinNumber", in: pinNumber)
         }
         
-        if let type = stickerQuery.type, !type.isEmpty {
+        if let type = stampQuery.type, !type.isEmpty {
             result = result.whereField("type", in: type)
         }
         
-        if let createdAt = stickerQuery.createdAt {
+        if let createdAt = stampQuery.createdAt {
             result = result.whereField("createdAt", isGreaterThan: Timestamp(date: createdAt))
         }
         
-        if let orderBy = stickerQuery.orderBy {
+        if let orderBy = stampQuery.orderBy {
             result = result.order(by: orderBy.field, descending: orderBy.descending)
         }
         
-        if let limit = stickerQuery.limit {
+        if let limit = stampQuery.limit {
             result = result.limit(to: limit)
         }
         
@@ -241,20 +241,20 @@ final class StickerManager: StickerManagerProtocol {
     // MARK: - 기존 FirestoreManager 메서드들 (하위 호환성)
     
     /// 새 스티커 추가
-    func addSticker(_ sticker: StickerFirestore) -> Observable<Void> {
+    func addStamp(_ stamp: StampFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                try self.stickerCollection.document(sticker.documentID)
-                    .setData(from: sticker) { error in
+                try self.stampCollection.document(stamp.documentID)
+                    .setData(from: stamp) { error in
                         if let error = error {
-                            observer.onError(StickerError.createFailed(error.localizedDescription))
+                            observer.onError(StampError.createFailed(error.localizedDescription))
                         } else {
                             observer.onNext(())
                             observer.onCompleted()
                         }
                     }
             } catch {
-                observer.onError(StickerError.encodingFailed(error.localizedDescription))
+                observer.onError(StampError.encodingFailed(error.localizedDescription))
             }
             
             return Disposables.create()
@@ -262,20 +262,20 @@ final class StickerManager: StickerManagerProtocol {
     }
     
     /// 스티커 정보 업데이트 (타입 변경 등)
-    func updateSticker(_ sticker: StickerFirestore) -> Observable<Void> {
+    func updateStamp(_ stamp: StampFirestore) -> Observable<Void> {
         return Observable.create { observer in
             do {
-                try self.stickerCollection.document(sticker.documentID)
-                    .setData(from: sticker, merge: true) { error in
+                try self.stampCollection.document(stamp.documentID)
+                    .setData(from: stamp, merge: true) { error in
                         if let error = error {
-                            observer.onError(StickerError.updateFailed(error.localizedDescription))
+                            observer.onError(StampError.updateFailed(error.localizedDescription))
                         } else {
                             observer.onNext(())
                             observer.onCompleted()
                         }
                     }
             } catch {
-                observer.onError(StickerError.encodingFailed(error.localizedDescription))
+                observer.onError(StampError.encodingFailed(error.localizedDescription))
             }
             
             return Disposables.create()
@@ -283,17 +283,17 @@ final class StickerManager: StickerManagerProtocol {
     }
     
     /// 특정 사용자의 월별 스티커 조회
-    func fetchStickers(userId: String, month: String) -> Observable<[StickerFirestore]> {
+    func fetchStamps(userId: String, month: String) -> Observable<[StampFirestore]> {
         return observeList(query: .byUserAndMonth(userId, month: month))
     }
     
     /// 특정 사용자의 핀번호별 스티커 조회 (이전 스티커판용)
-    func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[StickerFirestore]> {
+    func fetchStampsByPin(userId: String, pinNumber: Int) -> Observable<[StampFirestore]> {
         return observeList(query: .byUserAndPin(userId, pinNumber: pinNumber))
     }
     
     /// 특정 사용자의 현재 스티커 개수 조회 (핀번호 계산용)
-    func fetchStickerCount(userId: String) -> Observable<Int> {
+    func fetchStampCount(userId: String) -> Observable<Int> {
         return fetchList(query: .byUser(userId))
             .map { $0.count }
             .distinctUntilChanged()
@@ -301,7 +301,7 @@ final class StickerManager: StickerManagerProtocol {
     }
     
     /// 실시간 카운트(스티커 추가/삭제 실시간 반영)
-    func observeStickerCount(userId: String) -> Observable<Int> {
+    func observeStampCount(userId: String) -> Observable<Int> {
         return observeList(query: .byUserAndDescCreatedAfter(userId))
             .map { $0.count }
             .distinctUntilChanged()
@@ -309,34 +309,34 @@ final class StickerManager: StickerManagerProtocol {
     }
     
     /// 특정 그룹의 모든 스티커 조회 (그룹 랭킹용-홈)
-    func fetchGroupStickers(groupId: String, month: String) -> Observable<[StickerFirestore]> {
+    func fetchGroupStamps(groupId: String, month: String) -> Observable<[StampFirestore]> {
         return observeList(query: .byGroupAndMonth(groupId, month: month))
     }
     
     /// 특정 사용자의 모든 스티커 조회 (전체 기록용-마이페이지)
-    func fetchAllUserStickers(userId: String) -> Observable<[StickerFirestore]> {
+    func fetchAllUserStamps(userId: String) -> Observable<[StampFirestore]> {
         return observeList(query: .byUser(userId))
     }
 
     /// 특정 미션에 대한 스티커 삭제 (미션완료 취소용)
-    func deleteSticker(missionId: String) -> Observable<Void> {
+    func deleteStamp(missionId: String) -> Observable<Void> {
         return fetchList(query: .byMission(missionId))
-            .flatMap { [weak self] stickers -> Observable<Void> in
+            .flatMap { [weak self] stamps -> Observable<Void> in
                 guard let self = self else {
-                    return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
+                    return Observable.error(StampError.fetchFailed("StampManager 인스턴스가 없습니다"))
                 }
 
-                let deleteObservables = stickers.map { sticker in
-                    self.delete(id: sticker.documentID)
+                let deleteObservables = stamps.map { stamp in
+                    self.delete(id: stamp.documentID)
                 }
                 return Observable.zip(deleteObservables).map { _ in () }
             }
     }
 
     /// 특정 그룹에서 사용자 스티커 삭제 (그룹 탈퇴용)
-    func deleteUserStickers(userId: String, groupId: String) -> Observable<Void> {
-        return fetchList(query: StickerQuery(
-            stickerId: nil,
+    func deleteUserStamps(userId: String, groupId: String) -> Observable<Void> {
+        return fetchList(query: StampQuery(
+            stampId: nil,
             userId: [userId],
             groupId: [groupId],
             missionId: nil,
@@ -347,18 +347,18 @@ final class StickerManager: StickerManagerProtocol {
             orderBy: nil,
             limit: nil
         ))
-        .flatMap { [weak self] stickers -> Observable<Void> in
+        .flatMap { [weak self] stamps -> Observable<Void> in
             guard let self = self else {
-                return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
+                return Observable.error(StampError.fetchFailed("StampManager 인스턴스가 없습니다"))
             }
             
             // 빈 배열 처리
-            guard !stickers.isEmpty else {
+            guard !stamps.isEmpty else {
                 return Observable.just(())
             }
             
-            let deleteObservables = stickers.map { sticker in
-                self.delete(id: sticker.documentID)
+            let deleteObservables = stamps.map { stamp in
+                self.delete(id: stamp.documentID)
             }
             
             return Observable.zip(deleteObservables).map { _ in () }
@@ -366,9 +366,9 @@ final class StickerManager: StickerManagerProtocol {
     }
 
     /// 사용자의 모든 스티커 삭제 (서비스 탈퇴용)
-    func deleteUserStickers(userId: String) -> Observable<Void> {
-        return fetchList(query: StickerQuery(
-            stickerId: nil,
+    func deleteUserStamps(userId: String) -> Observable<Void> {
+        return fetchList(query: StampQuery(
+            stampId: nil,
             userId: [userId],
             groupId: nil,  // 모든 그룹
             missionId: nil,
@@ -379,18 +379,18 @@ final class StickerManager: StickerManagerProtocol {
             orderBy: nil,
             limit: nil
         ))
-        .flatMap { [weak self] stickers -> Observable<Void> in
+        .flatMap { [weak self] stamps -> Observable<Void> in
             guard let self = self else {
-                return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
+                return Observable.error(StampError.fetchFailed("StampManager 인스턴스가 없습니다"))
             }
             
             // 빈 배열 처리
-            guard !stickers.isEmpty else {
+            guard !stamps.isEmpty else {
                 return Observable.just(())
             }
             
-            let deleteObservables = stickers.map { sticker in
-                self.delete(id: sticker.documentID)
+            let deleteObservables = stamps.map { stamp in
+                self.delete(id: stamp.documentID)
             }
             
             return Observable.zip(deleteObservables).map { _ in () }
@@ -398,20 +398,20 @@ final class StickerManager: StickerManagerProtocol {
     }
 
     /// 특정 그룹의 모든 스티커 삭제 (그룹 삭제 시 사용)
-    func deleteGroupStickers(groupId: String) -> Observable<Void> {
+    func deleteGroupStamps(groupId: String) -> Observable<Void> {
         return fetchList(query: .byGroup(groupId))
-            .flatMap { [weak self] stickers -> Observable<Void> in
+            .flatMap { [weak self] stamps -> Observable<Void> in
                 guard let self = self else {
-                    return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
+                    return Observable.error(StampError.fetchFailed("StampManager 인스턴스가 없습니다"))
                 }
                 
                 // 빈 배열 처리
-                guard !stickers.isEmpty else {
+                guard !stamps.isEmpty else {
                     return Observable.just(())
                 }
                 
-                let deleteObservables = stickers.map { sticker in
-                    self.delete(id: sticker.documentID)
+                let deleteObservables = stamps.map { stamp in
+                    self.delete(id: stamp.documentID)
                 }
                 
                 return Observable.zip(deleteObservables).map { _ in () }
@@ -419,19 +419,19 @@ final class StickerManager: StickerManagerProtocol {
     }
     
     /// 미션 완료 시 자동 스티커 생성 (핀번호 자동 계산)
-    func createStickerFromMission(
+    func createStampFromMission(
         userId: String,
         groupId: String,
         missionTitle: String,
-        maxStickers: Int,
-        stickerType: String,
+        maxStamps: Int,
+        stampType: String,
         missionId: String,
         assignedBy: String
     ) -> Observable<Void> {
-        return fetchStickerCount(userId: userId)
+        return fetchStampCount(userId: userId)
             .flatMap { [weak self] currentCount -> Observable<Void> in
                 guard let self = self else {
-                    return Observable.error(StickerError.fetchFailed("StickerManager 인스턴스가 없습니다"))
+                    return Observable.error(StampError.fetchFailed("StampManager 인스턴스가 없습니다"))
                 }
                 
                 let now = Date()
@@ -443,20 +443,20 @@ final class StickerManager: StickerManagerProtocol {
                 // 핀번호 계산: 1~30개 = 핀1, 31~60개 = 핀2, ...
                 let pinNumber = (currentCount / 30) + 1
                 
-                let sticker = StickerFirestore(
-                    stickerId: UUID().uuidString,
+                let stamp = StampFirestore(
+                    stampId: UUID().uuidString,
                     userId: userId,
                     groupId: groupId,
                     month: month,
-                    type: stickerType,
+                    type: stampType,
                     pinNumber: pinNumber,
                     createdAt: Timestamp(date: now),
                     missionId: missionId,
-                    maxStickers: maxStickers,
+                    maxStamps: maxStamps,
                     assignedBy: assignedBy
                 )
                 
-                return self.addSticker(sticker)
+                return self.addStamp(stamp)
             }
     }
 }

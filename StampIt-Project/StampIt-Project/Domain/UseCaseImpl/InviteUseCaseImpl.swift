@@ -132,7 +132,7 @@ final class InviteUseCaseImpl: InviteUseCase {
                             userID: user.userID,
                             nickname: user.nickname,
                             profileImage: user.profileImage,
-                            monthSticker: 0,
+                            monthStamp: 0,
                             joinedAt: Date(),
                             isLeader: false
                         )
