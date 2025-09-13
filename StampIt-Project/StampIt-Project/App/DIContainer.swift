@@ -13,7 +13,7 @@ final class DIContainer {
     // MARK: - Managers (Infrastructure Layer)
     lazy var authManager: any AuthManagerProtocol = AuthManager()
     lazy var userManager: any UserManagerProtocol = UserManager()
-    lazy var fcmManager: any FCMManagerProtocol = FCMManager()
+    lazy var fcmManager: any FCMTokenManagerProtocol = FCMTokenManager()
     lazy var groupManager: any GroupManagerProtocol = GroupManager()
     lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
     lazy var missionManager: any MissionManagerProtocol = MissionManager()
