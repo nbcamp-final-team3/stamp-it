@@ -11,6 +11,6 @@ import RxSwift
 protocol MyPageUseCaseProtocol {
     func fetchUserOnce(userId: String) -> Observable<User?>
     func fetchUser() -> Observable<User?>
-    func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[StickerUI]>
+    func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[StampBoardStamp]>
     func observeStickerCount(userId: String) -> Observable<Int>
 }

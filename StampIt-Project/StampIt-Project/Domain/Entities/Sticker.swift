@@ -31,8 +31,8 @@ enum StickerType: String, Hashable {
 // MARK: - Presentation Model 변환
 
 extension Sticker {
-    func toPresentation() -> StickerUI {
-        return StickerUI(
+    func toPresentation() -> StampBoardStamp {
+        return StampBoardStamp(
             userID: self.userID,
             stickerID: self.stickerID,
             groupID: self.groupID,
@@ -44,7 +44,7 @@ extension Sticker {
             maxStickers: self.maxStickers,
             assignedBy: self.assignedBy,
             zigzagIndex: .zero,
+            shouldBlur: false,
         )
-        
     }
 }

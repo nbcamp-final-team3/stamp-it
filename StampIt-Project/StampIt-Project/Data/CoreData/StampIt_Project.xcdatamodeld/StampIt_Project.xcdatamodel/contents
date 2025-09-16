@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
-    <elements/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24270" systemVersion="25A5316i" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="MissionDataEntity" representedClassName="MissionDataEntity" syncable="YES">
+        <attribute name="assigneeId" optional="YES" attributeType="String"/>
+        <attribute name="assigneeNickname" optional="YES" attributeType="String"/>
+        <attribute name="categoryRaw" attributeType="String"/>
+        <attribute name="createDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="dueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="SampleMissionEntity" representedClassName="SampleMissionEntity" syncable="YES">
+        <attribute name="categoryRaw" attributeType="String"/>
+        <attribute name="isFavorite" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="missionId" optional="YES" attributeType="String"/>
+        <attribute name="score" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+    </entity>
 </model>
