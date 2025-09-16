@@ -12,7 +12,8 @@ import FirebaseFirestore
 import GoogleSignIn
 import FirebaseMessaging
 import UserNotifications
-import FirebaseAuth // Added for Auth.auth()
+import FirebaseAuth
+import RxSwift
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -105,6 +106,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return true
         }
         
+        // 딥링크 URL 처리
+        if url.scheme == "stamp-it" {
+            print("🔗 딥링크 URL 감지: \(url.absoluteString)")
+            
+            // SceneDelegate로 딥링크 전달
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let delegate = scene.delegate as? SceneDelegate {
+                delegate.handleDeepLink(by: url)
+                return true
+            }
+        }
+        
         print("❌ URL 처리 실패")
         return false
     }
@@ -180,9 +193,19 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                                didReceive response: UNNotificationResponse,
                                withCompletionHandler completionHandler: @escaping () -> Void) {
         print("👆 알림 탭됨: \(response.notification.request.content.userInfo)")
+        let userInfo = response.notification.request.content.userInfo
+
+        // 알림 읽음 처리
+        let noticeUseCase = DIContainer.shared.noticeUseCase
+        if let noticeId = userInfo["noticeId"] as? String {
+            _ = noticeUseCase.readNotice(noticeId)
+                .take(1)
+                .subscribe()
+        }
+
+        
         
         // 딥링크 처리
-        let userInfo = response.notification.request.content.userInfo
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let delegate = scene.delegate as? SceneDelegate {
             if let linkStr = (userInfo["deeplink"] as? String) ?? (userInfo["url"] as? String),

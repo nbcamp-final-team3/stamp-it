@@ -12,6 +12,9 @@ struct SampleMission: Decodable {
     let title: String
     let description: String?
     let category: MissionCategory
+    var isFavorite: Bool = false
+    var score: Double = 0.0
+    var timestamp: Date = .now
     
     enum CodingKeys: String, CodingKey {
         case missionId, title, description, category
@@ -39,10 +42,13 @@ struct SampleMission: Decodable {
         }
     }
     
-    init(missionId: String, title: String, description: String?, category: MissionCategory) {
+    init(missionId: String, title: String, description: String?, category: MissionCategory, isFavorite: Bool = false, score: Double = 0.0, timestamp: Date = .now) {
         self.missionId = missionId
         self.title = title
         self.description = description
         self.category = category
+        self.isFavorite = isFavorite
+        self.score = score
+        self.timestamp = timestamp
     }
 }
