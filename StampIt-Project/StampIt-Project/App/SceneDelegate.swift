@@ -36,10 +36,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // TokenCoordinator 초기화 (FCM 토큰 이벤트 구독 시작)
         _ = DIContainer.shared.tokenCoordinator
-
-
-        // TokenCoordinator 초기화 (FCM 토큰 이벤트 구독 시작)
-        _ = DIContainer.shared.tokenCoordinator
         
         // 2. 버전 체크 먼저
         versionCheckViewModel.checkForceUpdate { [weak self] needUpdate, message in
@@ -208,6 +204,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
         return true
     }
+
     // 샘플 미션 JSON 데이터를 코어데이터에 저장
     private func migrateSampleMission(container: DIContainer) {
         container.missionRepository.loadSampleMission()
@@ -216,47 +213,46 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 self?.migrateFavorites(container: container)
                 self?.migrateMissionScores(container: container)
             } onFailure: { error in
-    }
-            }
-        UserDefaults.standard.removeObject(forKey: "missionScores")
-        
-        }
-            }
-                container.missionRepository.updateSampleMission(mission: mission)
-                mission.score = score.value
-            if var mission {
-            let mission = missions.filter { $0.missionId == score.key }.first
-        scores.forEach { score in
-        
-        guard !missions.isEmpty else { return }
-        let missions = container.missionRepository.fetchSampleMission()
-        guard let scores, !scores.isEmpty else { return }
-        let scores = UserDefaults.standard.dictionary(forKey: "missionScores") as? [String: Double]
-    private func migrateMissionScores(container: DIContainer) {
-    // 마이그레이션 완료 시 UserDefaults 삭제
-    // UserDefaults에 저장된 mission score 정보를 코어데이터로 마이그레이션
-    
-    }
-        UserDefaults.standard.removeObject(forKey: "favorites")
-        
-        }
                 print(error)
             }
             .disposed(by: disposeBag)
-                container.missionRepository.updateSampleMission(mission: mission)
+    }
+
+    // UserDefaults에 저장된 favorites 정보를 코어데이터로 마이그레이션
+    // 마이그레이션 완료 시 UserDefaults 삭제
     private func migrateFavorites(container: DIContainer) {
-        
+        let favorites = UserDefaults.standard.stringArray(forKey: "favorites")
+        guard let favorites, !favorites.isEmpty else { return }
+        let missions = container.missionRepository.fetchSampleMission()
+        guard !missions.isEmpty else { return }
+
+        favorites.forEach { favorite in
             let mission = missions.filter { $0.missionId == favorite }.first
             if var mission {
                 mission.isFavorite = true
-        favorites.forEach { favorite in
-        guard !missions.isEmpty else { return }
-        guard let favorites, !favorites.isEmpty else { return }
-        let missions = container.missionRepository.fetchSampleMission()
-        let favorites = UserDefaults.standard.stringArray(forKey: "favorites")
+                container.missionRepository.updateSampleMission(mission: mission)
+            }
+        }
+
+        UserDefaults.standard.removeObject(forKey: "favorites")
+    }
+
+    // UserDefaults에 저장된 mission score 정보를 코어데이터로 마이그레이션
     // 마이그레이션 완료 시 UserDefaults 삭제
-    // UserDefaults에 저장된 favorites 정보를 코어데이터로 마이그레이션
-    
+    private func migrateMissionScores(container: DIContainer) {
+        let scores = UserDefaults.standard.dictionary(forKey: "missionScores") as? [String: Double]
+        guard let scores, !scores.isEmpty else { return }
+        let missions = container.missionRepository.fetchSampleMission()
+        guard !missions.isEmpty else { return }
+
+        scores.forEach { score in
+            let mission = missions.filter { $0.missionId == score.key }.first
+            if var mission {
+                mission.score = score.value
+                container.missionRepository.updateSampleMission(mission: mission)
+            }
+        }
+
+        UserDefaults.standard.removeObject(forKey: "missionScores")
     }
 }
-
