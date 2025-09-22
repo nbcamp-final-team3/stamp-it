@@ -133,7 +133,7 @@ final class GroupDashboardView: UIView {
                     for: indexPath
                 ) as! PlaceholderCell
 
-                cell.configure(with: section.placeholderText)
+                cell.configure(with: section.placeholderText, buttonTitle: section.buttonText)
 
                 return cell
             }
@@ -256,13 +256,13 @@ final class GroupDashboardView: UIView {
     private func createEmptySection(withHeader: Bool = false) -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
-            heightDimension: .fractionalHeight(1)
+            heightDimension: .estimated(60)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
-            heightDimension: .absolute(61)
+            heightDimension: .estimated(60)
         )
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 

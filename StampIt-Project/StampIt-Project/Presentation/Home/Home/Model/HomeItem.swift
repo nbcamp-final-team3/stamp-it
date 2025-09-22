@@ -25,6 +25,17 @@ extension HomeSection {
             return ""
         }
     }
+
+    var buttonText: String {
+        switch self {
+        case .myMission:
+            return "미션 조르기"
+        case .memberMission:
+            return "미션 전달하러 가기"
+        default:
+            return ""
+        }
+    }
 }
 
 enum HomeItem: Hashable {
