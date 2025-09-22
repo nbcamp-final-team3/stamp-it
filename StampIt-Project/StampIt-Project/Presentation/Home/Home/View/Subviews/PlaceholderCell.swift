@@ -38,8 +38,10 @@ final class PlaceholderCell: UICollectionViewCell {
     // MARK: - Set Styles
 
     private func setStyles() {
-        contentView.backgroundColor = .gray25
+        contentView.backgroundColor = .FFFFFF
         contentView.layer.cornerRadius = 8
+        contentView.layer.borderWidth = 1
+        contentView.layer.borderColor = UIColor.gray50.cgColor
     }
 
     // MARK: - Set Hierarchy
