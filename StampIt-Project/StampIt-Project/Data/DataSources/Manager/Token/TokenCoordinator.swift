@@ -10,11 +10,11 @@ import FirebaseAuth
 import FirebaseMessaging
 
 final class TokenCoordinator {
-    private let fcmManager: FCMManagerProtocol
+    private let fcmManager: FCMTokenManagerProtocol
     private var authStateListener: AuthStateDidChangeListenerHandle?
     private var currentUserId: String?
     
-    init(fcmManager: FCMManagerProtocol) {
+    init(fcmManager: FCMTokenManagerProtocol) {
         self.fcmManager = fcmManager
         setupAuthStateObserver()
     }

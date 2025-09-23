@@ -203,10 +203,16 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                 .subscribe()
         }
 
+        
+        
         // 딥링크 처리
         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let delegate = scene.delegate as? SceneDelegate {
-            delegate.handleDeeplinkFromNotification(userInfo)
+            if let linkStr = (userInfo["deeplink"] as? String) ?? (userInfo["url"] as? String),
+               let url = URL(string: linkStr) {
+                // SceneDelegate로 포워딩 -> 알림 상태 조건 검사
+                delegate.enqueueDeepLink(url)
+            }
         }
         
         completionHandler()
@@ -237,4 +243,5 @@ extension AppDelegate: MessagingDelegate {
 // Notification 이름 확장
 extension Notification.Name {
     static let fcmTokenDidRefresh = Notification.Name("FCMToken")
+    static let mainUITabReady = Notification.Name("mainUITabReady")
 }
