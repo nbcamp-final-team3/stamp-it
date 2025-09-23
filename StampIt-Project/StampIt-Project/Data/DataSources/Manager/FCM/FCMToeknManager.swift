@@ -11,7 +11,7 @@ import FirebaseMessaging
 import FirebaseFirestore
 import RxSwift
 
-final class FCMManager: NSObject, FCMTokenManagerProtocol {
+final class FCMTokenManager: NSObject, FCMTokenManagerProtocol {
     
     // MARK: - Properties
     private let disposeBag = DisposeBag()

@@ -13,13 +13,14 @@ import RxCocoa
 final class SendInviteViewModel: ViewModelProtocol {
     // MARK: - Action & State
     enum Action {
-        case copyButtonTapped
+
     }
 
     struct State {
         let inviteCode = BehaviorRelay<String>(value: "")
+        let currentUser = BehaviorRelay<User?>(value: nil)
         let showMessage = PublishRelay<(ToastType, String)>()
-        let copySuccess = PublishRelay<String>()
+
     }
 
     // MARK: - Properties
@@ -31,52 +32,17 @@ final class SendInviteViewModel: ViewModelProtocol {
     // MARK: - Init
     init(useCase: InviteUseCase) {
         self.useCase = useCase
-        bindActions()
         showInviteCode()
     }
 
-    // MARK: - Bind
-    private func bindActions() {
-        action
-            .subscribe(onNext: { [weak self] action in
-                guard let self = self else { return }
-
-                switch action {
-                case .copyButtonTapped:
-                    self.copyInviteCode()
-                }
-            })
-            .disposed(by: disposeBag)
-    }
-
     // MARK: - Private Methods
-    // 복사버튼을 눌렀을때 show 메세지와 UIPasteboard에 복사되는 메서드
-    private func copyInviteCode() {
-        useCase.getInviteCode()
-            .subscribe(onNext: { [weak self] code in
-                guard let self = self else { return }
-                // 복사 성공 시 데이터 스트림 viewController로 전달
-                self.state.copySuccess.accept(code)
-                self.state.showMessage.accept((.success, "초대 코드가 복사되었습니다"))
-            }, onError: { [weak self] error in
-                let message: String
-
-                if let repoError = error as? RepositoryError {
-                    message = repoError.localizedDescription
-                } else {
-                    message = "오류가 발생했습니다."
-                }
-
-                self?.state.showMessage.accept((.failure, message))
-            })
-            .disposed(by: disposeBag)
-    }
 
     // 화면에 접속했을 때 초대 코드를 보여주는 메서드
     private func showInviteCode() {
-        useCase.getInviteCode()
-            .subscribe(onNext: { [weak self] code in
+        useCase.getInviteCodeAndUserInfo()
+            .subscribe(onNext: { [weak self] (code, user) in
                 self?.state.inviteCode.accept(code)
+                self?.state.currentUser.accept(user)
             }, onError: { [weak self] error in
                 let message: String
 

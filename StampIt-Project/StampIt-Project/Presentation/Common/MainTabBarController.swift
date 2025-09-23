@@ -35,6 +35,15 @@ final class MainTabBarController: UITabBarController {
         setupTabs()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        let allNavsReady = viewControllers?.allSatisfy { $0 is UINavigationController } ?? false
+        if allNavsReady {
+            print("🔗 MainTabBarController 준비 완료 - 노티피케이션 전송")
+            NotificationCenter.default.post(name: .mainUITabReady, object: nil)
+        }
+    }
+    
     // MARK: - Style Helper
     
     private func setStyle() {
