@@ -133,7 +133,8 @@ final class DIContainer {
         return MyMissionUseCaseImpl(
             homeRepository: homeRepository,
             authRepository: authRepository,
-            expirationService: missionExpirationService
+            expirationService: missionExpirationService,
+            noticeRepository: noticeRepository,
         )
     }()
 

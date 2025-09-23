@@ -25,7 +25,7 @@ final class NoticeRepository: NoticeRepositoryProtocol {
             description: notice.description,
             category: notice.category.rawValue,
             createdAt: Timestamp(date: notice.createdAt),
-            url: "stampit://newMission",
+            url: "stampit://\(notice.category.rawValue)",
             isRead: notice.isRead,
             userId: receiverId
         )

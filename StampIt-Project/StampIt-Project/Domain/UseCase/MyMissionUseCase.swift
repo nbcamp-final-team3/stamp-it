@@ -15,4 +15,5 @@ protocol MyMissionUseCaseProtocol {
     func updateMissionStatus(for mission: Mission, to status: MissionStatus) -> Observable<Mission>
     func createSticker(mission: Mission) -> Observable<Void>
     func deleteSticker(missionID: String) -> Observable<Void>
+    func requestMission() -> Observable<Void>
 }

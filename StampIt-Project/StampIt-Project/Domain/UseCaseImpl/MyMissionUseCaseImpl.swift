@@ -12,18 +12,21 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
     private let homeRepository: HomeRepositoryProtocol
     private let expirationService: MissionExpirationService
     private let user: Observable<User?>
+    private let noticeRepository: NoticeRepositoryProtocol
 
     init(homeRepository: HomeRepositoryProtocol,
          authRepository: AuthRepositoryProtocol,
          expirationService: MissionExpirationService,
+         noticeRepository: NoticeRepositoryProtocol,
     ) {
         self.homeRepository = homeRepository
         self.expirationService = expirationService
         self.user = authRepository.getCurrentUser()
             .replay(1)
             .refCount()
+        self.noticeRepository = noticeRepository
     }
-    
+
     // TODO: 도메인 mission 리팩토링 후 삭제 - assignedTo, assignedBy 닉네임 매핑
     func fetchGroupMembers() -> Observable<[String: Member]> {
         guard let user = UserCache.shared.getCurrentUser() else { return .empty() }
@@ -80,5 +83,28 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
 
     func deleteSticker(missionID: String) -> Observable<Void> {
         homeRepository.deleteSticker(missionID: missionID)
+    }
+
+    func requestMission() -> Observable<Void> {
+        user.flatMap { [weak self] user -> Observable<(User, [Member])> in
+            guard let self, let user else { return .empty() }
+            return homeRepository.fetchGroupMembers(ofGroup: user.groupID)
+                .map { (user, $0) }
+        }
+        .flatMap { [weak self] user, members -> Observable<Void> in
+            guard let self else { return .empty() }
+            let notice = Notice(
+                noticeId: UUID().uuidString,
+                title: "미션 조르기",
+                description: "\(user.nickname)님으로부터 미션 조르기 알림이 도착했어요! \(user.nickname)님에게 미션을 주러 가볼까요?",
+                category: .missionRequest,
+                createdAt: Date(),
+                isRead: false
+            )
+            let noticeObservables = members.filter { $0.userID != user.userID }.map {
+                self.noticeRepository.createNotice(notice, receiverId: $0.userID)
+            }
+            return Observable.zip(noticeObservables).map { _ in () }
+        }
     }
 }

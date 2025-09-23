@@ -286,6 +286,10 @@ final class HomeViewModel: ViewModelProtocol {
         state.didRequestMissionIn30Min.accept(true)
         UserDefaults.standard.set(now, forKey: "missionRequestTime")
         startMissionRequestTimer(from: now)
+
+        myMissionUseCase.requestMission()
+            .subscribe()
+            .disposed(by: disposeBag)
     }
 
     private func bindMissionRequestState() {
