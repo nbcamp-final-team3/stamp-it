@@ -8,8 +8,14 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class PlaceholderCell: UICollectionViewCell {
+
+    let didTapButton = PublishRelay<Void>()
+    let isSelectedButton = BehaviorRelay<Bool?>(value: nil)
+    var disposeBag = DisposeBag()
 
     // MARK: - Properties
 
@@ -36,6 +42,16 @@ final class PlaceholderCell: UICollectionViewCell {
         config.baseForegroundColor = .red400
 
         $0.configuration = config
+
+        $0.configurationUpdateHandler = { button in
+            var config = button.configuration
+            if button.isSelected {
+                config?.baseBackgroundColor = .clear
+            } else {
+                config?.baseBackgroundColor = .red50
+            }
+            button.configuration = config
+        }
     }
 
     // MARK: - Life Cycles
@@ -45,10 +61,28 @@ final class PlaceholderCell: UICollectionViewCell {
         setStyles()
         setHierarchy()
         setConstraints()
+        bindButton()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+        bindButton()
+    }
+
+    private func bindButton() {
+        button.rx.tap
+            .bind(to: didTapButton)
+            .disposed(by: disposeBag)
+
+        isSelectedButton
+            .compactMap { $0 }
+            .bind(to: button.rx.isSelected)
+            .disposed(by: disposeBag)
     }
 
     // MARK: - Set Styles

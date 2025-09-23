@@ -159,6 +159,11 @@ final class HomeViewController: BaseViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        homeView.didTapRequestMissionButton
+            .map { HomeViewModel.Action.requestMission }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.user
             .asDriver()
             .drive(with: self) { owner, user in
@@ -205,6 +210,10 @@ final class HomeViewController: BaseViewController {
         viewModel.state.isPushMemberMissionVC
             .asDriver(onErrorDriveWith: .empty())
             .drive(onNext: pushMemberMissionVC)
+            .disposed(by: disposeBag)
+
+        viewModel.state.didRequestMissionIn30Min
+            .bind(to: homeView.isSelectedRequestMissionButton)
             .disposed(by: disposeBag)
     }
 

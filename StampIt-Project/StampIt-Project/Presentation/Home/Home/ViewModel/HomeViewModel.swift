@@ -30,6 +30,7 @@ final class HomeViewModel: ViewModelProtocol {
         case didTapMoreMyMissions
         case didSelectReceivedMember(Int)
         case didTapMoreMemberMissions
+        case requestMission
         case checkNotice
     }
 
@@ -48,6 +49,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isPushMyMissionVC = PublishRelay<Void>()
         let isPushMemberMissionVC = PublishRelay<Void>()
         let isPushNoticeListVC = PublishRelay<Void>()
+        let didRequestMissionIn30Min = BehaviorRelay<Bool?>(value: nil)
     }
 
     // MARK: - Properties
@@ -84,6 +86,7 @@ final class HomeViewModel: ViewModelProtocol {
                 switch action {
                 case .viewDidLoad:
                     owner.bindUser()
+                    owner.bindMissionRequestState()
                 case .didTapGroupOrganizationButton:
                     owner.handleSelectIvitation()
                 case .didReceiveInvitationType(let type):
@@ -99,6 +102,8 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.updateMemberMissions(index: index)
                 case .didTapMoreMemberMissions:
                     owner.state.isPushMemberMissionVC.accept(())
+                case .requestMission:
+                    owner.handleRequestMission()
                 case .checkNotice:
                     owner.state.isPushNoticeListVC.accept(())
                 }
@@ -272,5 +277,35 @@ final class HomeViewModel: ViewModelProtocol {
     private func findMissionFromCache(missionID: String) -> Mission? {
         guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
         return myMissions[index]
+    }
+
+    // MARK: - Mission Request Timer
+
+    private func handleRequestMission() {
+        let now = Date()
+        state.didRequestMissionIn30Min.accept(true)
+        UserDefaults.standard.set(now, forKey: "missionRequestTime")
+        startMissionRequestTimer(from: now)
+    }
+
+    private func bindMissionRequestState() {
+        guard let lastRequestTime = UserDefaults.standard.object(forKey: "missionRequestTime") as? Date else { return }
+
+        let remainTime = Date().timeIntervalSince(lastRequestTime)
+        if remainTime < 1800 {
+            state.didRequestMissionIn30Min.accept(true)
+            startMissionRequestTimer(from: lastRequestTime)
+        } else {
+            state.didRequestMissionIn30Min.accept(false)
+        }
+    }
+
+    private func startMissionRequestTimer(from startTime: Date) {
+        let remaining = max(0, 1800 - Date().timeIntervalSince(startTime))
+
+        Observable<Int>.timer(.seconds(Int(remaining)), scheduler: MainScheduler.instance)
+            .map { _ in false }
+            .bind(to: state.didRequestMissionIn30Min)
+            .disposed(by: disposeBag)
     }
 }
