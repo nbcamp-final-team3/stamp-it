@@ -164,6 +164,11 @@ final class HomeViewController: BaseViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        homeView.didTapSendMissoinButton
+            .map { HomeViewModel.Action.moveToMissionTab }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.user
             .asDriver()
             .drive(with: self) { owner, user in
@@ -214,6 +219,13 @@ final class HomeViewController: BaseViewController {
 
         viewModel.state.didRequestMissionIn30Min
             .bind(to: homeView.isSelectedRequestMissionButton)
+            .disposed(by: disposeBag)
+
+        viewModel.state.isMoveMissionTab
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, _ in
+                owner.tabBarController?.selectedIndex = 1
+            }
             .disposed(by: disposeBag)
     }
 

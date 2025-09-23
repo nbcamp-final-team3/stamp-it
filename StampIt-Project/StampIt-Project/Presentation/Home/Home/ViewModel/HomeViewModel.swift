@@ -31,6 +31,7 @@ final class HomeViewModel: ViewModelProtocol {
         case didSelectReceivedMember(Int)
         case didTapMoreMemberMissions
         case requestMission
+        case moveToMissionTab
         case checkNotice
     }
 
@@ -50,6 +51,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isPushMemberMissionVC = PublishRelay<Void>()
         let isPushNoticeListVC = PublishRelay<Void>()
         let didRequestMissionIn30Min = BehaviorRelay<Bool?>(value: nil)
+        let isMoveMissionTab = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -106,6 +108,8 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.handleRequestMission()
                 case .checkNotice:
                     owner.state.isPushNoticeListVC.accept(())
+                case .moveToMissionTab:
+                    owner.state.isMoveMissionTab.accept(())
                 }
             }
             .disposed(by: disposeBag)
