@@ -142,7 +142,7 @@ extension StampBoardViewController: StampBoardScrollDelegate {
         currentPage = page
         
         /// 배경색 변경
-        stampBoardView.backgroundColor = StampBoard(rawValue: page)?.bgColor
+        stampBoardView.backgroundColor = StampBoard(rawValue: page)?.background
         stampBoardView.updateFooterPage(to: page)
     }
 }
@@ -156,8 +156,8 @@ extension StampBoardViewController: UICollectionViewDelegate {
         guard let cell = cell as? StampCell else { return }
         
         let stamps = viewModel.state.stampsByPage.value
-        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
-        
+        let itemIndexInPage = indexPath.item % Stamp.totalStamp
+
         guard stamps.indices.contains(currentPage),
               stamps[currentPage].indices.contains(itemIndexInPage) else {
             return
@@ -176,21 +176,17 @@ extension StampBoardViewController: UICollectionViewDelegate {
         didSelectItemAt indexPath: IndexPath
     ) {
         let stampsByPage = viewModel.state.stampsByPage.value
-        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
+        
+        let itemIndexInPage = indexPath.item % Stamp.totalStamp
+        
         let clickedStamp = stampsByPage[currentPage][itemIndexInPage]
         let missionId = clickedStamp.missionID
 
-        guard clickedStamp.type != .stampGray else { return }
-
         /// Empty Stamp 는 모달뷰 띄우지 않음
-        if clickedStamp.type != .stampGray {
+        if clickedStamp.type != .gray {
             let viewModel = DIContainer.shared.makeStampInfoViewModel()
 
-            let stampInfoVC = StampInfoViewController(
-                viewModel: viewModel,
-                stampType: clickedStamp.type,
-            )
-            stampInfoVC.transitioningDelegate = self
+            let stampInfoVC = StampInfoViewController(viewModel: viewModel)
             stampInfoVC.modalPresentationStyle = .custom
 
             viewModel.action.accept(.load(missionId: missionId))

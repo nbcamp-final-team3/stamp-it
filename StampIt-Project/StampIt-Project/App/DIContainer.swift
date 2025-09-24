@@ -267,7 +267,7 @@ final class DIContainer {
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
-        return LoginViewController(viewModel: viewModel, container: self)
+        return LoginViewController(viewModel: viewModel)
     }
 
     func makeHomeViewController() -> HomeViewController {
@@ -277,10 +277,7 @@ final class DIContainer {
 
     func makeMyPageViewController() -> MyPageViewController {
         let viewModel = makeMyPageViewModel()
-        return MyPageViewController(
-            viewModel: viewModel,
-            container: self
-        )
+        return MyPageViewController(viewModel: viewModel)
     }
 
     func makeStampBoardViewController() -> StampBoardViewController {
@@ -290,7 +287,7 @@ final class DIContainer {
 
     func makeProfileViewController() -> ProfileViewController {
         let viewModel = makeProfileViewModel()
-        return ProfileViewController(viewModel: viewModel, container: self)
+        return ProfileViewController(viewModel: viewModel)
     }
     
     func makeOnboardingViewController() -> OnboardingViewController {

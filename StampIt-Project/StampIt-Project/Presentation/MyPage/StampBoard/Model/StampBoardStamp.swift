@@ -56,8 +56,7 @@ extension StampBoardStamp {
     
     static func map(
         _ stamp: StampBoardStamp,
-        type: StampType = .stampGray,
-        lastCheckedAt: Date
+        type: StampType = .gray
     ) -> StampBoardStamp {
         StampBoardStamp(
             userID: stamp.userID,

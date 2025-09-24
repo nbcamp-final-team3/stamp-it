@@ -80,7 +80,7 @@ final class StampBoardViewModel: ViewModelProtocol {
             .flatMapLatest { [weak self] count -> Observable<(Int, [[StampBoardStamp]])> in
                 guard let self else { return .empty() }
                 
-                let completedBoard = Int(count / StampBoardSection.totalStamp)
+                let completedBoard = Int(count / Stamp.totalStamp)
                 let currentPinNumber = completedBoard + 1
 
                 if count == 0 { lastCheckedAt = .init() }
@@ -131,7 +131,7 @@ final class StampBoardViewModel: ViewModelProtocol {
             .subscribe(with: self)  { owner, result in
                 let (count, stamps) = result
                 
-                let totalStamp = StampBoardSection.totalStamp
+                let totalStamp = Stamp.totalStamp
                 let collectedStamp = Int(count % totalStamp)
                 let completedBoard = Int(count / totalStamp)
                 
@@ -149,7 +149,7 @@ final class StampBoardViewModel: ViewModelProtocol {
     private func updateStampZigzag(_ stampLists: [[StampBoardStamp]]) {
         let zigzagged: [[StampBoardStamp]] = stampLists
             .map { stamps in
-                /// createdAt 내림차순 기준 정렬
+                /// createdAt 오름차순 기준 정렬
                 let ordered = stamps
                     .sorted { $0.createdAt < $1.createdAt }
                 

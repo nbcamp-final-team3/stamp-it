@@ -14,39 +14,43 @@ extension StampType {
     
     static func from(_ index: Int) -> StampType {
         switch index {
-        case 0: return .stampRed
-        case 1: return .stampBlue
-        case 2: return .stampYellow
-        case 3: return .stampPurple
-        default: return .stampGray
+        case 0: return .red
+        case 1: return .blue
+        case 2: return .yellow
+        case 3: return .purple
+        default: return .gray
         }
     }
+}
+
+enum DefaultStamp {
+    static let userID: String = "Unknown"
+    static let groupID: String = "Unknown"
+    static let missionID: String = "Unknown"
+    static let assignedBy: String = "Unknown"
+    static let month: String = "0000-00"
+    static let zigzagIndex: Int = -1
+    static let maxStamps: Int = .zero
 }
 
 // MARK: - MyPage
 
 enum MyPage {
-    enum Tab {
-        static let fontSize: CGFloat = 24
-        static let textSpacing: CGFloat = 12
-        static let leading: CGFloat = 16
-    }
-    
-    enum User {
-        static let editImage: String = "edit"
-        static let editImageSize: CGFloat = 18
-        static let profileImageSize: CGFloat = 70
-        static let fontSizeSmall: CGFloat = 14
-        static let fontSizeMedium: CGFloat = 20
-        static let contentVSpacing: CGFloat = 7
-        static let contentHSpacing: CGFloat = 8
-        static let top: CGFloat = 12
-    }
-    
-    enum Menu {
+    enum Text {
         static let fontSizeSmall: CGFloat = 14
         static let fontSizeMedium: CGFloat = 16
-        static let dividerHeight: CGFloat = 1
+        static let fontSizeLarge: CGFloat = 20
+    }
+
+    enum Image {
+        static let imageSizeSmall: CGFloat = 18
+        static let imageSizeLarge: CGFloat = 70
+    }
+
+    enum User {
+        static let edit: String = "edit"
+        static let group: String = "그룹이름"
+        static let user: String = "유저이름"
     }
     
     enum TableView {
@@ -60,9 +64,7 @@ enum MyPage {
         static let completed: String = "완성한 스탬프판"
         static let unit: String = "개"
         static let slash: String = "/"
-        static let fontSizeSmall: CGFloat = 14
-        static let fontSizeMedium: CGFloat = 16
-        static let vStackSpacing: CGFloat = 6
+        static let vertical: CGFloat = 6
         static let height: CGFloat = 72
     }
 }
@@ -96,15 +98,13 @@ enum Navigation {
 
 // MARK: - StampBoard
 
-
-
 enum StampBoard: Int {
     case red = 0
     case blue
     case yellow
     case purple
-    
-    var bgColor: UIColor {
+
+    var background: UIColor {
         switch self {
         case .red: return .red50
         case .blue: return .blue50
@@ -112,7 +112,7 @@ enum StampBoard: Int {
         case .purple: return .purple50
         }
     }
-    
+
     var pageBar: UIColor {
         switch self {
         case .red: return .red200
@@ -121,6 +121,8 @@ enum StampBoard: Int {
         case .purple: return .purple200
         }
     }
-    
+}
+
+extension StampBoard {
     static var totalPage: Int { 4 }
 }

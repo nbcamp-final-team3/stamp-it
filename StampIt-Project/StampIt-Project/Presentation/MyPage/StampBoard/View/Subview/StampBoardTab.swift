@@ -80,7 +80,7 @@ final class StampBoardTab: UIView {
                     if case let .summary(collected, completed) = itemIdentifier {
                         cell.configureItem(
                             currentStamp: "\(collected)",
-                            totalStamp: "\(StampBoardSection.totalStamp)",
+                            totalStamp: "\(Stamp.totalStamp)",
                             totalBoard: "\(completed)"
                         )
                     }
@@ -94,8 +94,8 @@ final class StampBoardTab: UIView {
                     
                     if case let .stamp(stamp) = itemIdentifier {
                         /// .page 섹션 하나 안에 셀 (페이징된 모든 스티커 아이템) 을 다 그려서 30 단위로 indexPath.item 증가
-                        let itemIndexInPage = indexPath.item % StampBoardSection.totalStamp
-                        
+                        let itemIndexInPage = indexPath.item % Stamp.totalStamp
+
                         let backgroundBoard = StampBoardSection.page.type.flatMap { $0 }
                         
                         if backgroundBoard.indices.contains(itemIndexInPage) {

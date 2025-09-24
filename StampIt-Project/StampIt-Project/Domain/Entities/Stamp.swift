@@ -21,18 +21,16 @@ struct Stamp: Hashable {
 }
 
 enum StampType: String, Hashable {
-    case stampGray
-    case stampRed
-    case stampBlue
-    case stampYellow
-    case stampPurple
+    case gray
+    case red
+    case blue
+    case yellow
+    case purple
 }
-
-// MARK: - Presentation Model 변환
 
 extension Stamp {
     func toPresentation() -> StampBoardStamp {
-        return StampBoardStamp(
+        StampBoardStamp(
             userID: self.userID,
             stampID: self.stampID,
             groupID: self.groupID,
@@ -47,4 +45,6 @@ extension Stamp {
             shouldBlur: false,
         )
     }
+
+    static var totalStamp: Int { 30 }
 }

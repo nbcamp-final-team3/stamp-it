@@ -15,8 +15,8 @@ struct StampUtil {
         columns: Int,
         pinNumber: Int
     ) -> [StampBoardStamp] {
-        let totalStampCount = StampBoardSection.totalStamp
-        
+        let totalStampCount = Stamp.totalStamp
+
         /// 총 totalStampCount 개의 스탬프 배열 생성 (부족하면 Empty stamp 생성)
         let totalStamps: [StampBoardStamp] = {
             (0..<totalStampCount).map { index in
@@ -58,31 +58,29 @@ struct StampUtil {
     /// 빈 회색 스티커 생성
     static func makeEmptyStamp(
         with pinNumber: Int,
-        zigzagIndex: Int? = nil
+        zigzagIndex: Int? = nil,
+        now: Date = Date(),
+        uuidString: String = UUID().uuidString,
     ) -> StampBoardStamp {
-        
-        // TODO: type 체크
-        
-        StampBoardStamp(
-            userID: "Unknown",
-            stampID: "\(UUID())",
-            groupID: "Unknown",
-            month: "0000-00",
-            type: .stampGray,
+        .init(
+            userID: DefaultStamp.userID,
+            stampID: uuidString,
+            groupID: DefaultStamp.groupID,
+            month: DefaultStamp.month,
+            type: .gray,
             pinNumber: pinNumber,
-            createdAt: Date(),
-            missionID: "Unknown",
-            maxStamps: .zero,
-            assignedBy: "Unknown",
-            zigzagIndex: zigzagIndex ?? -1,
-            shouldBlur: false,
+            createdAt: now,
+            missionID: DefaultStamp.missionID,
+            maxStamps: DefaultStamp.maxStamps,
+            assignedBy: DefaultStamp.assignedBy,
+            zigzagIndex: zigzagIndex ?? DefaultStamp.zigzagIndex,
         )
     }
     
     /// 스탬프판 초기값 생성
     static func initialize() -> [[StampBoardStamp]] {
         [
-            (0..<StampBoardSection.totalStamp).map {
+            (0..<Stamp.totalStamp).map {
                 StampUtil.makeEmptyStamp(with: 1, zigzagIndex: $0)
             }
         ]

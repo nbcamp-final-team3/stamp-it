@@ -51,9 +51,7 @@ extension Mission {
             missionID: self.missionID,
             title: self.title,
             nickname: self.assignedBy,
-            dueDate: DateFormatterUtil.formattedString(
-                with: self.dueDate
-            ),
+            dueDate: self.dueDate.toYearMonthDateString(),
             category: self.category
         )
     }

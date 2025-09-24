@@ -70,8 +70,8 @@ final class MyMissionUseCaseImpl: MyMissionUseCaseProtocol {
                 userId: user.userID,
                 groupId: user.groupID,
                 missionTitle: mission.title,
-                maxStamp: 30, // TODO: pin 번호 계산용
-                stampType: StampType.stampRed.rawValue, // TODO: 스티커 타입 결정 로직 추가
+                maxStamp: Stamp.totalStamp,
+                stampType: StampType.red.rawValue,
                 missionId: mission.missionID,
                 assignedBy: mission.assignedBy
             )
