@@ -20,6 +20,7 @@ final class StampBoardViewModel: ViewModelProtocol {
     enum Action {
         case viewDidLoad
         case tabButtonTapped(TabType)
+        case updateStamps([[StampBoardStamp]])
     }
     
     struct State {
@@ -37,6 +38,8 @@ final class StampBoardViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     var state = State()
     
+    private var lastCheckedAt: Date = .init()
+
     // MARK: - Initializer, Deinit, requiered
     
     init(myPageUseCase: MyPageUseCaseProtocol) {
@@ -54,6 +57,8 @@ final class StampBoardViewModel: ViewModelProtocol {
                     owner.bindUser()
                 case .tabButtonTapped(let type):
                     owner.state.tabType.accept(type)
+                case .updateStamps(let stamps):
+                    owner.state.stampsByPage.accept(stamps)
                 }
             }.disposed(by: disposeBag)
     }
@@ -77,9 +82,11 @@ final class StampBoardViewModel: ViewModelProtocol {
                 
                 let completedBoard = Int(count / Stamp.totalStamp)
                 let currentPinNumber = completedBoard + 1
+
+                if count == 0 { lastCheckedAt = .init() }
                 
                 let minPage = currentPinNumber > StampBoard.totalPage ? currentPinNumber - StampBoard.totalPage + 1 : 1
-                
+
                 var pinNumbers: [Int] = .init()
                 
                 /// pinNumber 기준 : Firestore pinNumber
@@ -101,12 +108,19 @@ final class StampBoardViewModel: ViewModelProtocol {
                 
                 /// 순서에 맞게 페이지 별 스티커 배열 생성
                 return Observable.combineLatest(stampObservables)
-                    .map { stampLists in
+                    .map { [weak self] stampLists in
+                        guard let self else { return (.init(), .init()) }
+                        
                         var formattedStamps: [[StampBoardStamp]] = .init()
                         for (page, stamps) in stampLists.enumerated() {
+                            /// 페이지에 맞게 스티커 색상 지정
                             formattedStamps.append(
                                 stamps.enumerated().map { (index, stamp) in
-                                    StampBoardStamp.map(stamp, type: StampType.from(page))
+                                    StampBoardStamp.map(
+                                        stamp,
+                                        type: StampType.from(page),
+                                        lastCheckedAt: self.lastCheckedAt,
+                                    )
                                 }
                             )
                         }
@@ -135,9 +149,9 @@ final class StampBoardViewModel: ViewModelProtocol {
     private func updateStampZigzag(_ stampLists: [[StampBoardStamp]]) {
         let zigzagged: [[StampBoardStamp]] = stampLists
             .map { stamps in
-                /// createdAt 내림차순 기준 정렬
+                /// createdAt 오름차순 기준 정렬
                 let ordered = stamps
-                    .sorted { $0.createdAt > $1.createdAt }
+                    .sorted { $0.createdAt < $1.createdAt }
                 
                 return StampUtil.makeZigzagOrder(
                     from: ordered,
@@ -145,7 +159,26 @@ final class StampBoardViewModel: ViewModelProtocol {
                     pinNumber: state.stampSummary.value.completed
                 )
             }
-        
         state.stampsByPage.accept(zigzagged)
+        disableBlurAfterDelay()
+    }
+
+    private func disableBlurAfterDelay() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self else { return }
+
+            let updated = self.state.stampsByPage.value.map { section in
+                section.map { stamp in
+                    if stamp.shouldBlur {
+                        var newStamp = stamp
+                        newStamp.shouldBlur = false
+                        return newStamp
+                    }
+                    return stamp
+                }
+            }
+
+            self.state.stampsByPage.accept(updated)
+        }
     }
 }

@@ -9,7 +9,7 @@ import Foundation
 import FirebaseFirestore
 
 struct StampFirestore: Codable {
-    let stickerId: String
+    let stampId: String
     let userId: String
     let groupId: String
     let month: String               // "YYYY-MM"
@@ -17,11 +17,11 @@ struct StampFirestore: Codable {
     let pinNumber: Int
     let createdAt: Timestamp
     let missionId: String
-    let maxStickers: Int
+    let maxStamps: Int
     let assignedBy: String
 
     var documentID: String {
-        return stickerId
+        return stampId
     }
 }
 
@@ -30,14 +30,14 @@ extension StampFirestore {
     func toDomainModel() -> Stamp {
         return Stamp(
             userID: self.userId,
-            stampID: self.stickerId,
+            stampID: self.stampId,
             groupID: self.groupId,
             month: self.month,
             type: StampType(rawValue: self.type) ?? .red,
             pinNumber: self.pinNumber,
             createdAt: self.createdAt.dateValue(),
             missionID: self.missionId,
-            maxStamps: self.maxStickers,
+            maxStamps: self.maxStamps,
             assignedBy: self.assignedBy
         )
         

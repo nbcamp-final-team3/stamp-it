@@ -22,7 +22,7 @@ final class StampManager: StampManagerProtocol {
     
     // MARK: - Collection Reference
     var stampCollection: CollectionReference {
-        return db.collection("stickers")
+        return db.collection("stamps")
     }
     
     // MARK: - Init
@@ -196,7 +196,7 @@ final class StampManager: StampManagerProtocol {
         var result = query
         
         if let stampId = stampQuery.stampId, !stampId.isEmpty {
-            result = result.whereField("stickerId", in: stampId)
+            result = result.whereField("stampId", in: stampId)
         }
         
         if let userId = stampQuery.userId, !userId.isEmpty {
@@ -444,7 +444,7 @@ final class StampManager: StampManagerProtocol {
                 let pinNumber = (currentCount / 30) + 1
                 
                 let stamp = StampFirestore(
-                    stickerId: UUID().uuidString,
+                    stampId: UUID().uuidString,
                     userId: userId,
                     groupId: groupId,
                     month: month,
@@ -452,7 +452,7 @@ final class StampManager: StampManagerProtocol {
                     pinNumber: pinNumber,
                     createdAt: Timestamp(date: now),
                     missionId: missionId,
-                    maxStickers: maxStamps,
+                    maxStamps: maxStamps,
                     assignedBy: assignedBy
                 )
                 

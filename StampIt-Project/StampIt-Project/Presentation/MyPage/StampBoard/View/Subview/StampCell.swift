@@ -29,6 +29,7 @@ final class StampCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         configureDashedLine(with: .none)
+        removeBlur(from: stampImageView)
         stampImageView.image = nil
     }
     
@@ -82,6 +83,38 @@ final class StampCell: UICollectionViewCell {
     
     func configureStamp(with type: StampBoardStamp) {
         stampImageView.image = UIImage(named: type.type.rawValue)
+        
+        if type.shouldBlur {
+            applyBlur(to: stampImageView)
+
+            /// 3초 후 블러 제거
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                guard let self else { return }
+                self.removeBlur(from: self.stampImageView)
+            }
+        } else {
+            removeBlur(from: stampImageView)
+        }
+    }
+    
+    private func applyBlur(to view: UIView) {
+        view.layer.shadowColor = UIColor.yellowGlow.cgColor
+        view.layer.shadowOpacity = 1
+        view.layer.shadowRadius = 9
+        view.layer.shadowOffset = .zero
+        
+        guard view.bounds.width > 0, view.bounds.height > 0 else { return }
+        
+        let path = UIBezierPath(
+            roundedRect: view.bounds,
+            cornerRadius: view.layer.cornerRadius
+        )
+        view.layer.shadowPath = path.cgPath
+    }
+    
+    private func removeBlur(from view: UIView) {
+        view.layer.shadowOpacity = 0.0
+        view.layer.shadowPath = nil
     }
     
     func configureDashedLine(with type: StampCellType) {

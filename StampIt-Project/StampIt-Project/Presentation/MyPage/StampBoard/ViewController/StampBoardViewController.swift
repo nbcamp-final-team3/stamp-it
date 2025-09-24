@@ -18,7 +18,7 @@ final class StampBoardViewController: BaseViewController {
     private var viewModel: StampBoardViewModel
     private let disposeBag = DisposeBag()
     private var currentPage: Int = .zero
-    
+
     override var screenName: String { "StampBoard" }
     
     // MARK: - UI Components
@@ -188,10 +188,26 @@ extension StampBoardViewController: UICollectionViewDelegate {
 
             let stampInfoVC = StampInfoViewController(viewModel: viewModel)
             stampInfoVC.modalPresentationStyle = .custom
-            
+
             viewModel.action.accept(.load(missionId: missionId))
             
             self.present(stampInfoVC, animated: true)
         }
+    }
+}
+
+extension StampBoardViewController: UIViewControllerTransitioningDelegate {
+    func animationController(
+        forPresented presented: UIViewController,
+        presenting: UIViewController,
+        source: UIViewController
+    ) -> (any UIViewControllerAnimatedTransitioning)? {
+        StampPresentAnimator()
+    }
+
+    func animationController(
+        forDismissed dismissed: UIViewController
+    ) -> (any UIViewControllerAnimatedTransitioning)? {
+        StampDismissAnimator()
     }
 }

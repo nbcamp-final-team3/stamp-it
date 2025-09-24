@@ -25,7 +25,6 @@ final class MyMissionViewModel: ViewModelProtocol {
     }
 
     struct State {
-        let user = BehaviorRelay<User?>(value: nil)
         let missionFilters = BehaviorRelay<[MyMissionItem]>(value: [])
         let filteredMissions = BehaviorRelay<[MyMissionItem]>(value: [])
         let selectedFilter = BehaviorRelay<Int>(value: 0)
@@ -43,14 +42,10 @@ final class MyMissionViewModel: ViewModelProtocol {
     // MARK: - Init
 
     init(
-        user: User,
-        memberCache: [String: Member],
         useCase: MyMissionUseCaseProtocol,
         mapper: MissionMapping,
     ) {
         self.useCase = useCase
-        state.user.accept(user)
-        self.memberCache = memberCache
         self.mapper = mapper
         bind()
     }
@@ -62,6 +57,7 @@ final class MyMissionViewModel: ViewModelProtocol {
             .subscribe(with: self) { owner, action in
                 switch action {
                 case .viewDidLoad:
+                    owner.fetchMembers()
                     owner.fetchMissions()
                 case .selectFilter(let index):
                     owner.state.selectedFilter.accept(index)
@@ -74,11 +70,19 @@ final class MyMissionViewModel: ViewModelProtocol {
             }
             .disposed(by: disposeBag)
     }
+    
+    // TODO: mission 리팩토링 후 삭제
+    private func fetchMembers() {
+        useCase.fetchGroupMembers()
+            .subscribe { [weak self] members in
+                self?.memberCache = members
+            }
+            .disposed(by: disposeBag)
+    }
 
     /// 유저에게 할당된 미션 바인딩
     private func fetchMissions() {
-        guard let user = state.user.value else { return }
-        useCase.fetchMissions(to: user.userID, ofGroup: user.groupID)
+        useCase.fetchMissions()
             .do { [weak self] myMissions in
                 guard let self else { return }
                 if self.myMissions.count < myMissions.count {
@@ -132,14 +136,13 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     /// 미션 완료 바인딩
     private func handleMissionCompleteButtonTapped(missionID: String) {
-        guard let user = state.user.value,
-              let missionToUpdate = updateMissionCache(missionID: missionID, toStatus: .completed) else { return }
+        guard let missionToUpdate = updateMissionCache(missionID: missionID, toStatus: .completed) else { return }
         updateMissionItem(missionID: missionID, toStatus: .completed)
 
-        useCase.updateMissionStatus(for: missionToUpdate, ofGroup: user.groupID, to: .completed)
+        useCase.updateMissionStatus(for: missionToUpdate, to: .completed)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
-                return useCase.createStamp(user: user, mission: mission)
+                return useCase.createStamp(mission: mission)
             }
             .subscribe()
             .disposed(by: disposeBag)
@@ -147,11 +150,10 @@ final class MyMissionViewModel: ViewModelProtocol {
 
     /// 미션 완료 취소
     private func handleCancelMissionComplete(missionID: String) {
-        guard let user = state.user.value,
-              let missionToUpdate = updateMissionCache(missionID: missionID, toStatus: .assigned) else { return }
+        guard let missionToUpdate = updateMissionCache(missionID: missionID, toStatus: .assigned) else { return }
         updateMissionItem(missionID: missionID, toStatus: .assigned)
 
-        useCase.updateMissionStatus(for: missionToUpdate, ofGroup: user.groupID, to: .assigned)
+        useCase.updateMissionStatus(for: missionToUpdate, to: .assigned)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
                 return useCase.deleteStamp(missionID: missionToUpdate.missionID)

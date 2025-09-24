@@ -9,17 +9,6 @@ import SwiftUI
 
 extension MissionCategory {
     var widgetImage: Image {
-        switch self {
-        case .chore:
-            Image("chore")
-        case .communication:
-            Image("communication")
-        case .health:
-            Image("health")
-        case .learning:
-            Image("learning")
-        case .custom:
-            Image("custom")
-        }
+        return Image(imageName)
     }
 }

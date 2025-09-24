@@ -9,10 +9,18 @@ import Foundation
 import RxSwift
 
 struct MissionUseCaseImpl: MissionUseCase {
+    private let authRepository: AuthRepositoryProtocol
     private let missionRepositoryImpl: MissionRepository
-    
-    init(missionRepositoryImpl: MissionRepository) {
+    private let noticeRepository: NoticeRepositoryProtocol
+
+    init(
+        authRepository: AuthRepositoryProtocol,
+        missionRepositoryImpl: MissionRepository,
+        noticeRepository: NoticeRepositoryProtocol
+    ) {
+        self.authRepository = authRepository
         self.missionRepositoryImpl = missionRepositoryImpl
+        self.noticeRepository = noticeRepository
     }
     
     // 샘플 미션 데이터 로드
@@ -33,6 +41,24 @@ struct MissionUseCaseImpl: MissionUseCase {
     // 새 미션 생성
     func createMission(groupId: String, mission: Mission) -> Observable<Void> {
         missionRepositoryImpl.createMission(groupId: groupId, mission: mission)
+            .flatMap { _ -> Observable<String?> in
+                // 미션을 전달하는 주체가 되는 유저의 닉네임 전달
+                return authRepository.getCurrentUser()
+                    .map { $0?.nickname }
+            }
+            .flatMap { nickname -> Observable<Void> in
+                // 미션 받는 사람에게 보낼 알림 생성
+                guard let nickname else { return .empty() }
+                let notice = Notice(
+                    noticeId: UUID().uuidString,
+                    title: "새로운 미션 도착",
+                    description: "\(nickname)님으로부터 새로운 미션이 도착했어요! 받은 미션을 확인해보세요",
+                    category: .newMission,
+                    createdAt: Date(),
+                    isRead: false
+                )
+                return noticeRepository.createNotice(notice, receiverId: mission.assignedTo)
+            }
     }
     
     // 미션 1개 패치

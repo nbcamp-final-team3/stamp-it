@@ -256,7 +256,7 @@ final class AuthRepository: AuthRepositoryProtocol {
             //let memberFirestore = member.toFirestoreModel()
             let memberFirestore = member.toMembershipFirestoreModel(groupId: group.groupID)
             
-            // 1. 유저 생성
+            // 1. 유저 생성 (FCM 토큰은 별도로 저장)
             let userDict: [String: Any] = [
                 "userId": userFirestore.userId,
                 "nickname": userFirestore.nickname,

@@ -42,6 +42,7 @@ extension Stamp {
             maxStamps: self.maxStamps,
             assignedBy: self.assignedBy,
             zigzagIndex: .zero,
+            shouldBlur: false,
         )
     }
 

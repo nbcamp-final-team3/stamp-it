@@ -281,7 +281,7 @@ final class GroupManager: GroupManagerProtocol {
             let groupRef = self.groupsCollection.document(groupId)
             
             //  새로운 DB 구조에 맞게 수정: memberships, missions, stamps는 루트 컬렉션에서 관리
-            let stampsQuery = self.db.collection("stickers").whereField("groupId", isEqualTo: groupId)
+            let stampsQuery = self.db.collection("stamps").whereField("groupId", isEqualTo: groupId)
             let missionsQuery = self.db.collection("missions").whereField("groupId", isEqualTo: groupId)
             let membershipsQuery = self.db.collection("memberships").whereField("groupId", isEqualTo: groupId)
             

@@ -17,8 +17,10 @@ final class MissionListViewController: BaseViewController {
     
     typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
     
-    private let navigationBar = DefaultNavigationBar(.plainTitle(title: "미션"))
-    
+    private lazy var navigationBar = DefaultNavigationBar(.plainTitle(title: "미션")).then {
+        $0.addRightItem(addButton)
+    }
+
     private lazy var addButton = UIButton().then {
         var configuration = UIButton.Configuration.filled()
         configuration.baseBackgroundColor = .clear
@@ -95,8 +97,6 @@ final class MissionListViewController: BaseViewController {
     private func prepareSubviews() {
         view.backgroundColor = .white
         
-        navigationBar.addSubview(addButton)
-        
         [navigationBar, searchBar, collectionView, tableView].forEach {
             view.addSubview($0)
         }
@@ -106,11 +106,6 @@ final class MissionListViewController: BaseViewController {
         navigationBar.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
             $0.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
-        }
-        
-        addButton.snp.makeConstraints {
-            $0.centerY.equalToSuperview()
-            $0.trailing.equalToSuperview().offset(-16)
         }
         
         searchBar.snp.makeConstraints {

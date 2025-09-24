@@ -19,6 +19,7 @@ struct StampBoardStamp: Hashable {
     let maxStamps: Int
     let assignedBy: String
     var zigzagIndex: Int
+    var shouldBlur: Bool
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(stampID)
@@ -49,6 +50,7 @@ extension StampBoardStamp {
             maxStamps: stamp.maxStamps,
             assignedBy: stamp.assignedBy,
             zigzagIndex: .zero,
+            shouldBlur: false,
         )
     }
     
@@ -68,6 +70,7 @@ extension StampBoardStamp {
             maxStamps: stamp.maxStamps,
             assignedBy: stamp.assignedBy,
             zigzagIndex: .zero,
+            shouldBlur: stamp.createdAt > lastCheckedAt,
         )
     }
 }
