@@ -221,6 +221,10 @@ final class HomeViewController: BaseViewController {
             .bind(to: homeView.isSelectedRequestMissionButton)
             .disposed(by: disposeBag)
 
+        viewModel.state.requestCompletedTitle
+            .bind(to: homeView.requestedButtonTitle)
+            .disposed(by: disposeBag)
+
         viewModel.state.isMoveMissionTab
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, _ in

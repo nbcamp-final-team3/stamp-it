@@ -15,6 +15,7 @@ final class PlaceholderCell: UICollectionViewCell {
 
     let didTapButton = PublishRelay<Void>()
     let isSelectedButton = BehaviorRelay<Bool?>(value: nil)
+    let buttonTitle = BehaviorRelay<String?>(value: nil)
     var disposeBag = DisposeBag()
 
     // MARK: - Properties
@@ -74,6 +75,8 @@ final class PlaceholderCell: UICollectionViewCell {
         bindButton()
     }
 
+    // MARK: - Bind
+
     private func bindButton() {
         button.rx.tap
             .bind(to: didTapButton)
@@ -82,6 +85,13 @@ final class PlaceholderCell: UICollectionViewCell {
         isSelectedButton
             .compactMap { $0 }
             .bind(to: button.rx.isSelected)
+            .disposed(by: disposeBag)
+
+        buttonTitle
+            .compactMap { $0 }
+            .bind(with: self, onNext: { owner, title in
+                owner.setAttributedButton(title: title)
+            })
             .disposed(by: disposeBag)
     }
 

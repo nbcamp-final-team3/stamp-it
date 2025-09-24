@@ -51,6 +51,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isPushMemberMissionVC = PublishRelay<Void>()
         let isPushNoticeListVC = PublishRelay<Void>()
         let didRequestMissionIn30Min = BehaviorRelay<Bool?>(value: nil)
+        let requestCompletedTitle = BehaviorRelay<String?>(value: nil)
         let isMoveMissionTab = PublishRelay<Void>()
     }
 
@@ -288,6 +289,7 @@ final class HomeViewModel: ViewModelProtocol {
     private func handleRequestMission() {
         let now = Date()
         state.didRequestMissionIn30Min.accept(true)
+        state.requestCompletedTitle.accept("조르기 완료!")
         UserDefaults.standard.set(now, forKey: "missionRequestTime")
         startMissionRequestTimer(from: now)
 
@@ -302,6 +304,7 @@ final class HomeViewModel: ViewModelProtocol {
         let remainTime = Date().timeIntervalSince(lastRequestTime)
         if remainTime < 1800 {
             state.didRequestMissionIn30Min.accept(true)
+            state.requestCompletedTitle.accept("조르기 완료!")
             startMissionRequestTimer(from: lastRequestTime)
         } else {
             state.didRequestMissionIn30Min.accept(false)
@@ -311,9 +314,17 @@ final class HomeViewModel: ViewModelProtocol {
     private func startMissionRequestTimer(from startTime: Date) {
         let remaining = max(0, 1800 - Date().timeIntervalSince(startTime))
 
-        Observable<Int>.timer(.seconds(Int(remaining)), scheduler: MainScheduler.instance)
+        let timer = Observable<Int>.timer(.seconds(Int(remaining)), scheduler: MainScheduler.instance)
+            .share()
+
+        timer
             .map { _ in false }
             .bind(to: state.didRequestMissionIn30Min)
+            .disposed(by: disposeBag)
+
+        timer
+            .map { _ in "미션 조르기" }
+            .bind(to: state.requestCompletedTitle)
             .disposed(by: disposeBag)
     }
 }

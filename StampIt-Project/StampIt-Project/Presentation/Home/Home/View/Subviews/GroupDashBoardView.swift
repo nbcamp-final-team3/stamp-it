@@ -23,6 +23,7 @@ final class GroupDashboardView: UIView {
     let didTapRequestMissionButton = PublishRelay<Void>()
     let didTapSendMissionButton = PublishRelay<Void>()
     let isSelectedRequestMissionButton = BehaviorRelay<Bool?>(value: nil)
+    let requestedButtonTitle = BehaviorRelay<String?>(value: nil)
     let selectMember = PublishRelay<Int>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
@@ -150,6 +151,11 @@ final class GroupDashboardView: UIView {
                     isSelectedRequestMissionButton
                         .bind(to: cell.isSelectedButton)
                         .disposed(by: cell.disposeBag)
+
+                    requestedButtonTitle
+                        .bind(to: cell.buttonTitle)
+                        .disposed(by: cell.disposeBag)
+
                 } else if section == .memberMission {
                     cell.didTapButton
                         .bind(to: didTapSendMissionButton)
