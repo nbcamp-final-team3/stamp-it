@@ -47,8 +47,12 @@ final class PlaceholderCell: UICollectionViewCell {
         $0.configurationUpdateHandler = { button in
             var config = button.configuration
             if button.isSelected {
+                config?.image = .checkRed
+                config?.imagePlacement = .leading
+                config?.imagePadding = 2
                 config?.baseBackgroundColor = .clear
             } else {
+                config?.image = nil
                 config?.baseBackgroundColor = .red50
             }
             button.configuration = config
