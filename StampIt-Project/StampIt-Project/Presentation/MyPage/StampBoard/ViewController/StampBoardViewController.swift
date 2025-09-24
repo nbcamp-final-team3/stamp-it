@@ -186,7 +186,10 @@ extension StampBoardViewController: UICollectionViewDelegate {
         if clickedStamp.type != .gray {
             let viewModel = DIContainer.shared.makeStampInfoViewModel()
 
-            let stampInfoVC = StampInfoViewController(viewModel: viewModel)
+            let stampInfoVC = StampInfoViewController(
+                viewModel: viewModel,
+                stampType: clickedStamp.type,
+            )
             stampInfoVC.modalPresentationStyle = .custom
 
             viewModel.action.accept(.load(missionId: missionId))
