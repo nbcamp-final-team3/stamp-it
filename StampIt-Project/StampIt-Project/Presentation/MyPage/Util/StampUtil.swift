@@ -74,6 +74,7 @@ struct StampUtil {
             maxStamps: DefaultStamp.maxStamps,
             assignedBy: DefaultStamp.assignedBy,
             zigzagIndex: zigzagIndex ?? DefaultStamp.zigzagIndex,
+            shouldBlur: false,
         )
     }
     
