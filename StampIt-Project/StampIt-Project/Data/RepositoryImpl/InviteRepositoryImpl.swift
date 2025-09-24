@@ -15,7 +15,7 @@ final class InviteRepositoryImpl: InviteRepositoryProtocol {
     private let userManager: any UserManagerProtocol
     // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
     private let missionManager: any MissionManagerProtocol
-    private let stickerManager: any StickerManagerProtocol
+    private let stampManager: any StampManagerProtocol
     private let noticeManager: any NoticeManagerProtocol
 
     init(
@@ -23,7 +23,7 @@ final class InviteRepositoryImpl: InviteRepositoryProtocol {
         membershipManager: any MembershipManagerProtocol,
         userManager: any UserManagerProtocol,
          missionManager: any MissionManagerProtocol,
-         stickerManager: any StickerManagerProtocol,
+         stampManager: any StampManagerProtocol,
          noticeManager: any NoticeManagerProtocol
         // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
     ) {
@@ -32,7 +32,7 @@ final class InviteRepositoryImpl: InviteRepositoryProtocol {
         self.userManager = userManager
         // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
          self.missionManager = missionManager
-         self.stickerManager = stickerManager
+         self.stampManager = stampManager
          self.noticeManager = noticeManager
     }
     
@@ -128,7 +128,7 @@ final class InviteRepositoryImpl: InviteRepositoryProtocol {
 
     // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
     func cleanupUserDataWithRetry(userId: String, currentGroupId: String, maxRetries: Int) -> Observable<Void> {
-        return stickerManager.deleteUserStickers(userId: userId, groupId: currentGroupId)
+        return stampManager.deleteUserStamps(userId: userId, groupId: currentGroupId)
                     .retry(maxRetries)
                     .flatMap { _ in
                         return self.missionManager.deleteReceivedMissions(userId: userId, groupId: currentGroupId)
