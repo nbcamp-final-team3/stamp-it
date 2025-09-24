@@ -13,7 +13,7 @@ protocol MyMissionUseCaseProtocol {
     func fetchMissions() -> Observable<[Mission]>
     func fetchAssignedMissions() -> Observable<[Mission]>
     func updateMissionStatus(for mission: Mission, to status: MissionStatus) -> Observable<Mission>
-    func createSticker(mission: Mission) -> Observable<Void>
-    func deleteSticker(missionID: String) -> Observable<Void>
+    func createStamp(mission: Mission) -> Observable<Void>
+    func deleteStamp(missionID: String) -> Observable<Void>
     func requestMission() -> Observable<Void>
 }

@@ -89,7 +89,7 @@ enum HomeItem: Hashable {
 struct HomeMember: Hashable {
     let memberID: String
     let nickname: String
-    let stickerCount: String
+    let stampCount: String
     let rank: Int
     let profileImage: String?
 }

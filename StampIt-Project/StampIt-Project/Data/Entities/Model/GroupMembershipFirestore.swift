@@ -27,7 +27,7 @@ extension GroupMembershipFirestore {
             userID: self.userId,
             nickname: self.nickname,
             profileImage: self.profileImage,
-            monthSticker: 0,  // 별도 계산 필요
+            monthStamp: 0,  // 별도 계산 필요
             joinedAt: self.joinedAt.dateValue(),
             isLeader: self.isLeader
         )

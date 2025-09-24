@@ -175,9 +175,9 @@ final class SummaryCell: UICollectionViewCell {
     
     // MARK: Bind
     
-    func configureItem(currentSticker: String, totalSticker: String, totalBoard: String) {
-        currentStampLabel.text = currentSticker
-        totalStampLabel.text = totalSticker
+    func configureItem(currentStamp: String, totalStamp: String, totalBoard: String) {
+        currentStampLabel.text = currentStamp
+        totalStampLabel.text = totalStamp
         totalBoardLabel.text = totalBoard
     }
 }

@@ -110,7 +110,7 @@ final class GroupManageUseCaseImpl: GroupManageUseCase {
                                     userID: user.userID,
                                     nickname: user.nickname,
                                     profileImage: user.profileImage,
-                                    monthSticker: 0,
+                                    monthStamp: 0,
                                     joinedAt: Date(),
                                     isLeader: false
                                 )

@@ -24,7 +24,7 @@ final class RankingUseCase: RankingUseCaseProtocol {
     func fetchRanking(ofGroup groupID: String) -> Observable<[Member]> {
         homeRepository.fetchGroupMembers(ofGroup: groupID)
             .map { members in
-                members.sorted { $0.monthSticker > $1.monthSticker }
+                members.sorted { $0.monthStamp > $1.monthStamp }
             }
     }
 }
