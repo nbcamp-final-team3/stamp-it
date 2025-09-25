@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import RxRelay
+import FoundationModels
 
 final class AssignMissionViewModel: ViewModelProtocol {
     enum Action {
@@ -40,6 +41,7 @@ final class AssignMissionViewModel: ViewModelProtocol {
     private let missionUseCaseImpl: MissionUseCase
     private var user: User?
     private var userData: [MissionData] = [] // 과거 데이터(사용자가 다른 멤버에게 전달했던 미션)
+    private var aiSuggestions: [String] = []
     
     private var canSubmit: Bool {
         // 멤버 선택이 안되어 있으면 false
@@ -89,6 +91,17 @@ final class AssignMissionViewModel: ViewModelProtocol {
                     loadMembers()
                     
                     userData = missionUseCaseImpl.fetchMissionData()
+                    
+                    // AI 추천 데이터 미리 생성(generating 하는데 시간이 걸리므로 미리 만들어 놓음)
+                    if #available(iOS 26.0, *) {
+                        let generator = MissionGenerator(userData: userData)
+                        generator.prewarm() // 현재 로직에서는 불필요하나, MissionGenerator 인스턴스 생성 시점과 suggestMisson 메서드 호출 시점이 (현저하게) 다르면 필요할 수 있어 남겨 놓음.
+                        Task {
+                            await generator.suggestMission(missionCount: 3)
+                            self.aiSuggestions = generator.suggestions
+                        }
+                    }
+                    
                 case .titleDidChange(let title):
                     guard let mission = state.mission.value else { return }
                     let newMission = SampleMission(missionId: mission.missionId, title: title, description: mission.description, category: mission.category)
@@ -96,7 +109,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
                     
                     state.canSubmit.accept(canSubmit)
                     
-                    state.suggestions.accept(generateSuggestion())
+                    let suggestions = generateSuggestion() + aiGenerateSuggestion()
+                    state.suggestions.accept(suggestions)
                 case .didSelectMember(let member):
                     state.selectedMember.accept(member)
                     state.canSubmit.accept(canSubmit)
@@ -219,8 +233,18 @@ final class AssignMissionViewModel: ViewModelProtocol {
                 }
         }
         
-        // TODO: 2. AI 기반 추천데이터 생성
-        
         return suggestions
+    }
+    
+    private func aiGenerateSuggestion() -> [Suggestion] {
+        if !aiSuggestions.isEmpty {
+            var suggestions: [Suggestion] = []
+            aiSuggestions.forEach {
+                let suggestion = Suggestion(title: $0, source: .AI)
+                suggestions.append(suggestion)
+            }
+            return suggestions
+        }
+        return []
     }
 }
