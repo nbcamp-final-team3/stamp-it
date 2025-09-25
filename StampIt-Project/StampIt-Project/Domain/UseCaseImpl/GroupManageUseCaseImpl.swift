@@ -15,7 +15,7 @@ final class GroupManageUseCaseImpl: GroupManageUseCase {
     private let authRepository: AuthRepositoryProtocol
     private let groupManageRepository: GroupManageRepository
     private let accountManageRepository: AccountManageRepositoryProtocol
-    private let inviteRepository: InviteRepository
+    private let inviteRepository: InviteRepositoryProtocol
     private let disposeBag = DisposeBag()
 
     // MARK: - Init
@@ -23,7 +23,7 @@ final class GroupManageUseCaseImpl: GroupManageUseCase {
         authRepository: AuthRepositoryProtocol,
         groupManageRepository: GroupManageRepository,
         accountManageRepository: AccountManageRepositoryProtocol,
-        inviteRepository: InviteRepository
+        inviteRepository: InviteRepositoryProtocol,
     ) {
         self.authRepository = authRepository
         self.groupManageRepository = groupManageRepository
@@ -110,7 +110,7 @@ final class GroupManageUseCaseImpl: GroupManageUseCase {
                                     userID: user.userID,
                                     nickname: user.nickname,
                                     profileImage: user.profileImage,
-                                    monthSticker: 0,
+                                    monthStamp: 0,
                                     joinedAt: Date(),
                                     isLeader: false
                                 )

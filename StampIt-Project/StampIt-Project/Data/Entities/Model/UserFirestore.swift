@@ -15,7 +15,6 @@ struct UserFirestore: Codable {
     let profileImage: String?
     let nicknameChangedAt: Timestamp
     let createdAt: Timestamp
-    
     var documentID: String { return userId }
 }
 
@@ -58,7 +57,7 @@ extension UserFirestore {
     func toDomainModelForGroup(
         groupMembership: GroupMembershipFirestore,  // 새로운 구조 활용
         groupName: String,
-        boards: [StickerBoard] = []
+        boards: [StampBoard] = []
     ) -> StampIt_Project.User {
         return StampIt_Project.User(
             userID: self.userId,
@@ -96,7 +95,7 @@ extension User {
             groupId: self.groupID,
             profileImage: self.profileImage,
             nicknameChangedAt: Timestamp(date: Date()),
-            createdAt: Timestamp(date: preserveCreatedAt), // 기존 생성일 유지
+            createdAt: Timestamp(date: preserveCreatedAt) // 기존 생성일 유지
         )
     }
 }

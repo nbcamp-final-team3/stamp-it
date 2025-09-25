@@ -13,7 +13,7 @@ struct MissionWidgetEntryView: View {
     
     var body: some View {
         ZStack {
-            Color.white
+            Color(.systemBackground)
             
             VStack(alignment: .leading, spacing: 0) {
                 // 헤더
@@ -36,7 +36,7 @@ struct MissionWidgetEntryView: View {
         HStack {
             Text("내 미션")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
             Spacer()
         }
         .padding(.horizontal, 16)
@@ -49,7 +49,7 @@ struct MissionWidgetEntryView: View {
             Spacer()
             Text("아직 받은 미션이 없어요!")
                 .font(.system(size: 14))
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
                 .padding(.horizontal, 16)
             Spacer()
         }
@@ -106,7 +106,7 @@ struct MissionRowView: View {
     private var missionTitle: some View {
         Text(mission.title)
             .font(.system(size: 14, weight: .medium))
-            .foregroundColor(.black)
+            .foregroundColor(.primary)
             .lineLimit(1)
             .truncationMode(.tail)
     }
@@ -125,20 +125,29 @@ struct TagView: View {
     var body: some View {
         Text(text)
             .font(.system(size: 11, weight: .medium))
-            .foregroundColor(isHighlighted ?
-                Color(red: 1.0, green: 0.8, blue: 0.0) :
-                Color.gray
-            )
+            .foregroundColor(tagTextColor)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(
-                        isHighlighted ?
-                        Color(red: 1.0, green: 0.8, blue: 0.0) :
-                        Color.gray,
-                        lineWidth: 1
-                    )
+                    .stroke(tagBorderColor, lineWidth: 1)
             )
+    }
+    
+    // MARK: - Color Helpers
+    private var tagTextColor: Color {
+        if isHighlighted {
+            return Color(red: 1.0, green: 0.8, blue: 0.0)
+        } else {
+            return .secondary
+        }
+    }
+    
+    private var tagBorderColor: Color {
+        if isHighlighted {
+            return Color(red: 1.0, green: 0.8, blue: 0.0)
+        } else {
+            return .secondary
+        }
     }
 }

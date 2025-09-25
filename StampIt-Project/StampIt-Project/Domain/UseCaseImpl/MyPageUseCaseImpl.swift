@@ -29,11 +29,11 @@ final class MyPageUseCaseImpl: MyPageUseCaseProtocol {
         authRepository.getCurrentUser()
     }
     
-    func fetchStickersByPin(userId: String, pinNumber: Int) -> Observable<[StickerUI]> {
-        mypageRepository.fetchStickersByPin(userId: userId, pinNumber: pinNumber).map { $0.map { $0.toPresentation() } }
+    func fetchStampsByPin(userId: String, pinNumber: Int) -> Observable<[StampBoardStamp]> {
+        mypageRepository.fetchStampsByPin(userId: userId, pinNumber: pinNumber).map { $0.map { $0.toPresentation() } }
     }
     
-    func observeStickerCount(userId: String) -> Observable<Int> {
-        mypageRepository.observeStickerCount(userId: userId)
+    func observeStampCount(userId: String) -> Observable<Int> {
+        mypageRepository.observeStampCount(userId: userId)
     }
 }

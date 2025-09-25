@@ -40,6 +40,11 @@ final class MyMissionViewController: UIViewController {
         setConstraints()
         bind()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tabBarController?.tabBar.isHidden = true
+    }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -51,7 +56,6 @@ final class MyMissionViewController: UIViewController {
     private func setStyles() {
         view.backgroundColor = .FFFFFF
         navigationController?.navigationBar.isHidden = true
-        tabBarController?.tabBar.isHidden = true
     }
 
     // MARK: - Set Hierarchy

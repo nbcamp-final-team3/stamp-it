@@ -91,7 +91,7 @@ final class LaunchViewController: UIViewController {
     }
     
     private func showHome() {
-        let tabBar = MainTabBarController(container: container)
+        let tabBar = MainTabBarController()
         changeRoot(tabBar)
     }
 

@@ -12,9 +12,9 @@ final class InviteUseCaseImpl: InviteUseCase {
 
 
     private let authRepository: AuthRepositoryProtocol
-    private let inviteRepository: InviteRepository
+    private let inviteRepository: InviteRepositoryProtocol
 
-    init(authRepository: AuthRepositoryProtocol, inviteRepository: InviteRepository) {
+    init(authRepository: AuthRepositoryProtocol, inviteRepository: InviteRepositoryProtocol) {
         self.authRepository = authRepository
         self.inviteRepository = inviteRepository
     }
@@ -30,11 +30,11 @@ final class InviteUseCaseImpl: InviteUseCase {
 
     // receive 관련 메서드
     func addMember(groupId: String, member: Member) -> Observable<Void> {
-        let membershipFirestore = member.toMembershipFirestoreModel(groupId: groupId)
-        return authRepository.addMember(groupId: groupId, member: membershipFirestore)
+        print("🔗 addMember 호출")
+        return inviteRepository.addMember(groupId: groupId, member: member)
     }
 
-    // send 관련 메서드
+    // invite 관련 메서드
     func fetchGroup(groupId: String) -> Observable<Group> {
         inviteRepository.fetchGroup(groupId: groupId)
     }
@@ -124,6 +124,20 @@ final class InviteUseCaseImpl: InviteUseCase {
                             profileImage: user.profileImage ?? "profileImage1"
                         )
                     }
+                    .flatMap { [weak self] _ -> Observable<Void> in
+                        guard let self = self else { return .empty() }
+                        
+                        // 새 그룹에 멤버로 추가 (알림 발생)
+                        let newMember = Member(
+                            userID: user.userID,
+                            nickname: user.nickname,
+                            profileImage: user.profileImage,
+                            monthStamp: 0,
+                            joinedAt: Date(),
+                            isLeader: false
+                        )
+                        return self.addMember(groupId: newGroupId, member: newMember)
+                    }
                 // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
                     .flatMap { [weak self] _ -> Observable<Void> in
                         guard let self = self else { return .empty() }
@@ -143,20 +157,21 @@ final class InviteUseCaseImpl: InviteUseCase {
             }
     }
     
-    /// 초대 코드를 확인하는 코드
-    func getInviteCode() -> Observable<String> {
+    /// 초대 코드와 사용자 정보를 함께 가져오는 메서드
+    func getInviteCodeAndUserInfo() -> Observable<(String, User)> {
         return getCurrentUser()
             .flatMap { optionalUser -> Observable<User> in
                 guard let user = optionalUser else {
                     return Observable.error(RepositoryError.userNotFound)
                 }
-                return self.fetchUserOnce(userId: user.userID)
+                return Observable.just(user)
             }
-            .flatMap { user -> Observable<Group> in
+            .flatMap { user -> Observable<(User, Group)> in
                 return self.fetchGroup(groupId: user.groupID)
+                    .map { group in (user, group) }
             }
-            .map { group in
-                return group.inviteCode
+            .map { user, group in
+                return (group.inviteCode, user)
             }
     }
 

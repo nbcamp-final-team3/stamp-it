@@ -11,16 +11,16 @@ import FirebaseFirestore
 
 final class HomeRepository: HomeRepositoryProtocol {
     private let membershipManager: any MembershipManagerProtocol
-    private let stickerManager: any StickerManagerProtocol
+    private let stampManager: any StampManagerProtocol
     private let missionManager: any MissionManagerProtocol
 
     init(
         membershipManager: any MembershipManagerProtocol,
-        stickerManager: any StickerManagerProtocol,
+        stampManager: any StampManagerProtocol,
         missionManager: any MissionManagerProtocol
     ) {
         self.membershipManager = membershipManager
-        self.stickerManager = stickerManager
+        self.stampManager = stampManager
         self.missionManager = missionManager
     }
 
@@ -29,18 +29,18 @@ final class HomeRepository: HomeRepositoryProtocol {
         return Observable.combineLatest(
             membershipManager.fetchMembers(groupId: groupID)
                 .map { $0.map { $0.toDomainModel() } },
-            stickerManager.fetchGroupStickers(groupId: groupID, month: thisMonth)
+            stampManager.fetchGroupStamps(groupId: groupID, month: thisMonth)
                 .map { $0.map { $0.toDomainModel() } }
         )
-        .map { members, stickers in
-            let stickerMap = Dictionary(grouping: stickers) { $0.userID }
+        .map { members, stamps in
+            let stampMap = Dictionary(grouping: stamps) { $0.userID }
             return members.map { member in
-                let count = stickerMap[member.userID]?.count ?? 0
+                let count = stampMap[member.userID]?.count ?? 0
                 return Member(
                     userID: member.userID,
                     nickname: member.nickname,
                     profileImage: member.profileImage,
-                    monthSticker: count,
+                    monthStamp: count,
                     joinedAt: member.joinedAt,
                     isLeader: member.isLeader
                 )
@@ -48,8 +48,8 @@ final class HomeRepository: HomeRepositoryProtocol {
         }
     }
 
-    func fetchStickers(ofGroup groupID: String, month: String) -> Observable<[Sticker]> {
-        stickerManager.fetchGroupStickers(groupId: groupID, month: month)
+    func fetchStamps(ofGroup groupID: String, month: String) -> Observable<[Stamp]> {
+        stampManager.fetchGroupStamps(groupId: groupID, month: month)
             .map { $0.map { $0.toDomainModel() } }
     }
 
@@ -81,27 +81,27 @@ final class HomeRepository: HomeRepositoryProtocol {
             .map { $0.toDomainModel() }
     }
 
-    func createSticker(
+    func createStamp(
         userId: String,
         groupId: String,
         missionTitle: String,
-        maxSticker: Int,
-        stickerType: String,
+        maxStamp: Int,
+        stampType: String,
         missionId: String,
         assignedBy: String
     ) -> Observable<Void> {
-        stickerManager.createStickerFromMission(
+        stampManager.createStampFromMission(
             userId: userId,
             groupId: groupId,
             missionTitle: missionTitle,
-            maxStickers: maxSticker,
-            stickerType: stickerType,
+            maxStamps: maxStamp,
+            stampType: stampType,
             missionId: missionId,
             assignedBy: assignedBy
         )
     }
 
-    func deleteSticker(missionID: String) -> Observable<Void> {
-        stickerManager.deleteSticker(missionId: missionID)
+    func deleteStamp(missionID: String) -> Observable<Void> {
+        stampManager.deleteStamp(missionId: missionID)
     }
 }
