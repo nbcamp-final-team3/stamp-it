@@ -26,6 +26,15 @@ enum StampType: String, Hashable {
     case blue
     case yellow
     case purple
+
+    static func from(raw: String) -> StampType {
+        switch raw {
+        case "stampRed", "red":
+            return .red
+        default:
+            return .red
+        }
+    }
 }
 
 extension Stamp {

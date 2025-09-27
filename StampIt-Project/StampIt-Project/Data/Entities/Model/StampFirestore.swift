@@ -33,7 +33,7 @@ extension StampFirestore {
             stampID: self.stampId,
             groupID: self.groupId,
             month: self.month,
-            type: StampType(rawValue: self.type) ?? .red,
+            type: StampType.from(raw: self.type),
             pinNumber: self.pinNumber,
             createdAt: self.createdAt.dateValue(),
             missionID: self.missionId,
