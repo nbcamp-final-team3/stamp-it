@@ -6,10 +6,8 @@
 //
 
 import UIKit
-import Then
 import SnapKit
 import RxSwift
-import RxRelay
 
 final class StampBoardViewController: BaseViewController {
     
@@ -17,7 +15,6 @@ final class StampBoardViewController: BaseViewController {
     
     private var viewModel: StampBoardViewModel
     private let disposeBag = DisposeBag()
-    private var currentPage: Int = .zero
 
     override var screenName: String { "StampBoard" }
     
@@ -60,19 +57,22 @@ final class StampBoardViewController: BaseViewController {
         .observe(on: MainScheduler.instance)
         .bind(with: self) { owner, combined in
             let (summary, stamps) = combined
-            owner.updateSnapshot(summary: summary, stamps: stamps)
-            
             let page = summary.completed
-            owner.stampBoardView.footerPageRelay.accept(
-                page == .zero ? page : page + 1
+
+            let viewState = StampBoardViewState(
+                collectdStamp: summary.collected,
+                completedBoard: summary.completed,
+                stamps: stamps,
+                numberOfPages: page == .zero ? page : page + 1
             )
+            owner.stampBoardView.render(viewState)
         }.disposed(by: disposeBag)
     }
     
     // MARK: - Style Helper
     
     private func setStyle() {
-        view.backgroundColor = .white
+        view.backgroundColor = .clear
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
@@ -97,53 +97,7 @@ final class StampBoardViewController: BaseViewController {
     // MARK: - Delegate Helper
     
     private func setDelegate() {
-        stampBoardView.setScrollDelegate(self)
-        stampBoardView.setCollectionViewDelegate(self)
-    }
-    
-    // MARK: - Snapshot
-    
-    private func updateSnapshot(
-        summary: (collected: Int, completed: Int),
-        stamps: [[StampBoardStamp]]
-    ) {
-        let maxPage = stamps.count
-        
-        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
-
-        /// Item & Section For Summary Section
-        let summaryItem: [StampBoardItem] = [
-            .summary(
-                collected: summary.collected,
-                completed: summary.completed
-            )
-        ]
-        snapshot.appendSections([.summary])
-        snapshot.appendItems(summaryItem, toSection: .summary)
-        
-        snapshot.appendSections([.page])
-        
-        /// Item & Section For StampBoard
-        for index in 0..<maxPage {
-            snapshot.appendItems(
-                stamps[index].map { .stamp($0) },
-                toSection: .page
-            )
-        }
-        
-        stampBoardView.stampBoardDataSource.apply(snapshot, animatingDifferences: false)
-        
-        stampBoardView.getCollectionView().layoutIfNeeded()
-    }
-}
-
-extension StampBoardViewController: StampBoardScrollDelegate {
-    func didScrollToPage(_ page: Int) {
-        currentPage = page
-        
-        /// 배경색 변경
-        stampBoardView.backgroundColor = StampBoard(rawValue: page)?.background
-        stampBoardView.updateFooterPage(to: page)
+        stampBoardView.setDelegate(self)
     }
 }
 
@@ -157,6 +111,7 @@ extension StampBoardViewController: UICollectionViewDelegate {
         
         let stamps = viewModel.state.stampsByPage.value
         let itemIndexInPage = indexPath.item % Stamp.totalStamp
+        let currentPage = stampBoardView.currentPageValue
 
         guard stamps.indices.contains(currentPage),
               stamps[currentPage].indices.contains(itemIndexInPage) else {
@@ -164,11 +119,9 @@ extension StampBoardViewController: UICollectionViewDelegate {
         }
         
         let stamp = stamps[currentPage][itemIndexInPage]
-
-        let dashedType = StampBoardSection.page.type.flatMap { $0 }[stamp.zigzagIndex]
+        let dashedType = StampBoardSection.board.type.flatMap { $0 }[stamp.zigzagIndex]
         
         cell.configureDashedLine(with: dashedType)
-        
     }
     
     func collectionView(
@@ -176,23 +129,21 @@ extension StampBoardViewController: UICollectionViewDelegate {
         didSelectItemAt indexPath: IndexPath
     ) {
         let stampsByPage = viewModel.state.stampsByPage.value
-        
         let itemIndexInPage = indexPath.item % Stamp.totalStamp
-        
+        let currentPage = stampBoardView.currentPageValue
+
         let clickedStamp = stampsByPage[currentPage][itemIndexInPage]
         let missionId = clickedStamp.missionID
 
         /// Empty Stamp 는 모달뷰 띄우지 않음
         if clickedStamp.type != .gray {
             let viewModel = DIContainer.shared.makeStampInfoViewModel()
-
             let stampInfoVC = StampInfoViewController(
                 viewModel: viewModel,
                 stampType: clickedStamp.type,
             )
             stampInfoVC.transitioningDelegate = self
             stampInfoVC.modalPresentationStyle = .custom
-
             viewModel.action.accept(.load(missionId: missionId))
             
             self.present(stampInfoVC, animated: true)

@@ -25,11 +25,13 @@ final class StampBoardViewModel: ViewModelProtocol {
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
+        let tabType = BehaviorRelay<TabType>(value: .stampBoard)
         let stampsByPage = BehaviorRelay<[[StampBoardStamp]]>(
             value: StampUtil.initialize()
         )
-        let tabType = BehaviorRelay<TabType>(value: .stampBoard)
-        let stampSummary = BehaviorRelay<(collected: Int, completed: Int)>(value: (.zero, .zero))
+        let stampSummary = BehaviorRelay<(collected: Int, completed: Int)>(
+            value: (.zero, .zero)
+        )
     }
     
     // MARK: - Properties
@@ -50,17 +52,16 @@ final class StampBoardViewModel: ViewModelProtocol {
     // MARK: - Bind
     
     private func bindAction() {
-        action
-            .subscribe(with: self) { owner, action in
-                switch action {
-                case .viewDidLoad:
-                    owner.bindUser()
-                case .tabButtonTapped(let type):
-                    owner.state.tabType.accept(type)
-                case .updateStamps(let stamps):
-                    owner.state.stampsByPage.accept(stamps)
-                }
-            }.disposed(by: disposeBag)
+        action.subscribe(with: self) { owner, action in
+            switch action {
+            case .viewDidLoad:
+                owner.bindUser()
+            case .tabButtonTapped(let type):
+                owner.state.tabType.accept(type)
+            case .updateStamps(let stamps):
+                owner.state.stampsByPage.accept(stamps)
+            }
+        }.disposed(by: disposeBag)
     }
     
     private func bindUser() {

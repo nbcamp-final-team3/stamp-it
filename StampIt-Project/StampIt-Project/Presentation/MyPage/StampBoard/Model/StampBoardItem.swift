@@ -7,11 +7,11 @@
 
 enum StampBoardSection: Int, Hashable, CaseIterable {
     case summary
-    case page
+    case board
 
     var type: [[StampCellType]] {
         switch self {
-        case .page:
+        case .board:
             return [
                 [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
                 [.both, .horizontal, .horizontal, .horizontal, .none],
@@ -27,6 +27,7 @@ enum StampBoardSection: Int, Hashable, CaseIterable {
 
 extension StampBoardSection {
     static var column: Int { 5 }
+    static var row: Int { 6 }
 }
 
 enum StampBoardItem: Hashable {
