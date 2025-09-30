@@ -14,6 +14,8 @@ import FirebaseMessaging
 import UserNotifications
 import FirebaseAuth
 import RxSwift
+import KakaoSDKAuth
+import KakaoSDKCommon
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -38,6 +40,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // Google Sign-In 설정
         configureGoogleSignIn()
+        
+        // Kakao 로그인 설정
+        KakaoSDK.initSDK(appKey: "${NATIVE_APP_KEY}")
         
         return true
     }
