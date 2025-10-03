@@ -20,6 +20,7 @@ final class HomeView: UIView {
     let didTapRequestMissionButton = PublishRelay<Void>()
     let didTapSendMissoinButton = PublishRelay<Void>()
     let isSelectedRequestMissionButton = BehaviorRelay<Bool?>(value: nil)
+    let isEnabledRequestMissionButton = BehaviorRelay<Bool?>(value: nil)
     let requestedButtonTitle = BehaviorRelay<String?>(value: nil)
     let selectMember = PublishRelay<Int>()
     let username = PublishRelay<String>()
@@ -109,6 +110,10 @@ final class HomeView: UIView {
 
         isSelectedRequestMissionButton
             .bind(to: groupDashboardView.isSelectedRequestMissionButton)
+            .disposed(by: disposeBag)
+
+        isEnabledRequestMissionButton
+            .bind(to: groupDashboardView.isEnabledRequestMissionButton)
             .disposed(by: disposeBag)
 
         requestedButtonTitle

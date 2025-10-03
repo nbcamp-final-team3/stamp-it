@@ -225,6 +225,30 @@ final class HomeViewController: BaseViewController {
             .bind(to: homeView.requestedButtonTitle)
             .disposed(by: disposeBag)
 
+        viewModel.state.isEnabledRequestMission
+            .compactMap { $0 }
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, isEnabled in
+                owner.homeView.isEnabledRequestMissionButton.accept(isEnabled)
+
+                guard !isEnabled else { return }
+                let toastView = ToastView()
+                owner.activeToasts["request_failed"] = toastView
+                toastView.show(
+                    in: owner.homeView,
+                    message: "미션 조르기가 전달되지 않았어요. 다시 시도해주세요.",
+                    type: .failure
+                )
+
+                Observable.just(())
+                    .delay(.seconds(3), scheduler: MainScheduler.instance)
+                    .bind(with: self) { owner, _ in
+                        owner.activeToasts["request_failed"] = nil
+                    }
+                    .disposed(by: toastView.disposeBag)
+            }
+            .disposed(by: disposeBag)
+
         viewModel.state.isMoveMissionTab
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, _ in

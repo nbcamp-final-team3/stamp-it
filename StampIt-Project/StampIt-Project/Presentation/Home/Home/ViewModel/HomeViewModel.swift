@@ -51,6 +51,7 @@ final class HomeViewModel: ViewModelProtocol {
         let isPushMemberMissionVC = PublishRelay<Void>()
         let isPushNoticeListVC = PublishRelay<Void>()
         let didRequestMissionIn30Min = BehaviorRelay<Bool?>(value: nil)
+        let isEnabledRequestMission = BehaviorRelay<Bool?>(value: nil)
         let requestCompletedTitle = BehaviorRelay<String?>(value: nil)
         let isMoveMissionTab = PublishRelay<Void>()
     }
@@ -289,14 +290,23 @@ final class HomeViewModel: ViewModelProtocol {
     private func handleRequestMission() {
         guard state.didRequestMissionIn30Min.value != true else { return }
 
-        let now = Date()
-        state.didRequestMissionIn30Min.accept(true)
-        state.requestCompletedTitle.accept("조르기 완료!")
-        UserDefaults.standard.set(now, forKey: "missionRequestTime")
-        startMissionRequestTimer(from: now)
-
         myMissionUseCase.requestMission()
-            .subscribe()
+            .subscribe(onNext: { [weak self] _ in
+                guard let self else { return }
+                state.didRequestMissionIn30Min.accept(true)
+                state.requestCompletedTitle.accept("조르기 완료!")
+
+                let now = Date()
+                UserDefaults.standard.set(now, forKey: "missionRequestTime")
+                startMissionRequestTimer(from: now)
+            }, onError: { [weak self] _ in
+                guard let self else { return }
+                state.isEnabledRequestMission.accept(false)
+                Observable<Int>.timer(.seconds(3), scheduler: MainScheduler.instance)
+                    .map { _ in true }
+                    .bind(to: state.isEnabledRequestMission)
+                    .disposed(by: disposeBag)
+            })
             .disposed(by: disposeBag)
     }
 
@@ -304,7 +314,8 @@ final class HomeViewModel: ViewModelProtocol {
         guard let lastRequestTime = UserDefaults.standard.object(forKey: "missionRequestTime") as? Date else { return }
 
         let remainTime = Date().timeIntervalSince(lastRequestTime)
-        if remainTime < 1800 {
+
+        if remainTime < 10 {
             state.didRequestMissionIn30Min.accept(true)
             state.requestCompletedTitle.accept("조르기 완료!")
             startMissionRequestTimer(from: lastRequestTime)
@@ -314,7 +325,7 @@ final class HomeViewModel: ViewModelProtocol {
     }
 
     private func startMissionRequestTimer(from startTime: Date) {
-        let remaining = max(0, 1800 - Date().timeIntervalSince(startTime))
+        let remaining = max(0, 10 - Date().timeIntervalSince(startTime))
 
         let timer = Observable<Int>.timer(.seconds(Int(remaining)), scheduler: MainScheduler.instance)
             .share()

@@ -15,6 +15,7 @@ final class PlaceholderCell: UICollectionViewCell {
 
     let didTapButton = PublishRelay<Void>()
     let isSelectedButton = BehaviorRelay<Bool?>(value: nil)
+    let isEnabledButton = BehaviorRelay<Bool?>(value: nil)
     let buttonTitle = BehaviorRelay<String?>(value: nil)
     var disposeBag = DisposeBag()
 
@@ -38,10 +39,6 @@ final class PlaceholderCell: UICollectionViewCell {
     private let button = UIButton().then {
         var config = UIButton.Configuration.filled()
 
-        // color
-        config.baseBackgroundColor = .red50
-        config.baseForegroundColor = .red400
-
         $0.configuration = config
 
         $0.configurationUpdateHandler = { button in
@@ -51,9 +48,15 @@ final class PlaceholderCell: UICollectionViewCell {
                 config?.imagePlacement = .leading
                 config?.imagePadding = 2
                 config?.baseBackgroundColor = .clear
+                config?.baseForegroundColor = .red400
+            } else if !button.isEnabled {
+                config?.image = nil
+                config?.baseBackgroundColor = .gray50
+                config?.baseForegroundColor = .gray300
             } else {
                 config?.image = nil
                 config?.baseBackgroundColor = .red50
+                config?.baseForegroundColor = .red400
             }
             button.configuration = config
         }
@@ -89,6 +92,11 @@ final class PlaceholderCell: UICollectionViewCell {
         isSelectedButton
             .compactMap { $0 }
             .bind(to: button.rx.isSelected)
+            .disposed(by: disposeBag)
+
+        isEnabledButton
+            .compactMap { $0 }
+            .bind(to: button.rx.isEnabled)
             .disposed(by: disposeBag)
 
         buttonTitle
