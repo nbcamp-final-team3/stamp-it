@@ -287,7 +287,7 @@ final class HomeViewModel: ViewModelProtocol {
     // MARK: - Mission Request Timer
 
     private func handleRequestMission() {
-        guard state.didRequestMissionIn30Min.value == false else { return }
+        guard state.didRequestMissionIn30Min.value != true else { return }
 
         let now = Date()
         state.didRequestMissionIn30Min.accept(true)
