@@ -65,7 +65,7 @@ final class GroupManageUseCaseImpl: GroupManageUseCase {
                     return Observable.error(GroupUseCaseError.notAuthorized)
                 }
 
-                return self.accountManageRepository.exportMember(member: member)
+                return self.groupManageRepository.exportMember(member: member)
             }
             .catch { [weak self] error in
                 let groupUseCaseError = self?.mapToGroupUseCaseError(error) ?? GroupUseCaseError.unknownError

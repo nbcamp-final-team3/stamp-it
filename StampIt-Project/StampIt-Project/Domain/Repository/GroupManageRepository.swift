@@ -26,4 +26,7 @@ protocol GroupManageRepository {
     
     /// 멤버 정보 업데이트
     func updateMemberRole(groupId: String, userId: String, isLeader: Bool) -> Observable<Void>
+
+    /// 멤버 내보내기
+    func exportMember(member: User) -> Observable<User>
 }
