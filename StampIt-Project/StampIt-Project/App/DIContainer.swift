@@ -84,7 +84,10 @@ final class DIContainer {
         return GroupManageRepositoryImpl(
             groupManager: groupManager,
             userManager: userManager,
-            membershipManager: membershipManager
+            membershipManager: membershipManager,
+            missionManager: missionManager,
+            stampManager: stampManager,
+            exportLogicService: exportService
         )
     }()
 
@@ -111,6 +114,10 @@ final class DIContainer {
 
     lazy var missionExpirationService: MissionExpirationService = {
         return MissionExpirationServiceImpl(homeRepository: homeRepository)
+    }()
+
+    lazy var exportService: ExportLogicServicingProtocol = {
+        return ExportLogicService(membershipManager: membershipManager, stampManager: stampManager, missionManager: missionManager)
     }()
 
     // MARK: - Use Cases (Domain Layer)

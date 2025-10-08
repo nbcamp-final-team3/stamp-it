@@ -375,22 +375,6 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
             }
     }
 
-//    // MARK: -- 주형 멤버 관리 유저 내보내기 기능 구현부
-//    func exportMember(member: User) -> Observable<User> {
-//        // 💡 그룹 탈퇴 전용 검증
-//        return self.validateGroupLeaving(currentUser: member)
-//            .flatMap { _ in
-//                // 💡 그룹 탈퇴 실행
-//                return self.executeGroupLeaving(currentUser: member)
-//            }
-//            .catch { [weak self] error in
-//                guard let self = self else {
-//                    return Observable.error(RepositoryError.unknownError)
-//                }
-//                return Observable.error(self.mapToRepositoryError(error))
-//            }
-//    }
-
     // MARK: - 그룹 탈퇴 전용 검증 (서비스 탈퇴와 분리)
     private func validateGroupLeaving(currentUser: User) -> Observable<Void> {
         let membershipId = "\(currentUser.groupID)_\(currentUser.userID)"
