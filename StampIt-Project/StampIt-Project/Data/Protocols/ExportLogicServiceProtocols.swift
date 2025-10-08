@@ -7,7 +7,7 @@
 
 import RxSwift
 
-protocol ExportLogicServicingProtocol {
+protocol ExportLogicServiceProtocols {
     func exportMember(_ user: User) -> Observable<User>
     func validateGroupLeaving(currentUser: User) -> Observable<Void>
 }
