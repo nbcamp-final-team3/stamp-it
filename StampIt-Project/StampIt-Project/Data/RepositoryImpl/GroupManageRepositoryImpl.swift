@@ -16,7 +16,7 @@ final class GroupManageRepositoryImpl: GroupManageRepository {
     private let membershipManager: any MembershipManagerProtocol
     private let missionManager: any MissionManagerProtocol
     private let stampManager: any StampManagerProtocol
-    private let exportLogicService: any ExportLogicServicingProtocol
+    private let exportLogicService: any ExportLogicServiceProtocols
 
     private let disposeBag = DisposeBag()
 
@@ -25,7 +25,7 @@ final class GroupManageRepositoryImpl: GroupManageRepository {
          membershipManager: any MembershipManagerProtocol,
          missionManager: any MissionManagerProtocol,
          stampManager: any StampManagerProtocol,
-         exportLogicService: any ExportLogicServicingProtocol) {
+         exportLogicService: any ExportLogicServiceProtocols) {
         self.groupManager = groupManager
         self.userManager = userManager
         self.membershipManager = membershipManager

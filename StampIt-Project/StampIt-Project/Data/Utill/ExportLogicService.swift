@@ -11,7 +11,7 @@ import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
 
-class ExportLogicService: ExportLogicServicingProtocol {
+class ExportLogicService: ExportLogicServiceProtocols {
 
     private let membershipManager: any MembershipManagerProtocol
     private let stampManager: any StampManagerProtocol
