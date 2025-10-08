@@ -116,7 +116,7 @@ final class DIContainer {
         return MissionExpirationServiceImpl(homeRepository: homeRepository)
     }()
 
-    lazy var exportService: ExportLogicServicingProtocol = {
+    lazy var exportService: ExportLogicServiceProtocols = {
         return ExportLogicService(membershipManager: membershipManager, stampManager: stampManager, missionManager: missionManager)
     }()
 
