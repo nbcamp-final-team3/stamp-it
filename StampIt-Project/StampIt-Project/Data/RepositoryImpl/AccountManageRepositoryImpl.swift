@@ -11,6 +11,7 @@ import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
 import GoogleSignIn
+import KakaoSDKUser
 
 final class AccountManageRepository: AccountManageRepositoryProtocol {
 
@@ -21,7 +22,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     private let missionManager: any MissionManagerProtocol
     private let stampManager: any StampManagerProtocol
 
-    private let authRepository: AuthRepositoryProtocol
+    private let authRepository: any AuthRepositoryProtocol
 
     private let disposeBag = DisposeBag()
     private let mapToRepositoryError: (Error) -> RepositoryError
@@ -58,10 +59,41 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     // MARK: - 로그아웃
     /// 현재 사용자 로그아웃
     func signOut() -> Observable<Void> {
-        return authManager.signOut()
-            .catch { error in
-                Observable.error(self.mapToRepositoryError(error))
+        return Observable.create { observer in
+            
+            do {
+                // Firebase 로그아웃
+                try Auth.auth().signOut()
+                
+                // Google 로그인이면 추가 로그아웃
+                if UserDefaults.standard.string(forKey: "activeLoginType") == "google" {
+                    GIDSignIn.sharedInstance.signOut()
+                }
+                
+                // 마지막 로그인 정보 저장 (재로그인 편의성 위해)
+                if let userId = UserDefaults.standard.string(forKey: "activeUserId"),
+                   let loginType = UserDefaults.standard.string(forKey: "activeLoginType") {
+                    UserDefaults.standard.set(userId, forKey: "lastUserId")
+                    UserDefaults.standard.set(loginType, forKey: "lastLoginType")
+                }
+                
+                // 활성 세션 정보만 삭제
+                UserDefaults.standard.removeObject(forKey: "activeUserId")
+                UserDefaults.standard.removeObject(forKey: "activeLoginType")
+                
+                // 로그아웃 완료 알림 (한 번만 발생)
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .userSessionChanged, object: nil)
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            } catch {
+                print("❌ Firebase 로그아웃 실패: \(error)")
+                observer.onError(AuthError.signOutFailed)
             }
+            
+            return Disposables.create()
+        }
     }
 
     // MARK: - 서비스 탈퇴 (그룹 탈퇴와 완전 분리)
