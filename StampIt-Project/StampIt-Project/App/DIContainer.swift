@@ -11,6 +11,7 @@ import UIKit
 final class DIContainer {
 
     // MARK: - Managers (Infrastructure Layer)
+    lazy var kakaoAuthManager: any KakaoAuthManagerProtocol = KakaoAuthManager()
     lazy var authManager: any AuthManagerProtocol = AuthManager()
     lazy var userManager: any UserManagerProtocol = UserManager()
     lazy var fcmManager: any FCMTokenManagerProtocol = FCMTokenManager()
@@ -26,6 +27,7 @@ final class DIContainer {
     // MARK: - Repositories (Data Layer)
     lazy var authRepository: AuthRepositoryProtocol = {
         return AuthRepository(
+            kakaoAuthManager: kakaoAuthManager,
             authManager: authManager,
             userManager: userManager,
             groupManager: groupManager,
