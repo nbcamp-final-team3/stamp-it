@@ -42,8 +42,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         configureGoogleSignIn()
         
         // Kakao 로그인 설정
-        KakaoSDK.initSDK(appKey: "${NATIVE_APP_KEY}")
-        
+        KakaoSDK.initSDK(appKey: Config.Keys.kakaoNativeAppKey)
+
         return true
     }
     
