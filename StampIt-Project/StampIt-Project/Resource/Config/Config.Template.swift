@@ -1,12 +1,12 @@
 //
-//  Config.template.swift
+//  Config.Template.swift
 //  StampIt-Project
 //
 //  Created by 이부용 on 10/14/25.
 //
 
 // 주의: 이 파일은 템플릿입니다. 실제 키를 입력하지 마세요!
-// 개발 환경 설정 시 이 파일을 복사하여 APIKeys.swift 파일을 만들고 실제 키를 입력하세요.
+// 개발 환경 설정 시 이 파일을 복사하여 Config.swift 파일을 만들고 실제 키를 입력하세요.
 
 enum Config {
     enum Keys {
