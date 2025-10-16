@@ -315,7 +315,7 @@ final class HomeViewModel: ViewModelProtocol {
 
         let remainTime = Date().timeIntervalSince(lastRequestTime)
 
-        if remainTime < 10 {
+        if remainTime < 1800 {
             state.didRequestMissionIn30Min.accept(true)
             state.requestCompletedTitle.accept("조르기 완료!")
             startMissionRequestTimer(from: lastRequestTime)
@@ -325,7 +325,7 @@ final class HomeViewModel: ViewModelProtocol {
     }
 
     private func startMissionRequestTimer(from startTime: Date) {
-        let remaining = max(0, 10 - Date().timeIntervalSince(startTime))
+        let remaining = max(0, 1800 - Date().timeIntervalSince(startTime))
 
         let timer = Observable<Int>.timer(.seconds(Int(remaining)), scheduler: MainScheduler.instance)
             .share()
@@ -336,7 +336,7 @@ final class HomeViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
 
         timer
-            .map { _ in "미션 조르기" }
+            .map { _ in HomeSection.memberMission.buttonText }
             .bind(to: state.requestCompletedTitle)
             .disposed(by: disposeBag)
     }

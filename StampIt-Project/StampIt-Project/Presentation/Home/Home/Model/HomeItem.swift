@@ -31,7 +31,7 @@ extension HomeSection {
         case .myMission:
             return "미션 조르기"
         case .memberMission:
-            return "미션 전달하러 가기"
+            return "미션 전달하기"
         default:
             return ""
         }
