@@ -124,6 +124,7 @@ final class HomeViewController: BaseViewController {
         viewModel.state.isPushSendInvitationVC
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, _ in
+                AnalyticsManager.shared.logInviteCodeShare(screen: "InviteSendCodeTapButton")
                 let sendInviteVC = DIContainer.shared.makeSendInviteViewController()
                 owner.navigationController?.pushViewController(sendInviteVC, animated: true)
             }
