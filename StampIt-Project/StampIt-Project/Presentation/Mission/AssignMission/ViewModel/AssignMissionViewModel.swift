@@ -8,14 +8,17 @@
 import Foundation
 import RxSwift
 import RxRelay
+import FoundationModels
 
 final class AssignMissionViewModel: ViewModelProtocol {
     enum Action {
         case onAppear
-        case didFillOutTitle(String)
+        case titleDidChange(String)
         case didSelectMember(Member)
         case didSelectDueDate(Date)
         case didTapAssignButton
+        case toggleFavorite
+        case textFieldIsEditing(Bool)
     }
     
     struct State {
@@ -24,7 +27,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
         var selectedMember = BehaviorRelay<Member?>(value: nil)
         var dueDate = BehaviorRelay<Date>(value: Date())
         var canSubmit = BehaviorRelay<Bool>(value: false)
-        var customMissionTitle = BehaviorRelay<String?>(value: nil)
+        var textFieldIsEditing = BehaviorRelay<Bool>(value: false)
+        var suggestions = BehaviorRelay<[Suggestion]>(value: [])
     }
     
     var action = PublishRelay<Action>()
@@ -36,6 +40,8 @@ final class AssignMissionViewModel: ViewModelProtocol {
     
     private let missionUseCaseImpl: MissionUseCase
     private var user: User?
+    private var userData: [MissionData] = [] // 과거 데이터(사용자가 다른 멤버에게 전달했던 미션)
+    private var aiSuggestions: [String] = []
     
     private var canSubmit: Bool {
         // 멤버 선택이 안되어 있으면 false
@@ -43,9 +49,6 @@ final class AssignMissionViewModel: ViewModelProtocol {
         
         // 만약 커스텀 미션이 아니라면(샘플 미션이라면) 멤버 선택은 이미 되어 있으므로 true
         if let mission = state.mission.value, !mission.title.isEmpty { return true }
-        
-        // 만약 커스텀 미션이고, 미션 제목을 입력했다면 true
-        if let title = state.customMissionTitle.value, !title.isEmpty { return true }
         
         return false
     }
@@ -86,10 +89,28 @@ final class AssignMissionViewModel: ViewModelProtocol {
                 switch input {
                 case .onAppear:
                     loadMembers()
-                    print("mission: \(String(describing: state.mission.value?.title)), members count: \(state.members.value.count)")
-                case .didFillOutTitle(let title):
-                    state.customMissionTitle.accept(title)
+                    
+                    userData = missionUseCaseImpl.fetchMissionData()
+                    
+                    // AI 추천 데이터 미리 생성(generating 하는데 시간이 걸리므로 미리 만들어 놓음)
+                    if #available(iOS 26.0, *) {
+                        let generator = MissionGenerator(userData: userData)
+                        generator.prewarm() // 현재 로직에서는 불필요하나, MissionGenerator 인스턴스 생성 시점과 suggestMisson 메서드 호출 시점이 (현저하게) 다르면 필요할 수 있어 남겨 놓음.
+                        Task {
+                            await generator.suggestMission(missionCount: 3)
+                            self.aiSuggestions = generator.suggestions
+                        }
+                    }
+                    
+                case .titleDidChange(let title):
+                    guard let mission = state.mission.value else { return }
+                    let newMission = SampleMission(missionId: mission.missionId, title: title, description: mission.description, category: mission.category)
+                    state.mission.accept(newMission)
+                    
                     state.canSubmit.accept(canSubmit)
+                    
+                    let suggestions = generateSuggestion() + aiGenerateSuggestion()
+                    state.suggestions.accept(suggestions)
                 case .didSelectMember(let member):
                     state.selectedMember.accept(member)
                     state.canSubmit.accept(canSubmit)
@@ -107,6 +128,14 @@ final class AssignMissionViewModel: ViewModelProtocol {
                             print(error)
                         }
                         .disposed(by: disposeBag)
+                case .toggleFavorite:
+                    guard var mission = state.mission.value else { return }
+                    mission.isFavorite.toggle()
+                    
+                    state.mission.accept(mission)
+                    missionUseCaseImpl.updateSampleMission(mission: mission)
+                case .textFieldIsEditing(let isEditing):
+                    state.textFieldIsEditing.accept(isEditing)
                 }
             }
             .disposed(by: disposeBag)
@@ -154,9 +183,9 @@ final class AssignMissionViewModel: ViewModelProtocol {
             return Observable.error(NSError(domain: "user data is nil.", code: 0, userInfo: nil))
         }
         
-        let title = state.customMissionTitle.value ?? state.mission.value!.title
+        let title = state.mission.value?.title ?? ""
         let createDate = Date()
-        let category = state.mission.value!.category
+        let category = state.mission.value?.category ?? MissionCategory.custom
         
         let mission = Mission(
             missionID: UUID().uuidString,
@@ -173,5 +202,49 @@ final class AssignMissionViewModel: ViewModelProtocol {
         missionUseCaseImpl.saveMissionData(title: title, assigneeId: member.userID, assigneeNickname: member.nickname, createDate: createDate, dueDate: dueDate, category: category)
         
         return missionUseCaseImpl.createMission(groupId: user.groupID, mission: mission)
+    }
+    
+    private func generateSuggestion() -> [Suggestion] {
+        guard !userData.isEmpty else { return [] }
+        let inputText = state.mission.value?.title
+        var suggestions: [Suggestion] = []
+        
+        // 1. 과거 데이터 기반 추천데이터 생성
+        if let inputText, !inputText.isEmpty {
+            // 단어 단위로 분할
+            let trimmedText = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+            let keywords = trimmedText
+                .components(separatedBy: .whitespaces)
+                .filter { !$0.isEmpty }
+            
+            userData
+                .filter { mission in
+                    // 위에서 분할한 단어들이 미션 제목에 포함되는지 확인
+                    let title = mission.title.replacingOccurrences(of: " ", with: "")
+                    return keywords.allSatisfy { keyword in
+                        title.localizedStandardContains(keyword)
+                    }
+                }
+                .forEach { mission in
+                    if !suggestions.contains(where: { $0.title == mission.title }) {
+                        let suggestion = Suggestion(title: mission.title, source: .history)
+                        suggestions.append(suggestion)
+                    }
+                }
+        }
+        
+        return suggestions
+    }
+    
+    private func aiGenerateSuggestion() -> [Suggestion] {
+        if !aiSuggestions.isEmpty {
+            var suggestions: [Suggestion] = []
+            aiSuggestions.forEach {
+                let suggestion = Suggestion(title: $0, source: .AI)
+                suggestions.append(suggestion)
+            }
+            return suggestions
+        }
+        return []
     }
 }

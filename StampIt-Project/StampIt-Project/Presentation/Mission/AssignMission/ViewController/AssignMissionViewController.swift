@@ -18,6 +18,8 @@ final class AssignMissionViewController: BaseViewController {
     
     private let navigationBar = DefaultNavigationBar(.titleWithBackButton(title: "미션 전달하기"))
     
+    private let favoriteButton = UIButton()
+    
     private let missionTitleTextField = UITextField().then {
         $0.font = .pretendard(size: 18, weight: .bold)
         $0.placeholder = "미션 내용"
@@ -47,6 +49,15 @@ final class AssignMissionViewController: BaseViewController {
         $0.layer.borderWidth = 1
         $0.layer.borderColor = UIColor.gray50.cgColor
         $0.backgroundColor = .gray25
+    }
+    
+    // 미션 제목 제안 뷰(사용자가 텍스트필드에 입력한 값을 기반으로 적절한 제안 대상이 있을 때만 팝업)
+    private let suggestionView = UIStackView().then {
+        $0.axis = .vertical
+        $0.alignment = .leading
+        $0.spacing = 1
+        $0.isHidden = true
+        $0.backgroundColor = .gray50
     }
     
     // memberLabel + memberSelectionButton
@@ -98,6 +109,8 @@ final class AssignMissionViewController: BaseViewController {
         
         setNavigationBar()
         
+        setDelegate()
+        
         bind()
         
         viewModel.action.accept(.onAppear)
@@ -112,8 +125,10 @@ final class AssignMissionViewController: BaseViewController {
     private func prepareSubviews() {
         view.backgroundColor = .white
         
-        // dropdownView는 보여질 때 일부 화면이 가려지므로(예: dueDateStackView) 마지막에 서브 뷰로 추가
-        [navigationBar, missionTitleTextField, memberStackView, dueDateView, assignButton, dropdownView]
+        navigationBar.addSubview(favoriteButton)
+        
+        // dropdownView, suggestionView는 보여질 때 일부 화면이 가려지므로(예: dueDateStackView) 마지막에 서브 뷰로 추가
+        [navigationBar, missionTitleTextField, memberStackView, dueDateView, assignButton, dropdownView, suggestionView]
             .forEach {
                 view.addSubview($0)
             }
@@ -124,6 +139,12 @@ final class AssignMissionViewController: BaseViewController {
     }
     
     private func setConstraints() {
+        favoriteButton.snp.makeConstraints {
+            $0.trailing.equalToSuperview().inset(32)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(30)
+        }
+        
         navigationBar.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide)
             $0.directionalHorizontalEdges.equalTo(view.safeAreaLayoutGuide)
@@ -157,10 +178,19 @@ final class AssignMissionViewController: BaseViewController {
             $0.top.equalTo(memberSelectionButton.snp.bottom).offset(4)
             $0.horizontalEdges.equalTo(memberSelectionButton.snp.horizontalEdges)
         }
+        
+        suggestionView.snp.makeConstraints {
+            $0.top.equalTo(missionTitleTextField.snp.bottom).offset(4)
+            $0.horizontalEdges.equalToSuperview().inset(16)
+        }
     }
     
     private func setNavigationBar() {        
         navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+    
+    private func setDelegate() {
+        missionTitleTextField.delegate = self
     }
     
     private func bind() {
@@ -170,6 +200,7 @@ final class AssignMissionViewController: BaseViewController {
             .drive { [weak self] mission in
                 guard let self, let mission else { return }
                 missionTitleTextField.text = mission.title
+                setFavoriteButton()
             }
             .disposed(by: disposeBag)
         
@@ -177,8 +208,10 @@ final class AssignMissionViewController: BaseViewController {
         missionTitleTextField.rx.text
             .orEmpty
             .asDriver(onErrorDriveWith: .empty())
+            .distinctUntilChanged()
+            .debounce(.milliseconds(300))
             .drive { [weak self] text in
-                self?.viewModel.action.accept(.didFillOutTitle(text))
+                self?.viewModel.action.accept(.titleDidChange(text))
             }
             .disposed(by: disposeBag)
         
@@ -189,6 +222,14 @@ final class AssignMissionViewController: BaseViewController {
                 guard let self else { return }
                 
                 setupDropdownView(members: members)
+            }
+            .disposed(by: disposeBag)
+        
+        // 미션 제목 제안 리스트(드랍 다운 형태)에 데이터 반영
+        viewModel.state.suggestions
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] suggestions in
+                self?.setupSuggestionView(suggestions: suggestions)
             }
             .disposed(by: disposeBag)
         
@@ -228,6 +269,34 @@ final class AssignMissionViewController: BaseViewController {
                 owner.navigationController?.popViewController(animated: true)
             }
             .disposed(by: disposeBag)
+        
+        favoriteButton.rx.tap
+            .bind(with: self) { owner, _ in
+                owner.viewModel.action.accept(.toggleFavorite)
+            }
+            .disposed(by: disposeBag)
+        
+        // 미션 제목 수정 중일 때(미션 제목 제안 뷰를 열거나 닫음)
+        viewModel.state.textFieldIsEditing
+            .asDriver(onErrorDriveWith: .empty())
+            .drive { [weak self] isEditing in
+                guard let self else { return }
+                
+                if isEditing {
+                    suggestionView.alpha = 0
+                    suggestionView.isHidden = false
+                    UIView.animate(withDuration: 0.25) { [weak self] in
+                        self?.suggestionView.alpha = 1
+                    }
+                } else {
+                    UIView.animate(withDuration: 0.25) { [weak self] in
+                        self?.suggestionView.alpha = 0
+                    } completion: { [weak self] _ in
+                        self?.suggestionView.isHidden = true
+                    }
+                }
+            }
+            .disposed(by: disposeBag)
     }
     
     // 멤버 선택 버튼 configuration 설정
@@ -257,12 +326,33 @@ final class AssignMissionViewController: BaseViewController {
         }
     }
     
+    // 미션 제목 제안 목록 구성 헬퍼
+    private func setupSuggestionView(suggestions: [Suggestion]) {
+        // 기존 제안 내용 삭제
+        suggestionView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        
+        // 신규 제안 내용 뷰에 추가
+        for suggestion in suggestions {
+            let button = SuggestionButton(suggestion: suggestion)
+            button.addTarget(self, action: #selector(suggestionSelected), for: .touchUpInside)
+            suggestionView.addArrangedSubview(button)
+        }
+    }
+    
     @objc private func memberSelected(_ sender: UIButton) {
         let button = sender as? MemberButton
         let member = button?.getMember()
         guard let member else { return }
         
         viewModel.action.accept(.didSelectMember(member))
+    }
+    
+    @objc private func suggestionSelected(_ sender: UIButton) {
+        let button = sender as? SuggestionButton
+        let suggestion = button?.getSuggestion()
+        guard let suggestion else { return }
+        
+        viewModel.action.accept(.titleDidChange(suggestion.title))
     }
     
     // 멤버 선택 버튼을 누르면 드랍다운으로 멤버 리스트를 보여줌. 다시 누르면 닫음.
@@ -302,5 +392,26 @@ final class AssignMissionViewController: BaseViewController {
     
     @objc private func dismissKeyboard() {
         view.endEditing(true)
+    }
+    
+    private func setFavoriteButton() {
+        // 커스텀 미션이면 버튼 비활성화
+        guard let mission = viewModel.state.mission.value, !mission.title.isEmpty else {
+            favoriteButton.isHidden = true
+            return
+        }
+        
+        let bookmarkImage = mission.isFavorite ? "bookmarkFavoriteFill" : "bookmarkFavorite"
+        favoriteButton.setImage(UIImage(named: bookmarkImage), for: .normal)
+    }
+}
+
+extension AssignMissionViewController: UITextFieldDelegate {
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        viewModel.action.accept(.textFieldIsEditing(true))
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        viewModel.action.accept(.textFieldIsEditing(false))
     }
 }
