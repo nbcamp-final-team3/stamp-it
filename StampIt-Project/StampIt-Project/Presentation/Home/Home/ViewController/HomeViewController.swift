@@ -159,6 +159,16 @@ final class HomeViewController: BaseViewController {
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
+        homeView.didTapRequestMissionButton
+            .map { HomeViewModel.Action.requestMission }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
+        homeView.didTapSendMissoinButton
+            .map { HomeViewModel.Action.moveToMissionTab }
+            .bind(to: viewModel.action)
+            .disposed(by: disposeBag)
+
         viewModel.state.user
             .asDriver()
             .drive(with: self) { owner, user in
@@ -206,6 +216,36 @@ final class HomeViewController: BaseViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(onNext: pushMemberMissionVC)
             .disposed(by: disposeBag)
+
+        viewModel.state.didRequestMissionIn30Min
+            .bind(to: homeView.isSelectedRequestMissionButton)
+            .disposed(by: disposeBag)
+
+        viewModel.state.requestCompletedTitle
+            .bind(to: homeView.requestedButtonTitle)
+            .disposed(by: disposeBag)
+
+        viewModel.state.isEnabledRequestMission
+            .compactMap { $0 }
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, isEnabled in
+                owner.homeView.isEnabledRequestMissionButton.accept(isEnabled)
+
+                guard !isEnabled else { return }
+                owner.createToast(
+                    toastID: "request_failed",
+                    message: "미션 조르기가 전달되지 않았어요. 다시 시도해주세요.",
+                    type: .failure
+                )
+            }
+            .disposed(by: disposeBag)
+
+        viewModel.state.isMoveMissionTab
+            .asDriver(onErrorDriveWith: .empty())
+            .drive(with: self) { owner, _ in
+                owner.tabBarController?.selectedIndex = 1
+            }
+            .disposed(by: disposeBag)
     }
 
     private func bindToastView() {
@@ -221,29 +261,41 @@ final class HomeViewController: BaseViewController {
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, value in
                 let (missionID, message) = value
-                let toastView = ToastView(withCancelButton: true)
-                owner.activeToasts[missionID] = toastView
-
-                toastView.show(in: owner.homeView, duration: 3, message: message, type: .success)
-
-                Observable.just(())
-                    .delay(.seconds(3), scheduler: MainScheduler.instance)
-                    .take(until: toastView.didTapCancelButton)
-                    .bind(with: self) { owner, _ in
-                        owner.activeToasts[missionID] = nil
-                    }
-                    .disposed(by: toastView.disposeBag)
-
-                toastView.didTapCancelButton
-                    .map { HomeViewModel.Action.didTapCompleteCancelButton }
-                    .bind(to: owner.viewModel.action)
-                    .disposed(by: toastView.disposeBag)
+                owner.createToast(toastID: missionID, message: message, withCancelButton: true)
             }
             .disposed(by: disposeBag)
     }
 
 
-    // MARK: - Methods
+    // MARK: - Toast Helpers
+
+    private func createToast(
+        toastID id: String,
+        message: String,
+        type: ToastType = .success,
+        withCancelButton: Bool = false
+    ) {
+        let toastView = ToastView(withCancelButton: withCancelButton)
+        activeToasts[id] = toastView
+        toastView.show(in: homeView, duration: 3, message: message, type: type)
+
+        Observable.just(())
+            .delay(.seconds(3), scheduler: MainScheduler.instance)
+            .take(until: toastView.didTapCancelButton)
+            .bind(with: self) { owner, _ in
+                owner.activeToasts[id] = nil
+            }
+            .disposed(by: toastView.disposeBag)
+
+        if withCancelButton {
+            toastView.didTapCancelButton
+                .map { HomeViewModel.Action.didTapCompleteCancelButton }
+                .bind(to: viewModel.action)
+                .disposed(by: toastView.disposeBag)
+        }
+    }
+
+    // MARK: - Navigation Helpers
 
     private func showSelectInvitationVC() {
         let vm = SelectInvitationViewModel()

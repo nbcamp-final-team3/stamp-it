@@ -20,6 +20,11 @@ final class GroupDashboardView: UIView {
     let didTapMissionCompleteButton = PublishRelay<HomeItem>()
     let didTapMoreMyMissionButton = PublishRelay<Void>()
     let didTapMoreMemberMissionButton = PublishRelay<Void>()
+    let didTapRequestMissionButton = PublishRelay<Void>()
+    let didTapSendMissionButton = PublishRelay<Void>()
+    let isSelectedRequestMissionButton = BehaviorRelay<Bool?>(value: nil)
+    let isEnabledRequestMissionButton = BehaviorRelay<Bool?>(value: nil)
+    let requestedButtonTitle = BehaviorRelay<String?>(value: nil)
     let selectMember = PublishRelay<Int>()
     let username = BehaviorRelay<String>(value: "유저")
     let groupName = BehaviorRelay<String>(value: "그룹")
@@ -79,7 +84,8 @@ final class GroupDashboardView: UIView {
     // MARK: - Set DataSource
 
     private func setDataSource() {
-        dataSource = .init(collectionView: collectionView) { collectionView, indexPath, item in
+        dataSource = .init(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
+            guard let self else { return nil }
             switch item {
             case .member(let member):
                 let cell = collectionView.dequeueReusableCell(
@@ -133,7 +139,33 @@ final class GroupDashboardView: UIView {
                     for: indexPath
                 ) as! PlaceholderCell
 
-                cell.configure(with: section.placeholderText)
+
+                cell.configure(with: section.placeholderText, buttonTitle: section.buttonText)
+
+                if section == .myMission {
+                    cell.didTapButton
+                        .bind(with: self, onNext: { owner, _ in
+                            owner.didTapRequestMissionButton.accept(())
+                        })
+                        .disposed(by: cell.disposeBag)
+
+                    isSelectedRequestMissionButton
+                        .bind(to: cell.isSelectedButton)
+                        .disposed(by: cell.disposeBag)
+
+                    isEnabledRequestMissionButton
+                        .bind(to: cell.isEnabledButton)
+                        .disposed(by: cell.disposeBag)
+
+                    requestedButtonTitle
+                        .bind(to: cell.buttonTitle)
+                        .disposed(by: cell.disposeBag)
+
+                } else if section == .memberMission {
+                    cell.didTapButton
+                        .bind(to: didTapSendMissionButton)
+                        .disposed(by: cell.disposeBag)
+                }
 
                 return cell
             }
@@ -256,13 +288,13 @@ final class GroupDashboardView: UIView {
     private func createEmptySection(withHeader: Bool = false) -> NSCollectionLayoutSection {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
-            heightDimension: .fractionalHeight(1)
+            heightDimension: .estimated(60)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1),
-            heightDimension: .absolute(61)
+            heightDimension: .estimated(60)
         )
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
 

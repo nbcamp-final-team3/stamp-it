@@ -140,8 +140,7 @@ final class DeepLinkManager {
 
         case .missionRequest:
             print("🔗 미션 요청 화면으로 이동")
-            let missionListVC = container.makeMissionListViewController()
-            nav.pushViewController(missionListVC, animated: true)
+            tab.selectedIndex = 1
 
         case .member:
             print("🔗 멤버 관리 화면으로 이동")
