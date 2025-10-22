@@ -11,6 +11,7 @@ protocol AnalyticsManagerProtocol {
     func logScreenView(screenName: String)
     func logClickEvent(screen: String, position: String, coordinates: CGPoint?)
     func logScreenDuration(screen: String, duration: TimeInterval)
+    func logInviteCodeShare(screen: String)
 }
 
 final class AnalyticsManager: AnalyticsManagerProtocol {
@@ -47,6 +48,14 @@ final class AnalyticsManager: AnalyticsManagerProtocol {
         Analytics.logEvent("screen_duration", parameters: [
             "screen": screen,
             "duration_seconds": duration,
+            "timestamp": Date().timeIntervalSince1970
+        ])
+    }
+    
+    // 초대코드 공유하기 버튼 집계
+    func logInviteCodeShare(screen: String) {
+        Analytics.logEvent("invite_code_share", parameters: [
+            "screen": screen,
             "timestamp": Date().timeIntervalSince1970
         ])
     }
