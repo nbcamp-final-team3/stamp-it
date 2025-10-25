@@ -13,6 +13,7 @@ protocol LoginUseCaseProtocol {
     // MARK: - Login
     func loginWithGoogle() -> Observable<LoginFlowResult>
     func loginWithApple() -> Observable<LoginFlowResult>
+    func loginWithKakao() -> Observable<LoginFlowResult>
     
     // MARK: - Launch Check
     func checkLaunchState() -> Observable<LaunchFlowResult>

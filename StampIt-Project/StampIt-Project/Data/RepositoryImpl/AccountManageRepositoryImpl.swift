@@ -11,6 +11,7 @@ import FirebaseCore
 import FirebaseFirestore
 import FirebaseAuth
 import GoogleSignIn
+import KakaoSDKUser
 
 final class AccountManageRepository: AccountManageRepositoryProtocol {
 
@@ -21,7 +22,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     private let missionManager: any MissionManagerProtocol
     private let stampManager: any StampManagerProtocol
 
-    private let authRepository: AuthRepositoryProtocol
+    private let authRepository: any AuthRepositoryProtocol
 
     private let disposeBag = DisposeBag()
     private let mapToRepositoryError: (Error) -> RepositoryError
@@ -58,40 +59,87 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     // MARK: - 로그아웃
     /// 현재 사용자 로그아웃
     func signOut() -> Observable<Void> {
-        return authManager.signOut()
-            .catch { error in
-                Observable.error(self.mapToRepositoryError(error))
+        return Observable.create { observer in
+            let loginType = UserDefaults.standard.string(forKey: "activeLoginType") ??
+                           UserDefaults.standard.string(forKey: "loginType") ?? "unknown"
+            
+            if loginType == "kakao" {
+                // 카카오 로그아웃
+                UserApi.shared.logout { error in
+                    if error != nil {
+                        observer.onError(AuthError.signOutFailed)
+                    } else {
+                        // 세션 정리
+                        AppSessionManager.shared.clearKakaoSession()
+                        observer.onNext(())
+                        observer.onCompleted()
+                    }
+                }
+            } else {
+                // Firebase 로그아웃 (기존 코드)
+                do {
+                    try Auth.auth().signOut()
+                    GIDSignIn.sharedInstance.signOut()
+                    AppSessionManager.shared.clearKakaoSession() // 혹시 모를 카카오 세션도 정리
+                    observer.onNext(())
+                    observer.onCompleted()
+                } catch {
+                    observer.onError(AuthError.signOutFailed)
+                }
             }
+            
+            return Disposables.create()
+        }
     }
 
     // MARK: - 서비스 탈퇴 (그룹 탈퇴와 완전 분리)
-    /// providerID 체크
+    /// providerID 체크 (구글, 애플)
     private func getCurrentProviderID() -> String? {
         return authManager.getCurrentUser()?.providerData.first?.providerID
     }
 
     func deleteAccount() -> Observable<Void> {
-        print("🔥 [DEBUG] 서비스 탈퇴 시작")
+        let loginType = UserDefaults.standard.string(forKey: "activeLoginType") ??
+                       UserDefaults.standard.string(forKey: "loginType") ?? "unknown"
+        
         return getCurrentUser()
             .flatMap { [weak self] user -> Observable<Void> in
                 guard let self = self else {
                     return Observable.error(RepositoryError.unknownError)
                 }
+                
                 return self.validateAccountDeletion(user: user)
-                    .flatMap { _ -> Observable<Void> in
-                        let providerID = self.getCurrentProviderID()
-                        print("🔍 [DEBUG] Provider: \(providerID ?? "Unknown")")
-                        // 애플/구글 모두 동일하게 처리
+                    .flatMap { _ in
+                        // Firestore 데이터 삭제 (공통)
                         return self.deleteFirestoreDataForAccountDeletion(user: user)
                             .flatMap { _ in
-                                self.deleteAuthAccountWithRetryAndReauth(maxRetry: 5)
+                                if loginType == "kakao" {
+                                    // 카카오: 연결 해제만 수행
+                                    return self.deleteKakaoAccount()
+                                } else {
+                                    // 구글/애플: Firebase Auth 계정 삭제
+                                    return self.deleteAuthAccountWithRetryAndReauth(maxRetry: 5)
+                                }
                             }
                     }
             }
-            .do(
-                onNext: { _ in print("✅ [DEBUG] 서비스 탈퇴 완료") },
-                onError: { error in print("❌ [DEBUG] 서비스 탈퇴 실패: \(error)") }
-            )
+    }
+    
+    //  MARK: - 서비스 탈퇴 (카카오 계정 연결 해제 메서드)
+    private func deleteKakaoAccount() -> Observable<Void> {
+        return Observable.create { observer in
+            UserApi.shared.unlink { error in
+                if error != nil {
+                    observer.onError(RepositoryError.authenticationFailed("카카오 연결 해제 실패"))
+                } else {
+                    // 모든 세션 정리
+                    AppSessionManager.shared.clearAllSessions()
+                    observer.onNext(())
+                    observer.onCompleted()
+                }
+            }
+            return Disposables.create()
+        }
     }
     
     // MARK: - 재인증 메서드(서비스 탈퇴)

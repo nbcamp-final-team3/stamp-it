@@ -38,9 +38,21 @@ final class LoginUseCase: LoginUseCaseProtocol {
             }
     }
     
-    /// 애플 로그인 플로우 (준비)
+    /// 애플 로그인 플로우
     func loginWithApple() -> Observable<LoginFlowResult> {
         return authRepository.signInWithApple()
+            .flatMap { [weak self] loginResult -> Observable<LoginFlowResult> in
+                self?.processLoginResult(loginResult) ?? Observable.error(UseCaseError.unknownError)
+            }
+            .catch { [weak self] error in
+                let useCaseError = self?.mapToUseCaseError(error) ?? UseCaseError.unknownError
+                return Observable.error(useCaseError)
+            }
+    }
+    
+    /// 카카오 로그인 플로우
+    func loginWithKakao() -> Observable<LoginFlowResult> {
+        return authRepository.signInWithKakao()
             .flatMap { [weak self] loginResult -> Observable<LoginFlowResult> in
                 self?.processLoginResult(loginResult) ?? Observable.error(UseCaseError.unknownError)
             }

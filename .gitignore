@@ -193,3 +193,5 @@ Derived/
 *.orig
 
 StampIt-Project/StampIt-Project/Resource/Info.plist
+
+Config.swift

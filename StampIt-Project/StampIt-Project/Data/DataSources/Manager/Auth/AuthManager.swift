@@ -145,6 +145,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
             do {
                 try Auth.auth().signOut()
                 GIDSignIn.sharedInstance.signOut()
+                AppSessionManager.shared.clearKakaoSession()
                 observer.onNext(())
                 observer.onCompleted()
             } catch {
@@ -168,6 +169,7 @@ final class AuthManager: NSObject,AuthManagerProtocol {
                 if error != nil {
                     observer.onError(AuthError.accountDeletionFailed)
                 } else {
+                    AppSessionManager.shared.clearKakaoSession()
                     observer.onNext(())
                     observer.onCompleted()
                 }

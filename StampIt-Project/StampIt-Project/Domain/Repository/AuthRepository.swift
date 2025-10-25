@@ -12,6 +12,7 @@ protocol AuthRepositoryProtocol {
     // MARK: - 인증
     func signInWithGoogle() -> Observable<LoginResult>
     func signInWithApple() -> Observable<LoginResult>
+    func signInWithKakao() -> Observable<LoginResult>
     
     // MARK: - 그룹 조회 및 유저, 그룹 생성
     func fetchUserWithGroupInfo(userId: String) -> Observable<StampIt_Project.User>
@@ -22,7 +23,7 @@ protocol AuthRepositoryProtocol {
     func addMember(groupId: String, member: GroupMembershipFirestore) -> Observable<Void>
     
     // MARK: - 상태 관리
-    func getCurrentUser() -> Observable<StampIt_Project.User?>
+    func getCurrentUser() -> Observable<User?>
     func observeAuthState() -> Observable<StampIt_Project.User?>
     func checkLaunchState() -> Observable<LaunchResult>
     
