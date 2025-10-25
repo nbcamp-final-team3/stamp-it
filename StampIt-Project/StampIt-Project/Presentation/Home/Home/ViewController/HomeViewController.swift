@@ -124,7 +124,7 @@ final class HomeViewController: BaseViewController {
         viewModel.state.isPushSendInvitationVC
             .asDriver(onErrorDriveWith: .empty())
             .drive(with: self) { owner, _ in
-                AnalyticsManager.shared.logInviteCodeShare(screen: "InviteSendCodeTapButton")
+                AnalyticsManager.shared.logInviteCodeShare(screen: "Home_InviteSendCodeTapButton")
                 let sendInviteVC = DIContainer.shared.makeSendInviteViewController()
                 owner.navigationController?.pushViewController(sendInviteVC, animated: true)
             }
@@ -161,11 +161,17 @@ final class HomeViewController: BaseViewController {
             .disposed(by: disposeBag)
 
         homeView.didTapRequestMissionButton
+            .do(onNext: { _ in
+                AnalyticsManager.shared.logRequestMission(screen: "Home_RequestMissonTapButton")
+            })
             .map { HomeViewModel.Action.requestMission }
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
 
         homeView.didTapSendMissoinButton
+            .do(onNext: { _ in
+                AnalyticsManager.shared.logSendMission(screen: "Home_SendMissionTapButton")
+            })
             .map { HomeViewModel.Action.moveToMissionTab }
             .bind(to: viewModel.action)
             .disposed(by: disposeBag)
