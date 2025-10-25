@@ -100,6 +100,7 @@
 		783A873F2DF02CA90095BF4E /* Exceptions for "StampIt-Project" folder in "StampIt-Project" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Resource/Config/Config.Template.swift,
 				Resource/Info.plist,
 			);
 			target = 783A87132DF02CA80095BF4E /* StampIt-Project */;
