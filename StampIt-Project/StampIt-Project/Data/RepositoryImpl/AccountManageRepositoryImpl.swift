@@ -129,7 +129,7 @@ final class AccountManageRepository: AccountManageRepositoryProtocol {
     private func deleteKakaoAccount() -> Observable<Void> {
         return Observable.create { observer in
             UserApi.shared.unlink { error in
-                if let error = error {
+                if error != nil {
                     observer.onError(RepositoryError.authenticationFailed("카카오 연결 해제 실패"))
                 } else {
                     // 모든 세션 정리
