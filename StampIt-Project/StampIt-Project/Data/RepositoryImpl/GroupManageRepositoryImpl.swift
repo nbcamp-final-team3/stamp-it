@@ -16,23 +16,28 @@ final class GroupManageRepositoryImpl: GroupManageRepository {
     private let membershipManager: any MembershipManagerProtocol
     private let missionManager: any MissionManagerProtocol
     private let stampManager: any StampManagerProtocol
-    private let exportLogicService: any ExportLogicServiceProtocols
+    private let authRepository: any AuthRepositoryProtocol
+
+    private let mapToRepositoryError: (Error) -> RepositoryError
 
     private let disposeBag = DisposeBag()
 
-    init(groupManager: any GroupManagerProtocol,
-         userManager: any UserManagerProtocol,
-         membershipManager: any MembershipManagerProtocol,
-         missionManager: any MissionManagerProtocol,
-         stampManager: any StampManagerProtocol,
-         exportLogicService: any ExportLogicServiceProtocols) {
-        self.groupManager = groupManager
-        self.userManager = userManager
-        self.membershipManager = membershipManager
-        self.missionManager = missionManager
-        self.stampManager = stampManager
-        self.exportLogicService = exportLogicService
-    }
+    init(
+        groupManager: any GroupManagerProtocol,
+        userManager: any UserManagerProtocol,
+        membershipManager: any MembershipManagerProtocol,
+        missionManager: any MissionManagerProtocol,
+        stampManager: any StampManagerProtocol,
+        authRepository: any AuthRepositoryProtocol,
+        mapToRepositoryError: @escaping (Error) -> RepositoryError) {
+            self.groupManager = groupManager
+            self.userManager = userManager
+            self.membershipManager = membershipManager
+            self.missionManager = missionManager
+            self.stampManager = stampManager
+            self.authRepository = authRepository
+            self.mapToRepositoryError = mapToRepositoryError
+        }
 
     // MARK: - GroupManageRepository
 

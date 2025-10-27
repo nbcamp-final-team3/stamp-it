@@ -9,7 +9,7 @@ import Foundation
 import RxSwift
 
 // MARK: - GroupManageUseCase Implementation
-final class GroupManageUseCaseImpl: GroupManageUseCase {
+final class GroupManageUseCaseImpl: GroupManageUseCaseProtocol {
 
     // MARK: - Properties
     private let authRepository: AuthRepositoryProtocol

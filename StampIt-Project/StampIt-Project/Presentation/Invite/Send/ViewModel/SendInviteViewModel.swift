@@ -27,10 +27,10 @@ final class SendInviteViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     let state = State()
-    private let useCase: InviteUseCase
+    private let useCase: InviteUseCaseProtocol
 
     // MARK: - Init
-    init(useCase: InviteUseCase) {
+    init(useCase: InviteUseCaseProtocol) {
         self.useCase = useCase
         showInviteCode()
     }

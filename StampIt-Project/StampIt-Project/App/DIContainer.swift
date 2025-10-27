@@ -87,7 +87,10 @@ final class DIContainer {
             membershipManager: membershipManager,
             missionManager: missionManager,
             stampManager: stampManager,
-            exportLogicService: exportService
+            authRepository: authRepository,
+            mapToRepositoryError: { error in
+                return RepositoryError.unknownError
+            }
         )
     }()
 
@@ -155,7 +158,7 @@ final class DIContainer {
         )
     }()
 
-    lazy var inviteUseCase: InviteUseCase = {
+    lazy var inviteUseCase: InviteUseCaseProtocol = {
         return InviteUseCaseImpl(
             authRepository: authRepository,
             inviteRepository: inviteRepository
@@ -173,7 +176,7 @@ final class DIContainer {
         return EditProfileUseCaseImpl(editProfileRepositoryImpl: editProfileRepository)
     }()
     
-    lazy var groupManageUseCase: GroupManageUseCase = {
+    lazy var groupManageUseCase: GroupManageUseCaseProtocol = {
         return GroupManageUseCaseImpl(
             authRepository: authRepository,
             groupManageRepository: groupManageRepository,
@@ -207,7 +210,8 @@ final class DIContainer {
     func makeProfileViewModel() -> ProfileViewModel {
         return ProfileViewModel(
             myPageUseCase: myPageUseCase,
-            accountManageUseCase: accountManageUseCase
+            accountManageUseCase: accountManageUseCase,
+            groupManageUseCase: groupManageUseCase
         )
     }
     

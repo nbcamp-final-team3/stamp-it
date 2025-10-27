@@ -8,7 +8,7 @@
 import Foundation
 import RxSwift
 
-protocol InviteUseCase {
+protocol InviteUseCaseProtocol {
     /// 초대 코드 확인 메서드
     func acceptInvite(inviteCode: String) -> Observable<Invite>
     /// 초대 코드와 사용자 정보를 함께 가져오는 메서드

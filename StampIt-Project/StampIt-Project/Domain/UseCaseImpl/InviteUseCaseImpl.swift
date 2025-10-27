@@ -8,7 +8,7 @@
 import Foundation
 import RxSwift
 
-final class InviteUseCaseImpl: InviteUseCase {
+final class InviteUseCaseImpl: InviteUseCaseProtocol {
 
 
     private let authRepository: AuthRepositoryProtocol
