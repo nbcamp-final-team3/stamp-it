@@ -116,10 +116,6 @@ final class DIContainer {
         return MissionExpirationServiceImpl(homeRepository: homeRepository)
     }()
 
-    lazy var exportService: ExportLogicServiceProtocols = {
-        return ExportLogicService(membershipManager: membershipManager, stampManager: stampManager, missionManager: missionManager)
-    }()
-
     // MARK: - Use Cases (Domain Layer)
     lazy var loginUseCase: LoginUseCaseProtocol = {
         return LoginUseCase(authRepository: authRepository)

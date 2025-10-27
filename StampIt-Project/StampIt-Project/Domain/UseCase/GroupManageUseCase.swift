@@ -8,7 +8,7 @@
 import Foundation
 import RxSwift
 
-protocol GroupManageUseCase {
+protocol GroupManageUseCaseProtocol {
     /// 리더 위임
     func delegateLeader(to memberId: String) -> Observable<Void>
     
@@ -32,4 +32,8 @@ protocol GroupManageUseCase {
     
     /// 멤버 목록 새로고침
     func refreshMembers() -> Observable<[Member]>
+
+    /// 그룹 탈퇴
+    func leaveGroup() -> Observable<User>
+
 }
