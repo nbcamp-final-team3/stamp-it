@@ -36,4 +36,8 @@ protocol GroupManageUseCaseProtocol {
     /// 그룹 탈퇴
     func leaveGroup() -> Observable<User>
 
+    /// 멤버 수 조회
+    func getGroupMemberCount(groupId: String) -> Observable<Int>
+
 }
+
