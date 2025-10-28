@@ -18,12 +18,12 @@ final class ProfileMenuCell: UITableViewCell {
     // MARK: - UI Components
     
     private let titleLabel = UILabel().then {
-        $0.font = .pretendard(size: MyPage.Menu.fontSizeMedium, weight: .regular)
+        $0.font = .pretendard(size: MyPage.Text.fontSizeMedium, weight: .regular)
         $0.textColor = ._000000
     }
     
     private let descriptionLabel = UILabel().then {
-        $0.font = .pretendard(size: MyPage.Menu.fontSizeSmall, weight: .medium)
+        $0.font = .pretendard(size: MyPage.Text.fontSizeSmall, weight: .medium)
         $0.textColor = ._777777
     }
     

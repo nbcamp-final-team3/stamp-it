@@ -11,7 +11,7 @@ struct Member {
     let userID: String
     let nickname: String
     let profileImage: String?
-    let monthSticker: Int
+    let monthStamp: Int
     let joinedAt: Date
     let isLeader: Bool
 }

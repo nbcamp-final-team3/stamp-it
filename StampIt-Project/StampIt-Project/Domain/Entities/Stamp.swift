@@ -1,5 +1,5 @@
 //
-//  Sticker.swift
+//  Stamp.swift
 //  StampIt-Project
 //
 //  Created by 곽다은 on 6/5/25.
@@ -7,44 +7,53 @@
 
 import Foundation
 
-struct Sticker: Hashable {
+struct Stamp: Hashable {
     let userID: String
-    let stickerID: String
+    let stampID: String
     let groupID: String
     let month: String
-    let type: StickerType
+    let type: StampType
     let pinNumber: Int
     let createdAt: Date
     let missionID: String
-    let maxStickers: Int
+    let maxStamps: Int
     let assignedBy: String
 }
 
-enum StickerType: String, Hashable {
-    case stampGray
-    case stampRed
-    case stampBlue
-    case stampYellow
-    case stampPurple
+enum StampType: String, Hashable {
+    case gray
+    case red
+    case blue
+    case yellow
+    case purple
+
+    static func from(raw: String) -> StampType {
+        switch raw {
+        case "stampRed", "red":
+            return .red
+        default:
+            return .red
+        }
+    }
 }
 
-// MARK: - Presentation Model 변환
-
-extension Sticker {
+extension Stamp {
     func toPresentation() -> StampBoardStamp {
-        return StampBoardStamp(
+        StampBoardStamp(
             userID: self.userID,
-            stickerID: self.stickerID,
+            stampID: self.stampID,
             groupID: self.groupID,
             month: self.month,
             type: self.type,
             pinNumber: self.pinNumber,
             createdAt: self.createdAt,
             missionID: self.missionID,
-            maxStickers: self.maxStickers,
+            maxStamps: self.maxStamps,
             assignedBy: self.assignedBy,
             zigzagIndex: .zero,
             shouldBlur: false,
         )
     }
+
+    static var totalStamp: Int { 30 }
 }

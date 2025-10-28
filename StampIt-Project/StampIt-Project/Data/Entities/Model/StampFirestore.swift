@@ -1,5 +1,5 @@
 //
-//  StickerFirestore.swift
+//  StampFirestore.swift
 //  StampIt-Project
 //
 //  Created by iOS study on 6/5/25.
@@ -8,8 +8,8 @@
 import Foundation
 import FirebaseFirestore
 
-struct StickerFirestore: Codable {
-    let stickerId: String
+struct StampFirestore: Codable {
+    let stampId: String
     let userId: String
     let groupId: String
     let month: String               // "YYYY-MM"
@@ -17,27 +17,27 @@ struct StickerFirestore: Codable {
     let pinNumber: Int
     let createdAt: Timestamp
     let missionId: String
-    let maxStickers: Int
+    let maxStamps: Int
     let assignedBy: String
 
     var documentID: String {
-        return stickerId
+        return stampId
     }
 }
 
 // MARK: - Domain Model 변환
-extension StickerFirestore {
-    func toDomainModel() -> Sticker {
-        return Sticker(
+extension StampFirestore {
+    func toDomainModel() -> Stamp {
+        return Stamp(
             userID: self.userId,
-            stickerID: self.stickerId,
+            stampID: self.stampId,
             groupID: self.groupId,
             month: self.month,
-            type: StickerType(rawValue: self.type) ?? .stampRed,
+            type: StampType.from(raw: self.type),
             pinNumber: self.pinNumber,
             createdAt: self.createdAt.dateValue(),
             missionID: self.missionId,
-            maxStickers: self.maxStickers,
+            maxStamps: self.maxStamps,
             assignedBy: self.assignedBy
         )
         

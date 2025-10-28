@@ -15,7 +15,6 @@ final class ProfileViewController: UIViewController {
     // MARK: - Properties
     
     private var viewModel: ProfileViewModel
-    private var container: DIContainer
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
@@ -26,10 +25,8 @@ final class ProfileViewController: UIViewController {
     
     init(
         viewModel: ProfileViewModel,
-        container: DIContainer
     ) {
         self.viewModel = viewModel
-        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -140,7 +137,7 @@ final class ProfileViewController: UIViewController {
     @objc private func tappedEditButton() {
         let user = viewModel.state.user.value
         guard let user else { return }
-        let viewController = container.makeEditProfileViewController(user: user)
+        let viewController = DIContainer.shared.makeEditProfileViewController(user: user)
         navigationController?.pushViewController(viewController, animated: true)
     }
     
@@ -174,7 +171,7 @@ final class ProfileViewController: UIViewController {
          UserDefaults.standard.removeObject(forKey: "lastLoginDate")
         
         let loginViewModel = DIContainer.shared.makeLoginViewModel()
-        let loginVC = LoginViewController(viewModel: loginViewModel, container: container)
+        let loginVC = LoginViewController(viewModel: loginViewModel)
         let navController = UINavigationController(rootViewController: loginVC)
         
         WindowTransitionManager.shared.changeRootViewController(to: navController)

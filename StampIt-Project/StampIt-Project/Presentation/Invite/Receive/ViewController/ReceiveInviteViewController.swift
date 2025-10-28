@@ -224,10 +224,10 @@ final class ReceiveInviteViewController: UIViewController {
     private func bindInviteCompletion() {
         viewModel.state.didCompleteInvite
             .bind(with: self) { owner, _ in
-                let container = DIContainer.shared
+                _ = DIContainer.shared
 
                 // 홈 탭으로 전환
-                let tabBarController = MainTabBarController(container: container)
+                let tabBarController = MainTabBarController()
                 tabBarController.selectedIndex = 0
 
                 WindowTransitionManager.shared.changeRootViewController(to: tabBarController, duration: Constants.rootTransitionDuration)
@@ -278,6 +278,15 @@ final class ReceiveInviteViewController: UIViewController {
         alert.addAction(cancelAction)
         
         present(alert, animated: true)
+    }
+    
+    // MARK: - Deep Link Handling
+    
+    /// 딥링크로 받은 초대 코드를 textField에 설정
+    func setInviteCodeFromDeepLink(_ inviteCode: String) {
+        textField.text = inviteCode
+        // ViewModel의 상태도 업데이트
+        viewModel.action.accept(.codeChanged(inviteCode))
     }
 
     private func setupKeyboardDismiss() {

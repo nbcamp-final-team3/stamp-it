@@ -16,7 +16,6 @@ final class LoginViewController: UIViewController {
     
     // MARK: - Properties
     private let viewModel: LoginViewModel
-    private let container: DIContainer
     private let disposeBag = DisposeBag()
     
     // MARK: - UI Components
@@ -98,6 +97,22 @@ final class LoginViewController: UIViewController {
         return button
     }()
     
+    // 카카오톡 로그인 버튼
+    private let kakaoLoginButton: UIButton = {
+        let button = UIButton(type: .custom)
+        
+        let kakaoLogo = UIImage(named: "KakaoLogo")?.withRenderingMode(.alwaysOriginal)
+        button.setBackgroundImage(kakaoLogo, for: .normal)
+        button.contentMode = .scaleAspectFit
+        
+        // 버튼에 텍스트가 없으므로 접근성 레이블 설정
+        button.accessibilityLabel = "카카오로 로그인"
+        
+        return button
+    }()
+
+
+    
     /// 로딩 컨테이너 (최하단에 배치)
     private let loadingContainerView = UIView().then {
         $0.backgroundColor = .clear
@@ -120,11 +135,9 @@ final class LoginViewController: UIViewController {
     
     // MARK: - Init
     init(
-        viewModel: LoginViewModel,
-        container: DIContainer
+        viewModel: LoginViewModel
     ) {
         self.viewModel = viewModel
-        self.container = container
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -157,8 +170,10 @@ final class LoginViewController: UIViewController {
         // 버튼 상태 복원
         appleLoginButton.isEnabled = true
         googleLoginButton.isEnabled = true
+        kakaoLoginButton.isEnabled = true
         appleLoginButton.alpha = 1.0
         googleLoginButton.alpha = 1.0
+        kakaoLoginButton.alpha = 1.0
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -205,6 +220,7 @@ final class LoginViewController: UIViewController {
         // Apple 로그인 버튼을 스택뷰에 먼저 추가 (HIG: Apple 로그인이 있으면 최상단 배치)
         loginButtonStackView.addArrangedSubview(appleLoginButton)
         loginButtonStackView.addArrangedSubview(googleLoginButton)
+        loginButtonStackView.addArrangedSubview(kakaoLoginButton)
         
         setupConstraints()
     }
@@ -261,6 +277,11 @@ final class LoginViewController: UIViewController {
             make.height.equalTo(48)
         }
         
+        // Kakao 로그인 버튼 높이
+        kakaoLoginButton.snp.makeConstraints { make in
+            make.height.equalTo(48)
+        }
+        
         // 로딩 컨테이너 제약조건 (최하단)
         loadingContainerView.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview()
@@ -302,6 +323,14 @@ final class LoginViewController: UIViewController {
                 self?.viewModel.send(action: action)
             })
             .disposed(by: disposeBag)
+        
+        // Kakao 로그인 버튼 바인딩
+        kakaoLoginButton.rx.tap
+            .map { LoginAction.kakaoLoginTapped }
+            .subscribe(onNext: { [weak self] action in
+                    self?.viewModel.send(action: action)
+            })
+            .disposed(by:disposeBag)
         
         // MARK: - Outputs (ViewModel -> View)
         
@@ -422,13 +451,13 @@ final class LoginViewController: UIViewController {
     
     /// 홈 화면으로 이동
     private func navigateToHome(user: User) {
-        let tabBar = MainTabBarController(container: container)
+        let tabBar = MainTabBarController()
         WindowTransitionManager.shared.changeRootViewController(to: tabBar)
     }
     
     /// 신규 사용자 환영 메시지 표시
     private func showWelcomeMessage(user: User) {
-        let tabBar = MainTabBarController(container: container)
+        let tabBar = MainTabBarController()
         WindowTransitionManager.shared.changeRootViewController(to: tabBar)
         
         // 2. 새로운 루트 뷰에서 토스트 표시 (0.5초 후)

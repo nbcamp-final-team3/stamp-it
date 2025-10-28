@@ -20,16 +20,16 @@ final class StampBoardViewModel: ViewModelProtocol {
     enum Action {
         case viewDidLoad
         case tabButtonTapped(TabType)
-        case updateStickers([[StampBoardStamp]])
+        case updateStamps([[StampBoardStamp]])
     }
     
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let stickersByPage = BehaviorRelay<[[StampBoardStamp]]>(
-            value: StickerUtil.initialize()
+        let stampsByPage = BehaviorRelay<[[StampBoardStamp]]>(
+            value: StampUtil.initialize()
         )
         let tabType = BehaviorRelay<TabType>(value: .stampBoard)
-        let stickerSummary = BehaviorRelay<(collected: Int, completed: Int)>(value: (.zero, .zero))
+        let stampSummary = BehaviorRelay<(collected: Int, completed: Int)>(value: (.zero, .zero))
     }
     
     // MARK: - Properties
@@ -57,8 +57,8 @@ final class StampBoardViewModel: ViewModelProtocol {
                     owner.bindUser()
                 case .tabButtonTapped(let type):
                     owner.state.tabType.accept(type)
-                case .updateStickers(let stickers):
-                    owner.state.stickersByPage.accept(stickers)
+                case .updateStamps(let stamps):
+                    owner.state.stampsByPage.accept(stamps)
                 }
             }.disposed(by: disposeBag)
     }
@@ -68,19 +68,19 @@ final class StampBoardViewModel: ViewModelProtocol {
             .observe(on: MainScheduler.instance)
             .subscribe(with: self) { owner, user in
                 owner.state.user.accept(user)
-                owner.bindStickerSummaryData()
+                owner.bindStampSummaryData()
             }.disposed(by: disposeBag)
     }
     
-    private func bindStickerSummaryData() {
+    private func bindStampSummaryData() {
         guard let user = state.user.value else { return }
         
-        /// stickerSummary, stickers 가 동시에 변경
-        myPageUseCase.observeStickerCount(userId: user.userID)
+        /// stampSummary, stamps 가 동시에 변경
+        myPageUseCase.observeStampCount(userId: user.userID)
             .flatMapLatest { [weak self] count -> Observable<(Int, [[StampBoardStamp]])> in
                 guard let self else { return .empty() }
                 
-                let completedBoard = Int(count / StampBoardSection.totalStamp)
+                let completedBoard = Int(count / Stamp.totalStamp)
                 let currentPinNumber = completedBoard + 1
 
                 if count == 0 { lastCheckedAt = .init() }
@@ -99,67 +99,67 @@ final class StampBoardViewModel: ViewModelProtocol {
                 }
                 
                 /// pinNumber 로 페이지 별 모든 스티커 읽기
-                let stickerObservables = pinNumbers.map { pinNumber in
-                    self.myPageUseCase.fetchStickersByPin(
+                let stampObservables = pinNumbers.map { pinNumber in
+                    self.myPageUseCase.fetchStampsByPin(
                         userId: user.userID,
                         pinNumber: pinNumber
                     )
                 }
                 
                 /// 순서에 맞게 페이지 별 스티커 배열 생성
-                return Observable.combineLatest(stickerObservables)
-                    .map { [weak self] stickerLists in
+                return Observable.combineLatest(stampObservables)
+                    .map { [weak self] stampLists in
                         guard let self else { return (.init(), .init()) }
                         
-                        var formattedStickers: [[StampBoardStamp]] = .init()
-                        for (page, stickers) in stickerLists.enumerated() {
+                        var formattedStamps: [[StampBoardStamp]] = .init()
+                        for (page, stamps) in stampLists.enumerated() {
                             /// 페이지에 맞게 스티커 색상 지정
-                            formattedStickers.append(
-                                stickers.enumerated().map { (index, sticker) in
+                            formattedStamps.append(
+                                stamps.enumerated().map { (index, stamp) in
                                     StampBoardStamp.map(
-                                        sticker,
-                                        type: StickerType.from(page),
+                                        stamp,
+                                        type: StampType.from(page),
                                         lastCheckedAt: self.lastCheckedAt,
                                     )
                                 }
                             )
                         }
-                        return (count, formattedStickers)
+                        return (count, formattedStamps)
                     }
             }
             .observe(on: MainScheduler.instance)
             .subscribe(with: self)  { owner, result in
-                let (count, stickers) = result
+                let (count, stamps) = result
                 
-                let totalSticker = StampBoardSection.totalStamp
-                let collectedSticker = Int(count % totalSticker)
-                let completedBoard = Int(count / totalSticker)
+                let totalStamp = Stamp.totalStamp
+                let collectedStamp = Int(count % totalStamp)
+                let completedBoard = Int(count / totalStamp)
                 
-                /// stickerSummary 업데이트
-                owner.state.stickerSummary.accept((
-                    collected: collectedSticker,
+                /// stampSummary 업데이트
+                owner.state.stampSummary.accept((
+                    collected: collectedStamp,
                     completed: completedBoard
                 ))
                 
-                /// Zigzag 변환후 stickers 업데이트
-                owner.updateStickerZigzag(stickers)
+                /// Zigzag 변환후 stamps 업데이트
+                owner.updateStampZigzag(stamps)
             }.disposed(by: disposeBag)
     }
     
-    private func updateStickerZigzag(_ stickerLists: [[StampBoardStamp]]) {
-        let zigzagged: [[StampBoardStamp]] = stickerLists
-            .map { stickers in
-                /// createdAt 내림차순 기준 정렬
-                let ordered = stickers
+    private func updateStampZigzag(_ stampLists: [[StampBoardStamp]]) {
+        let zigzagged: [[StampBoardStamp]] = stampLists
+            .map { stamps in
+                /// createdAt 오름차순 기준 정렬
+                let ordered = stamps
                     .sorted { $0.createdAt < $1.createdAt }
                 
-                return StickerUtil.makeZigzagOrder(
+                return StampUtil.makeZigzagOrder(
                     from: ordered,
                     columns: StampBoardSection.column,
-                    pinNumber: state.stickerSummary.value.completed
+                    pinNumber: state.stampSummary.value.completed
                 )
             }
-        state.stickersByPage.accept(zigzagged)
+        state.stampsByPage.accept(zigzagged)
         disableBlurAfterDelay()
     }
 
@@ -167,18 +167,18 @@ final class StampBoardViewModel: ViewModelProtocol {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self else { return }
 
-            let updated = self.state.stickersByPage.value.map { section in
-                section.map { sticker in
-                    if sticker.shouldBlur {
-                        var newSticker = sticker
-                        newSticker.shouldBlur = false
-                        return newSticker
+            let updated = self.state.stampsByPage.value.map { section in
+                section.map { stamp in
+                    if stamp.shouldBlur {
+                        var newStamp = stamp
+                        newStamp.shouldBlur = false
+                        return newStamp
                     }
-                    return sticker
+                    return stamp
                 }
             }
 
-            self.state.stickersByPage.accept(updated)
+            self.state.stampsByPage.accept(updated)
         }
     }
 }

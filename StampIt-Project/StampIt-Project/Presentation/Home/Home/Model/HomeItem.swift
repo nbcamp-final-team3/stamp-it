@@ -25,6 +25,17 @@ extension HomeSection {
             return ""
         }
     }
+
+    var buttonText: String {
+        switch self {
+        case .myMission:
+            return "미션 조르기"
+        case .memberMission:
+            return "미션 전달하기"
+        default:
+            return ""
+        }
+    }
 }
 
 enum HomeItem: Hashable {
@@ -78,7 +89,7 @@ enum HomeItem: Hashable {
 struct HomeMember: Hashable {
     let memberID: String
     let nickname: String
-    let stickerCount: String
+    let stampCount: String
     let rank: Int
     let profileImage: String?
 }

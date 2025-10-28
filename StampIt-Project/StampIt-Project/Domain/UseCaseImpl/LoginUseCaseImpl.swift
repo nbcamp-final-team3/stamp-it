@@ -38,9 +38,21 @@ final class LoginUseCase: LoginUseCaseProtocol {
             }
     }
     
-    /// 애플 로그인 플로우 (준비)
+    /// 애플 로그인 플로우
     func loginWithApple() -> Observable<LoginFlowResult> {
         return authRepository.signInWithApple()
+            .flatMap { [weak self] loginResult -> Observable<LoginFlowResult> in
+                self?.processLoginResult(loginResult) ?? Observable.error(UseCaseError.unknownError)
+            }
+            .catch { [weak self] error in
+                let useCaseError = self?.mapToUseCaseError(error) ?? UseCaseError.unknownError
+                return Observable.error(useCaseError)
+            }
+    }
+    
+    /// 카카오 로그인 플로우
+    func loginWithKakao() -> Observable<LoginFlowResult> {
+        return authRepository.signInWithKakao()
             .flatMap { [weak self] loginResult -> Observable<LoginFlowResult> in
                 self?.processLoginResult(loginResult) ?? Observable.error(UseCaseError.unknownError)
             }
@@ -129,7 +141,7 @@ final class LoginUseCase: LoginUseCaseProtocol {
                 userID: authUser.uid,
                 nickname: randomNickname,
                 profileImage: "profileImage1",
-                monthSticker: 0, // 별도로 추가됨
+                monthStamp: 0, // 별도로 추가됨
                 joinedAt: now,
                 isLeader: true
             )

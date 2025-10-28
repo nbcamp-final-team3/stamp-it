@@ -14,6 +14,7 @@ enum LoginAction {
     case viewDidLoad
     case googleLoginTapped
     case appleLoginTapped
+    case kakaoLoginTapped
     case retryLogin
 }
 
@@ -43,12 +44,14 @@ struct LoginState {
 enum LoginType {
     case google
     case apple
+    case kakao
     
     /// UI에 표시될 로그인 타입 이름
     var displayName: String {
         switch self {
         case .google: return "구글"
         case .apple: return "애플"
+        case .kakao: return "카카오"
         }
     }
 }
@@ -144,6 +147,9 @@ final class LoginViewModel {
         case .appleLoginTapped:
             performLogin(type: .apple)
             
+        case .kakaoLoginTapped:
+            performLogin(type: .kakao)
+            
         case .retryLogin:
             if let currentState = try? stateSubject.value(),
                let currentLoginType = currentState.loginType {
@@ -173,6 +179,8 @@ final class LoginViewModel {
             loginObservable = loginUseCase.loginWithGoogle()
         case .apple:
             loginObservable = loginUseCase.loginWithApple()
+        case .kakao:
+            loginObservable = loginUseCase.loginWithKakao()
         }
         
         loginObservable

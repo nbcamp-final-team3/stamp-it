@@ -9,36 +9,39 @@ import RxSwift
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import KakaoSDKUser
 
 final class AuthRepository: AuthRepositoryProtocol {
     
     // MARK: - Properties
-    private let authManager: AuthManagerProtocol
-    
     // 각 매니저별로 분리된 의존성 (새로운 매니저 구조)
+    private let kakaoAuthManager: any KakaoAuthManagerProtocol
+    private let authManager: any AuthManagerProtocol
     private let userManager: any UserManagerProtocol
     private let groupManager: any GroupManagerProtocol
     private let membershipManager: any MembershipManagerProtocol
     private let missionManager: any MissionManagerProtocol
-    private let stickerManager: any StickerManagerProtocol
+    private let stampManager: any StampManagerProtocol
     
     private let disposeBag = DisposeBag()
     
     // MARK: - Init
     init(
-        authManager: AuthManagerProtocol,
+        kakaoAuthManager: any KakaoAuthManagerProtocol,
+        authManager: any AuthManagerProtocol,
         userManager: any UserManagerProtocol,
         groupManager: any GroupManagerProtocol,
         membershipManager: any MembershipManagerProtocol,
         missionManager: any MissionManagerProtocol,
-        stickerManager: any StickerManagerProtocol
+        stampManager: any StampManagerProtocol
     ) {
+        self.kakaoAuthManager = kakaoAuthManager
         self.authManager = authManager
         self.userManager = userManager
         self.groupManager = groupManager
         self.membershipManager = membershipManager
         self.missionManager = missionManager
-        self.stickerManager = stickerManager
+        self.stampManager = stampManager
     }
     
     // MARK: - Sign-In
@@ -52,7 +55,57 @@ final class AuthRepository: AuthRepositoryProtocol {
         return performSignIn(authMethod: authManager.signInWithApple())
     }
     
-    // MARK: - Sign-In Helper Methods (Private)
+    // Kakao 로그인
+    func signInWithKakao() -> Observable<LoginResult> {
+        return kakaoAuthManager.signInWithKakao()
+            .flatMap { result -> Observable<LoginResult> in
+                let userId = result.userId
+                
+                // Firestore에서 유저 존재 여부 확인
+                return self.userManager.fetchUser(userId: userId)
+                    .flatMap { userFirestore -> Observable<LoginResult> in
+                        // 기존 유저
+                        return self.fetchUserWithGroupInfo(userId: userId)
+                            .map { completeUser in
+                                return LoginResult(authUser: nil, user: completeUser, isNewUser: false, needsGroupSetup: false)
+                            }
+                            .catch { error in
+                                
+                                // 사용자는 존재하지만 그룹 정보 로드 실패 시
+                                // 새 그룹 생성 없이 기본 정보로 로그인 처리
+                                let user = User(
+                                    userID: userId,
+                                    nickname: userFirestore.nickname,
+                                    profileImage: userFirestore.profileImage ?? "profileImage1",
+                                    boards: [],
+                                    groupID: userFirestore.groupId,
+                                    groupName: "내 그룹", // 임시 그룹명
+                                    isLeader: true, // 기본적으로 리더로 가정
+                                    joinedGroupAt: userFirestore.createdAt.dateValue()
+                                )
+                                
+                                return Observable.just(LoginResult(
+                                    authUser: nil,
+                                    user: user,
+                                    isNewUser: false,
+                                    needsGroupSetup: false
+                                ))
+                            }
+                    }
+                    .catch { error in
+                        // 유저 없으면 신규 유저 플로우
+                        let authUser = AuthUser(
+                            uid: userId,
+                            email: "",
+                            displayName: result.nickname ?? "사용자",
+                            photoURL: nil,
+                            isNewUser: true
+                        )
+                        return Observable.just(LoginResult(authUser: authUser, user: nil, isNewUser: true, needsGroupSetup: true))
+                    }
+            }
+    }
+
     /// 공통 로그인 로직 처리
     private func performSignIn(authMethod: Observable<AuthDataResult>) -> Observable<LoginResult> {
         return authMethod
@@ -137,8 +190,10 @@ final class AuthRepository: AuthRepositoryProtocol {
                 
                 return self.groupManager.fetchGroup(groupId: userFirestore.groupId)
                     .flatMap { groupFirestore -> Observable<StampIt_Project.User> in
+                        
                         // membership 컬렉션에서 멤버 정보 조회
                         let membershipId = "\(userFirestore.groupId)_\(userFirestore.userId)"
+                        
                         return self.membershipManager.fetch(id: membershipId)
                             .map { membership -> StampIt_Project.User in
                                 let isLeader = groupFirestore.leaderId == userFirestore.userId
@@ -147,20 +202,28 @@ final class AuthRepository: AuthRepositoryProtocol {
                                     isLeader: isLeader
                                 )
                             }
+                            .catch { error in
+                                // 멤버십 정보가 없어도 기본 사용자 정보는 반환
+                                let isLeader = groupFirestore.leaderId == userFirestore.userId
+                                let user = userFirestore.toDomainModel(
+                                    groupName: groupFirestore.name,
+                                    isLeader: isLeader
+                                )
+                                return Observable.just(user)
+                            }
+                    }
+                    .catch { error in
+                        return Observable.error(RepositoryError.dataError("그룹 정보를 불러올 수 없습니다: \(error.localizedDescription)"))
                     }
             }
     }
     
     // MARK: - 상태 관리
-    /// 현재 로그인된 사용자의 정보를 그룹 정보와 함께 조회
-    func getCurrentUser() -> Observable<StampIt_Project.User?> {
-        return Observable.create { [weak self] observer in
-            guard let self = self else {
-                observer.onNext(nil)
-                observer.onCompleted()
-                return Disposables.create()
-            }
-            if let firebaseUser = self.authManager.getCurrentUser() {
+    /// 현재 로그인된 사용자의 정보를 그룹 정보와 함께 조회 (카카오는 세션으로 확인 후 조회)
+    func getCurrentUser() -> Observable<User?> {
+        return Observable.create { observer in
+            // 1. Firebase 인증 확인
+            if let firebaseUser = Auth.auth().currentUser {
                 self.fetchUserWithGroupInfo(userId: firebaseUser.uid)
                     .subscribe(onNext: { user in
                         observer.onNext(user)
@@ -170,7 +233,20 @@ final class AuthRepository: AuthRepositoryProtocol {
                         observer.onCompleted()
                     })
                     .disposed(by: self.disposeBag)
-            } else {
+            }
+            // 2. 카카오 로그인 세션 확인 (UserDefaults에서 kakaoUserId가 있으면 그걸로 user fetch)
+            else if let kakaoUserId = UserDefaults.standard.string(forKey: "kakaoUserId") {
+                self.fetchUserWithGroupInfo(userId: kakaoUserId)
+                    .subscribe(onNext: { user in
+                        observer.onNext(user)
+                        observer.onCompleted()
+                    }, onError: { _ in
+                        observer.onNext(nil)
+                        observer.onCompleted()
+                    })
+                    .disposed(by: self.disposeBag)
+            }
+            else {
                 observer.onNext(nil)
                 observer.onCompleted()
             }
@@ -240,7 +316,7 @@ final class AuthRepository: AuthRepositoryProtocol {
         member: Member
     ) -> Observable<StampIt_Project.User> {
         return Observable.create { [weak self] observer in
-            guard self != nil else {
+            guard let self = self else {
                 observer.onError(RepositoryError.unknownError)
                 return Disposables.create()
             }
@@ -295,13 +371,25 @@ final class AuthRepository: AuthRepositoryProtocol {
             let membershipRef = Firestore.firestore().collection("memberships").document(membershipId)
             batch.setData(membershipDict, forDocument: membershipRef)
             
-            // 커밋
+            // 4. 커밋
             batch.commit { error in
                 if let error = error {
                     observer.onError(RepositoryError.dataError("신규 사용자 생성 실패: \(error.localizedDescription)"))
                 } else {
-                    observer.onNext(user)
-                    observer.onCompleted()
+                    // 성공 후 즉시 사용자 정보 다시 로드하여 검증
+                    self.fetchUserWithGroupInfo(userId: user.userID)
+                        .subscribe(
+                            onNext: { completeUser in
+                                observer.onNext(completeUser)
+                                observer.onCompleted()
+                            },
+                            onError: { error in
+                                // 생성은 성공했으므로 원본 사용자 객체 반환
+                                observer.onNext(user)
+                                observer.onCompleted()
+                            }
+                        )
+                        .disposed(by: self.disposeBag)
                 }
             }
             return Disposables.create()

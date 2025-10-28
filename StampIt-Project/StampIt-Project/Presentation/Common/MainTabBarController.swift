@@ -12,20 +12,8 @@ import RxCocoa
 final class MainTabBarController: UITabBarController {
     
     // MARK: - Properties
-    
-    private let container: DIContainer
+
     private let disposeBag = DisposeBag()
-    
-    // MARK: - Initializer, Deinit, requiered
-    
-    init(container: DIContainer) {
-        self.container = container
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
     
     // MARK: - View Life Cycle
     
@@ -33,6 +21,15 @@ final class MainTabBarController: UITabBarController {
         super.viewDidLoad()
         setStyle()
         setupTabs()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        let allNavsReady = viewControllers?.allSatisfy { $0 is UINavigationController } ?? false
+        if allNavsReady {
+            print("🔗 MainTabBarController 준비 완료 - 노티피케이션 전송")
+            NotificationCenter.default.post(name: .mainUITabReady, object: nil)
+        }
     }
     
     // MARK: - Style Helper
@@ -50,7 +47,7 @@ final class MainTabBarController: UITabBarController {
     // MARK: - Methods
     
     private func setupTabs() {
-        let homeVC = container.makeHomeViewController()
+        let homeVC = DIContainer.shared.makeHomeViewController()
         let homeNav = UINavigationController(rootViewController: homeVC)
         homeNav.tabBarItem = UITabBarItem(
             title: "홈",
@@ -58,7 +55,7 @@ final class MainTabBarController: UITabBarController {
             selectedImage: UIImage(named: "tabBarHomeTapped"),
         )
         
-        let missionVC = container.makeMissionListViewController()
+        let missionVC = DIContainer.shared.makeMissionListViewController()
         let missionNav = UINavigationController(rootViewController: missionVC)
         missionNav.tabBarItem = UITabBarItem(
             title: "미션",
@@ -66,7 +63,7 @@ final class MainTabBarController: UITabBarController {
             selectedImage: UIImage(named: "tabBarMissionTapped"),
         )
         
-        let myPageVC = container.makeMyPageViewController()
+        let myPageVC = DIContainer.shared.makeMyPageViewController()
         let myPageNav = UINavigationController(rootViewController: myPageVC)
         myPageNav.tabBarItem = UITabBarItem(
             title: "마이",

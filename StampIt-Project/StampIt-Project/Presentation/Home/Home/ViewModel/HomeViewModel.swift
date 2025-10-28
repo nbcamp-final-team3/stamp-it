@@ -30,6 +30,8 @@ final class HomeViewModel: ViewModelProtocol {
         case didTapMoreMyMissions
         case didSelectReceivedMember(Int)
         case didTapMoreMemberMissions
+        case requestMission
+        case moveToMissionTab
         case checkNotice
     }
 
@@ -48,6 +50,10 @@ final class HomeViewModel: ViewModelProtocol {
         let isPushMyMissionVC = PublishRelay<Void>()
         let isPushMemberMissionVC = PublishRelay<Void>()
         let isPushNoticeListVC = PublishRelay<Void>()
+        let didRequestMissionIn30Min = BehaviorRelay<Bool?>(value: nil)
+        let isEnabledRequestMission = BehaviorRelay<Bool?>(value: nil)
+        let requestCompletedTitle = BehaviorRelay<String?>(value: nil)
+        let isMoveMissionTab = PublishRelay<Void>()
     }
 
     // MARK: - Properties
@@ -84,6 +90,7 @@ final class HomeViewModel: ViewModelProtocol {
                 switch action {
                 case .viewDidLoad:
                     owner.bindUser()
+                    owner.bindMissionRequestState()
                 case .didTapGroupOrganizationButton:
                     owner.handleSelectIvitation()
                 case .didReceiveInvitationType(let type):
@@ -99,8 +106,12 @@ final class HomeViewModel: ViewModelProtocol {
                     owner.updateMemberMissions(index: index)
                 case .didTapMoreMemberMissions:
                     owner.state.isPushMemberMissionVC.accept(())
+                case .requestMission:
+                    owner.handleRequestMission()
                 case .checkNotice:
                     owner.state.isPushNoticeListVC.accept(())
+                case .moveToMissionTab:
+                    owner.state.isMoveMissionTab.accept(())
                 }
             }
             .disposed(by: disposeBag)
@@ -246,7 +257,7 @@ final class HomeViewModel: ViewModelProtocol {
         myMissionUseCase.updateMissionStatus(for: mission, to: .completed)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
-                return myMissionUseCase.createSticker(mission: mission)
+                return myMissionUseCase.createStamp(mission: mission)
             }
             .subscribe()
             .disposed(by: disposeBag)
@@ -262,7 +273,7 @@ final class HomeViewModel: ViewModelProtocol {
         myMissionUseCase.updateMissionStatus(for: mission, to: .assigned)
             .flatMap { [weak self] mission -> Observable<Void> in
                 guard let self else { return .empty() }
-                return myMissionUseCase.deleteSticker(missionID: mission.missionID)
+                return myMissionUseCase.deleteStamp(missionID: mission.missionID)
             }
             .subscribe()
             .disposed(by: disposeBag)
@@ -272,5 +283,61 @@ final class HomeViewModel: ViewModelProtocol {
     private func findMissionFromCache(missionID: String) -> Mission? {
         guard let index = myMissions.firstIndex(where: { $0.missionID == missionID }) else { return nil }
         return myMissions[index]
+    }
+
+    // MARK: - Mission Request Timer
+
+    private func handleRequestMission() {
+        guard state.didRequestMissionIn30Min.value != true else { return }
+
+        myMissionUseCase.requestMission()
+            .subscribe(onNext: { [weak self] _ in
+                guard let self else { return }
+                state.didRequestMissionIn30Min.accept(true)
+                state.requestCompletedTitle.accept("조르기 완료!")
+
+                let now = Date()
+                UserDefaults.standard.set(now, forKey: "missionRequestTime")
+                startMissionRequestTimer(from: now)
+            }, onError: { [weak self] _ in
+                guard let self else { return }
+                state.isEnabledRequestMission.accept(false)
+                Observable<Int>.timer(.seconds(3), scheduler: MainScheduler.instance)
+                    .map { _ in true }
+                    .bind(to: state.isEnabledRequestMission)
+                    .disposed(by: disposeBag)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func bindMissionRequestState() {
+        guard let lastRequestTime = UserDefaults.standard.object(forKey: "missionRequestTime") as? Date else { return }
+
+        let remainTime = Date().timeIntervalSince(lastRequestTime)
+
+        if remainTime < 1800 {
+            state.didRequestMissionIn30Min.accept(true)
+            state.requestCompletedTitle.accept("조르기 완료!")
+            startMissionRequestTimer(from: lastRequestTime)
+        } else {
+            state.didRequestMissionIn30Min.accept(false)
+        }
+    }
+
+    private func startMissionRequestTimer(from startTime: Date) {
+        let remaining = max(0, 1800 - Date().timeIntervalSince(startTime))
+
+        let timer = Observable<Int>.timer(.seconds(Int(remaining)), scheduler: MainScheduler.instance)
+            .share()
+
+        timer
+            .map { _ in false }
+            .bind(to: state.didRequestMissionIn30Min)
+            .disposed(by: disposeBag)
+
+        timer
+            .map { _ in HomeSection.memberMission.buttonText }
+            .bind(to: state.requestCompletedTitle)
+            .disposed(by: disposeBag)
     }
 }

@@ -27,6 +27,7 @@
 		877339DB2E45AF1D00FA2885 /* MissionWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 877339C92E45AF1C00FA2885 /* MissionWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		87A4B7522E4AE9FC0018E7DE /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 87A4B7512E4AE9FC0018E7DE /* FirebaseAnalytics */; };
 		87A4B7542E4AE9FC0018E7DE /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 87A4B7532E4AE9FC0018E7DE /* FirebaseAnalyticsCore */; };
+		87D332DC2E8A7D5C004E4ECF /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 87D332DB2E8A7D5C004E4ECF /* KakaoSDK */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +76,7 @@
 		877339CB2E45AF1C00FA2885 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		877339CD2E45AF1C00FA2885 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		87733A002E45D68500FA2885 /* MissionWidgetExtensionRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MissionWidgetExtensionRelease.entitlements; sourceTree = "<group>"; };
+		87D332DD2E8A7E09004E4ECF /* RxKakaoSDKFriend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RxKakaoSDKFriend.h; path = "../../../../Library/Developer/Xcode/DerivedData/StampIt-Project-fygxlxnzgqviofctpqqcgcysqhly/SourcePackages/checkouts/kakao-ios-sdk-rx/Sources/RxKakaoSDKFriend/RxKakaoSDKFriend.h"; sourceTree = "<group>"; };
 		C9F0A2042E4C80FA009023EF /* MissionWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MissionWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -98,6 +100,7 @@
 		783A873F2DF02CA90095BF4E /* Exceptions for "StampIt-Project" folder in "StampIt-Project" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Resource/Config/Config.Template.swift,
 				Resource/Info.plist,
 			);
 			target = 783A87132DF02CA80095BF4E /* StampIt-Project */;
@@ -177,6 +180,7 @@
 				783A87502DF02CEE0095BF4E /* Then in Frameworks */,
 				783A88572DF1506C0095BF4E /* FirebaseFirestore in Frameworks */,
 				783A8A132DF599670095BF4E /* GoogleSignIn in Frameworks */,
+				87D332DC2E8A7D5C004E4ECF /* KakaoSDK in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +214,7 @@
 		783A870B2DF02CA80095BF4E = {
 			isa = PBXGroup;
 			children = (
+				87D332DD2E8A7E09004E4ECF /* RxKakaoSDKFriend.h */,
 				C9F0A2042E4C80FA009023EF /* MissionWidgetExtension.entitlements */,
 				87733A002E45D68500FA2885 /* MissionWidgetExtensionRelease.entitlements */,
 				783A87162DF02CA80095BF4E /* StampIt-Project */,
@@ -279,6 +284,7 @@
 				783A8A142DF599670095BF4E /* GoogleSignInSwift */,
 				87A4B7512E4AE9FC0018E7DE /* FirebaseAnalytics */,
 				87A4B7532E4AE9FC0018E7DE /* FirebaseAnalyticsCore */,
+				87D332DB2E8A7D5C004E4ECF /* KakaoSDK */,
 			);
 			productName = "StampIt-Project";
 			productReference = 783A87142DF02CA80095BF4E /* StampIt-Project.app */;
@@ -361,7 +367,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					783A87132DF02CA80095BF4E = {
 						CreatedOnToolsVersion = 16.2;
@@ -396,6 +402,7 @@
 				783A875B2DF02D1F0095BF4E /* XCRemoteSwiftPackageReference "lottie-ios" */,
 				783A88492DF1506C0095BF4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				783A8A112DF599670095BF4E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				87D332DA2E8A7D5C004E4ECF /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 783A87152DF02CA80095BF4E /* Products */;
@@ -515,7 +522,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.by.Family-Stamp-It-Project";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -554,7 +561,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.by.Family-Stamp-It-Project";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -631,6 +638,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -691,6 +699,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -771,7 +780,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = MissionWidgetExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -787,11 +796,11 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.6;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.by.Family-Stamp-It-Project.MissionWidget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = StampItWidget;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = StampItWidgetDev;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -824,7 +833,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.6;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.by.Family-Stamp-It-Project.MissionWidget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -938,6 +947,14 @@
 				minimumVersion = 8.0.0;
 			};
 		};
+		87D332DA2E8A7D5C004E4ECF /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kakao/kakao-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.24.6;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1025,6 +1042,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 783A88492DF1506C0095BF4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalyticsCore;
+		};
+		87D332DB2E8A7D5C004E4ECF /* KakaoSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 87D332DA2E8A7D5C004E4ECF /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDK;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

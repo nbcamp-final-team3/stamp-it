@@ -8,7 +8,7 @@
 import RxSwift
 import Foundation
 
-protocol FCMManagerProtocol {
+protocol FCMTokenManagerProtocol {
     // 단순한 토큰 관리 (새로운 구조)
     func upsertToken(_ token: String, for userId: String)
     

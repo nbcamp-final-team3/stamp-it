@@ -19,8 +19,8 @@ final class StampCell: UICollectionViewCell {
     
     private let stampImageView = UIImageView().then {
         $0.contentMode = .scaleAspectFill
-        $0.layer.cornerRadius = StickerType.imageSize / 2
-        $0.image = UIImage(named: StickerType.stampGray.rawValue)
+        $0.layer.cornerRadius = StampType.imageSize / 2
+        $0.image = UIImage(named: StampType.gray.rawValue)
     }
     
     private let horizontalLine = DashedLine(direction: .horizontal)
@@ -60,21 +60,21 @@ final class StampCell: UICollectionViewCell {
     
     private func setLayout() {
         stampImageView.snp.makeConstraints {
-            $0.size.equalTo(StickerType.imageSize)
+            $0.size.equalTo(StampType.imageSize)
             $0.top.leading.equalToSuperview()
         }
         
         horizontalLine.snp.makeConstraints {
             $0.height.equalTo(3)
             $0.width.equalToSuperview()
-            $0.top.equalToSuperview().offset(StickerType.imageSize / 2)
+            $0.top.equalToSuperview().offset(StampType.imageSize / 2)
             $0.trailing.equalToSuperview()
         }
         
         verticalLine.snp.makeConstraints {
             $0.height.equalTo(MyPage.StampBoard.height)
             $0.width.equalTo(3)
-            $0.leading.equalToSuperview().offset(StickerType.imageSize / 2)
+            $0.leading.equalToSuperview().offset(StampType.imageSize / 2)
             $0.top.equalToSuperview()
         }
     }

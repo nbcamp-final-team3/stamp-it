@@ -11,13 +11,14 @@ import UIKit
 final class DIContainer {
 
     // MARK: - Managers (Infrastructure Layer)
+    lazy var kakaoAuthManager: any KakaoAuthManagerProtocol = KakaoAuthManager()
     lazy var authManager: any AuthManagerProtocol = AuthManager()
     lazy var userManager: any UserManagerProtocol = UserManager()
-    lazy var fcmManager: any FCMManagerProtocol = FCMManager()
+    lazy var fcmManager: any FCMTokenManagerProtocol = FCMTokenManager()
     lazy var groupManager: any GroupManagerProtocol = GroupManager()
     lazy var membershipManager: any MembershipManagerProtocol = MembershipManager()
     lazy var missionManager: any MissionManagerProtocol = MissionManager()
-    lazy var stickerManager: any StickerManagerProtocol = StickerManager()
+    lazy var stampManager: any StampManagerProtocol = StampManager()
     lazy var noticeManager: any NoticeManagerProtocol = NoticeManager()
 
     // MARK: - Coordinators
@@ -26,26 +27,27 @@ final class DIContainer {
     // MARK: - Repositories (Data Layer)
     lazy var authRepository: AuthRepositoryProtocol = {
         return AuthRepository(
+            kakaoAuthManager: kakaoAuthManager,
             authManager: authManager,
             userManager: userManager,
             groupManager: groupManager,
             membershipManager: membershipManager,
             missionManager: missionManager,
-            stickerManager: stickerManager
+            stampManager: stampManager
         )
     }()
 
     lazy var homeRepository: HomeRepositoryProtocol = {
         return HomeRepository(
             membershipManager: membershipManager,
-            stickerManager: stickerManager,
+            stampManager: stampManager,
             missionManager: missionManager
         )
     }()
 
     lazy var myPageRepository: MyPageRepository = {
         return MyPageRepositoryImpl(
-            stickerManager: stickerManager,
+            stampManager: stampManager,
             userManager: userManager
         )
     }()
@@ -57,7 +59,7 @@ final class DIContainer {
             userManager: userManager,
             // 📄 참고: Notion 육남매 대피소 > 유저 그룹 이동 시 시나리오 문서화
              missionManager: missionManager,
-             stickerManager: stickerManager,
+             stampManager: stampManager,
              noticeManager: noticeManager
         )
     }()
@@ -95,7 +97,7 @@ final class DIContainer {
             groupManager: groupManager,
             membershipManager: membershipManager,
             missionManager: missionManager,
-            stickerManager: stickerManager,
+            stampManager: stampManager,
             authRepository: authRepository,
             mapToRepositoryError: { error in
                 return RepositoryError.unknownError
@@ -133,7 +135,8 @@ final class DIContainer {
         return MyMissionUseCaseImpl(
             homeRepository: homeRepository,
             authRepository: authRepository,
-            expirationService: missionExpirationService
+            expirationService: missionExpirationService,
+            noticeRepository: noticeRepository,
         )
     }()
 
@@ -267,7 +270,7 @@ final class DIContainer {
     // MARK: - ViewControllers (Presentation Layer)
     func makeLoginViewController() -> LoginViewController {
         let viewModel = makeLoginViewModel()
-        return LoginViewController(viewModel: viewModel, container: self)
+        return LoginViewController(viewModel: viewModel)
     }
 
     func makeHomeViewController() -> HomeViewController {
@@ -277,10 +280,7 @@ final class DIContainer {
 
     func makeMyPageViewController() -> MyPageViewController {
         let viewModel = makeMyPageViewModel()
-        return MyPageViewController(
-            viewModel: viewModel,
-            container: self
-        )
+        return MyPageViewController(viewModel: viewModel)
     }
 
     func makeStampBoardViewController() -> StampBoardViewController {
@@ -290,7 +290,7 @@ final class DIContainer {
 
     func makeProfileViewController() -> ProfileViewController {
         let viewModel = makeProfileViewModel()
-        return ProfileViewController(viewModel: viewModel, container: self)
+        return ProfileViewController(viewModel: viewModel)
     }
     
     func makeOnboardingViewController() -> OnboardingViewController {
@@ -333,7 +333,7 @@ final class DIContainer {
         return GroupMemberManageViewController(viewModel: viewModel)
     }
 
-    func makeStampInfoViewController(stampType: StickerType) -> StampInfoViewController {
+    func makeStampInfoViewController(stampType: StampType) -> StampInfoViewController {
         let viewModel = makeStampInfoViewModel()
         return StampInfoViewController(viewModel: viewModel, stampType: stampType)
     }

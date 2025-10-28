@@ -16,7 +16,7 @@ final class StampInfoViewController: UIViewController {
     // MARK: - Properties
 
     let viewModel: StampInfoViewModel
-    let stampType: StickerType
+    let stampType: StampType
 
     let animationTrigger = PublishRelay<Void>()
     let disposeBag = DisposeBag()
@@ -114,7 +114,7 @@ final class StampInfoViewController: UIViewController {
 
     init(
         viewModel: StampInfoViewModel,
-        stampType: StickerType,
+        stampType: StampType,
     ) {
         self.viewModel = viewModel
         self.stampType = stampType
