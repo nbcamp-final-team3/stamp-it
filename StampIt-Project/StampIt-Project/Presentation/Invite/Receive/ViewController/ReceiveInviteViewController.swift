@@ -224,7 +224,7 @@ final class ReceiveInviteViewController: UIViewController {
     private func bindInviteCompletion() {
         viewModel.state.didCompleteInvite
             .bind(with: self) { owner, _ in
-                let container = DIContainer.shared
+                _ = DIContainer.shared
 
                 // 홈 탭으로 전환
                 let tabBarController = MainTabBarController()

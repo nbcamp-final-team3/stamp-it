@@ -60,11 +60,11 @@ final class StampPresentAnimator: NSObject, UIViewControllerAnimatedTransitionin
         .observe(on: MainScheduler.instance)
         .subscribe(onNext: { [weak stampInfoVC] in
             // 3D Y축 회전 설정
-            var perspective = CATransform3DIdentity
+            let perspective = CATransform3DIdentity
 
             let displayLink = CADisplayLink(
                 target: AnimationWrapper { [weak stampInfoVC] link in
-                    guard let stampInfoVC else {
+                    guard stampInfoVC != nil else {
                         link.invalidate()
                         return
                     }
@@ -141,7 +141,7 @@ final class StampDismissAnimator: NSObject, UIViewControllerAnimatedTransitionin
         var currentFrame: CGFloat = -5
 
         displayLink = CADisplayLink(target: AnimationWrapper { [weak self, weak stampInfoVC] link in
-            guard let stampInfoVC else {
+            guard stampInfoVC != nil else {
                 link.invalidate()
                 return
             }
@@ -151,7 +151,7 @@ final class StampDismissAnimator: NSObject, UIViewControllerAnimatedTransitionin
             let radians = (currentAngle / 180) * .pi
 
             // 3D Y축 회전 설정
-            var perspective = CATransform3DIdentity
+            let perspective = CATransform3DIdentity
             frontView.layer.transform = CATransform3DRotate(perspective, radians, 0, 1, 0)
             backView.layer.transform = CATransform3DRotate(perspective, radians + .pi, 0, 1, 0)
 
