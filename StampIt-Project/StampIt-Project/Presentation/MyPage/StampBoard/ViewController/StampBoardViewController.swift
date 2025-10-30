@@ -101,29 +101,7 @@ final class StampBoardViewController: BaseViewController {
     }
 }
 
-extension StampBoardViewController: UICollectionViewDelegate {
-    func collectionView(
-        _ collectionView: UICollectionView,
-        willDisplay cell: UICollectionViewCell,
-        forItemAt indexPath: IndexPath
-    ) {
-        guard let cell = cell as? StampCell else { return }
-        
-        let stamps = viewModel.state.stampsByPage.value
-        let itemIndexInPage = indexPath.item % Stamp.totalStamp
-        let currentPage = stampBoardView.currentPageValue
-
-        guard stamps.indices.contains(currentPage),
-              stamps[currentPage].indices.contains(itemIndexInPage) else {
-            return
-        }
-        
-        let stamp = stamps[currentPage][itemIndexInPage]
-        let dashedType = StampBoardSection.board.type.flatMap { $0 }[stamp.zigzagIndex]
-        
-        cell.configureDashedLine(with: dashedType)
-    }
-    
+extension StampBoardViewController: UICollectionViewDelegate {    
     func collectionView(
         _ collectionView: UICollectionView,
         didSelectItemAt indexPath: IndexPath

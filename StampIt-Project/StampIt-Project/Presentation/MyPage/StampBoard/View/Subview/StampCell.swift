@@ -11,10 +11,6 @@ import SnapKit
 
 final class StampCell: UICollectionViewCell {
     
-    // MARK: - Properties
-    
-    static let identifier = "StampCell"
-
     // MARK: - UI Components
     
     private let stampImageView = UIImageView().then {
@@ -81,10 +77,10 @@ final class StampCell: UICollectionViewCell {
     
     // MARK: - Methods
     
-    func configureStamp(with type: StampBoardStamp) {
-        stampImageView.image = UIImage(named: type.type.rawValue)
-        
-        if type.shouldBlur {
+    func configure(with stamp: StampBoardStamp) {
+        stampImageView.image = UIImage(named: stamp.type.rawValue)
+
+        if stamp.shouldBlur {
             applyBlur(to: stampImageView)
 
             /// 3초 후 블러 제거

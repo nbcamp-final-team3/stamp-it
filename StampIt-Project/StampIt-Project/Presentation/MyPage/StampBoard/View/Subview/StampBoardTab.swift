@@ -70,7 +70,7 @@ final class StampBoardTab: UIView {
     }
 
     func render(_ state: StampBoardViewState) {
-        /// 1) 스냅샷 적용
+        /// 스냅샷 적용
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.summary, .board])
 
@@ -89,12 +89,10 @@ final class StampBoardTab: UIView {
                 toSection: .board
             )
         }
-        dataSource.apply(snapshot, animatingDifferences: false)
+        dataSource.apply(snapshot, animatingDifferences: true)
 
-        /// 2) 총 페이지 갱신
+        /// 총 페이지 갱신
         setTotalPages(state.numberOfPages)
-
-        collectionView.layoutIfNeeded()
     }
 
     // MARK: - DataSource Helper
@@ -110,12 +108,13 @@ final class StampBoardTab: UIView {
         }
 
         let stampRegister = UICollectionView.CellRegistration<StampCell, StampBoardStamp> { cell, indexPath, stamp in
-            /// .page  섹션 하나 안에 셀 (페이징 된 모든 스티커 아이템) 을 다 그려서 30 단위로 indexPath.item 증가
+            /// .board  섹션 안에 페이징 된 모든 스티커 아이템(셀)을 다 그린다.
+            /// indexPath.item 는 30개 단위이다. (0~29, 30~59 ...)
             let itemIndexInPage = indexPath.item % Stamp.totalStamp
-            let backgroundBoard = StampBoardSection.board.type.flatMap { $0 }
-            if backgroundBoard.indices.contains(itemIndexInPage) {
-                cell.configureDashedLine(with: backgroundBoard[itemIndexInPage])
-                cell.configureStamp(with: stamp)
+            let dashedLineDirection = StampBoardSection.board.type.flatMap { $0 }
+            if dashedLineDirection.indices.contains(itemIndexInPage) {
+                cell.configureDashedLine(with: dashedLineDirection[itemIndexInPage])
+                cell.configure(with: stamp)
             }
         }
 

@@ -10,10 +10,6 @@ import Then
 import SnapKit
 
 final class SummaryCell: UICollectionViewCell {
-    
-    // MARK: - Properties
-    
-    static let identifier = "SummaryCell"
 
     // MARK: - UI Components
     
