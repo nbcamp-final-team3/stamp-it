@@ -70,7 +70,7 @@ final class StampBoardTab: UIView {
     }
 
     func render(_ state: StampBoardViewState) {
-        /// 스냅샷 적용
+        /// Snapshot 적용
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.summary, .board])
 
@@ -82,10 +82,10 @@ final class StampBoardTab: UIView {
         ]
         snapshot.appendItems(summaryItem, toSection: .summary)
 
-        let maxPage = state.stamps.count
-        for index in 0..<maxPage {
+        let maxPage = state.stampsByPage.count
+        for page in 0..<maxPage {
             snapshot.appendItems(
-                state.stamps[index].map { .stamp($0) },
+                state.stampsByPage[page].map { .stamp($0) },
                 toSection: .board
             )
         }
@@ -109,7 +109,7 @@ final class StampBoardTab: UIView {
 
         let stampRegister = UICollectionView.CellRegistration<StampCell, StampBoardStamp> { cell, indexPath, stamp in
             /// .board  섹션 안에 페이징 된 모든 스티커 아이템(셀)을 다 그린다.
-            /// indexPath.item 는 30개 단위이다. (0~29, 30~59 ...)
+            /// indexPath.item 는 0부터 시작해서 계속 증가한다. (0~29, 30~59 ...)
             let itemIndexInPage = indexPath.item % Stamp.totalStamp
             let dashedLineDirection = StampBoardSection.board.type.flatMap { $0 }
             if dashedLineDirection.indices.contains(itemIndexInPage) {
@@ -289,9 +289,9 @@ final class StampBoardTab: UIView {
     }
 }
 
-struct StampBoardViewState {
+struct StampBoardViewState: Hashable {
     let collectdStamp: Int
     let completedBoard: Int
-    let stamps: [[StampBoardStamp]]
+    let stampsByPage: [[StampBoardStamp]]
     let numberOfPages: Int
 }

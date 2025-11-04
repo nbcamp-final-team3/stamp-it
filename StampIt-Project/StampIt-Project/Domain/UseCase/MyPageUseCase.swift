@@ -11,6 +11,6 @@ import RxSwift
 protocol MyPageUseCaseProtocol {
     func fetchUserOnce(userId: String) -> Observable<User?>
     func fetchUser() -> Observable<User?>
-    func fetchStampsByPin(userId: String, pinNumber: Int) -> Observable<[StampBoardStamp]>
+    func fetchStampsByPage(userId: String, page: Int) -> Observable<[StampBoardStamp]>
     func observeStampCount(userId: String) -> Observable<Int>
 }

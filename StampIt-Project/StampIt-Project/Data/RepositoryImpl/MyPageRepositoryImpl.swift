@@ -21,8 +21,8 @@ final class MyPageRepositoryImpl: MyPageRepository {
         self.userManager = userManager
     }
     
-    func fetchStampsByPin(userId: String, pinNumber: Int) -> Observable<[Stamp]> {
-        return stampManager.fetchStampsByPin(userId: userId, pinNumber: pinNumber)
+    func fetchStampsByPage(userId: String, page: Int) -> Observable<[Stamp]> {
+        return stampManager.fetchStampsByPin(userId: userId, pinNumber: page)
             .map { stampFirestores in
                 stampFirestores.map { $0.toDomainModel() }
             }

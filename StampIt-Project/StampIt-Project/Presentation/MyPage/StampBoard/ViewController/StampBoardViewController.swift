@@ -62,7 +62,7 @@ final class StampBoardViewController: BaseViewController {
             let viewState = StampBoardViewState(
                 collectdStamp: summary.collected,
                 completedBoard: summary.completed,
-                stamps: stamps,
+                stampsByPage: stamps,
                 numberOfPages: page == .zero ? page : page + 1
             )
             owner.stampBoardView.render(viewState)
