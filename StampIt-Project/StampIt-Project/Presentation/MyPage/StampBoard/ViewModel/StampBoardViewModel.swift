@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import RxRelay
+import RxCocoa
 
 final class StampBoardViewModel: ViewModelProtocol {
     
@@ -16,16 +17,13 @@ final class StampBoardViewModel: ViewModelProtocol {
     private let myPageUseCase: MyPageUseCaseProtocol
     
     // MARK: - Action & State
-    
+
     enum Action {
         case viewDidLoad
-        case tabButtonTapped(TabType)
-        case updateStamps([[StampBoardStamp]])
     }
-    
+
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let tabType = BehaviorRelay<TabType>(value: .stampBoard)
         let stampsByPage = BehaviorRelay<[[StampBoardStamp]]>(
             value: StampUtil.initialize()
         )
@@ -33,13 +31,24 @@ final class StampBoardViewModel: ViewModelProtocol {
             value: (.zero, .zero)
         )
     }
-    
+
+    // MARK: - Input & Output
+
+    struct Input {
+        let viewDidLoad: Signal<Void>
+    }
+
+    struct Output {
+        let viewState: Driver<StampBoardViewState>
+    }
+
     // MARK: - Properties
     
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
+
     var state = State()
-    
+
     private var lastCheckedAt: Date = .init()
 
     // MARK: - Initializer, Deinit, requiered
@@ -48,18 +57,44 @@ final class StampBoardViewModel: ViewModelProtocol {
         self.myPageUseCase = myPageUseCase
         bindAction()
     }
-    
+
+    // MARK: - Input Output
+
+    func transform(from input: Input) -> Output {
+        input.viewDidLoad
+            .map { Action.viewDidLoad }
+            .emit(to: action)
+            .disposed(by: disposeBag)
+
+        let user: Driver<User> = state.user
+            .compactMap { $0 }
+            .take(1)
+            .asDriver(onErrorDriveWith: .empty())
+
+        let stampCount: Driver<Int> = user
+            .flatMap { [unowned self] user in
+                observeStampCount(userID: user.userID)
+                    .asDriver(onErrorDriveWith: .empty())
+            }
+            .distinctUntilChanged()
+
+        let viewState: Driver<StampBoardViewState> = user
+            .map { $0.userID }
+            .flatMapLatest { [unowned self] id in
+                makeViewStateDriver(id, stampCount.asObservable())
+            }
+            .asDriver(onErrorDriveWith: .empty())
+
+        return Output(viewState: viewState)
+    }
+
     // MARK: - Bind
-    
+
     private func bindAction() {
         action.subscribe(with: self) { owner, action in
             switch action {
             case .viewDidLoad:
                 owner.bindUser()
-            case .tabButtonTapped(let type):
-                owner.state.tabType.accept(type)
-            case .updateStamps(let stamps):
-                owner.state.stampsByPage.accept(stamps)
             }
         }.disposed(by: disposeBag)
     }
@@ -69,10 +104,89 @@ final class StampBoardViewModel: ViewModelProtocol {
             .observe(on: MainScheduler.instance)
             .subscribe(with: self) { owner, user in
                 owner.state.user.accept(user)
-                owner.bindStampSummaryData()
             }.disposed(by: disposeBag)
     }
-    
+
+    /// View State 합쳐서 내보내기
+    private func makeViewStateDriver(
+        _ userID: String,
+        _ stampCount: Observable<Int>
+    ) -> Driver<StampBoardViewState> {
+        let summary = observeStampSummary(stampCount)
+        let pages = observeStampBoardPage(stampCount)
+        let stamp = observeStamps(by: pages, userID)
+
+        return Observable.combineLatest(summary, stamp, pages)
+            .map { summary, stamp, pages in
+                let numberOfPages = pages.count
+                return StampBoardViewState(
+                    collectdStamp: summary.collected,
+                    completedBoard: summary.completed,
+                    stampsByPage: stamp,
+                    numberOfPages: numberOfPages
+                )
+            }
+            .distinctUntilChanged()
+            .asDriver(onErrorDriveWith: .empty())
+    }
+
+    /// 총 스탬프 개수 가져오기
+    private func observeStampCount(userID: String) -> Observable<Int> {
+        myPageUseCase.observeStampCount(userId: userID)
+            .distinctUntilChanged()
+            .share(replay: 1, scope: .whileConnected)
+    }
+
+    /// 현재 스탬프 개수, 총 스탬프 보드 수 계산
+    private func observeStampSummary(
+        _ stampCount: Observable<Int>
+    ) -> Observable<(collected: Int, completed: Int)> {
+        let summary = stampCount.map { count -> (collected: Int, completed: Int) in
+            let total = Stamp.totalStamp
+            return (count % total, count / total)
+        }
+            .distinctUntilChanged {
+                ($0.collected == $1.collected) && ($0.completed == $1.completed)
+            }
+            .share(replay: 1, scope: .whileConnected)
+        return summary
+    }
+
+    /// 총 스탬프보드 수 계산
+    private func observeStampBoardPage(
+        _ stampCount: Observable<Int>
+    ) -> Observable<[Int]> {
+        let pages = stampCount.map { count -> [Int] in
+            let completed = count / Stamp.totalStamp
+            let currentPage = completed + 1
+            let lastPage = max(1, currentPage - StampBoard.totalPage + 1)
+            return Array(stride(from: currentPage, through: lastPage, by: -1))
+        }
+            .distinctUntilChanged()
+            .share(replay: 1, scope: .whileConnected)
+        return pages
+    }
+
+    /// 총 스탬프 가져오기
+    private func observeStamps(
+        by pages: Observable<[Int]>,
+        _ userID: String
+    ) -> Observable<[[StampBoardStamp]]> {
+        let stampsByPage = pages
+            .flatMapLatest { [weak self] pages -> Observable<[[StampBoardStamp]]> in
+                guard let self else { return .empty() }
+                let stampObservables: [Observable<[StampBoardStamp]>] = pages
+                    .map { [weak self] page -> Observable<[StampBoardStamp]> in
+                        guard let self else { return .empty() }
+                        return myPageUseCase.fetchStampsByPage(userId: userID, page: page)
+                    }
+                return Observable.combineLatest(stampObservables)
+            }
+            .distinctUntilChanged()
+            .share(replay: 1, scope: .whileConnected)
+        return stampsByPage
+    }
+
     private func bindStampSummaryData() {
         guard let user = state.user.value else { return }
         
@@ -101,9 +215,9 @@ final class StampBoardViewModel: ViewModelProtocol {
                 
                 /// pinNumber 로 페이지 별 모든 스티커 읽기
                 let stampObservables = pinNumbers.map { pinNumber in
-                    self.myPageUseCase.fetchStampsByPin(
+                    self.myPageUseCase.fetchStampsByPage(
                         userId: user.userID,
-                        pinNumber: pinNumber
+                        page: pinNumber
                     )
                 }
                 
@@ -112,10 +226,10 @@ final class StampBoardViewModel: ViewModelProtocol {
                     .map { [weak self] stampLists in
                         guard let self else { return (.init(), .init()) }
                         
-                        var formattedStamps: [[StampBoardStamp]] = .init()
+                        var stampsByPage: [[StampBoardStamp]] = .init()
                         for (page, stamps) in stampLists.enumerated() {
                             /// 페이지에 맞게 스티커 색상 지정
-                            formattedStamps.append(
+                            stampsByPage.append(
                                 stamps.enumerated().map { (index, stamp) in
                                     StampBoardStamp.map(
                                         stamp,
@@ -125,12 +239,13 @@ final class StampBoardViewModel: ViewModelProtocol {
                                 }
                             )
                         }
-                        return (count, formattedStamps)
+                        return (count, stampsByPage)
                     }
             }
             .observe(on: MainScheduler.instance)
             .subscribe(with: self)  { owner, result in
-                let (count, stamps) = result
+                /// count: 총 스탬프 개수, stampsByPage: 페이지 별 스탬프 개수
+                let (count, stampsByPage) = result
                 
                 let totalStamp = Stamp.totalStamp
                 let collectedStamp = Int(count % totalStamp)
@@ -143,7 +258,7 @@ final class StampBoardViewModel: ViewModelProtocol {
                 ))
                 
                 /// Zigzag 변환후 stamps 업데이트
-                owner.updateStampZigzag(stamps)
+                owner.updateStampZigzag(stampsByPage)
             }.disposed(by: disposeBag)
     }
     

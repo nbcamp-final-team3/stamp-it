@@ -8,12 +8,14 @@
 import UIKit
 import SnapKit
 import RxSwift
+import RxCocoa
 
 final class StampBoardViewController: BaseViewController {
     
     // MARK: - Properties
     
     private var viewModel: StampBoardViewModel
+    private var viewState: StampBoardViewState?
     private let disposeBag = DisposeBag()
 
     override var screenName: String { "StampBoard" }
@@ -39,34 +41,29 @@ final class StampBoardViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel.action.accept(.viewDidLoad)
+        viewModel.action.accept(.viewDidLoad) 
+        setEventStream()
         setStyle()
         setHierarchy()
         setLayout()
         setDelegate()
-        bind()
     }
     
     // MARK: - Bind
-    
-    private func bind() {
-        Observable.combineLatest(
-            viewModel.state.stampSummary,
-            viewModel.state.stampsByPage
-        )
-        .observe(on: MainScheduler.instance)
-        .bind(with: self) { owner, combined in
-            let (summary, stamps) = combined
-            let page = summary.completed
 
-            let viewState = StampBoardViewState(
-                collectdStamp: summary.collected,
-                completedBoard: summary.completed,
-                stampsByPage: stamps,
-                numberOfPages: page == .zero ? page : page + 1
-            )
-            owner.stampBoardView.render(viewState)
-        }.disposed(by: disposeBag)
+    private func setEventStream() {
+        let input = StampBoardViewModel.Input(viewDidLoad: Signal.just(()))
+        let output = viewModel.transform(from: input)
+        bind(with: output)
+    }
+
+    private func bind(with output: StampBoardViewModel.Output) {
+        output.viewState
+            .drive(with: self) { owner, state in
+                owner.viewState = state
+                owner.stampBoardView.render(state)
+            }
+            .disposed(by: disposeBag)
     }
     
     // MARK: - Style Helper
@@ -106,7 +103,8 @@ extension StampBoardViewController: UICollectionViewDelegate {
         _ collectionView: UICollectionView,
         didSelectItemAt indexPath: IndexPath
     ) {
-        let stampsByPage = viewModel.state.stampsByPage.value
+        guard let state = viewState else { return }
+        let stampsByPage = state.stampsByPage
         let itemIndexInPage = indexPath.item % Stamp.totalStamp
         let currentPage = stampBoardView.currentPageValue
 
