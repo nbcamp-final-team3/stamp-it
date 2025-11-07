@@ -24,11 +24,18 @@ final class StampBoardViewModel: ViewModelProtocol {
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
+
         let stampsByPage = BehaviorRelay<[[StampBoardStamp]]>(
-            value: StampUtil.initialize()
+            value: StampUtil.initializeEmptyBoard()
         )
         let stampSummary = BehaviorRelay<(collected: Int, completed: Int)>(
             value: (.zero, .zero)
+        )
+        let stampIdentity = BehaviorRelay<[StampCellIdentity: StampCellContent]>(
+            value: StampUtil.makeStampBoardContent()
+        )
+        let stampAppearance = BehaviorRelay<[StampCellIdentity: StampCellAppearance]>(
+            value: [:]
         )
     }
 
@@ -114,16 +121,18 @@ final class StampBoardViewModel: ViewModelProtocol {
     ) -> Driver<StampBoardViewState> {
         let summary = observeStampSummary(stampCount)
         let pages = observeStampBoardPage(stampCount)
-        let stamp = observeStamps(by: pages, userID)
+        let stamps = observeStamps(by: pages, userID)
 
-        return Observable.combineLatest(summary, stamp, pages)
-            .map { summary, stamp, pages in
-                let numberOfPages = pages.count
+        return Observable.combineLatest(summary, stamps, pages)
+            .map { summary, stamps, pages in
+                let stampIdentity = StampUtil.makeStampBoardContent(with: stamps)
+                let stampIdentities = StampUtil.makeStampBoardIdentity(stamps.count)
                 return StampBoardViewState(
                     collectdStamp: summary.collected,
                     completedBoard: summary.completed,
-                    stampsByPage: stamp,
-                    numberOfPages: numberOfPages
+                    stampsByPage: stamps,
+                    stampIdentity: stampIdentity,
+                    stampIdentityByPage: stampIdentities
                 )
             }
             .distinctUntilChanged()

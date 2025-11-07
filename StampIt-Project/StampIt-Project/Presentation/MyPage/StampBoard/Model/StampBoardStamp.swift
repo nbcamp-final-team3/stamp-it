@@ -7,6 +7,8 @@
 
 import Foundation
 
+// MARK: - Stamp 상태
+
 struct StampBoardStamp: Hashable {
     let userID: String
     let stampID: String
@@ -32,6 +34,22 @@ struct StampBoardStamp: Hashable {
         lhs.type == rhs.type &&
         lhs.zigzagIndex == rhs.zigzagIndex
     }
+}
+
+// MARK: - Stamp 표현
+
+struct StampCellAppearance {
+    var stampColor: StampType
+    var pageColor: StampBoard
+    var isHighlighted: Bool
+}
+
+struct StampBoardViewState: Hashable {
+    let collectdStamp: Int
+    let completedBoard: Int
+    let stampsByPage: [[StampBoardStamp]]
+    let stampIdentity: [StampCellIdentity: StampCellContent]
+    let stampIdentityByPage: [[StampCellIdentity]]
 }
 
 // MARK: - Mapper

@@ -61,7 +61,7 @@ final class StampBoardViewController: BaseViewController {
         output.viewState
             .drive(with: self) { owner, state in
                 owner.viewState = state
-                owner.stampBoardView.render(state)
+                owner.stampBoardView.updateContent(state)
             }
             .disposed(by: disposeBag)
     }

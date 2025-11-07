@@ -77,19 +77,24 @@ final class StampCell: UICollectionViewCell {
     
     // MARK: - Methods
     
-    func configure(with stamp: StampBoardStamp) {
-        stampImageView.image = UIImage(named: stamp.type.rawValue)
+    func configure(with content: StampCellContent) {
+        switch content {
+        case .real(let stamp):
+            stampImageView.image = UIImage(named: stamp.type.rawValue)
 
-        if stamp.shouldBlur {
-            applyBlur(to: stampImageView)
+            if stamp.shouldBlur {
+                applyBlur(to: stampImageView)
 
-            /// 3초 후 블러 제거
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-                guard let self else { return }
-                self.removeBlur(from: self.stampImageView)
+                /// 3초 후 블러 제거
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                    guard let self else { return }
+                    self.removeBlur(from: self.stampImageView)
+                }
+            } else {
+                removeBlur(from: stampImageView)
             }
-        } else {
-            removeBlur(from: stampImageView)
+        case .placeholder:
+            stampImageView.image = UIImage(named: StampType.gray.rawValue)
         }
     }
     

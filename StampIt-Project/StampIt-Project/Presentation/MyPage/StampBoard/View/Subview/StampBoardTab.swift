@@ -20,6 +20,9 @@ final class StampBoardTab: UIView {
     private var currentPage: Int = .zero
     var currentPageValue: Int { currentPage }
 
+    private var stampContentCache: [StampCellIdentity: StampCellContent] = .init()
+    private var stampAppearanceCache: [StampCellIdentity: StampCellAppearance] = .init()
+
     // MARK: - UI Components
 
     private lazy var collectionView = UICollectionView(
@@ -69,11 +72,15 @@ final class StampBoardTab: UIView {
         footerView?.setCurrentPage(page)
     }
 
-    func render(_ state: StampBoardViewState) {
-        /// Snapshot 적용
+    func setStampBoardCache(_ identity: [StampCellIdentity: StampCellContent]) {
+        self.stampContentCache = identity
+    }
+
+    func updateContent(_ state: StampBoardViewState) {
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.summary, .board])
 
+        /// Summary Section Snapshot
         let summaryItem: [StampBoardItem] = [
             .summary(
                 collected: state.collectdStamp,
@@ -82,17 +89,17 @@ final class StampBoardTab: UIView {
         ]
         snapshot.appendItems(summaryItem, toSection: .summary)
 
-        let maxPage = state.stampsByPage.count
-        for page in 0..<maxPage {
-            snapshot.appendItems(
-                state.stampsByPage[page].map { .stamp($0) },
-                toSection: .board
-            )
+        /// StampBoard Section Snapshot
+        for stampIdentity in state.stampIdentityByPage {
+            snapshot.appendItems(stampIdentity.map { .stamp($0) })
         }
         dataSource.apply(snapshot, animatingDifferences: true)
 
         /// 총 페이지 갱신
-        setTotalPages(state.numberOfPages)
+        setTotalPages(state.stampsByPage.count)
+
+        /// 스탬프 보드 캐시 갱신
+        setStampBoardCache(state.stampIdentity)
     }
 
     // MARK: - DataSource Helper
@@ -107,14 +114,20 @@ final class StampBoardTab: UIView {
             )
         }
 
-        let stampRegister = UICollectionView.CellRegistration<StampCell, StampBoardStamp> { cell, indexPath, stamp in
-            /// .board  섹션 안에 페이징 된 모든 스티커 아이템(셀)을 다 그린다.
+        let stampRegister = UICollectionView.CellRegistration<StampCell, StampCellIdentity> { [weak self] cell, indexPath, id in
+            guard let self else { return }
+
+            /// .board  섹션 안에 페이징 된 모든 스티커 아이템(셀)을 전부 그린다.
             /// indexPath.item 는 0부터 시작해서 계속 증가한다. (0~29, 30~59 ...)
             let itemIndexInPage = indexPath.item % Stamp.totalStamp
+            let currentPage = indexPath.item / Stamp.totalStamp
+
+            guard let stampContent = stampContentCache[id] else { return }
+
             let dashedLineDirection = StampBoardSection.board.type.flatMap { $0 }
             if dashedLineDirection.indices.contains(itemIndexInPage) {
                 cell.configureDashedLine(with: dashedLineDirection[itemIndexInPage])
-                cell.configure(with: stamp)
+                cell.configure(with: stampContent)
             }
         }
 
@@ -127,11 +140,11 @@ final class StampBoardTab: UIView {
                     for: indexPath,
                     item: (collected, completed)
                 )
-            case let .stamp(stamp):
+            case let .stamp(stampIdentity):
                 return cv.dequeueConfiguredReusableCell(
                     using: stampRegister,
                     for: indexPath,
-                    item: stamp
+                    item: stampIdentity
                 )
             }
         }
@@ -287,11 +300,4 @@ final class StampBoardTab: UIView {
             $0.edges.equalToSuperview()
         }
     }
-}
-
-struct StampBoardViewState: Hashable {
-    let collectdStamp: Int
-    let completedBoard: Int
-    let stampsByPage: [[StampBoardStamp]]
-    let numberOfPages: Int
 }
