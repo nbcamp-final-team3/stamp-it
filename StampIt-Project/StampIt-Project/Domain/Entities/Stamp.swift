@@ -45,13 +45,11 @@ extension Stamp {
             groupID: self.groupID,
             month: self.month,
             type: self.type,
-            pinNumber: self.pinNumber,
+            page: self.pinNumber,
             createdAt: self.createdAt,
             missionID: self.missionID,
             maxStamps: self.maxStamps,
             assignedBy: self.assignedBy,
-            zigzagIndex: .zero,
-            shouldBlur: false,
         )
     }
 

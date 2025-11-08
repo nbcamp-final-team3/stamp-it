@@ -81,18 +81,6 @@ final class StampCell: UICollectionViewCell {
         switch content {
         case .real(let stamp):
             stampImageView.image = UIImage(named: stamp.type.rawValue)
-
-            if stamp.shouldBlur {
-                applyBlur(to: stampImageView)
-
-                /// 3초 후 블러 제거
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-                    guard let self else { return }
-                    self.removeBlur(from: self.stampImageView)
-                }
-            } else {
-                removeBlur(from: stampImageView)
-            }
         case .placeholder:
             stampImageView.image = UIImage(named: StampType.gray.rawValue)
         }

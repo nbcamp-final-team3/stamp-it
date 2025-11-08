@@ -15,25 +15,11 @@ struct StampBoardStamp: Hashable {
     let groupID: String
     let month: String
     let type: StampType
-    let pinNumber: Int
+    let page: Int
     let createdAt: Date
     let missionID: String
     let maxStamps: Int
     let assignedBy: String
-    var zigzagIndex: Int
-    var shouldBlur: Bool
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(stampID)
-        hasher.combine(type)
-        hasher.combine(zigzagIndex)
-    }
-    
-    static func == (lhs: StampBoardStamp, rhs: StampBoardStamp) -> Bool {
-        lhs.stampID == rhs.stampID &&
-        lhs.type == rhs.type &&
-        lhs.zigzagIndex == rhs.zigzagIndex
-    }
 }
 
 // MARK: - Stamp 표현
@@ -62,20 +48,17 @@ extension StampBoardStamp {
             groupID: stamp.groupID,
             month: stamp.month,
             type: stamp.type,
-            pinNumber: stamp.pinNumber,
+            page: stamp.pinNumber,
             createdAt: stamp.createdAt,
             missionID: stamp.missionID,
             maxStamps: stamp.maxStamps,
             assignedBy: stamp.assignedBy,
-            zigzagIndex: .zero,
-            shouldBlur: false,
         )
     }
     
     static func map(
         _ stamp: StampBoardStamp,
         type: StampType = .gray,
-        lastCheckedAt: Date
     ) -> StampBoardStamp {
         StampBoardStamp(
             userID: stamp.userID,
@@ -83,13 +66,11 @@ extension StampBoardStamp {
             groupID: stamp.groupID,
             month: stamp.month,
             type: type,
-            pinNumber: stamp.pinNumber,
+            page: stamp.page,
             createdAt: stamp.createdAt,
             missionID: stamp.missionID,
             maxStamps: stamp.maxStamps,
             assignedBy: stamp.assignedBy,
-            zigzagIndex: .zero,
-            shouldBlur: stamp.createdAt > lastCheckedAt,
         )
     }
 }

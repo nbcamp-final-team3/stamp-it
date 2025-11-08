@@ -41,7 +41,6 @@ final class StampBoardViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel.action.accept(.viewDidLoad) 
         setEventStream()
         setStyle()
         setHierarchy()

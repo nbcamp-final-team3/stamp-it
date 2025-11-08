@@ -8,87 +8,9 @@
 import Foundation
 
 struct StampUtil {
-    
-    /// 지그재그 순서로 스티커 배열 생성
-    static func makeZigzagOrder(
-        from stamps: [StampBoardStamp],
-        columns: Int,
-        pinNumber: Int
-    ) -> [StampBoardStamp] {
-        let totalStampCount = Stamp.totalStamp
-
-        /// 총 totalStampCount 개의 스탬프 배열 생성 (부족하면 Empty stamp 생성)
-        let totalStamps: [StampBoardStamp] = {
-            (0..<totalStampCount).map { index in
-                
-                /// Empty stamps 배열 일 때 default stamp 생성
-                if stamps.count == .zero {
-                    return makeEmptyStamp(with: pinNumber)
-                } else {
-                    /// stamps 배열이 1 이상, totalStampCount 이하 일 경우
-                    if index < stamps.count {
-                        return stamps[index]
-                    } else {
-                        return makeEmptyStamp(with: pinNumber)
-                    }
-                }
-            }
-        }()
-        
-        /// 행 단위로 나눠서 지그재그 정렬
-        let rows = stride(from: 0, to: totalStamps.count, by: columns)
-            .map {
-                Array(totalStamps[$0..<min($0 + columns, totalStamps.count)])
-            }
-        
-        let zigzagOrdered = rows.enumerated().flatMap { (index, row) in
-            index.isMultiple(of: 2) ? row : row.reversed()
-        }
-        
-        /// 지그재그 순서에 맞춰 zigzagIndex 부여
-        let finalStamps = zigzagOrdered.enumerated().map { (index, stamp) -> StampBoardStamp in
-            var zigzagIndexAdded = stamp
-            zigzagIndexAdded.zigzagIndex = index
-            return zigzagIndexAdded
-        }
-        
-        return finalStamps
-    }
-    
-    /// 빈 회색 스티커 생성
-    static func makeEmptyStamp(
-        with pinNumber: Int,
-        zigzagIndex: Int? = nil,
-        now: Date = Date(),
-        uuidString: String = UUID().uuidString,
-    ) -> StampBoardStamp {
-        .init(
-            userID: DefaultStamp.userID,
-            stampID: uuidString,
-            groupID: DefaultStamp.groupID,
-            month: DefaultStamp.month,
-            type: .gray,
-            pinNumber: pinNumber,
-            createdAt: now,
-            missionID: DefaultStamp.missionID,
-            maxStamps: DefaultStamp.maxStamps,
-            assignedBy: DefaultStamp.assignedBy,
-            zigzagIndex: zigzagIndex ?? DefaultStamp.zigzagIndex,
-            shouldBlur: false,
-        )
-    }
-    
-    /// 스탬프판 초기값 생성
-    static func initializeEmptyBoard() -> [[StampBoardStamp]] {
-        [
-            (0..<Stamp.totalStamp).map {
-                StampUtil.makeEmptyStamp(with: 1, zigzagIndex: $0)
-            }
-        ]
-    }
-
+    /// Page 별 Identity, Content 생성
     static func makeStampBoardContent(
-        with stampsByPage: [[StampBoardStamp]] = StampUtil.initializeEmptyBoard()
+        with stampsByPage: [[StampBoardStamp]] = StampUtil.makeEmptyBoard()
     ) -> [StampCellIdentity: StampCellContent] {
         let zigzagIndices: [Int] = makeZigZagIndices()
         let ordered: [[StampBoardStamp]] = makeZigzagOrder(from: stampsByPage)
@@ -96,10 +18,10 @@ struct StampUtil {
         content.reserveCapacity(stampsByPage.count * Stamp.totalStamp)
 
         for (page, stamps) in ordered.enumerated() {
-            for index in zigzagIndices {
+            for index in 0..<Stamp.totalStamp {
                 let identity = StampCellIdentity(page: page, stampIndex: index)
                 if index < stamps.count {
-                    content[identity] = .real(stamps[index])
+                    content[identity] = .real(stamps[zigzagIndices[index]])
                 } else {
                     content[identity] = .placeholder
                 }
@@ -139,6 +61,26 @@ struct StampUtil {
         return zigzagOrdered.flatMap { $0 }
     }
 
+    /// 빈 회색 스티커 생성
+    static func makeEmptyStamp(
+        page: Int = .zero,
+        now: Date = Date(),
+        uuidString: String = UUID().uuidString,
+    ) -> StampBoardStamp {
+        .init(
+            userID: DefaultStamp.userID,
+            stampID: uuidString,
+            groupID: DefaultStamp.groupID,
+            month: DefaultStamp.month,
+            type: .gray,
+            page: page,
+            createdAt: now,
+            missionID: DefaultStamp.missionID,
+            maxStamps: DefaultStamp.maxStamps,
+            assignedBy: DefaultStamp.assignedBy,
+        )
+    }
+
     /// 실제 데이터를 지그재그 순서로 변환
     static func makeZigzagOrder(
         from stampsByPage: [[StampBoardStamp]],
@@ -152,7 +94,7 @@ struct StampUtil {
         for (page, stamps) in stampsByPage.enumerated() {
             if stamps.count == .zero {
                 tempStampsByPage.append(
-                    (0..<totalStamp).map { _ in makeEmptyStamp(with: page) }
+                    (0..<totalStamp).map { _ in makeEmptyStamp(page: page) }
                 )
                 return tempStampsByPage
             } else {
@@ -162,7 +104,7 @@ struct StampUtil {
                     if index < stamps.count {
                         tempStamp.append(stamps[index])
                     } else {
-                        tempStamp.append(makeEmptyStamp(with: page))
+                        tempStamp.append(makeEmptyStamp(page: page))
                     }
                 }
                 tempStampsByPage.append(tempStamp)
@@ -170,11 +112,11 @@ struct StampUtil {
         }
 
         /// 만들어진 스탬프 배열 지그재그 순서로 정렬
-        for (page, stamps) in tempStampsByPage.enumerated() {
+        for page in tempStampsByPage {
             /// 한 페이지 안의 columns 개수 만큼의 스탬프를 한 행으로 나누기
             let divideByRow = stride(from: 0, to: totalStamp, by: columns)
                 .map {
-                    Array(stamps[$0..<min($0 + columns, totalStamp)])
+                    Array(page[$0..<min($0 + columns, totalStamp)])
                 }
             /// 0-indexed, 홀수 행 일 경우 순서 뒤집기
             let zigzagOrdered = divideByRow.enumerated().flatMap { (index, row) in
@@ -183,5 +125,21 @@ struct StampUtil {
             ordered.append(zigzagOrdered)
         }
         return ordered
+    }
+
+    /// 초기값 생성 - 스탬프판
+    static func makeEmptyBoard() -> [[StampBoardStamp]] {
+        [(0..<Stamp.totalStamp).map { _ in StampUtil.makeEmptyStamp() }]
+    }
+
+    /// 초기값 생성 - StampBoardViewState
+    static func makeInitialViewState() -> StampBoardViewState {
+        StampBoardViewState(
+            collectdStamp: .zero,
+            completedBoard: .zero,
+            stampsByPage: StampUtil.makeEmptyBoard(),
+            stampIdentity: StampUtil.makeStampBoardContent(),
+            stampIdentityByPage: StampUtil.makeStampBoardIdentity(1)
+        )
     }
 }

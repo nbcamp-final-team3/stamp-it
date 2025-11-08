@@ -77,6 +77,9 @@ final class StampBoardTab: UIView {
     }
 
     func updateContent(_ state: StampBoardViewState) {
+        /// 스탬프 보드 캐시 갱신
+        setStampBoardCache(state.stampIdentity)
+
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.summary, .board])
 
@@ -89,17 +92,16 @@ final class StampBoardTab: UIView {
         ]
         snapshot.appendItems(summaryItem, toSection: .summary)
 
-        /// StampBoard Section Snapshot
+        /// StampBoard Section Snapshot - page 별로 스냅샷 데이터를 구성
+        /// 결과 appendItems 타입 : [ [StampBoardItem.stamp(StampCellIdentity)] ]
         for stampIdentity in state.stampIdentityByPage {
             snapshot.appendItems(stampIdentity.map { .stamp($0) })
         }
-        dataSource.apply(snapshot, animatingDifferences: true)
+        dataSource.applySnapshotUsingReloadData(snapshot)
 
         /// 총 페이지 갱신
         setTotalPages(state.stampsByPage.count)
 
-        /// 스탬프 보드 캐시 갱신
-        setStampBoardCache(state.stampIdentity)
     }
 
     // MARK: - DataSource Helper
@@ -120,7 +122,6 @@ final class StampBoardTab: UIView {
             /// .board  섹션 안에 페이징 된 모든 스티커 아이템(셀)을 전부 그린다.
             /// indexPath.item 는 0부터 시작해서 계속 증가한다. (0~29, 30~59 ...)
             let itemIndexInPage = indexPath.item % Stamp.totalStamp
-            let currentPage = indexPath.item / Stamp.totalStamp
 
             guard let stampContent = stampContentCache[id] else { return }
 
