@@ -10,7 +10,7 @@ import Then
 import SnapKit
 
 final class StampCell: UICollectionViewCell {
-    
+
     // MARK: - UI Components
     
     private let stampImageView = UIImageView().then {
@@ -18,14 +18,13 @@ final class StampCell: UICollectionViewCell {
         $0.layer.cornerRadius = StampType.imageSize / 2
         $0.image = UIImage(named: StampType.gray.rawValue)
     }
-    
+
     private let horizontalLine = DashedLine(direction: .horizontal)
     private let verticalLine = DashedLine(direction: .vertical)
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
         configureDashedLine(with: .none)
-        removeBlur(from: stampImageView)
         stampImageView.image = nil
     }
     
@@ -77,33 +76,41 @@ final class StampCell: UICollectionViewCell {
     
     // MARK: - Methods
     
-    func configure(with content: StampCellContent) {
-        switch content {
-        case .real(let stamp):
-            stampImageView.image = UIImage(named: stamp.type.rawValue)
-        case .placeholder:
-            stampImageView.image = UIImage(named: StampType.gray.rawValue)
-        }
+    func configure(with appearance: StampCellAppearance) {
+        stampImageView.image = UIImage(named: appearance.color.rawValue)
+        appearance.isHighlighted ? stopHighlight() : startHighlight()
     }
     
-    private func applyBlur(to view: UIView) {
-        view.layer.shadowColor = UIColor.yellowGlow.cgColor
-        view.layer.shadowOpacity = 1
-        view.layer.shadowRadius = 9
-        view.layer.shadowOffset = .zero
-        
-        guard view.bounds.width > 0, view.bounds.height > 0 else { return }
-        
+    private func startHighlight() {
+        stampImageView.layer.shadowColor = UIColor.yellowGlow.cgColor
+        stampImageView.layer.shadowOpacity = 1
+        stampImageView.layer.shadowRadius = 9
+        stampImageView.layer.shadowOffset = .zero
+
+        guard stampImageView.bounds.width > 0,
+              stampImageView.bounds.height > 0 else { return }
+
         let path = UIBezierPath(
-            roundedRect: view.bounds,
-            cornerRadius: view.layer.cornerRadius
+            roundedRect: stampImageView.bounds,
+            cornerRadius: stampImageView.layer.cornerRadius
         )
-        view.layer.shadowPath = path.cgPath
+        stampImageView.layer.shadowPath = path.cgPath
     }
     
-    private func removeBlur(from view: UIView) {
-        view.layer.shadowOpacity = 0.0
-        view.layer.shadowPath = nil
+    private func stopHighlight() {
+        let duration: CFTimeInterval = 0.35
+        let fadeOut = CABasicAnimation(keyPath: "shadowOpacity")
+        fadeOut.fromValue = stampImageView.layer.shadowOpacity
+        fadeOut.toValue = 0.0
+        fadeOut.duration = duration
+        fadeOut.timingFunction = CAMediaTimingFunction(name: .easeOut)
+
+        stampImageView.layer.shadowOpacity = 0.0
+        stampImageView.layer.add(fadeOut, forKey: "shadowFadeOut")
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
+            self?.stampImageView.layer.shadowPath = nil
+        }
     }
     
     func configureDashedLine(with type: StampCellType) {

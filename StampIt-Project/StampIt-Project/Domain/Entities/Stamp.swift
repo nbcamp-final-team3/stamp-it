@@ -12,7 +12,6 @@ struct Stamp: Hashable {
     let stampID: String
     let groupID: String
     let month: String
-    let type: StampType
     let pinNumber: Int
     let createdAt: Date
     let missionID: String
@@ -26,15 +25,6 @@ enum StampType: String, Hashable {
     case blue
     case yellow
     case purple
-
-    static func from(raw: String) -> StampType {
-        switch raw {
-        case "stampRed", "red":
-            return .red
-        default:
-            return .red
-        }
-    }
 }
 
 extension Stamp {
@@ -44,8 +34,6 @@ extension Stamp {
             stampID: self.stampID,
             groupID: self.groupID,
             month: self.month,
-            type: self.type,
-            page: self.pinNumber,
             createdAt: self.createdAt,
             missionID: self.missionID,
             maxStamps: self.maxStamps,

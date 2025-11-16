@@ -8,19 +8,84 @@
 import Foundation
 
 struct StampUtil {
+    /// 새 스탬프 하이라이팅 애니메이션을 위한 ID 생성
+    static func makeRealID(
+        with stampsByPage: [[StampBoardStamp]]
+    ) -> Set<StampCellIdentity> {
+        var realIdSet = Set<StampCellIdentity>()
+        for (page, stamps) in stampsByPage.enumerated() {
+            for index in 0..<min(stamps.count, Stamp.totalStamp) {
+                realIdSet.insert(StampCellIdentity(page: page, stampIndex: index))
+            }
+        }
+        return realIdSet
+    }
+
+    /// Identity 별 Appearance 생성
+    static func makeBoardAppearance(
+        with stampsByPage: [[StampBoardStamp]] = StampUtil.makeEmptyBoard(),
+        cache: [StampCellIdentity: StampCellAppearance] = .init(),
+        isInitialBoardLoaded: Bool = false,
+        isBeforeInitialLoaded: Bool = false
+    ) -> [StampCellIdentity: StampCellAppearance] {
+        let totalPage = stampsByPage.count
+        var appearance: [StampCellIdentity: StampCellAppearance] = [:]
+        appearance.reserveCapacity(stampsByPage.count * Stamp.totalStamp)
+
+        for (page, stamps) in stampsByPage.enumerated() {
+            let visualIndex = totalPage - 1 - page // 페이지별 스탬프 색상 지정 (2페이지면: (0->1), (1->0))
+            let color = isBeforeInitialLoaded ? .gray : StampType.from(visualIndex)
+
+            for index in 0..<Stamp.totalStamp {
+                let identity = StampCellIdentity(page: page, stampIndex: index)
+                if index < stamps.count { // real
+                    var isHighlighted: Bool = false
+                    if isInitialBoardLoaded {// 기존 스탬프
+                        if let previous = cache[identity] {
+                            if previous.color != .gray && previous.isHighlighted {
+                                isHighlighted = true
+                            }
+                        }
+                    } else {
+                        isHighlighted = true
+                    }
+                    appearance[identity] = StampCellAppearance(
+                        color: color,
+                        isHighlighted: isHighlighted
+                    )
+                } else { // placeholder
+                    appearance[identity] = StampCellAppearance(
+                        color: .gray,
+                        isHighlighted: true
+                    )
+                }
+            }
+        }
+        return appearance
+    }
+
     /// Page 별 Identity, Content 생성
-    static func makeStampBoardContent(
-        with stampsByPage: [[StampBoardStamp]] = StampUtil.makeEmptyBoard()
+    static func makeBoardContent(
+        with stampsByPage: [[StampBoardStamp]]? = nil
     ) -> [StampCellIdentity: StampCellContent] {
+        let totalPage = stampsByPage?.count ?? 1
+        var content: [StampCellIdentity: StampCellContent] = [:]
+        content.reserveCapacity(totalPage * Stamp.totalStamp)
+
+        guard let stampsByPage else {
+            for index in 0..<Stamp.totalStamp {
+                let identity = StampCellIdentity(page: .zero, stampIndex: index)
+                content[identity] = .placeholder
+            }
+            return content
+        }
         let zigzagIndices: [Int] = makeZigZagIndices()
         let ordered: [[StampBoardStamp]] = makeZigzagOrder(from: stampsByPage)
-        var content: [StampCellIdentity: StampCellContent] = [:]
-        content.reserveCapacity(stampsByPage.count * Stamp.totalStamp)
 
         for (page, stamps) in ordered.enumerated() {
             for index in 0..<Stamp.totalStamp {
                 let identity = StampCellIdentity(page: page, stampIndex: index)
-                if index < stamps.count {
+                if index < stampsByPage[page].count {
                     content[identity] = .real(stamps[zigzagIndices[index]])
                 } else {
                     content[identity] = .placeholder
@@ -31,7 +96,7 @@ struct StampUtil {
     }
 
     /// View 그리기용 Identity 배열 만들기
-    static func makeStampBoardIdentity(_ totalPage: Int) -> [[StampCellIdentity]] {
+    static func makeBoardIdentity(_ totalPage: Int = 1) -> [[StampCellIdentity]] {
         var identityByPage: [[StampCellIdentity]] = .init()
         let zigzagIndices: [Int] = makeZigZagIndices()
 
@@ -52,9 +117,7 @@ struct StampUtil {
         columns: Int = StampBoardSection.column
     ) -> [Int] {
         let numbers: [[Int]] = stride(from: 0, to: totalStamp, by: columns)
-            .map {
-                Array($0..<min($0 + columns, totalStamp))
-            }
+            .map { Array($0..<min($0 + columns, totalStamp)) }
         let zigzagOrdered = numbers.enumerated().map { (index, row) in
             index.isMultiple(of: 2) ? row : row.reversed()
         }
@@ -63,7 +126,6 @@ struct StampUtil {
 
     /// 빈 회색 스티커 생성
     static func makeEmptyStamp(
-        page: Int = .zero,
         now: Date = Date(),
         uuidString: String = UUID().uuidString,
     ) -> StampBoardStamp {
@@ -72,8 +134,6 @@ struct StampUtil {
             stampID: uuidString,
             groupID: DefaultStamp.groupID,
             month: DefaultStamp.month,
-            type: .gray,
-            page: page,
             createdAt: now,
             missionID: DefaultStamp.missionID,
             maxStamps: DefaultStamp.maxStamps,
@@ -91,10 +151,10 @@ struct StampUtil {
         var ordered: [[StampBoardStamp]] = .init()
 
         /// totalStamp 개수 맞춰서 스탬프 생성
-        for (page, stamps) in stampsByPage.enumerated() {
+        for stamps in stampsByPage {
             if stamps.count == .zero {
                 tempStampsByPage.append(
-                    (0..<totalStamp).map { _ in makeEmptyStamp(page: page) }
+                    (0..<totalStamp).map { _ in makeEmptyStamp() }
                 )
                 return tempStampsByPage
             } else {
@@ -104,7 +164,7 @@ struct StampUtil {
                     if index < stamps.count {
                         tempStamp.append(stamps[index])
                     } else {
-                        tempStamp.append(makeEmptyStamp(page: page))
+                        tempStamp.append(makeEmptyStamp())
                     }
                 }
                 tempStampsByPage.append(tempStamp)
@@ -133,13 +193,13 @@ struct StampUtil {
     }
 
     /// 초기값 생성 - StampBoardViewState
-    static func makeInitialViewState() -> StampBoardViewState {
+    static func makeDefaultViewState() -> StampBoardViewState {
         StampBoardViewState(
             collectdStamp: .zero,
             completedBoard: .zero,
-            stampsByPage: StampUtil.makeEmptyBoard(),
-            stampIdentity: StampUtil.makeStampBoardContent(),
-            stampIdentityByPage: StampUtil.makeStampBoardIdentity(1)
+            stampContent: StampUtil.makeBoardContent(),
+            stampAppearance: StampUtil.makeBoardAppearance(isBeforeInitialLoaded: true),
+            stampIdentityByPage: StampUtil.makeBoardIdentity()
         )
     }
 }

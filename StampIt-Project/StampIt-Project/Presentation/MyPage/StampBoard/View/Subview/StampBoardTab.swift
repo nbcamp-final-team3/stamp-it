@@ -1,5 +1,5 @@
 //
-//  StampBoard.swift
+//  StampBoardTab.swift
 //  StampIt-Project
 //
 //  Created by kingj on 6/9/25.
@@ -20,8 +20,8 @@ final class StampBoardTab: UIView {
     private var currentPage: Int = .zero
     var currentPageValue: Int { currentPage }
 
-    private var stampContentCache: [StampCellIdentity: StampCellContent] = .init()
     private var stampAppearanceCache: [StampCellIdentity: StampCellAppearance] = .init()
+    private var hasAppliedRealSnapshot = false
 
     // MARK: - UI Components
 
@@ -62,23 +62,11 @@ final class StampBoardTab: UIView {
         collectionView.delegate = target
     }
 
-    func setTotalPages(_ count: Int) {
-        numberOfPages = count
-        footerView?.configure(numberOfPages: count, currentPage: currentPage)
-    }
-
-    func setCurrentPage(_ page: Int) {
-        currentPage = page
-        footerView?.setCurrentPage(page)
-    }
-
-    func setStampBoardCache(_ identity: [StampCellIdentity: StampCellContent]) {
-        self.stampContentCache = identity
-    }
-
-    func updateContent(_ state: StampBoardViewState) {
+    func applyViewState(
+        with state: StampBoardViewState
+    ) {
         /// 스탬프 보드 캐시 갱신
-        setStampBoardCache(state.stampIdentity)
+        setStampBoardCache(state.stampAppearance)
 
         var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
         snapshot.appendSections([.summary, .board])
@@ -93,15 +81,72 @@ final class StampBoardTab: UIView {
         snapshot.appendItems(summaryItem, toSection: .summary)
 
         /// StampBoard Section Snapshot - page 별로 스냅샷 데이터를 구성
-        /// 결과 appendItems 타입 : [ [StampBoardItem.stamp(StampCellIdentity)] ]
-        for stampIdentity in state.stampIdentityByPage {
-            snapshot.appendItems(stampIdentity.map { .stamp($0) })
+        let boardItemsByPage: [[StampBoardItem]] = state.stampIdentityByPage
+            .reversed()
+            .map {
+                $0.map { .stamp($0) }
+            }
+        boardItemsByPage.forEach { snapshot.appendItems($0, toSection: .board) }
+
+        let allStampItems = boardItemsByPage.flatMap { $0 }
+        let totalPage = state.stampIdentityByPage.count
+        let hasRealStamp = state.stampContent.contains { (id, content) in
+            if case .real = content { return true }
+            return false
         }
-        dataSource.applySnapshotUsingReloadData(snapshot)
 
-        /// 총 페이지 갱신
-        setTotalPages(state.stampsByPage.count)
+        /// Default 데이터 이후 첫 로드시 reconfigureItems 필요
+        let needsInitialReconfigure = hasRealStamp && !hasAppliedRealSnapshot
 
+        /// 첫 로드 이후, Page 변경시 스탬프 색상 변경 reconfigureItems 필요
+        let pageCountChanged = hasAppliedRealSnapshot && (totalPage != numberOfPages)
+
+        if needsInitialReconfigure || pageCountChanged {
+            snapshot.reconfigureItems(allStampItems)
+            hasAppliedRealSnapshot = true
+        }
+
+        /// Default 데이터 이후 첫 로드시 애니메이션 실행 안함
+        let shouldAnimate = !needsInitialReconfigure
+        dataSource.apply(snapshot, animatingDifferences: shouldAnimate)
+
+        /// Page Controller 개수 갱신
+        let pagesForFooter = totalPage == 1 ? .zero : totalPage
+        if pagesForFooter != numberOfPages { setTotalPages(pagesForFooter) }
+    }
+
+    func reconfigureIDs(_ identities: [StampCellIdentity]) {
+        guard !identities.isEmpty else { return }
+        guard hasAppliedRealSnapshot else { return }
+
+        var snapshot = dataSource.snapshot()
+        let existedItems = Set(snapshot.itemIdentifiers)
+        let targetItems: [StampBoardItem] = identities
+            .map { .stamp($0) }
+            .filter { existedItems.contains($0) }
+
+        snapshot.reconfigureItems(targetItems)
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
+
+    func updateAppearanceCache(_ cache: [StampCellIdentity: StampCellAppearance]) {
+        setStampBoardCache(cache)
+    }
+
+    // MARK: - Property Helper
+
+    private func setStampBoardCache(_ appearance: [StampCellIdentity: StampCellAppearance]) {
+        self.stampAppearanceCache = appearance
+    }
+
+    private func setTotalPages(_ count: Int) {
+        numberOfPages = count
+        footerView?.configure(numberOfPages: count, currentPage: currentPage)
+    }
+
+    private func setCurrentPage(_ page: Int) {
+        currentPage = page
+        footerView?.setCurrentPage(page)
     }
 
     // MARK: - DataSource Helper
@@ -121,15 +166,15 @@ final class StampBoardTab: UIView {
 
             /// .board  섹션 안에 페이징 된 모든 스티커 아이템(셀)을 전부 그린다.
             /// indexPath.item 는 0부터 시작해서 계속 증가한다. (0~29, 30~59 ...)
-            let itemIndexInPage = indexPath.item % Stamp.totalStamp
+            let stampIndex = indexPath.item % Stamp.totalStamp
 
-            guard let stampContent = stampContentCache[id] else { return }
+            guard let stampAppearance = stampAppearanceCache[id] else { return }
 
             let dashedLineDirection = StampBoardSection.board.type.flatMap { $0 }
-            if dashedLineDirection.indices.contains(itemIndexInPage) {
-                cell.configureDashedLine(with: dashedLineDirection[itemIndexInPage])
-                cell.configure(with: stampContent)
+            if dashedLineDirection.indices.contains(stampIndex) {
+                cell.configureDashedLine(with: dashedLineDirection[stampIndex])
             }
+            cell.configure(with: stampAppearance)
         }
 
         /// Configure Data Source

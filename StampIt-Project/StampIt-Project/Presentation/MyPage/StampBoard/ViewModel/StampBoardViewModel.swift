@@ -24,6 +24,8 @@ final class StampBoardViewModel: ViewModelProtocol {
 
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
+        let currentRealIdRelay = BehaviorRelay<Set<StampCellIdentity>>(value: .init())
+        let appearanceCache = BehaviorRelay<[StampCellIdentity: StampCellAppearance]>(value: .init())
     }
 
     // MARK: - Input & Output
@@ -34,6 +36,8 @@ final class StampBoardViewModel: ViewModelProtocol {
 
     struct Output {
         let viewState: Driver<StampBoardViewState>
+        let reconfigureID: Driver<[StampCellIdentity]>
+        let appearanceCache: Driver<[StampCellIdentity: StampCellAppearance]>
     }
 
     // MARK: - Properties
@@ -41,6 +45,8 @@ final class StampBoardViewModel: ViewModelProtocol {
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
+
+    private var isInitialBoardLoaded: Bool = false
 
     // MARK: - Initializer, Deinit, requiered
     
@@ -76,7 +82,24 @@ final class StampBoardViewModel: ViewModelProtocol {
             }
             .asDriver(onErrorDriveWith: .empty())
 
-        return Output(viewState: viewState)
+        let reconfigureOn = startHighlightAnimation()
+            .share(replay: 1, scope: .whileConnected)
+
+        let reconfigureOff = endHighlightAnimation(reconfigureOn)
+            .share(replay: 1, scope: .whileConnected)
+
+        let reconfigureID: Driver<[StampCellIdentity]> = Observable
+            .merge(reconfigureOn, reconfigureOff)
+            .map { Array(Set($0)) }
+            .asDriver(onErrorDriveWith: .empty())
+
+        let appearanceCache = state.appearanceCache.asDriver(onErrorDriveWith: .empty())
+
+        return Output(
+            viewState: viewState,
+            reconfigureID: reconfigureID,
+            appearanceCache: appearanceCache
+        )
     }
 
     // MARK: - Bind
@@ -107,19 +130,44 @@ final class StampBoardViewModel: ViewModelProtocol {
         let summary = observeStampSummary(stampCount)
         let stamps = observeStamps(by: stampCount, userID)
 
-        return Observable.combineLatest(summary, stamps)
-            .map { summary, stamps in
-                return StampBoardViewState(
-                    collectdStamp: summary.collected,
-                    completedBoard: summary.completed,
-                    stampsByPage: stamps,
-                    stampIdentity: StampUtil.makeStampBoardContent(with: stamps),
-                    stampIdentityByPage: StampUtil.makeStampBoardIdentity(stamps.count)
+        stamps
+            .map { [weak self] stamps -> [StampCellIdentity: StampCellAppearance] in
+                guard let self else { return .init() }
+                return StampUtil.makeBoardAppearance(
+                    with: stamps,
+                    cache: state.appearanceCache.value,
+                    isInitialBoardLoaded: isInitialBoardLoaded
                 )
             }
-            .distinctUntilChanged()
-            .asDriver(onErrorDriveWith: .empty())
-            .startWith(StampUtil.makeInitialViewState())
+            .subscribe(with: self) { owner, appearance in
+                owner.state.appearanceCache.accept(appearance)
+            }
+            .disposed(by: disposeBag)
+
+        stamps
+            .map { StampUtil.makeRealID(with: $0) }
+            .subscribe(with: self) { owner, currentRealID in
+                owner.state.currentRealIdRelay.accept(currentRealID)
+            }
+            .disposed(by: disposeBag)
+
+        return Observable.combineLatest(
+            summary,
+            stamps,
+            state.appearanceCache.asObservable()
+        )
+        .map { summary, stamps, appearance in
+            StampBoardViewState(
+                collectdStamp: summary.collected,
+                completedBoard: summary.completed,
+                stampContent: StampUtil.makeBoardContent(with: stamps),
+                stampAppearance: appearance,
+                stampIdentityByPage: StampUtil.makeBoardIdentity(stamps.count)
+            )
+        }
+        .distinctUntilChanged()
+        .asDriver(onErrorDriveWith: .empty())
+        .startWith(StampUtil.makeDefaultViewState())
     }
 
     private func observeStampCount(userID: String) -> Observable<Int> {
@@ -153,13 +201,60 @@ final class StampBoardViewModel: ViewModelProtocol {
                 let completed = count / Stamp.totalStamp
                 let currentPage = completed + 1
                 let lastPage = max(1, currentPage - StampBoard.totalPage + 1)
-                return Array(stride(from: currentPage, through: lastPage, by: -1))
+                return Array(stride(from: lastPage, through: currentPage, by: 1))
             }
             .flatMapLatest { [weak self] pages -> Observable<[[StampBoardStamp]]> in
                 guard let self else { return .empty() }
                 let stampObservables: [Observable<[StampBoardStamp]>] = pages
                     .map { self.myPageUseCase.fetchStampsByPage(userId: userID, page: $0) }
                 return Observable.combineLatest(stampObservables)
+            }
+    }
+
+    private func startHighlightAnimation() -> Observable<[StampCellIdentity]> {
+            state.currentRealIdRelay
+                .skip(1)
+                .scan(
+                    (prevIDs: Set<StampCellIdentity>(), addedIDs: [StampCellIdentity]())
+                ) { accumulator, currentIDs in
+                    let addedIDs = Array(currentIDs.subtracting(accumulator.prevIDs))
+                    return (prevIDs: currentIDs, addedIDs: addedIDs)
+                }
+                .map { $0.addedIDs }
+                .map { [weak self] addedIDs -> [StampCellIdentity] in
+                    guard let self else { return .init() }
+
+                    /// 초기 1회 스킵 : 하이라이팅 애니메이션 실행 안함
+                    if !isInitialBoardLoaded {
+                        isInitialBoardLoaded = true
+                        return []
+                    }
+                    return addedIDs
+                }
+        }
+
+    private func endHighlightAnimation(
+        _ reconfigureIDs: Observable<[StampCellIdentity]>
+    ) -> Observable<[StampCellIdentity]> {
+        reconfigureIDs
+            .flatMap { addedIDs -> Observable<[StampCellIdentity]> in
+                /// [ID] -> ID 하나씩
+                Observable.from(addedIDs)
+                    .flatMap { id -> Observable<[StampCellIdentity]> in
+                        /// 각 ID 마다 개별 3초 타이머
+                        Observable.just(id)
+                            .delay(.seconds(3), scheduler: MainScheduler.instance)
+                            .do { [weak self] id in
+                                guard let self else { return }
+                                var cache = state.appearanceCache.value
+                                if var newAppearance = cache[id] {
+                                    newAppearance.isHighlighted = true
+                                    cache[id] = newAppearance
+                                    state.appearanceCache.accept(cache)
+                                }
+                            }
+                            .map { [$0] }
+                    }
             }
     }
 }

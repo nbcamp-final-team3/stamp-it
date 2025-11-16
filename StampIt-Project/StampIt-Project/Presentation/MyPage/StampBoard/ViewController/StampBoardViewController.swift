@@ -60,11 +60,23 @@ final class StampBoardViewController: BaseViewController {
         output.viewState
             .drive(with: self) { owner, state in
                 owner.viewState = state
-                owner.stampBoardView.updateContent(state)
+                owner.stampBoardView.applyViewState(with: state)
+            }
+            .disposed(by: disposeBag)
+
+        output.reconfigureID
+            .drive(with: self) { owner, ids in
+                owner.stampBoardView.reconfigureIDs(ids)
+            }
+            .disposed(by: disposeBag)
+
+        output.appearanceCache
+            .drive(with: self) { owner, cache in
+                owner.stampBoardView.updateAppearanceCache(cache)
             }
             .disposed(by: disposeBag)
     }
-    
+
     // MARK: - Style Helper
     
     private func setStyle() {
@@ -103,24 +115,23 @@ extension StampBoardViewController: UICollectionViewDelegate {
         didSelectItemAt indexPath: IndexPath
     ) {
         guard let state = viewState else { return }
-        let stampsByPage = state.stampsByPage
-        let itemIndexInPage = indexPath.item % Stamp.totalStamp
-        let currentPage = stampBoardView.currentPageValue
+        let page = stampBoardView.currentPageValue
+        let stampIndex = indexPath.item % Stamp.totalStamp
+        let id = StampCellIdentity(page: page, stampIndex: stampIndex)
 
-        let clickedStamp = stampsByPage[currentPage][itemIndexInPage]
-        let missionId = clickedStamp.missionID
+        guard let clickedStamp = state.stampContent[id],
+              let appearance = state.stampAppearance[id] else { return }
 
-        /// Empty Stamp 는 모달뷰 띄우지 않음
-        if clickedStamp.type != .gray {
+        if case let .real(stamp) = clickedStamp {
             let viewModel = DIContainer.shared.makeStampInfoViewModel()
             let stampInfoVC = StampInfoViewController(
                 viewModel: viewModel,
-                stampType: clickedStamp.type,
+                stampType: appearance.color,
             )
             stampInfoVC.transitioningDelegate = self
             stampInfoVC.modalPresentationStyle = .custom
-            viewModel.action.accept(.load(missionId: missionId))
-            
+            viewModel.action.accept(.load(missionId: stamp.missionID))
+
             self.present(stampInfoVC, animated: true)
         }
     }
