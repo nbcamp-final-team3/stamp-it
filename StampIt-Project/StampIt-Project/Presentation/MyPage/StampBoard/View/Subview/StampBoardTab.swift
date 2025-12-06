@@ -102,6 +102,10 @@ final class StampBoardTab: UIView {
         /// 첫 로드 이후, Page 변경시 스탬프 색상 변경 reconfigureItems 필요
         let pageCountChanged = hasAppliedRealSnapshot && (totalPage != numberOfPages)
 
+        /// Page Controller 개수 갱신
+        let pagesForFooter = totalPage == 1 ? .zero : totalPage
+        if pagesForFooter != numberOfPages { setTotalPages(pagesForFooter) }
+
         if needsInitialReconfigure || pageCountChanged {
             snapshot.reconfigureItems(allStampItems)
             hasAppliedRealSnapshot = true
@@ -110,10 +114,6 @@ final class StampBoardTab: UIView {
         /// Default 데이터 이후 첫 로드시 애니메이션 실행 안함
         let shouldAnimate = !needsInitialReconfigure
         dataSource.apply(snapshot, animatingDifferences: shouldAnimate)
-
-        /// Page Controller 개수 갱신
-        let pagesForFooter = totalPage == 1 ? .zero : totalPage
-        if pagesForFooter != numberOfPages { setTotalPages(pagesForFooter) }
     }
 
     func reconfigureIDs(_ identities: [StampCellIdentity]) {
@@ -323,10 +323,10 @@ final class StampBoardTab: UIView {
         /// 수평 페이징 변화 감지
         section.visibleItemsInvalidationHandler = { [weak self] visibleItem, offset, environment in
             guard let self else { return }
-            let page = Int(
-                round(offset.x / environment.container.contentSize.width)
-            )
+
+            let page = Int(round(offset.x / environment.container.contentSize.width))
             let reversedPage = numberOfPages - page - 1
+
             setCurrentPage(current: page, reversed: reversedPage)
             collectionView.backgroundColor = StampBoard(rawValue: page)?.background
         }
