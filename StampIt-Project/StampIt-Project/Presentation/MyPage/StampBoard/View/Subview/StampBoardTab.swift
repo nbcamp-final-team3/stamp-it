@@ -17,8 +17,9 @@ final class StampBoardTab: UIView {
     private var dataSource: DataSource!
 
     private var numberOfPages: Int = .zero
-    private var currentPage: Int = .zero
-    var currentPageValue: Int { currentPage }
+    private var currentReversedPage: Int = .zero
+    private var currentPageForFooter: Int = .zero
+    var currentPageValue: Int { currentReversedPage }
 
     private var stampAppearanceCache: [StampCellIdentity: StampCellAppearance] = .init()
     private var hasAppliedRealSnapshot = false
@@ -141,12 +142,13 @@ final class StampBoardTab: UIView {
 
     private func setTotalPages(_ count: Int) {
         numberOfPages = count
-        footerView?.configure(numberOfPages: count, currentPage: currentPage)
+        footerView?.configure(numberOfPages: count, currentPage: currentPageForFooter)
     }
 
-    private func setCurrentPage(_ page: Int) {
-        currentPage = page
-        footerView?.setCurrentPage(page)
+    private func setCurrentPage(current: Int, reversed: Int) {
+        currentReversedPage = reversed
+        currentPageForFooter = current
+        footerView?.setCurrentPage(current)
     }
 
     // MARK: - DataSource Helper
@@ -204,7 +206,7 @@ final class StampBoardTab: UIView {
             self.footerView = footer
             footer.configure(
                 numberOfPages: self.numberOfPages,
-                currentPage: self.currentPage
+                currentPage: self.currentPageForFooter
             )
         }
 
@@ -324,7 +326,8 @@ final class StampBoardTab: UIView {
             let page = Int(
                 round(offset.x / environment.container.contentSize.width)
             )
-            setCurrentPage(page)
+            let reversedPage = numberOfPages - page - 1
+            setCurrentPage(current: page, reversed: reversedPage)
             collectionView.backgroundColor = StampBoard(rawValue: page)?.background
         }
         return section
