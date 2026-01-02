@@ -116,8 +116,9 @@ extension StampBoardViewController: UICollectionViewDelegate {
     ) {
         guard let state = viewState else { return }
         let page = stampBoardView.currentPageValue
+
         let stampIndex = indexPath.item % Stamp.totalStamp
-        let id = StampCellIdentity(page: page, stampIndex: stampIndex)
+        let id = state.stampIdentityByPage[page][stampIndex]
 
         guard let clickedStamp = state.stampContent[id],
               let appearance = state.stampAppearance[id] else { return }
