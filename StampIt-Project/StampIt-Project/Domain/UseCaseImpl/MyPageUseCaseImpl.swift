@@ -29,8 +29,8 @@ final class MyPageUseCaseImpl: MyPageUseCaseProtocol {
         authRepository.getCurrentUser()
     }
     
-    func fetchStampsByPin(userId: String, pinNumber: Int) -> Observable<[StampBoardStamp]> {
-        mypageRepository.fetchStampsByPin(userId: userId, pinNumber: pinNumber).map { $0.map { $0.toPresentation() } }
+    func fetchStampsByPage(userId: String, page: Int) -> Observable<[StampBoardStamp]> {
+        mypageRepository.fetchStampsByPage(userId: userId, page: page).map { $0.map { $0.toPresentation() } }
     }
     
     func observeStampCount(userId: String) -> Observable<Int> {

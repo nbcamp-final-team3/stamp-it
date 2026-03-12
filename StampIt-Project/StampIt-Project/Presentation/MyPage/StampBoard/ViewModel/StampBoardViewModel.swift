@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import RxRelay
+import RxCocoa
 
 final class StampBoardViewModel: ViewModelProtocol {
     
@@ -16,29 +17,36 @@ final class StampBoardViewModel: ViewModelProtocol {
     private let myPageUseCase: MyPageUseCaseProtocol
     
     // MARK: - Action & State
-    
+
     enum Action {
         case viewDidLoad
-        case tabButtonTapped(TabType)
-        case updateStamps([[StampBoardStamp]])
     }
-    
+
     struct State {
         let user = BehaviorRelay<User?>(value: nil)
-        let stampsByPage = BehaviorRelay<[[StampBoardStamp]]>(
-            value: StampUtil.initialize()
-        )
-        let tabType = BehaviorRelay<TabType>(value: .stampBoard)
-        let stampSummary = BehaviorRelay<(collected: Int, completed: Int)>(value: (.zero, .zero))
+        let currentRealIdRelay = BehaviorRelay<Set<StampCellIdentity>>(value: .init())
+        let appearanceCache = BehaviorRelay<[StampCellIdentity: StampCellAppearance]>(value: .init())
     }
-    
+
+    // MARK: - Input & Output
+
+    struct Input {
+        let viewDidLoad: Signal<Void>
+    }
+
+    struct Output {
+        let viewState: Driver<StampBoardViewState>
+        let reconfigureID: Driver<[StampCellIdentity]>
+        let appearanceCache: Driver<[StampCellIdentity: StampCellAppearance]>
+    }
+
     // MARK: - Properties
     
     let disposeBag = DisposeBag()
     let action = PublishRelay<Action>()
     var state = State()
-    
-    private var lastCheckedAt: Date = .init()
+
+    private var isInitialBoardLoaded: Bool = false
 
     // MARK: - Initializer, Deinit, requiered
     
@@ -46,139 +54,207 @@ final class StampBoardViewModel: ViewModelProtocol {
         self.myPageUseCase = myPageUseCase
         bindAction()
     }
-    
-    // MARK: - Bind
-    
-    private func bindAction() {
-        action
-            .subscribe(with: self) { owner, action in
-                switch action {
-                case .viewDidLoad:
-                    owner.bindUser()
-                case .tabButtonTapped(let type):
-                    owner.state.tabType.accept(type)
-                case .updateStamps(let stamps):
-                    owner.state.stampsByPage.accept(stamps)
-                }
-            }.disposed(by: disposeBag)
+
+    // MARK: - External Interface
+
+    func transform(from input: Input) -> Output {
+        input.viewDidLoad
+            .map { Action.viewDidLoad }
+            .emit(to: action)
+            .disposed(by: disposeBag)
+
+        let user: Driver<User> = state.user
+            .compactMap { $0 }
+            .take(1)
+            .asDriver(onErrorDriveWith: .empty())
+
+        let stampCount: Driver<Int> = user
+            .flatMap { [unowned self] user in
+                observeStampCount(userID: user.userID)
+                    .asDriver(onErrorDriveWith: .empty())
+            }
+            .distinctUntilChanged()
+
+        let viewState: Driver<StampBoardViewState> = user
+            .map { $0.userID }
+            .flatMapLatest { [unowned self] id in
+                makeViewStateDriver(id, stampCount.asObservable())
+            }
+            .asDriver(onErrorDriveWith: .empty())
+
+        let reconfigureOn = startHighlightAnimation()
+            .share(replay: 1, scope: .whileConnected)
+
+        let reconfigureOff = endHighlightAnimation(reconfigureOn)
+            .share(replay: 1, scope: .whileConnected)
+
+        let reconfigureID: Driver<[StampCellIdentity]> = Observable
+            .merge(reconfigureOn, reconfigureOff)
+            .map { Array(Set($0)) }
+            .asDriver(onErrorDriveWith: .empty())
+
+        let appearanceCache = state.appearanceCache.asDriver(onErrorDriveWith: .empty())
+
+        return Output(
+            viewState: viewState,
+            reconfigureID: reconfigureID,
+            appearanceCache: appearanceCache
+        )
     }
-    
+
+    // MARK: - Bind
+
+    private func bindAction() {
+        action.subscribe(with: self) { owner, action in
+            switch action {
+            case .viewDidLoad:
+                owner.bindUser()
+            }
+        }.disposed(by: disposeBag)
+    }
+
     private func bindUser() {
         myPageUseCase.fetchUser()
             .observe(on: MainScheduler.instance)
             .subscribe(with: self) { owner, user in
                 owner.state.user.accept(user)
-                owner.bindStampSummaryData()
             }.disposed(by: disposeBag)
     }
-    
-    private func bindStampSummaryData() {
-        guard let user = state.user.value else { return }
-        
-        /// stampSummary, stamps 가 동시에 변경
-        myPageUseCase.observeStampCount(userId: user.userID)
-            .flatMapLatest { [weak self] count -> Observable<(Int, [[StampBoardStamp]])> in
-                guard let self else { return .empty() }
-                
-                let completedBoard = Int(count / Stamp.totalStamp)
-                let currentPinNumber = completedBoard + 1
 
-                if count == 0 { lastCheckedAt = .init() }
-                
-                let minPage = currentPinNumber > StampBoard.totalPage ? currentPinNumber - StampBoard.totalPage + 1 : 1
+    // MARK: - ViewState Stream Builder
 
-                var pinNumbers: [Int] = .init()
-                
-                /// pinNumber 기준 : Firestore pinNumber
-                for pinNumber in stride(
-                    from: currentPinNumber,
-                    through: minPage,
-                    by: -1
-                ) {
-                    pinNumbers.append(pinNumber)
-                }
-                
-                /// pinNumber 로 페이지 별 모든 스티커 읽기
-                let stampObservables = pinNumbers.map { pinNumber in
-                    self.myPageUseCase.fetchStampsByPin(
-                        userId: user.userID,
-                        pinNumber: pinNumber
-                    )
-                }
-                
-                /// 순서에 맞게 페이지 별 스티커 배열 생성
-                return Observable.combineLatest(stampObservables)
-                    .map { [weak self] stampLists in
-                        guard let self else { return (.init(), .init()) }
-                        
-                        var formattedStamps: [[StampBoardStamp]] = .init()
-                        for (page, stamps) in stampLists.enumerated() {
-                            /// 페이지에 맞게 스티커 색상 지정
-                            formattedStamps.append(
-                                stamps.enumerated().map { (index, stamp) in
-                                    StampBoardStamp.map(
-                                        stamp,
-                                        type: StampType.from(page),
-                                        lastCheckedAt: self.lastCheckedAt,
-                                    )
-                                }
-                            )
-                        }
-                        return (count, formattedStamps)
-                    }
-            }
-            .observe(on: MainScheduler.instance)
-            .subscribe(with: self)  { owner, result in
-                let (count, stamps) = result
-                
-                let totalStamp = Stamp.totalStamp
-                let collectedStamp = Int(count % totalStamp)
-                let completedBoard = Int(count / totalStamp)
-                
-                /// stampSummary 업데이트
-                owner.state.stampSummary.accept((
-                    collected: collectedStamp,
-                    completed: completedBoard
-                ))
-                
-                /// Zigzag 변환후 stamps 업데이트
-                owner.updateStampZigzag(stamps)
-            }.disposed(by: disposeBag)
-    }
-    
-    private func updateStampZigzag(_ stampLists: [[StampBoardStamp]]) {
-        let zigzagged: [[StampBoardStamp]] = stampLists
-            .map { stamps in
-                /// createdAt 오름차순 기준 정렬
-                let ordered = stamps
-                    .sorted { $0.createdAt < $1.createdAt }
-                
-                return StampUtil.makeZigzagOrder(
-                    from: ordered,
-                    columns: StampBoardSection.column,
-                    pinNumber: state.stampSummary.value.completed
+    private func makeViewStateDriver(
+        _ userID: String,
+        _ stampCount: Observable<Int>
+    ) -> Driver<StampBoardViewState> {
+        let summary = observeStampSummary(stampCount)
+        let stamps = observeStamps(by: stampCount, userID)
+
+        stamps
+            .map { [weak self] stamps -> [StampCellIdentity: StampCellAppearance] in
+                guard let self else { return .init() }
+                return StampUtil.makeBoardAppearance(
+                    with: stamps,
+                    cache: state.appearanceCache.value,
+                    isInitialBoardLoaded: isInitialBoardLoaded
                 )
             }
-        state.stampsByPage.accept(zigzagged)
-        disableBlurAfterDelay()
+            .subscribe(with: self) { owner, appearance in
+                owner.state.appearanceCache.accept(appearance)
+            }
+            .disposed(by: disposeBag)
+
+        stamps
+            .map { StampUtil.makeRealID(with: $0) }
+            .subscribe(with: self) { owner, currentRealID in
+                owner.state.currentRealIdRelay.accept(currentRealID)
+            }
+            .disposed(by: disposeBag)
+
+        return Observable.combineLatest(
+            summary,
+            stamps,
+            state.appearanceCache.asObservable()
+        )
+        .map { summary, stamps, appearance in
+            StampBoardViewState(
+                collectdStamp: summary.collected,
+                completedBoard: summary.completed,
+                stampContent: StampUtil.makeBoardContent(with: stamps),
+                stampAppearance: appearance,
+                stampIdentityByPage: StampUtil.makeBoardIdentity(stamps.count)
+            )
+        }
+        .distinctUntilChanged()
+        .asDriver(onErrorDriveWith: .empty())
+        .startWith(StampUtil.makeDefaultViewState())
     }
 
-    private func disableBlurAfterDelay() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self else { return }
+    private func observeStampCount(userID: String) -> Observable<Int> {
+        myPageUseCase.observeStampCount(userId: userID)
+            .distinctUntilChanged()
+            .share(replay: 1, scope: .whileConnected)
+    }
 
-            let updated = self.state.stampsByPage.value.map { section in
-                section.map { stamp in
-                    if stamp.shouldBlur {
-                        var newStamp = stamp
-                        newStamp.shouldBlur = false
-                        return newStamp
-                    }
-                    return stamp
-                }
-            }
-
-            self.state.stampsByPage.accept(updated)
+    private func observeStampSummary(
+        _ stampCount: Observable<Int>
+    ) -> Observable<(collected: Int, completed: Int)> {
+        let summary = stampCount.map { count -> (collected: Int, completed: Int) in
+            let total = Stamp.totalStamp
+            return (count % total, count / total)
         }
+            .distinctUntilChanged {
+                ($0.collected == $1.collected) && ($0.completed == $1.completed)
+            }
+            .share(replay: 1, scope: .whileConnected)
+        return summary
+    }
+
+    private func observeStamps(
+        by stampCount: Observable<Int>,
+        _ userID: String
+    ) -> Observable<[[StampBoardStamp]]> {
+        stampCount
+            .distinctUntilChanged()
+            .debounce(.milliseconds(120), scheduler: MainScheduler.instance)
+            .map { count -> [Int] in
+                let completed = count / Stamp.totalStamp
+                let currentPage = completed + 1
+                let lastPage = max(1, currentPage - StampBoard.totalPage + 1)
+                return Array(stride(from: lastPage, through: currentPage, by: 1))
+            }
+            .flatMapLatest { [weak self] pages -> Observable<[[StampBoardStamp]]> in
+                guard let self else { return .empty() }
+                let stampObservables: [Observable<[StampBoardStamp]>] = pages
+                    .map { self.myPageUseCase.fetchStampsByPage(userId: userID, page: $0) }
+                return Observable.combineLatest(stampObservables)
+            }
+    }
+
+    private func startHighlightAnimation() -> Observable<[StampCellIdentity]> {
+            state.currentRealIdRelay
+                .skip(1)
+                .scan(
+                    (prevIDs: Set<StampCellIdentity>(), addedIDs: [StampCellIdentity]())
+                ) { accumulator, currentIDs in
+                    let addedIDs = Array(currentIDs.subtracting(accumulator.prevIDs))
+                    return (prevIDs: currentIDs, addedIDs: addedIDs)
+                }
+                .map { $0.addedIDs }
+                .map { [weak self] addedIDs -> [StampCellIdentity] in
+                    guard let self else { return .init() }
+
+                    /// 초기 1회 스킵 : 하이라이팅 애니메이션 실행 안함
+                    if !isInitialBoardLoaded {
+                        isInitialBoardLoaded = true
+                        return []
+                    }
+                    return addedIDs
+                }
+        }
+
+    private func endHighlightAnimation(
+        _ reconfigureIDs: Observable<[StampCellIdentity]>
+    ) -> Observable<[StampCellIdentity]> {
+        reconfigureIDs
+            .flatMap { addedIDs -> Observable<[StampCellIdentity]> in
+                /// [ID] -> ID 하나씩
+                Observable.from(addedIDs)
+                    .flatMap { id -> Observable<[StampCellIdentity]> in
+                        /// 각 ID 마다 개별 3초 타이머
+                        Observable.just(id)
+                            .delay(.seconds(3), scheduler: MainScheduler.instance)
+                            .do { [weak self] id in
+                                guard let self else { return }
+                                var cache = state.appearanceCache.value
+                                if var newAppearance = cache[id] {
+                                    newAppearance.isHighlighted = true
+                                    cache[id] = newAppearance
+                                    state.appearanceCache.accept(cache)
+                                }
+                            }
+                            .map { [$0] }
+                    }
+            }
     }
 }

@@ -1,5 +1,5 @@
 //
-//  StampUI.swift
+//  StampBoardStamp.swift
 //  StampIt-Project
 //
 //  Created by kingj on 6/30/25.
@@ -7,31 +7,32 @@
 
 import Foundation
 
+// MARK: - Stamp 상태
+
 struct StampBoardStamp: Hashable {
     let userID: String
     let stampID: String
     let groupID: String
     let month: String
-    let type: StampType
-    let pinNumber: Int
     let createdAt: Date
     let missionID: String
     let maxStamps: Int
     let assignedBy: String
-    var zigzagIndex: Int
-    var shouldBlur: Bool
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(stampID)
-        hasher.combine(type)
-        hasher.combine(zigzagIndex)
-    }
-    
-    static func == (lhs: StampBoardStamp, rhs: StampBoardStamp) -> Bool {
-        lhs.stampID == rhs.stampID &&
-        lhs.type == rhs.type &&
-        lhs.zigzagIndex == rhs.zigzagIndex
-    }
+}
+
+// MARK: - Stamp 표현
+
+struct StampCellAppearance: Hashable {
+    var color: StampType
+    var isHighlighted: Bool
+}
+
+struct StampBoardViewState: Hashable {
+    let collectdStamp: Int
+    let completedBoard: Int
+    let stampContent: [StampCellIdentity: StampCellContent]
+    let stampAppearance: [StampCellIdentity: StampCellAppearance]
+    let stampIdentityByPage: [[StampCellIdentity]]
 }
 
 // MARK: - Mapper
@@ -43,35 +44,25 @@ extension StampBoardStamp {
             stampID: stamp.stampID,
             groupID: stamp.groupID,
             month: stamp.month,
-            type: stamp.type,
-            pinNumber: stamp.pinNumber,
             createdAt: stamp.createdAt,
             missionID: stamp.missionID,
             maxStamps: stamp.maxStamps,
             assignedBy: stamp.assignedBy,
-            zigzagIndex: .zero,
-            shouldBlur: false,
         )
     }
     
     static func map(
         _ stamp: StampBoardStamp,
-        type: StampType = .gray,
-        lastCheckedAt: Date
     ) -> StampBoardStamp {
         StampBoardStamp(
             userID: stamp.userID,
             stampID: stamp.stampID,
             groupID: stamp.groupID,
             month: stamp.month,
-            type: type,
-            pinNumber: stamp.pinNumber,
             createdAt: stamp.createdAt,
             missionID: stamp.missionID,
             maxStamps: stamp.maxStamps,
             assignedBy: stamp.assignedBy,
-            zigzagIndex: .zero,
-            shouldBlur: stamp.createdAt > lastCheckedAt,
         )
     }
 }

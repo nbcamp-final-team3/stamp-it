@@ -5,13 +5,15 @@
 //  Created by kingj on 6/9/25.
 //
 
+// MARK: Section
+
 enum StampBoardSection: Int, Hashable, CaseIterable {
     case summary
-    case page
+    case board
 
     var type: [[StampCellType]] {
         switch self {
-        case .page:
+        case .board:
             return [
                 [.horizontal, .horizontal, .horizontal, .horizontal, .vertical],
                 [.both, .horizontal, .horizontal, .horizontal, .none],
@@ -27,11 +29,24 @@ enum StampBoardSection: Int, Hashable, CaseIterable {
 
 extension StampBoardSection {
     static var column: Int { 5 }
+    static var row: Int { 6 }
 }
+
+struct StampCellIdentity: Hashable {
+    let page: Int
+    let stampIndex: Int
+}
+
+enum StampCellContent: Hashable {
+    case placeholder
+    case real(StampBoardStamp)
+}
+
+// MARK: Item
 
 enum StampBoardItem: Hashable {
     case summary(collected: Int, completed: Int)
-    case stamp(StampBoardStamp)
+    case stamp(StampCellIdentity)
 }
 
 /// Dashed Line 방향 기준

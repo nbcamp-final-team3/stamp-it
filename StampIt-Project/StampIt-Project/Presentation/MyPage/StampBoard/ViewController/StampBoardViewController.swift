@@ -6,18 +6,17 @@
 //
 
 import UIKit
-import Then
 import SnapKit
 import RxSwift
-import RxRelay
+import RxCocoa
 
 final class StampBoardViewController: BaseViewController {
     
     // MARK: - Properties
     
     private var viewModel: StampBoardViewModel
+    private var viewState: StampBoardViewState?
     private let disposeBag = DisposeBag()
-    private var currentPage: Int = .zero
 
     override var screenName: String { "StampBoard" }
     
@@ -42,37 +41,46 @@ final class StampBoardViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel.action.accept(.viewDidLoad)
+        setEventStream()
         setStyle()
         setHierarchy()
         setLayout()
         setDelegate()
-        bind()
     }
     
     // MARK: - Bind
-    
-    private func bind() {
-        Observable.combineLatest(
-            viewModel.state.stampSummary,
-            viewModel.state.stampsByPage
-        )
-        .observe(on: MainScheduler.instance)
-        .bind(with: self) { owner, combined in
-            let (summary, stamps) = combined
-            owner.updateSnapshot(summary: summary, stamps: stamps)
-            
-            let page = summary.completed
-            owner.stampBoardView.footerPageRelay.accept(
-                page == .zero ? page : page + 1
-            )
-        }.disposed(by: disposeBag)
+
+    private func setEventStream() {
+        let input = StampBoardViewModel.Input(viewDidLoad: Signal.just(()))
+        let output = viewModel.transform(from: input)
+        bind(with: output)
     }
-    
+
+    private func bind(with output: StampBoardViewModel.Output) {
+        output.viewState
+            .drive(with: self) { owner, state in
+                owner.viewState = state
+                owner.stampBoardView.applyViewState(with: state)
+            }
+            .disposed(by: disposeBag)
+
+        output.reconfigureID
+            .drive(with: self) { owner, ids in
+                owner.stampBoardView.reconfigureIDs(ids)
+            }
+            .disposed(by: disposeBag)
+
+        output.appearanceCache
+            .drive(with: self) { owner, cache in
+                owner.stampBoardView.updateAppearanceCache(cache)
+            }
+            .disposed(by: disposeBag)
+    }
+
     // MARK: - Style Helper
     
     private func setStyle() {
-        view.backgroundColor = .white
+        view.backgroundColor = .clear
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
@@ -97,104 +105,34 @@ final class StampBoardViewController: BaseViewController {
     // MARK: - Delegate Helper
     
     private func setDelegate() {
-        stampBoardView.setScrollDelegate(self)
-        stampBoardView.setCollectionViewDelegate(self)
-    }
-    
-    // MARK: - Snapshot
-    
-    private func updateSnapshot(
-        summary: (collected: Int, completed: Int),
-        stamps: [[StampBoardStamp]]
-    ) {
-        let maxPage = stamps.count
-        
-        var snapshot = NSDiffableDataSourceSnapshot<StampBoardSection, StampBoardItem>()
-
-        /// Item & Section For Summary Section
-        let summaryItem: [StampBoardItem] = [
-            .summary(
-                collected: summary.collected,
-                completed: summary.completed
-            )
-        ]
-        snapshot.appendSections([.summary])
-        snapshot.appendItems(summaryItem, toSection: .summary)
-        
-        snapshot.appendSections([.page])
-        
-        /// Item & Section For StampBoard
-        for index in 0..<maxPage {
-            snapshot.appendItems(
-                stamps[index].map { .stamp($0) },
-                toSection: .page
-            )
-        }
-        
-        stampBoardView.stampBoardDataSource.apply(snapshot, animatingDifferences: false)
-        
-        stampBoardView.getCollectionView().layoutIfNeeded()
+        stampBoardView.setDelegate(self)
     }
 }
 
-extension StampBoardViewController: StampBoardScrollDelegate {
-    func didScrollToPage(_ page: Int) {
-        currentPage = page
-        
-        /// 배경색 변경
-        stampBoardView.backgroundColor = StampBoard(rawValue: page)?.background
-        stampBoardView.updateFooterPage(to: page)
-    }
-}
-
-extension StampBoardViewController: UICollectionViewDelegate {
-    func collectionView(
-        _ collectionView: UICollectionView,
-        willDisplay cell: UICollectionViewCell,
-        forItemAt indexPath: IndexPath
-    ) {
-        guard let cell = cell as? StampCell else { return }
-        
-        let stamps = viewModel.state.stampsByPage.value
-        let itemIndexInPage = indexPath.item % Stamp.totalStamp
-
-        guard stamps.indices.contains(currentPage),
-              stamps[currentPage].indices.contains(itemIndexInPage) else {
-            return
-        }
-        
-        let stamp = stamps[currentPage][itemIndexInPage]
-
-        let dashedType = StampBoardSection.page.type.flatMap { $0 }[stamp.zigzagIndex]
-        
-        cell.configureDashedLine(with: dashedType)
-        
-    }
-    
+extension StampBoardViewController: UICollectionViewDelegate {    
     func collectionView(
         _ collectionView: UICollectionView,
         didSelectItemAt indexPath: IndexPath
     ) {
-        let stampsByPage = viewModel.state.stampsByPage.value
-        
-        let itemIndexInPage = indexPath.item % Stamp.totalStamp
-        
-        let clickedStamp = stampsByPage[currentPage][itemIndexInPage]
-        let missionId = clickedStamp.missionID
+        guard let state = viewState else { return }
+        let page = stampBoardView.currentPageValue
 
-        /// Empty Stamp 는 모달뷰 띄우지 않음
-        if clickedStamp.type != .gray {
+        let stampIndex = indexPath.item % Stamp.totalStamp
+        let id = state.stampIdentityByPage[page][stampIndex]
+
+        guard let clickedStamp = state.stampContent[id],
+              let appearance = state.stampAppearance[id] else { return }
+
+        if case let .real(stamp) = clickedStamp {
             let viewModel = DIContainer.shared.makeStampInfoViewModel()
-
             let stampInfoVC = StampInfoViewController(
                 viewModel: viewModel,
-                stampType: clickedStamp.type,
+                stampType: appearance.color,
             )
             stampInfoVC.transitioningDelegate = self
             stampInfoVC.modalPresentationStyle = .custom
+            viewModel.action.accept(.load(missionId: stamp.missionID))
 
-            viewModel.action.accept(.load(missionId: missionId))
-            
             self.present(stampInfoVC, animated: true)
         }
     }
