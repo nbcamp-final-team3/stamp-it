@@ -36,14 +36,14 @@ final class ReceiveInviteViewModel: ViewModelProtocol {
     let action = PublishRelay<Action>()
     let state = State()
 
-    private let useCase: InviteUseCase
+    private let useCase: InviteUseCaseProtocol
     
     // 중복 실행 방지를 위한 플래그
     private var isProcessingInvite = false
 
     // MARK: - Init
 
-    init(useCase: InviteUseCase) {
+    init(useCase: InviteUseCaseProtocol) {
         self.useCase = useCase
         bindActions()
     }

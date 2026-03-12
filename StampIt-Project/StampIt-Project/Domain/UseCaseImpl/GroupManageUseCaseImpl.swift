@@ -9,7 +9,7 @@ import Foundation
 import RxSwift
 
 // MARK: - GroupManageUseCase Implementation
-final class GroupManageUseCaseImpl: GroupManageUseCase {
+final class GroupManageUseCaseImpl: GroupManageUseCaseProtocol {
 
     // MARK: - Properties
     private let authRepository: AuthRepositoryProtocol
@@ -65,7 +65,7 @@ final class GroupManageUseCaseImpl: GroupManageUseCase {
                     return Observable.error(GroupUseCaseError.notAuthorized)
                 }
 
-                return self.accountManageRepository.exportMember(member: member)
+                return self.groupManageRepository.leaveGroup()
             }
             .catch { [weak self] error in
                 let groupUseCaseError = self?.mapToGroupUseCaseError(error) ?? GroupUseCaseError.unknownError
@@ -101,7 +101,7 @@ final class GroupManageUseCaseImpl: GroupManageUseCase {
                         guard let self = self else { return .empty() }
 
                         // 2. 현재 그룹 탈퇴
-                        return self.accountManageRepository.leaveGroup()
+                        return self.groupManageRepository.leaveGroup()
                             .flatMap { [weak self] _ -> Observable<Void> in
                                 guard let self = self else { return .empty() }
 
@@ -215,5 +215,13 @@ final class GroupManageUseCaseImpl: GroupManageUseCase {
 
         // Manager 에러들 처리 (UserError, GroupError, MembershipError 등)
         return GroupUseCaseError.fromManagerError(error)
+    }
+
+    func leaveGroup() -> Observable<User> {
+        groupManageRepository.leaveGroup()
+    }
+
+    func getGroupMemberCount(groupId: String) -> Observable<Int> {
+        groupManageRepository.getGroupMemberCount(groupId: groupId)
     }
 }

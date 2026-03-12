@@ -12,7 +12,5 @@ import RxSwift
 protocol AccountManageUseCaseProtocol {
     func signOut() -> Observable<Void>
     func deleteAccount() -> Observable<Void>
-    func leaveGroup() -> Observable<User>
     func getCurrentUser() -> Observable<User?>
-    func getGroupMemberCount(groupId: String) -> Observable<Int>
 }

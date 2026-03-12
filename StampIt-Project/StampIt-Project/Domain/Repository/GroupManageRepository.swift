@@ -26,4 +26,8 @@ protocol GroupManageRepository {
     
     /// 멤버 정보 업데이트
     func updateMemberRole(groupId: String, userId: String, isLeader: Bool) -> Observable<Void>
+
+    func getGroupMemberCount(groupId: String) -> Observable<Int>
+
+    func leaveGroup() -> Observable<User>
 }

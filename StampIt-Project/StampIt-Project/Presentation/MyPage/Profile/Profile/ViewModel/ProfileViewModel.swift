@@ -15,9 +15,10 @@ final class ProfileViewModel: ViewModelProtocol {
     
     private let myPageUseCase: MyPageUseCaseProtocol
     private let accountManageUseCase: AccountManageUseCaseProtocol
-    
+    private let groupManageUseCase: GroupManageUseCaseProtocol
+
     // MARK: - Action & State
-    
+
     enum Action {
         case viewDidLoad
         case logoutButtonTapped
@@ -44,10 +45,12 @@ final class ProfileViewModel: ViewModelProtocol {
     
     init(
         myPageUseCase: MyPageUseCaseProtocol,
-        accountManageUseCase: AccountManageUseCaseProtocol
+        accountManageUseCase: AccountManageUseCaseProtocol,
+        groupManageUseCase: GroupManageUseCaseProtocol
     ) {
         self.myPageUseCase = myPageUseCase
         self.accountManageUseCase = accountManageUseCase
+        self.groupManageUseCase = groupManageUseCase
         bindAction()
     }
     
@@ -111,7 +114,7 @@ final class ProfileViewModel: ViewModelProtocol {
         }
         
         // 그룹 멤버 수를 미리 확인
-        accountManageUseCase.getGroupMemberCount(groupId: currentUser.groupID)
+        groupManageUseCase.getGroupMemberCount(groupId: currentUser.groupID)
             .observe(on: MainScheduler.instance)
             .subscribe(
                 onNext: { [weak self] memberCount in
@@ -203,7 +206,7 @@ final class ProfileViewModel: ViewModelProtocol {
     private func performLeaveGroup() {
         state.isLoading.accept(true)
         
-        accountManageUseCase.leaveGroup()
+        groupManageUseCase.leaveGroup()
             .observe(on: MainScheduler.instance)
             .subscribe(
                 onNext: { [weak self] updatedUser in

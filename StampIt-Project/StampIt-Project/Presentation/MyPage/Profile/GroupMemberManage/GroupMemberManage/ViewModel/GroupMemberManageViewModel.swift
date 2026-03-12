@@ -12,7 +12,7 @@ import RxCocoa
 final class GroupMemberManageViewModel: ViewModelProtocol {
 
     // MARK: - Dependencies
-    private let groupManageUseCase: GroupManageUseCase
+    private let groupManageUseCase: GroupManageUseCaseProtocol
     
     // MARK: - Action & State
 
@@ -54,7 +54,7 @@ final class GroupMemberManageViewModel: ViewModelProtocol {
 
     private var currentUserId: String = ""
 
-    init(groupManageUseCase: GroupManageUseCase) {
+    init(groupManageUseCase: GroupManageUseCaseProtocol) {
         self.groupManageUseCase = groupManageUseCase
         bindActions()
     }

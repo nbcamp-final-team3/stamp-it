@@ -36,18 +36,9 @@ final class AccountManageUseCase: AccountManageUseCaseProtocol {
         return accountManageRepository.deleteAccount()
     }
     
-    /// 그룹 탈퇴
-    func leaveGroup() -> Observable<User> {
-        return accountManageRepository.leaveGroup()
-    }
-    
     /// 현재 사용자 정보 조회
     func getCurrentUser() -> Observable<User?> {
         return authRepository.getCurrentUser()
     }
-    
-    /// 그룹 멤버 수 조회
-    func getGroupMemberCount(groupId: String) -> Observable<Int> {
-        return accountManageRepository.getGroupMemberCount(groupId: groupId)
-    }
+
 }
